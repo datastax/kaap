@@ -47,5 +47,7 @@ export QUARKUS_CONTAINER_IMAGE_PASSWORD=<your_dockerhub_token>
 Inside the `target/kubernetes` you can find all the generated k8s definitions.
 
 
-## Prod deployment
-TODO helm chart
+## Helm deployment
+```
+helm install  pulsar-operator helm/pulsar-operator -n mypulsar 
+```

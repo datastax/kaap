@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.nicoloboschi</groupId>
   <artifactId>pulsar-operator</artifactId>
-  <name>pulsar-operator</name>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <name>pulsar-operator</name>
   <properties>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
@@ -18,7 +16,6 @@
     <quarkus-sdk.version>4.0.0</quarkus-sdk.version>
     <quarkus.version>2.11.2.Final</quarkus.version>
   </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -35,7 +32,6 @@
       <groupId>io.quarkiverse.operatorsdk</groupId>
       <artifactId>quarkus-operator-sdk</artifactId>
     </dependency>
-    <!-- Needed to generate OLM bundle. If you're not interested in this, you can remove this dependency -->
     <dependency>
       <groupId>io.quarkiverse.operatorsdk</groupId>
       <artifactId>quarkus-operator-sdk-bundle-generator</artifactId>
@@ -45,20 +41,22 @@
       <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
       <version>${quarkus.version}</version>
     </dependency>
-
     <dependency>
-        <groupId>org.apache.pulsar</groupId>
-        <artifactId>pulsar-client-admin</artifactId>
-        <version>2.10.2</version>
+      <groupId>org.apache.pulsar</groupId>
+      <artifactId>pulsar-client-admin</artifactId>
+      <version>2.10.2</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>1.18.22</version>
     </dependency>
-
+    <dependency>
+      <groupId>io.quarkiverse.helm</groupId>
+      <artifactId>quarkus-helm</artifactId>
+      <version>0.0.5</version>
+    </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -72,14 +70,13 @@
             </goals>
           </execution>
         </executions>
-    </plugin>
-    <plugin>
-      <artifactId>maven-compiler-plugin</artifactId>
-      <version>${compiler-plugin.version}</version>
-    </plugin>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compiler-plugin.version}</version>
+      </plugin>
     </plugins>
   </build>
-
   <profiles>
     <profile>
       <id>native</id>
@@ -88,5 +85,4 @@
       </properties>
     </profile>
   </profiles>
-
 </project>

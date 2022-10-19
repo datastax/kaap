@@ -1,0 +1,4 @@
+---
+apiVersion: v1
+name: pulsar-operator
+version: 0.0.1-SNAPSHOT

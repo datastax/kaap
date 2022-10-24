@@ -34,4 +34,13 @@ rules:
       - delete
       - patch
       - update
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs:
+      - "*"
 {{- end }}

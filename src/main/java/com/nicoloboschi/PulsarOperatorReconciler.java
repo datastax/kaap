@@ -12,6 +12,7 @@ import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.common.util.ObjectMapperFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +31,11 @@ public class PulsarOperatorReconciler implements Reconciler<PulsarOperator> {
     @SneakyThrows
     public PulsarOperatorReconciler(KubernetesClient client) {
         this.client = client;
-        final MainTask task = new MainTask();
+        final PulsarOperatorConfig pulsarOperatorConfig = ObjectMapperFactory
+                .getThreadLocal().convertValue(System.getenv(), PulsarOperatorConfig.class);
+        final MainTask task = new MainTask(pulsarOperatorConfig);
         new Timer().scheduleAtFixedRate(task,
-                0, TimeUnit.SECONDS.toMillis(30));
+                0, pulsarOperatorConfig.getScaleIntervalMs());
 
 
     }
@@ -40,23 +43,19 @@ public class PulsarOperatorReconciler implements Reconciler<PulsarOperator> {
     private class MainTask extends TimerTask {
 
         private final PulsarAdmin admin;
-        private final boolean tlsEnabledWithBroker;
+        private final PulsarOperatorConfig config;
         private final Map<String, PulsarAdmin> directAdminBrokers = new HashMap<>();
 
         @SneakyThrows
-        public MainTask() {
+        public MainTask(PulsarOperatorConfig config) {
+            this.config = config;
             try {
-                // ENV injected by the configMap
-                final String brokerWebServiceURL = System.getenv("brokerWebServiceURL");
-                final String brokerWebServiceURLTLS = System.getenv("brokerWebServiceURLTLS");
-                tlsEnabledWithBroker = Boolean.parseBoolean(System.getenv("tlsEnabledWithBroker"));
-                System.out.println("brokerWebServiceURL=" + brokerWebServiceURL);
-                System.out.println("brokerWebServiceURLTLS=" + brokerWebServiceURLTLS);
-                System.out.println("tlsEnabledWithBroker=" + tlsEnabledWithBroker);
-                if (StringUtils.isBlank(brokerWebServiceURL)) {
+                System.out.println("Starting operator with config " + config);
+                if (StringUtils.isBlank(config.getBrokerWebServiceURL())) {
                     throw new IllegalArgumentException("empty brokerWebServiceURL");
                 }
-                final String url = tlsEnabledWithBroker ? brokerWebServiceURLTLS : brokerWebServiceURL;
+                final String url = config.isTlsEnabledWithBroker() ?
+                        config.getBrokerWebServiceURLTLS() : config.getBrokerWebServiceURL();
                 admin = PulsarAdmin.builder()
                         .serviceHttpUrl(url)
                         .build();
@@ -69,41 +68,57 @@ public class PulsarOperatorReconciler implements Reconciler<PulsarOperator> {
         @Override
         @SneakyThrows
         public void run() {
-            final DeploymentList list = client
-                    .apps()
-                    .deployments()
-                    .list(new ListOptionsBuilder()
-                            .withLabelSelector("component=broker")
-                            .build());
+            try {
+                final DeploymentList list = client
+                        .apps()
+                        .deployments()
+                        .list(new ListOptionsBuilder()
+                                .withLabelSelector("component=broker")
+                                .build());
 
 
-            System.out.println("Discovered " + list.getItems().size() + " broker deployments");
-            for (Deployment deployment : list.getItems()) {
-                System.out.println("Discovered broker deployment: " + deployment.getFullResourceName());
+                System.out.println("Discovered " + list.getItems().size() + " broker deployments");
+                for (Deployment deployment : list.getItems()) {
+                    System.out.println("Discovered broker deployment: "
+                            + deployment.getFullResourceName() + " " + deployment.getMetadata().getName());
+                }
+
+                final List<String> activeBrokers = new ArrayList<>();
+                for (String cluster : admin.clusters().getClusters()) {
+                    activeBrokers.addAll(admin.brokers()
+                            .getActiveBrokers(cluster));
+                }
+
+                for (String brokerAddress : activeBrokers) {
+                    final PulsarAdmin directBrokerAdmin =
+                            directAdminBrokers.computeIfAbsent(brokerAddress, new Function<String, PulsarAdmin>() {
+                                @Override
+                                @SneakyThrows
+                                public PulsarAdmin apply(String s) {
+                                    final String proto = config.isTlsEnabledWithBroker() ? "https" : "http";
+                                    return PulsarAdmin.builder()
+                                            .serviceHttpUrl(proto + "://" + brokerAddress)
+                                            .build();
+                                }
+                            });
+                    final String metricsForBroker = directBrokerAdmin.brokerStats().getMetrics();
+                    System.out.println("metrics for broker: " + brokerAddress + ": " + metricsForBroker);
+                }
+
+
+                int scaleTo;
+                if (activeBrokers.size() % 2 == 0) {
+                    scaleTo = activeBrokers.size() + 1;
+                } else {
+                    scaleTo = activeBrokers.size() - 1;
+                }
+                client.apps().deployments().withName("pulsar-broker").scale(scaleTo, false);
+                System.out.println("Scaled brokers to " + scaleTo);
+            } catch (Throwable tr) {
+                System.out.println("Error: " + tr);
+                System.out.println(tr);
+                throw new RuntimeException(tr);
             }
-
-            final List<String> activeBrokers = new ArrayList<>();
-            for (String cluster : admin.clusters().getClusters()) {
-                activeBrokers.addAll(admin.brokers()
-                        .getActiveBrokers(cluster));
-            }
-
-            for (String brokerAddress : activeBrokers) {
-                final PulsarAdmin directBrokerAdmin =
-                        directAdminBrokers.computeIfAbsent(brokerAddress, new Function<String, PulsarAdmin>() {
-                            @Override
-                            @SneakyThrows
-                            public PulsarAdmin apply(String s) {
-                                final String proto = tlsEnabledWithBroker ? "https" : "http";
-                                return PulsarAdmin.builder()
-                                        .serviceHttpUrl(proto + "://" + brokerAddress)
-                                        .build();
-                            }
-                        });
-                final String metricsForBroker = directBrokerAdmin.brokerStats().getMetrics();
-                System.out.println("metrics for broker: " + brokerAddress + ": " + metricsForBroker);
-            }
-            System.out.println("done..");
         }
     }
 

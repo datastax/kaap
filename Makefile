@@ -61,7 +61,7 @@ docker-push: ## Push docker image with the manager.
 	mvn package -Dquarkus.container-image.push=true
 
 docker-build-push: ## Push docker image with the manager.
-	mvn package -Dquarkus.container-image.push=true -Dquarkus.container-image.build=true
+	mvn clean package -Dquarkus.container-image.push=true -Dquarkus.container-image.build=true
 
 ##@ Deployment
 

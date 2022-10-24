@@ -5,6 +5,8 @@ Kubernetes operator PoC for Apache Pulsar.
 The application is written in Java 11+ and Quarkus. 
 The operator is built upon [`quarkus-operator-sdk`](#Quarkus Operator SDK).
 
+The operator logs the broker metrics and scale up or down the broker deployments every 30 seconds.
+
 ## Quarkus Operator SDK
 This library puts together several technologies:
 * Quarkus based application
@@ -49,5 +51,5 @@ Inside the `target/kubernetes` you can find all the generated k8s definitions.
 
 ## Helm deployment
 ```
-helm install  pulsar-operator helm/pulsar-operator -n mypulsar 
+helm install --set brokerWebServiceURL.configData.brokerWebServiceURL=<broker_url> pulsar-operator helm/pulsar-operator -n mypulsar 
 ```

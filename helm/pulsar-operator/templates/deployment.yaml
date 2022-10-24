@@ -1,4 +1,15 @@
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulsar-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+data:
+{{- toYaml .Values.operator.configData | nindent 4 }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,7 +49,7 @@ spec:
                   fieldPath: metadata.namespace
           envFrom:
             - configMapRef:
-                name: pulsar-proxy
+                name: pulsar-operator
           image: {{ .Values.operator.image }}
           imagePullPolicy: Always
           livenessProbe:

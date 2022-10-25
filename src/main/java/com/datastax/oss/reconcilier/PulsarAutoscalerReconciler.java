@@ -13,8 +13,6 @@ import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.admin.PulsarAdmin;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +30,6 @@ public class PulsarAutoscalerReconciler implements Reconciler<PulsarAutoscaler> 
     @SneakyThrows
     public PulsarAutoscalerReconciler(KubernetesClient client) {
         this.client = client;
-        final PulsarAutoscalerConfig pulsarOperatorConfig = ObjectMapperFactory
-                .getThreadLocal().convertValue(System.getenv(), PulsarAutoscalerConfig.class);
-
     }
 
     private class MainTask extends TimerTask {
@@ -130,10 +125,10 @@ public class PulsarAutoscalerReconciler implements Reconciler<PulsarAutoscaler> 
         } else {
             System.out.println("Creating the RC for the first time");
         }
-        final MainTask task = new MainTask(spec.getOperatorConfig());
+        final MainTask task = new MainTask(spec.getAutoscaler());
         currentTimer = new Timer();
         currentTimer.scheduleAtFixedRate(task,
-                0, spec.getOperatorConfig().getScaleIntervalMs());
+                0, spec.getAutoscaler().getScaleIntervalMs());
         resource.getStatus().setCurrentSpec(spec);
         return UpdateControl.updateStatus(resource);
     }

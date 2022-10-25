@@ -3,7 +3,7 @@
 Kubernetes operator PoC for Apache Pulsar.
 
 The application is written in Java 11+ and Quarkus. 
-The operator is built upon [`quarkus-operator-sdk`](#Quarkus Operator SDK).
+The operator is built upon the [quarkus-operator-sdk](#Quarkus Operator SDK) library.
 
 The operator watches for the autoscaler CRDs and manage their lifecycle.
 See how to install the autoscaler in the [examples](/helm/examples).

@@ -14,9 +14,6 @@ crd:
 
 operator:
   image: nicoloboschi/pulsar-operator:latest
-  configData:
-    # brokerWebServiceURL: "http://pulsar-broker.mypulsar.svc.cluster.local:8080"
-    scaleIntervalMs: "30000"
   livenessProbe:
     failureThreshold: 3
     periodSeconds: 30

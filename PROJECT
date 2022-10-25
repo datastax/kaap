@@ -1,4 +1,4 @@
-domain: com.nicoloboschi
+domain: com.datastax.oss
 layout:
 - quarkus.javaoperatorsdk.io/v1-alpha
 projectName: pulsar-operator
@@ -6,7 +6,7 @@ resources:
 - api:
     crdVersion: v1
     namespaced: true
-  domain: com.nicoloboschi
+  domain: com.datastax.oss.pulsar
   kind: PulsarOperator
   version: v1alpha1
 version: "3"

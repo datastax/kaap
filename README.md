@@ -5,7 +5,10 @@ Kubernetes operator PoC for Apache Pulsar.
 The application is written in Java 11+ and Quarkus. 
 The operator is built upon [`quarkus-operator-sdk`](#Quarkus Operator SDK).
 
-The operator logs the broker metrics and scale up or down the broker deployments every 30 seconds.
+The operator watches for the autoscaler CRDs and manage their lifecycle.
+See how to install the autoscaler in the [examples](/helm/examples).
+
+The autoscaler will scale up or down the brokers. It's just a demonstration and it is not intended to be used in any real cluster.
 
 ## Quarkus Operator SDK
 This library puts together several technologies:
@@ -16,40 +19,28 @@ This library puts together several technologies:
 * Fabric8 as Kubernetes client
 
  - [Docs](https://quarkiverse.github.io/quarkiverse-docs/quarkus-operator-sdk/dev/index.html) 
- - Github: https://github.com/quarkiverse/quarkus-operator-sdk
-
-## Pulsar configurations
-The operator will ask for the config-map `pulsar-proxy` in order to get all the info to connect to the brokers.
-Currently the authentication is not implemented.
+ - [Github](https://github.com/quarkiverse/quarkus-operator-sdk)
 
 
-## Dev deployment in a K8S cluster
-### Env setup
-1. Set current kubectl context: `kubectl config set-context <cluster>`
-2. Set K8S namespace where to deploy the operator
-```
-export QUARKUS_KUBERNETES_NAMESPACE=<pulsar_cluster_namespace>
-```
-3. Set credentials for the docker image: 
+## Autoscaler deployment
+The autoscaler requires an up and running Pulsar cluster.
+
+### Creates the operator docker image
+1. Set credentials for the docker image: 
 ```
 export QUARKUS_CONTAINER_IMAGE_GROUP=<your_dockerhub_username>
 export QUARKUS_CONTAINER_IMAGE_USERNAME=<your_dockerhub_username>
 export QUARKUS_CONTAINER_IMAGE_PASSWORD=<your_dockerhub_token>
+
+make docker-build-push
 ```
 
-### Deployment
-
-1. Compile the project with maven. `mvn package`
-2. Build and push the docker image `make docker-build-push`
-3. Deploy the generated CRDs `make install`
-4. Deploy the operator `make deploy`
-
-`make all-deploy` executes all the above steps.
-
-Inside the `target/kubernetes` you can find all the generated k8s definitions.
-
-
-## Helm deployment
+### Helm deployment
+Install the operator and the CRDs
 ```
-helm install --set brokerWebServiceURL.configData.brokerWebServiceURL=<broker_url> pulsar-operator helm/pulsar-operator -n mypulsar 
+helm install pos helm/pulsar-operator -n mypulsar
+```
+Install the autoscaler resource
+```
+kubectl -n mypulsar apply -f helm/examples/deploy.yaml 
 ```

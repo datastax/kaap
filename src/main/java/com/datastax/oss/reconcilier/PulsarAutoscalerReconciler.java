@@ -1,5 +1,6 @@
-package com.nicoloboschi;
+package com.datastax.oss.reconcilier;
 
+import com.datastax.oss.crd.PulsarAutoscaler;
 import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
@@ -20,34 +21,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsaroperatorapp")
-public class PulsarOperatorReconciler implements Reconciler<PulsarOperator> {
+public class PulsarAutoscalerReconciler implements Reconciler<PulsarAutoscaler> {
 
     private final KubernetesClient client;
+    private Timer currentTimer;
 
     @SneakyThrows
-    public PulsarOperatorReconciler(KubernetesClient client) {
+    public PulsarAutoscalerReconciler(KubernetesClient client) {
         this.client = client;
-        final PulsarOperatorConfig pulsarOperatorConfig = ObjectMapperFactory
-                .getThreadLocal().convertValue(System.getenv(), PulsarOperatorConfig.class);
-        final MainTask task = new MainTask(pulsarOperatorConfig);
-        new Timer().scheduleAtFixedRate(task,
-                0, pulsarOperatorConfig.getScaleIntervalMs());
-
+        final PulsarAutoscalerConfig pulsarOperatorConfig = ObjectMapperFactory
+                .getThreadLocal().convertValue(System.getenv(), PulsarAutoscalerConfig.class);
 
     }
 
     private class MainTask extends TimerTask {
 
         private final PulsarAdmin admin;
-        private final PulsarOperatorConfig config;
+        private final PulsarAutoscalerConfig config;
         private final Map<String, PulsarAdmin> directAdminBrokers = new HashMap<>();
 
         @SneakyThrows
-        public MainTask(PulsarOperatorConfig config) {
+        public MainTask(PulsarAutoscalerConfig config) {
             this.config = config;
             try {
                 System.out.println("Starting operator with config " + config);
@@ -122,12 +119,23 @@ public class PulsarOperatorReconciler implements Reconciler<PulsarOperator> {
         }
     }
 
-
     @Override
-    public UpdateControl<PulsarOperator> reconcile(PulsarOperator resource, Context context) {
+    public UpdateControl<PulsarAutoscaler> reconcile(PulsarAutoscaler resource, Context context) {
         System.out.println("reconcile called" + resource + context);
+        final PulsarAutoscalerSpec spec = resource.getSpec();
 
-        return UpdateControl.noUpdate();
+        if (resource.getStatus().getCurrentSpec() != null) {
+            System.out.println("Upgrading RC");
+            currentTimer.cancel();
+        } else {
+            System.out.println("Creating the RC for the first time");
+        }
+        final MainTask task = new MainTask(spec.getOperatorConfig());
+        currentTimer = new Timer();
+        currentTimer.scheduleAtFixedRate(task,
+                0, spec.getOperatorConfig().getScaleIntervalMs());
+        resource.getStatus().setCurrentSpec(spec);
+        return UpdateControl.updateStatus(resource);
     }
 }
 

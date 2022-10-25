@@ -1,9 +1,9 @@
-package com.nicoloboschi;
+package com.datastax.oss.reconcilier;
 
 import lombok.Data;
 
 @Data
-public class PulsarOperatorConfig {
+public class PulsarAutoscalerConfig {
 
     private long scaleIntervalMs = 30000;
     private String brokerWebServiceURL;

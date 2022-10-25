@@ -24,8 +24,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# com.nicoloboschi/pulsar-operator-bundle:$VERSION and com.nicoloboschi/pulsar-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= com.nicoloboschi/pulsar-operator
+IMAGE_TAG_BASE ?= com.datastax.oss/pulsar-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -61,7 +60,7 @@ docker-push: ## Push docker image with the manager.
 	mvn package -Dquarkus.container-image.push=true
 
 docker-build-push: ## Push docker image with the manager.
-	mvn clean package -Dquarkus.container-image.push=true -Dquarkus.container-image.build=true
+	mvnd clean package -Dquarkus.container-image.push=true -Dquarkus.container-image.build=true
 
 ##@ Deployment
 
@@ -83,19 +82,3 @@ package:
 	mvn package
 
 all-deploy: docker-build-push install deploy
-
-
-##@Bundle
-.PHONY: bundle
-bundle:  ## Generate bundle manifests and metadata, then validate generated files.
-## marker
-	cat target/kubernetes/pulsaroperators.com.nicoloboschi-v1alpha1.yml target/kubernetes/kubernetes.yml | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
-	
-.PHONY: bundle-build
-bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
-	
-.PHONY: bundle-push
-bundle-push: ## Push the bundle image.
-	docker push $(BUNDLE_IMG)

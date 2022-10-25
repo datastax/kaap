@@ -21,11 +21,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
-      - com.nicoloboschi
+      - com.datastax.oss
     resources:
-      - pulsaroperators
+      - pulsarautoscalers
       - pulsaroperators/status
-      - pulsaroperators/finalizers
+      - pulsarautoscalers/finalizers
     verbs:
       - get
       - list

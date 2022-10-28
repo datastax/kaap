@@ -14,8 +14,11 @@ import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import lombok.extern.java.Log;
+import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
+@JBossLog
 public class PulsarClusterReconcilier implements Reconciler<PulsarCluster> {
 
     private final KubernetesClient client;
@@ -26,7 +29,8 @@ public class PulsarClusterReconcilier implements Reconciler<PulsarCluster> {
 
     @Override
     public UpdateControl<PulsarCluster> reconcile(PulsarCluster resource, Context context) {
-        System.out.println("PulsarCluster reconcile called");
+        log.infof("Zookeeper reconcilier, new spec %s, current spec %s", resource.getSpec(),
+                resource.getStatus().getCurrentSpec());
 
         final MixedOperation<ZooKeeper, KubernetesResourceList<ZooKeeper>, Resource<ZooKeeper>> zk = client
                 .customResources(ZooKeeper.class);

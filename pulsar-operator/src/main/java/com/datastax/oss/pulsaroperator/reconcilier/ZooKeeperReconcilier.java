@@ -43,6 +43,8 @@ import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.SneakyThrows;
+import lombok.extern.jbosslog.JBossLog;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +55,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-app")
+@JBossLog
 public class ZooKeeperReconcilier implements Reconciler<ZooKeeper> {
 
     private final KubernetesClient client;
@@ -64,17 +67,16 @@ public class ZooKeeperReconcilier implements Reconciler<ZooKeeper> {
 
     @Override
     public UpdateControl<ZooKeeper> reconcile(ZooKeeper resource, Context context) {
-        System.out.println("ZK reconcile called");
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperSpec spec = resource.getSpec();
-        System.out.println("ZK patch with config " + spec);
-        System.out.println("ZK patch config was " + resource.getStatus().getCurrentSpec());
-        System.out.println("Status: " + resource.getStatus().getCurrentSpec());
+
+        log.infof("Zookeeper reconcilier, new spec %s, current spec %s", spec,
+                resource.getStatus().getCurrentSpec());
         // TODO: handle immutable fields with proper methods (replicas for example)
         if (resource.getStatus().getCurrentSpec() != null) {
             client.apps().statefulSets().withName(spec.getClusterSpec().getFullname() + "-" + spec.getComponent())
                     .delete();
-            System.out.println("Old stateful set deleted");
+            log.info("Old stateful set deleted");
         }
         createConfigMap(namespace, spec);
         createStatefulSet(namespace, spec);
@@ -419,10 +421,12 @@ public class ZooKeeperReconcilier implements Reconciler<ZooKeeper> {
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
-        try {
-            System.out.println("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        if (log.isDebugEnabled()) {
+            try {
+                log.debugf("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
 
         client.resource(statefulSet).inNamespace(namespace).createOrReplace();

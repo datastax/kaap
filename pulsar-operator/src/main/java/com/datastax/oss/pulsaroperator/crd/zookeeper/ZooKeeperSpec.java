@@ -53,7 +53,6 @@ public class ZooKeeperSpec {
 
     }
 
-    private PulsarClusterSpec.ClusterSpec clusterSpec;
     @Builder.Default
     private String component = "zookeeper";
     @Builder.Default

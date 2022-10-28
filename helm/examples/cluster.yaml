@@ -3,7 +3,7 @@ kind: PulsarCluster
 metadata:
   name: pulsar-cluster
 spec:
-  cluster:
+  global:
     name: pulsar
     fullname: pulsar
     restartOnConfigMapChange: false

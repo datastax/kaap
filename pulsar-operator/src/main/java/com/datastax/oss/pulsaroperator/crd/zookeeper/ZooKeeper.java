@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Singular("zookeeper")
 @Plural("zookeepers")
 @ShortNames({"zk"})
-public class ZooKeeper extends CustomResource<ZooKeeperSpec, ZooKeeperStatus> implements Namespaced {
+public class ZooKeeper extends CustomResource<ZooKeeperFullSpec, ZooKeeperStatus> implements Namespaced {
     @Override
     protected ZooKeeperStatus initStatus() {
         return new ZooKeeperStatus();

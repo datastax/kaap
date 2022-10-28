@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ZooKeeperStatus {
 
-    private ZooKeeperSpec currentSpec;
+    private ZooKeeperFullSpec currentSpec;
 }

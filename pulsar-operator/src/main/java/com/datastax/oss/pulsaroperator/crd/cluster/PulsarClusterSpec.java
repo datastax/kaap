@@ -1,13 +1,11 @@
 package com.datastax.oss.pulsaroperator.crd.cluster;
 
+import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperSpec;
-import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -15,72 +13,7 @@ import java.util.Map;
 @Builder
 public class PulsarClusterSpec {
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class ClusterSpec {
-
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class AntiAffinityConfig {
-            AntiAffinityHostConfig host = new AntiAffinityHostConfig();
-            AntiAffinityZoneConfig zone = new AntiAffinityZoneConfig();
-        }
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class AntiAffinityHostConfig {
-            boolean enabled = true;
-            String mode = "required";
-        }
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class AntiAffinityZoneConfig {
-            boolean enabled = false;
-        }
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class TlsConfig {
-            TlsEntryConfig zookeeper = new TlsEntryConfig();
-        }
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class TlsEntryConfig {
-            boolean enabled;
-            String tlsSecretName;
-        }
-
-
-        private String name;
-        private String fullname;
-        private boolean restartOnConfigMapChange;
-        private PodDNSConfig dnsConfig;
-        private boolean priorityClass;
-        private Map<String, String> globalNodeSelectors;
-        private boolean enableAntiAffinity;
-        private AntiAffinityConfig antiAffinity;
-        private boolean enableTls;
-        private TlsConfig tls = new TlsConfig();
-        private boolean persistence;
-
-    }
-
-    private ClusterSpec cluster;
+    private GlobalSpec global;
     private ZooKeeperSpec zookeeper;
 
 }

@@ -45,7 +45,7 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                 metadata:
                   name: pulsar-cluster
                 spec:
-                  cluster:
+                  global:
                     name: pulsar
                     fullname: pulsar
                     restartOnConfigMapChange: false

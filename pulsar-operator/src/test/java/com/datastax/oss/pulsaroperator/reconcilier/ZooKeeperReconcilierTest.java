@@ -2,8 +2,9 @@ package com.datastax.oss.pulsaroperator.reconcilier;
 
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crd.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeper;
+import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
@@ -36,13 +37,13 @@ public class ZooKeeperReconcilierTest {
         meta.setName(CLUSTER_FULLNAME + "-cr");
         meta.setNamespace(NAMESPACE);
         zooKeeper.setMetadata(meta);
-        zooKeeper.setSpec(ZooKeeperSpec.builder()
-                        .clusterSpec(PulsarClusterSpec.ClusterSpec.builder()
-                                .fullname(CLUSTER_FULLNAME)
-                                .name("mypulsar")
-                                .persistence(true)
-                                .enableTls(false)
-                                .build())
+        final GlobalSpec global = GlobalSpec.builder()
+                .fullname(CLUSTER_FULLNAME)
+                .name("mypulsar")
+                .persistence(true)
+                .enableTls(false)
+                .build();
+        final ZooKeeperSpec zkSpec = ZooKeeperSpec.builder()
                 .config(Map.of("zkconfig", "zkconfigvalue"))
                 .annotations(Map.of("ann1", "ann1value"))
                 .containerImage("apachepulsar/pulsar:2.10.2")
@@ -67,6 +68,10 @@ public class ZooKeeperReconcilierTest {
                                 .withPort(2181)
                                 .build())).build())
 
+                .build();
+        zooKeeper.setSpec(ZooKeeperFullSpec.builder()
+                        .global(global)
+                        .zookeeper(zkSpec)
                 .build());
 
         final UpdateControl<ZooKeeper> result = reconcilier.reconcile(zooKeeper, mock(Context.class));

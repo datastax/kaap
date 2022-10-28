@@ -1,6 +1,5 @@
-package com.datastax.oss.reconcilier;
+package com.datastax.oss.pulsaroperator.reconcilier;
 
-import com.datastax.oss.reconcilier.PulsarAutoscalerSpec;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

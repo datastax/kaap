@@ -1,6 +1,6 @@
-package com.datastax.oss.reconcilier;
+package com.datastax.oss.pulsaroperator.reconcilier;
 
-import com.datastax.oss.crd.PulsarAutoscaler;
+import com.datastax.oss.pulsaroperator.crd.PulsarAutoscaler;
 import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
@@ -21,7 +21,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Function;
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsaroperatorapp")
+@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-autoscaler-app")
 public class PulsarAutoscalerReconciler implements Reconciler<PulsarAutoscaler> {
 
     private final KubernetesClient client;
@@ -116,7 +116,7 @@ public class PulsarAutoscalerReconciler implements Reconciler<PulsarAutoscaler> 
 
     @Override
     public UpdateControl<PulsarAutoscaler> reconcile(PulsarAutoscaler resource, Context context) {
-        System.out.println("reconcile called" + resource + context);
+        System.out.println("reconcile called" + resource + context + " modified");
         final PulsarAutoscalerSpec spec = resource.getSpec();
 
         if (resource.getStatus().getCurrentSpec() != null) {
@@ -127,8 +127,8 @@ public class PulsarAutoscalerReconciler implements Reconciler<PulsarAutoscaler> 
         }
         final MainTask task = new MainTask(spec.getAutoscaler());
         currentTimer = new Timer();
-        currentTimer.scheduleAtFixedRate(task,
-                0, spec.getAutoscaler().getScaleIntervalMs());
+        /*currentTimer.scheduleAtFixedRate(task,
+                0, spec.getAutoscaler().getScaleIntervalMs());*/
         resource.getStatus().setCurrentSpec(spec);
         return UpdateControl.updateStatus(resource);
     }

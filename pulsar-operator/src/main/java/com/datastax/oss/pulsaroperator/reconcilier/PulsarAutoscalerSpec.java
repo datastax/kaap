@@ -1,4 +1,4 @@
-package com.datastax.oss.reconcilier;
+package com.datastax.oss.pulsaroperator.reconcilier;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

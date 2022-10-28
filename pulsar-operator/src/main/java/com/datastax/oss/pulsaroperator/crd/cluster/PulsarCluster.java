@@ -1,7 +1,5 @@
-package com.datastax.oss.crd;
+package com.datastax.oss.pulsaroperator.crd.cluster;
 
-import com.datastax.oss.reconcilier.PulsarAutoscalerSpec;
-import com.datastax.oss.reconcilier.PulsarAutoscalerStatus;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
@@ -13,14 +11,14 @@ import io.fabric8.kubernetes.model.annotation.Version;
 
 @Version("v1alpha1")
 @Group("com.datastax.oss")
-@Kind("PulsarAutoscaler")
-@Singular("pulsarautoscaler")
-@Plural("pulsarautoscalers")
-@ShortNames({"pas"})
-public class PulsarAutoscaler extends CustomResource<PulsarAutoscalerSpec, PulsarAutoscalerStatus> implements Namespaced {
+@Kind("PulsarCluster")
+@Singular("pulsarcluster")
+@Plural("pulsarclusters")
+@ShortNames({"pulsar"})
+public class PulsarCluster extends CustomResource<PulsarClusterSpec, PulsarClusterStatus> implements Namespaced {
     @Override
-    protected PulsarAutoscalerStatus initStatus() {
-        return new PulsarAutoscalerStatus();
+    protected PulsarClusterStatus initStatus() {
+        return new PulsarClusterStatus();
     }
 }
 

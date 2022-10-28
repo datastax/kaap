@@ -31,72 +31,6 @@ spec:
                             type: integer
                         type: object
                     type: object
-                  clusterSpec:
-                    properties:
-                      antiAffinity:
-                        properties:
-                          zone:
-                            properties:
-                              enabled:
-                                type: boolean
-                            type: object
-                          host:
-                            properties:
-                              enabled:
-                                type: boolean
-                              mode:
-                                type: string
-                            type: object
-                        type: object
-                      restartOnConfigMapChange:
-                        type: boolean
-                      enableAntiAffinity:
-                        type: boolean
-                      globalNodeSelectors:
-                        additionalProperties:
-                          type: string
-                        type: object
-                      tls:
-                        properties:
-                          zookeeper:
-                            properties:
-                              enabled:
-                                type: boolean
-                              tlsSecretName:
-                                type: string
-                            type: object
-                        type: object
-                      dnsConfig:
-                        properties:
-                          nameservers:
-                            items:
-                              type: string
-                            type: array
-                          searches:
-                            items:
-                              type: string
-                            type: array
-                          options:
-                            items:
-                              properties:
-                                value:
-                                  type: string
-                                name:
-                                  type: string
-                              type: object
-                            type: array
-                        type: object
-                      name:
-                        type: string
-                      enableTls:
-                        type: boolean
-                      priorityClass:
-                        type: boolean
-                      fullname:
-                        type: string
-                      persistence:
-                        type: boolean
-                    type: object
                   replicas:
                     type: integer
                   containerImage:
@@ -388,23 +322,8 @@ spec:
                   imagePullPolicy:
                     type: string
                 type: object
-              cluster:
+              global:
                 properties:
-                  antiAffinity:
-                    properties:
-                      zone:
-                        properties:
-                          enabled:
-                            type: boolean
-                        type: object
-                      host:
-                        properties:
-                          enabled:
-                            type: boolean
-                          mode:
-                            type: string
-                        type: object
-                    type: object
                   restartOnConfigMapChange:
                     type: boolean
                   enableAntiAffinity:
@@ -412,16 +331,6 @@ spec:
                   globalNodeSelectors:
                     additionalProperties:
                       type: string
-                    type: object
-                  tls:
-                    properties:
-                      zookeeper:
-                        properties:
-                          enabled:
-                            type: boolean
-                          tlsSecretName:
-                            type: string
-                        type: object
                     type: object
                   dnsConfig:
                     properties:
@@ -443,6 +352,16 @@ spec:
                           type: object
                         type: array
                     type: object
+                  tls:
+                    properties:
+                      zookeeper:
+                        properties:
+                          enabled:
+                            type: boolean
+                          tlsSecretName:
+                            type: string
+                        type: object
+                    type: object
                   name:
                     type: string
                   enableTls:
@@ -453,6 +372,21 @@ spec:
                     type: string
                   persistence:
                     type: boolean
+                  antiAffinity:
+                    properties:
+                      zone:
+                        properties:
+                          enabled:
+                            type: boolean
+                        type: object
+                      host:
+                        properties:
+                          enabled:
+                            type: boolean
+                          mode:
+                            type: string
+                        type: object
+                    type: object
                 type: object
             type: object
           status:
@@ -470,72 +404,6 @@ spec:
                               partition:
                                 type: integer
                             type: object
-                        type: object
-                      clusterSpec:
-                        properties:
-                          antiAffinity:
-                            properties:
-                              zone:
-                                properties:
-                                  enabled:
-                                    type: boolean
-                                type: object
-                              host:
-                                properties:
-                                  enabled:
-                                    type: boolean
-                                  mode:
-                                    type: string
-                                type: object
-                            type: object
-                          restartOnConfigMapChange:
-                            type: boolean
-                          enableAntiAffinity:
-                            type: boolean
-                          globalNodeSelectors:
-                            additionalProperties:
-                              type: string
-                            type: object
-                          tls:
-                            properties:
-                              zookeeper:
-                                properties:
-                                  enabled:
-                                    type: boolean
-                                  tlsSecretName:
-                                    type: string
-                                type: object
-                            type: object
-                          dnsConfig:
-                            properties:
-                              nameservers:
-                                items:
-                                  type: string
-                                type: array
-                              searches:
-                                items:
-                                  type: string
-                                type: array
-                              options:
-                                items:
-                                  properties:
-                                    value:
-                                      type: string
-                                    name:
-                                      type: string
-                                  type: object
-                                type: array
-                            type: object
-                          name:
-                            type: string
-                          enableTls:
-                            type: boolean
-                          priorityClass:
-                            type: boolean
-                          fullname:
-                            type: string
-                          persistence:
-                            type: boolean
                         type: object
                       replicas:
                         type: integer
@@ -828,23 +696,8 @@ spec:
                       imagePullPolicy:
                         type: string
                     type: object
-                  cluster:
+                  global:
                     properties:
-                      antiAffinity:
-                        properties:
-                          zone:
-                            properties:
-                              enabled:
-                                type: boolean
-                            type: object
-                          host:
-                            properties:
-                              enabled:
-                                type: boolean
-                              mode:
-                                type: string
-                            type: object
-                        type: object
                       restartOnConfigMapChange:
                         type: boolean
                       enableAntiAffinity:
@@ -852,16 +705,6 @@ spec:
                       globalNodeSelectors:
                         additionalProperties:
                           type: string
-                        type: object
-                      tls:
-                        properties:
-                          zookeeper:
-                            properties:
-                              enabled:
-                                type: boolean
-                              tlsSecretName:
-                                type: string
-                            type: object
                         type: object
                       dnsConfig:
                         properties:
@@ -883,6 +726,16 @@ spec:
                               type: object
                             type: array
                         type: object
+                      tls:
+                        properties:
+                          zookeeper:
+                            properties:
+                              enabled:
+                                type: boolean
+                              tlsSecretName:
+                                type: string
+                            type: object
+                        type: object
                       name:
                         type: string
                       enableTls:
@@ -893,6 +746,21 @@ spec:
                         type: string
                       persistence:
                         type: boolean
+                      antiAffinity:
+                        properties:
+                          zone:
+                            properties:
+                              enabled:
+                                type: boolean
+                            type: object
+                          host:
+                            properties:
+                              enabled:
+                                type: boolean
+                              mode:
+                                type: string
+                            type: object
+                        type: object
                     type: object
                 type: object
             type: object

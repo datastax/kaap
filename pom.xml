@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus-sdk.version>4.0.0</quarkus-sdk.version>
-        <quarkus.version>2.11.2.Final</quarkus.version>
+        <quarkus.version>2.13.3.Final</quarkus.version>
         <testng.version>7.4.0</testng.version>
         <mockito-core.version>4.8.0</mockito-core.version>
         <lombok.version>1.18.22</lombok.version>

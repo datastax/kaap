@@ -1,12 +1,20 @@
 package com.datastax.oss.pulsaroperator.tests;
 
+import com.dajudge.kindcontainer.helm.Helm3Container;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.jetbrains.annotations.NotNull;
+import org.testcontainers.containers.Container;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -14,6 +22,8 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
 
     @Test
     public void testCRDs() throws Exception {
+        applyRBACManifests();
+        applyOperatorManifests();
         final CustomResourceDefinitionList list = client.apiextensions().v1()
                 .customResourceDefinitions()
                 .list();
@@ -27,6 +37,8 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
 
     @Test
     public void testInstallZookeeper() throws Exception {
+        applyRBACManifests();
+        applyOperatorManifests();
         String manifest = """
                 apiVersion: com.datastax.oss/v1alpha1
                 kind: PulsarCluster
@@ -80,7 +92,22 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
         kubectlApply(manifest);
 
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            System.out.println("stateful" + client.apps().statefulSets().list().getItems());
+            log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
+            final int zk = client.pods().withLabel("component", "zookeeper").list().getItems().size();
+            Assert.assertEquals(zk, 1);
+        });
+    }
+
+    @Test
+    public void testInstallZookeeperWithHelm() throws Exception {
+        installWithHelm();
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            final int zk = client.pods().inNamespace(NAMESPACE).list().getItems().size();
+            Assert.assertEquals(zk, 1);
+        });
+        kubectlApply(getHelmExampleFilePath("cluster.yaml"));
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
             final int zk = client.pods().withLabel("component", "zookeeper").list().getItems().size();
             Assert.assertEquals(zk, 1);
         });

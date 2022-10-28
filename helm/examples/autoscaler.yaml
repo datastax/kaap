@@ -1,9 +1,0 @@
-apiVersion:  com.datastax.oss/v1alpha1
-kind: PulsarAutoscaler
-metadata:
-  name: pulsar-autoscaler
-spec:
-  autoscaler:
-    scaleIntervalMs: 50000
-    brokerWebServiceURL: "http://pulsar-broker.mypulsar.svc.cluster.local:8080"
-

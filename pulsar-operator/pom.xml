@@ -61,6 +61,26 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.0.2</version>
                 <executions>
+                    <!--resources:copy-resources@sync-crd-->
+                    <execution>
+                        <id>sync-crd</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/../helm/pulsar-operator/crds</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/kubernetes</directory>
+                                    <includes>
+                                        <include>*.com.datastax.oss*.yml</include>
+                                    </includes>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>copy-manifests</id>
                         <phase>package</phase>

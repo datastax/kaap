@@ -4,6 +4,7 @@ import com.dajudge.kindcontainer.K3sContainer;
 import com.dajudge.kindcontainer.K3sContainerVersion;
 import com.dajudge.kindcontainer.KubernetesImageSpec;
 import com.dajudge.kindcontainer.exception.ExecutionException;
+import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.dajudge.kindcontainer.kubectl.KubectlContainer;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -31,9 +32,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,7 +56,7 @@ public abstract class BaseK8sEnvironment {
             .getBoolean("pulsar.operator.tests.container.log.debug");
 
     private static final boolean DEBUG_CONTAINER_KEEP = Boolean
-            .parseBoolean(System.getProperty("pulsar.operator.tests.container.keep", "true"));
+            .parseBoolean(System.getProperty("pulsar.operator.tests.container.keep", "false"));
 
 
     protected static final String NAMESPACE = "ns";
@@ -57,9 +64,11 @@ public abstract class BaseK8sEnvironment {
     protected ReusableK3sContainer container;
     protected KubernetesClient client;
 
-    private static class ReusableK3sContainer<SELF extends ReusableK3sContainer<SELF>> extends K3sContainer<SELF> {
+    public static class ReusableK3sContainer<SELF extends ReusableK3sContainer<SELF>> extends K3sContainer<SELF> {
 
         Boolean reused;
+        private Consumer<Helm3Container> helm3ContainerConsumer;
+        private Helm3Container helm3;
 
         public ReusableK3sContainer(KubernetesImageSpec<K3sContainerVersion> imageSpec) {
             super(imageSpec);
@@ -70,6 +79,45 @@ public abstract class BaseK8sEnvironment {
         protected void containerIsStarting(InspectContainerResponse containerInfo, boolean reused) {
             this.reused = reused;
             super.containerIsStarting(containerInfo, reused);
+        }
+
+        @Override
+        protected void configure() {
+            super.configure();
+            withCommand(new String[]{
+                    "server",
+                    //"--kubelet-arg", "eviction-minimum-reclaim=imagefs.available=2%,nodefs.available=2%",
+                    //"--kubelet-arg", "eviction-hard=memory.available<500Mi,nodefs.available<10Gi",
+                    "--disable=traefik",
+                    "--tls-san=" + this.getHost(),
+                    String.format("--service-node-port-range=%d-%d", 30000, 32767)});
+        }
+
+
+        public void beforeStartHelm3(Consumer<Helm3Container> consumer) {
+            helm3ContainerConsumer = consumer;
+        }
+
+        @Override
+        public synchronized Helm3Container<?> helm3() {
+            if (this.helm3 == null) {
+                this.helm3 = (Helm3Container) (new Helm3Container(this::getInternalKubeconfig))
+                        .withNetworkMode("container:" + this.getContainerId());
+                if (helm3ContainerConsumer != null) {
+                    helm3ContainerConsumer.accept(helm3);
+                }
+                this.helm3.start();
+            }
+
+            return this.helm3;
+        }
+
+        @Override
+        public void stop() {
+            if (helm3 != null) {
+                helm3.stop();
+            }
+            super.stop();
         }
     }
 
@@ -96,55 +144,75 @@ public abstract class BaseK8sEnvironment {
         }
 
 
-
         container.start();
-        final KubectlContainer kubectl = container.kubectl();
-        kubectl.followOutput((Consumer<OutputFrame>) outputFrame -> {
-            if (DEBUG_LOG_CONTAINER) {
-                System.out.println("kubectl > " + outputFrame.getUtf8String());
-            }
-        });
+        container.kubectl().start();
 
-        if (!container.reused && containerWasNull) {
-            restoreDockerImageInK3s(OPERATOR_IMAGE);
-            restoreDockerImageInK3s(PULSAR_IMAGE);
-            kubectl.create.namespace.run(NAMESPACE);
-        } else {
-            kubectl.delete.namespace(NAMESPACE).force().ignoreNotFound().run("all", "--all");
+        final ExecutorService executorService = Executors.newFixedThreadPool(3);
+        try {
+            CompletableFuture.allOf(
+                    CompletableFuture.runAsync(new Runnable() {
+                        @Override
+                        @SneakyThrows
+                        public void run() {
+
+                            final KubectlContainer kubectl = container.kubectl();
+                            kubectl.followOutput((Consumer<OutputFrame>) outputFrame -> {
+                                if (DEBUG_LOG_CONTAINER) {
+                                    log.debug("kubectl > {}", outputFrame.getUtf8String());
+                                }
+                            });
+
+                            kubectlApply("""
+                                apiVersion: v1
+                                kind: Namespace
+                                metadata:
+                                  name: %s
+                                """.formatted(NAMESPACE));
+                            kubectl.delete.namespace(NAMESPACE).force().ignoreNotFound().run("all", "--all");
+
+                        }
+                    }, executorService),
+                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(OPERATOR_IMAGE), executorService),
+                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(PULSAR_IMAGE), executorService)
+            ).exceptionally(new Function<Throwable, Void>() {
+                @Override
+                public Void apply(Throwable throwable) {
+                    throw new RuntimeException(throwable);
+                }
+            }).join();
+        } finally {
+            executorService.shutdown();
         }
 
         if (containerWasNull) {
             container.followOutput((Consumer<OutputFrame>) outputFrame -> {
                 if (DEBUG_LOG_CONTAINER) {
-                    System.out.println("k3s > " + outputFrame.getUtf8String());
+                    log.debug("k3s > {}", outputFrame.getUtf8String());
                 }
             });
 
         }
-        applyRBACManifests();
-        applyOperatorManifests(kubectl);
-
         printDebugInfo();
         client = new DefaultKubernetesClient(Config.fromKubeconfig(container.getKubeconfig()));
     }
 
     private void printDebugInfo() throws IOException {
-        File tmpKubeConfig = File.createTempFile( "test-kubeconfig", ".yaml");
+        File tmpKubeConfig = File.createTempFile("test-kubeconfig", ".yaml");
         tmpKubeConfig.deleteOnExit();
         Files.write(tmpKubeConfig.toPath(), container.getKubeconfig().getBytes(StandardCharsets.UTF_8));
-        System.out.println("export KUBECONFIG="+tmpKubeConfig.getAbsolutePath());
+        log.info("export KUBECONFIG={}", tmpKubeConfig.getAbsolutePath());
     }
 
-    private void applyOperatorManifests(KubectlContainer kubectl) throws IOException, ExecutionException, InterruptedException {
+    protected void applyOperatorManifests() throws IOException, ExecutionException, InterruptedException {
         for (String yamlManifest : getYamlManifests()) {
-            kubectl.copyFileToContainer(MountableFile.forClasspathResource(yamlManifest),
+            container.kubectl().copyFileToContainer(MountableFile.forClasspathResource(yamlManifest),
                     yamlManifest);
-            kubectl.apply.from(yamlManifest).namespace(NAMESPACE).run();
+            container.kubectl().apply.from(yamlManifest).namespace(NAMESPACE).run();
             log.info("Applied {}", yamlManifest);
         }
     }
 
-    private void applyRBACManifests() {
+    protected void applyRBACManifests() {
         kubectlApply("""
                 apiVersion: v1
                 kind: ServiceAccount
@@ -194,31 +262,30 @@ public abstract class BaseK8sEnvironment {
 
     @SneakyThrows
     private void createAndMountImageDigest(String image) {
-
         String imageFilename;
         try {
             imageFilename = getMountedImageFilename(hostDockerClient, image);
         } catch (com.github.dockerjava.api.exception.NotFoundException notFoundException) {
-            System.out.println("image not found locally, pulling..");
+            log.info("image {} not found locally, pulling..", image);
             final String[] split = image.split(":");
             hostDockerClient.pullImageCmd(split[0])
                     .withTag(split[1])
                     .start().awaitCompletion();
+            log.info("image {} pulled", image);
             imageFilename = getMountedImageFilename(hostDockerClient, image);
         }
 
-        final Path operatorImageBinPath = Paths.get("target", imageFilename);
-        if (operatorImageBinPath.toFile().exists()) {
-            System.out.println("Local operator digest already exists, reusing it");
-
+        final Path imageBinPath = Paths.get("target", imageFilename);
+        if (imageBinPath.toFile().exists()) {
+            log.info("Local image {} digest already exists, reusing it", image);
         } else {
             long start = System.currentTimeMillis();
+            log.info("Local image {} digest not found, generating", image);
             final InputStream saved = hostDockerClient.saveImageCmd(image).exec();
-            Files.copy(saved, operatorImageBinPath, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("Saved local operator docker image in " + (System.currentTimeMillis() - start) + " ms");
+            Files.copy(saved, imageBinPath, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Local image {} digest generated in {} ms", image, (System.currentTimeMillis() - start));
         }
-        container.withFileSystemBind(operatorImageBinPath.toFile().getAbsolutePath(),"/" + imageFilename);
-        // O COPY ? container.copyFileToContainer(Transferable.of(bytes), "/pulsar-bin.bin");*/
+        container.withFileSystemBind(imageBinPath.toFile().getAbsolutePath(), "/" + imageFilename);
     }
 
     private String getMountedImageFilename(DockerClient dockerClient, String image) {
@@ -229,27 +296,42 @@ public abstract class BaseK8sEnvironment {
         return "docker-digest-" + dockerImageId + ".bin";
     }
 
-    private void restoreDockerImageInK3s(String imageName) throws IOException, InterruptedException {
-        System.out.println("Restoring docker image in k3s {}" + imageName);
+    @SneakyThrows
+    private void restoreDockerImageInK3s(String imageName) {
+        log.info("Restoring docker image {} in k3s", imageName);
         long start = System.currentTimeMillis();
         final String mountedImageFilename = getMountedImageFilename(hostDockerClient, imageName);
+        if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
+            log.info("Image {} already exists in the k3s", imageName);
+            return;
+        }
 
         final Container.ExecResult execResult = container.execInContainer("ctr", "-a", "/run/k3s/containerd/containerd.sock",
                 "image", "import", mountedImageFilename);
         if (execResult.getExitCode() != 0) {
             throw new RuntimeException("ctr images import failed: " + execResult.getStderr());
         }
-        System.out.println("Restored in " + (System.currentTimeMillis() - start));
+        log.info("Restored docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
     }
 
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
         if (!DEBUG_CONTAINER_KEEP && container != null) {
             container.close();
+            container = null;
         }
         if (client != null) {
             client.close();
+            client = null;
         }
+    }
+
+    @SneakyThrows
+    protected void kubectlApply(Path path) {
+        final String outputFilename = "/tmp/manifest" + System.nanoTime() + ".yml";
+        container.kubectl().copyFileToContainer(MountableFile.forHostPath(path),
+                outputFilename);
+        container.kubectl().apply.from(outputFilename).namespace(NAMESPACE).run();
     }
 
     @SneakyThrows
@@ -258,6 +340,31 @@ public abstract class BaseK8sEnvironment {
         container.kubectl().copyFileToContainer(Transferable.of(manifest),
                 outputFilename);
         container.kubectl().apply.from(outputFilename).namespace(NAMESPACE).run();
+    }
+
+
+    @SneakyThrows
+    protected void installWithHelm() {
+        final Path helmHome = Paths.get("..", "helm", "pulsar-operator");
+
+
+        container.beforeStartHelm3((Consumer<Helm3Container>) helm3Container -> {
+            helm3Container.withFileSystemBind(helmHome.toFile().getAbsolutePath(), "/helm-pulsar-operator");
+        });
+
+        final Helm3Container helm3Container = container.helm3();
+
+        helm3Container.execInContainer("helm", "delete", "test", "-n", NAMESPACE);
+        final String cmd = "helm install test -n " + NAMESPACE + " /helm-pulsar-operator";
+        final Container.ExecResult exec = helm3Container.execInContainer(cmd.split(" "));
+        if (exec.getExitCode() != 0) {
+            throw new RuntimeException("Helm installation failed: " + exec.getStderr());
+        }
+    }
+
+    @SneakyThrows
+    protected Path getHelmExampleFilePath(String name) {
+        return Paths.get("..", "helm", "examples", name);
     }
 
 }

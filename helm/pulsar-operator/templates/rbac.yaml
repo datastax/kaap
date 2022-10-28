@@ -1,0 +1,82 @@
+{{- if .Values.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pulsar-operator-cluster-role-admin
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups:
+      - "apiextensions.k8s.io"
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pulsar-operator-cluster-role-admin-binding
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: pulsar-operator-cluster-role-admin
+subjects:
+  - kind: ServiceAccount
+    name: pulsar-operator
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pulsar-operator-role-admin
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs:
+      - "*"
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - configmaps
+      - services
+    verbs:
+      - '*'
+  - apiGroups:
+      - "apiextensions.k8s.io"
+    resources:
+        - customresourcedefinitions
+    verbs:
+        - '*'
+  - apiGroups:
+      - com.datastax.oss
+    resources:
+        - pulsarclusters
+        - pulsarclusters/status
+        - zookeepers
+        - zookeepers/status
+    verbs:
+        - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pulsar-operator-role-admin-binding
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  apiGroup: rbac.authorization.k8s.io
+  name: pulsar-operator-role-admin
+subjects:
+  - kind: ServiceAccount
+    name: pulsar-operator
+    namespace: {{ .Release.Namespace }}
+{{- end }}

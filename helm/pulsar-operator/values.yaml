@@ -13,7 +13,8 @@ crd:
 
 
 operator:
-  image: nicoloboschi/pulsar-operator:latest
+  image: datastax/pulsar-operator:latest
+  imagePullPolicy: IfNotPresent
   livenessProbe:
     failureThreshold: 3
     periodSeconds: 30

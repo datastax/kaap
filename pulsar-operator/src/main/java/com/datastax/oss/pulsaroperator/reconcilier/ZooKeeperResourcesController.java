@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.reconcilier;
 
+import com.datastax.oss.pulsaroperator.crd.CRDConstants;
 import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,7 +40,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,7 @@ public class ZooKeeperResourcesController {
     private final String namespace;
     private final ZooKeeperSpec spec;
     private final GlobalSpec global;
+    private final String resourceName;
 
     public ZooKeeperResourcesController(KubernetesClient client, String namespace, ZooKeeperSpec spec,
                                         GlobalSpec global) {
@@ -61,6 +62,8 @@ public class ZooKeeperResourcesController {
         this.spec = spec;
         this.global = global;
         this.spec.mergeGlobalSpec(global);
+
+        resourceName = String.format("%s-%s", global.getName(), spec.getComponent());
     }
 
     public void createService() {
@@ -73,7 +76,7 @@ public class ZooKeeperResourcesController {
 
         final Service service = new ServiceBuilder()
                 .withNewMetadata()
-                .withName(global.getFullname() + "-" + spec.getComponent())
+                .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels())
                 .withAnnotations(annotations)
@@ -129,7 +132,7 @@ public class ZooKeeperResourcesController {
 
         final Service service = new ServiceBuilder()
                 .withNewMetadata()
-                .withName(global.getFullname() + "-" + spec.getComponent() + "-ca")
+                .withName(resourceName + "-ca")
                 .withNamespace(namespace)
                 .withLabels(getLabels())
                 .withAnnotations(annotations)
@@ -155,9 +158,10 @@ public class ZooKeeperResourcesController {
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
         }
+
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()
-                .withName(global.getFullname() + "-" + spec.getComponent())
+                .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
                 .withData(data)
@@ -167,15 +171,13 @@ public class ZooKeeperResourcesController {
 
     private Map<String, String> getLabels() {
         return Map.of(
-                "app", global.getName(),
-                "component", spec.getComponent(),
-                "cluster", global.getFullname()
+                CRDConstants.LABEL_APP, global.getName(),
+                CRDConstants.LABEL_COMPONENT, spec.getComponent(),
+                CRDConstants.LABEL_CLUSTER, global.getName()
         );
     }
 
     public void createStatefulSet() {
-        final String pulsarFullName = global.getFullname();
-        final String zkComponent = spec.getComponent();
         final int replicas = spec.getReplicas();
         final String podManagementPolicy = spec.getPodManagementPolicy();
 
@@ -186,22 +188,12 @@ public class ZooKeeperResourcesController {
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }
-        // TODO:  checksum/config (restartOnConfigMapChange)
-
-
         PodDNSConfig dnsConfig = global.getDnsConfig();
-        Map<String, String> nodeSelectors;
-        if (spec.getNodeSelectors() != null) {
-            nodeSelectors = spec.getNodeSelectors();
-        } else if (global.getGlobalNodeSelectors() != null) {
-            nodeSelectors = global.getGlobalNodeSelectors();
-        } else {
-            nodeSelectors = Collections.emptyMap();
-        }
+        Map<String, String> nodeSelectors = spec.getNodeSelectors();
         List<Toleration> tolerations = spec.getTolerations();
 
         NodeAffinity nodeAffinity = spec.getNodeAffinity();
-        PodAntiAffinity podAntiAffinity = getPodAntiAffinity(zkComponent);
+        PodAntiAffinity podAntiAffinity = getPodAntiAffinity();
         long gracePeriod = spec.getGracePeriod();
 
         List<Container> containers = new ArrayList<>();
@@ -211,7 +203,7 @@ public class ZooKeeperResourcesController {
 
         List<String> zkServers = new ArrayList<>();
         for (int i = 0; i < spec.getReplicas(); i++) {
-            zkServers.add(global.getFullname() + "-" + spec.getComponent() + "-" + i);
+            zkServers.add(resourceName + "-" + i);
         }
 
         final String zkConnectString = zkServers.stream().collect(Collectors.joining(","));
@@ -237,7 +229,7 @@ public class ZooKeeperResourcesController {
 
 
         final String volumeDataName = spec.getDataVolume().getName();
-        final String storageVolumeName = pulsarFullName + "-" + zkComponent + "-" + volumeDataName;
+        final String storageVolumeName = resourceName + "-" + volumeDataName;
         final String storageClassName = spec.getDataVolume().getExistingStorageClassName() != null
                 ? spec.getDataVolume().getExistingStorageClassName() :
                 storageVolumeName;
@@ -269,7 +261,7 @@ public class ZooKeeperResourcesController {
             volumes.add(
                     new VolumeBuilder()
                             .withName("certconverter")
-                            .withNewConfigMap().withName(pulsarFullName + "-certconverter-configmap")
+                            .withNewConfigMap().withName(global.getName() + "-certconverter-configmap")
                             .withDefaultMode(0755).endConfigMap()
                             .build()
             );
@@ -301,7 +293,7 @@ public class ZooKeeperResourcesController {
             volumes.add(
                     new VolumeBuilder()
                             .withName("zookeeper-config")
-                            .withNewConfigMap().withName(pulsarFullName + "-zookeeper-config").withDefaultMode(0755)
+                            .withNewConfigMap().withName(global.getName() + "-zookeeper-config").withDefaultMode(0755)
                             .endConfigMap()
                             .build()
             );
@@ -321,7 +313,7 @@ public class ZooKeeperResourcesController {
 
         containers.add(
                 new ContainerBuilder()
-                        .withName(pulsarFullName + "-" + zkComponent)
+                        .withName(resourceName)
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withResources(resources)
@@ -344,7 +336,7 @@ public class ZooKeeperResourcesController {
                         .withEnv(List.of(new EnvVarBuilder().withName("ZOOKEEPER_SERVERS").withValue(zkConnectString)
                                 .build()))
                         .withEnvFrom(List.of(new EnvFromSourceBuilder().withNewConfigMapRef()
-                                .withName(pulsarFullName + "-" + zkComponent).endConfigMapRef().build()))
+                                .withName(resourceName).endConfigMapRef().build()))
                         .withLivenessProbe(livenessProbe)
                         .withReadinessProbe(readinessProbe)
                         .withVolumeMounts(volumeMounts)
@@ -369,12 +361,12 @@ public class ZooKeeperResourcesController {
 
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
-                .withName(pulsarFullName + "-" + zkComponent)
+                .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
-                .withServiceName(pulsarFullName + "-" + zkComponent)
+                .withServiceName(resourceName)
                 .withReplicas(replicas)
                 .withNewSelector()
                 .withMatchLabels(matchLabels)
@@ -423,7 +415,7 @@ public class ZooKeeperResourcesController {
         return matchLabels;
     }
 
-    private PodAntiAffinity getPodAntiAffinity(String zkComponent) {
+    private PodAntiAffinity getPodAntiAffinity() {
         if (global.isEnableAntiAffinity()) {
             if (spec.getPodAntiAffinity() != null) {
                 return spec.getPodAntiAffinity();
@@ -438,12 +430,12 @@ public class ZooKeeperResourcesController {
                                                     new LabelSelectorRequirementBuilder()
                                                             .withKey("app")
                                                             .withOperator("In")
-                                                            .withValues(List.of(global.getFullname()))
+                                                            .withValues(List.of(global.getName()))
                                                             .build(),
                                                     new LabelSelectorRequirementBuilder()
                                                             .withKey("component")
                                                             .withOperator("In")
-                                                            .withValues(List.of(zkComponent))
+                                                            .withValues(List.of(spec.getComponent()))
                                                             .build()
 
                                             ).build())
@@ -461,12 +453,12 @@ public class ZooKeeperResourcesController {
                                                     new LabelSelectorRequirementBuilder()
                                                             .withKey("app")
                                                             .withOperator("In")
-                                                            .withValues(List.of(global.getFullname()))
+                                                            .withValues(List.of(global.getName()))
                                                             .build(),
                                                     new LabelSelectorRequirementBuilder()
                                                             .withKey("component")
                                                             .withOperator("In")
-                                                            .withValues(List.of(zkComponent))
+                                                            .withValues(List.of(spec.getComponent()))
                                                             .build()
 
                                             ).build()).endPodAffinityTerm()

@@ -6,31 +6,22 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
-import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
-import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-app")
 @JBossLog
-public class ZooKeeperReconcilier implements Reconciler<ZooKeeper> {
+public class ZooKeeperReconcilier extends AbstractReconcilier<ZooKeeper> {
 
-    private final KubernetesClient client;
-
-    @SneakyThrows
     public ZooKeeperReconcilier(KubernetesClient client) {
-        this.client = client;
+        super(client);
     }
 
     @Override
-    public UpdateControl<ZooKeeper> reconcile(ZooKeeper resource, Context context) {
+    protected UpdateControl<ZooKeeper> createResources(ZooKeeper resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperFullSpec spec = resource.getSpec();
-
-        log.infof("Zookeeper reconcilier, new spec %s, current spec %s", spec,
-                resource.getStatus().getCurrentSpec());
-
         final ZooKeeperResourcesController controller = new ZooKeeperResourcesController(
                 client, namespace, spec.getZookeeper(), spec.getGlobal());
         controller.createConfigMap();
@@ -38,7 +29,6 @@ public class ZooKeeperReconcilier implements Reconciler<ZooKeeper> {
         controller.createService();
         controller.createCaService();
 
-        resource.getStatus().setCurrentSpec(spec);
         // statefulSet
         // service
         // storageClass
@@ -46,8 +36,8 @@ public class ZooKeeperReconcilier implements Reconciler<ZooKeeper> {
         // metadata init job
         // config-map
 
-        return UpdateControl.updateStatus(resource);
+        resource.getStatus().setCurrentSpec(spec);
+        return UpdateControl.updateResource(resource);
     }
-
 }
 

@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategy;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +38,7 @@ public class ZooKeeperSpec extends BaseComponentSpec {
     @AllArgsConstructor
     @Builder
     public static class VolumeConfig {
-        private String name;
+        private String name = "data";
         private String size;
         private String storageClass;
         private String existingStorageClassName;
@@ -64,7 +65,6 @@ public class ZooKeeperSpec extends BaseComponentSpec {
     private String imagePullPolicy = "IfNotPresent";
     private StatefulSetUpdateStrategy updateStrategy;
     private Map<String, String> annotations;
-    private Map<String, String> nodeSelectors;
     private List<Toleration> tolerations;
     private NodeAffinity nodeAffinity;
     private PodAntiAffinity podAntiAffinity;
@@ -73,6 +73,7 @@ public class ZooKeeperSpec extends BaseComponentSpec {
     private boolean zookeepernp;
     @Builder.Default
     private ProbeConfig probe = new ProbeConfig();
+    @NotNull
     private VolumeConfig dataVolume;
     @Builder.Default
     private ServiceConfig service = new ServiceConfig();

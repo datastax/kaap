@@ -58,10 +58,9 @@ public class GlobalSpec {
 
 
     private String name;
-    private String fullname;
     private PodDNSConfig dnsConfig;
     private boolean priorityClass;
-    private Map<String, String> globalNodeSelectors;
+    protected Map<String, String> nodeSelectors;
     private boolean enableAntiAffinity;
     private AntiAffinityConfig antiAffinity;
     private boolean enableTls;

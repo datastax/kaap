@@ -12,31 +12,26 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
-import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
 @JBossLog
-public class PulsarClusterReconcilier implements Reconciler<PulsarCluster> {
-
-    private final KubernetesClient client;
+public class PulsarClusterReconcilier extends AbstractReconcilier<PulsarCluster> {
 
     public PulsarClusterReconcilier(KubernetesClient client) {
-        this.client = client;
+        super(client);
     }
 
     @Override
-    public UpdateControl<PulsarCluster> reconcile(PulsarCluster resource, Context context) {
-        log.infof("Pulsar cluster reconcilier, new spec %s, current spec %s", resource.getSpec(),
-                resource.getStatus().getCurrentSpec());
-
+    protected UpdateControl<PulsarCluster> createResources(PulsarCluster resource, Context<PulsarCluster> context)
+            throws Exception {
         final MixedOperation<ZooKeeper, KubernetesResourceList<ZooKeeper>, Resource<ZooKeeper>> zk = client
                 .customResources(ZooKeeper.class);
         final String currentNamespace = resource.getMetadata().getNamespace();
         final PulsarClusterSpec clusterSpec = resource.getSpec();
         ObjectMeta meta = new ObjectMeta();
-        meta.setName(clusterSpec.getGlobal().getFullname() + "-zookeeeper-cr");
+        meta.setName(clusterSpec.getGlobal().getName() + "-zookeeeper-cr");
         meta.setNamespace(currentNamespace);
 
         final ZooKeeper zooKeeper = new ZooKeeper();

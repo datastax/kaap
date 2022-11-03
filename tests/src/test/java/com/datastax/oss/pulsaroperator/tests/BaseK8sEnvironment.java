@@ -43,7 +43,7 @@ public abstract class BaseK8sEnvironment {
             "datastax/pulsar-operator:latest");
 
     protected static final String PULSAR_IMAGE = System.getProperty("pulsar.operator.tests.pulsar.image",
-            "us-central1-docker.pkg.dev/datastax-gcp-pulsar/pulsar/lunastreaming-core:latest-210");
+            "datastax/lunastreaming-core:2.10_2.3");
 
     private static final boolean DEBUG_LOG_CONTAINER = Boolean
             .getBoolean("pulsar.operator.tests.container.log.debug");

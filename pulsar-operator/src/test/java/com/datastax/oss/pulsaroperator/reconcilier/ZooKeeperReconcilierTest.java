@@ -1,6 +1,6 @@
 package com.datastax.oss.pulsaroperator.reconcilier;
 
-
+import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeper;
@@ -10,15 +10,13 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.jbosslog.JBossLog;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.List;
-import java.util.Map;
-
-import static org.mockito.Mockito.mock;
 
 @JBossLog
 public class ZooKeeperReconcilierTest {
@@ -70,8 +68,8 @@ public class ZooKeeperReconcilierTest {
 
                 .build();
         zooKeeper.setSpec(ZooKeeperFullSpec.builder()
-                        .global(global)
-                        .zookeeper(zkSpec)
+                .global(global)
+                .zookeeper(zkSpec)
                 .build());
 
         final UpdateControl<ZooKeeper> result = reconcilier.reconcile(zooKeeper, mock(Context.class));

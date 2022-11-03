@@ -33,8 +33,6 @@ spec:
                     type: object
                   replicas:
                     type: integer
-                  containerImage:
-                    type: string
                   annotations:
                     additionalProperties:
                       type: string
@@ -65,7 +63,7 @@ spec:
                     type: boolean
                   service:
                     properties:
-                      ports:
+                      additionalPorts:
                         items:
                           properties:
                             targetPort:
@@ -321,11 +319,11 @@ spec:
                     type: object
                   imagePullPolicy:
                     type: string
+                  image:
+                    type: string
                 type: object
               global:
                 properties:
-                  restartOnConfigMapChange:
-                    type: boolean
                   enableAntiAffinity:
                     type: boolean
                   globalNodeSelectors:
@@ -387,6 +385,8 @@ spec:
                             type: string
                         type: object
                     type: object
+                  image:
+                    type: string
                 type: object
             type: object
           status:
@@ -407,8 +407,6 @@ spec:
                         type: object
                       replicas:
                         type: integer
-                      containerImage:
-                        type: string
                       annotations:
                         additionalProperties:
                           type: string
@@ -439,7 +437,7 @@ spec:
                         type: boolean
                       service:
                         properties:
-                          ports:
+                          additionalPorts:
                             items:
                               properties:
                                 targetPort:
@@ -695,11 +693,11 @@ spec:
                         type: object
                       imagePullPolicy:
                         type: string
+                      image:
+                        type: string
                     type: object
                   global:
                     properties:
-                      restartOnConfigMapChange:
-                        type: boolean
                       enableAntiAffinity:
                         type: boolean
                       globalNodeSelectors:
@@ -761,6 +759,8 @@ spec:
                                 type: string
                             type: object
                         type: object
+                      image:
+                        type: string
                     type: object
                 type: object
             type: object

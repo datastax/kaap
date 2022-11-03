@@ -1,0 +1,31 @@
+name: CI - Build and tests
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 20
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Build
+        run: mvn -B -T 1C -ntp -nsu package
+
+      - name: Unit tests
+        run: mvn -B -ntp -nsu test -pl pulsar-operator
+
+      - name: Integration tests
+        run: mvn -B -ntp -nsu test -pl tests

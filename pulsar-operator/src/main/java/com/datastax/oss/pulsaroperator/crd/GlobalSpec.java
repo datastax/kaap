@@ -1,12 +1,11 @@
 package com.datastax.oss.pulsaroperator.crd;
 
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
 
 @Data
 @NoArgsConstructor

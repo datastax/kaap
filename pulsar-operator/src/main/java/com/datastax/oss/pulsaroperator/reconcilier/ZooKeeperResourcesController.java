@@ -37,8 +37,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
-import lombok.extern.jbosslog.JBossLog;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
 public class ZooKeeperResourcesController {
@@ -55,7 +54,8 @@ public class ZooKeeperResourcesController {
     private final ZooKeeperSpec spec;
     private final GlobalSpec global;
 
-    public ZooKeeperResourcesController(KubernetesClient client, String namespace, ZooKeeperSpec spec, GlobalSpec global) {
+    public ZooKeeperResourcesController(KubernetesClient client, String namespace, ZooKeeperSpec spec,
+                                        GlobalSpec global) {
         this.client = client;
         this.namespace = namespace;
         this.spec = spec;
@@ -238,8 +238,8 @@ public class ZooKeeperResourcesController {
 
         final String volumeDataName = spec.getDataVolume().getName();
         final String storageVolumeName = pulsarFullName + "-" + zkComponent + "-" + volumeDataName;
-        final String storageClassName = spec.getDataVolume().getExistingStorageClassName() != null ?
-                spec.getDataVolume().getExistingStorageClassName() :
+        final String storageClassName = spec.getDataVolume().getExistingStorageClassName() != null
+                ? spec.getDataVolume().getExistingStorageClassName() :
                 storageVolumeName;
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
@@ -261,14 +261,16 @@ public class ZooKeeperResourcesController {
             volumes.add(
                     new VolumeBuilder()
                             .withName("certs")
-                            .withNewSecret().withSecretName(global.getTls().getZookeeper().getTlsSecretName()).endSecret()
+                            .withNewSecret().withSecretName(global.getTls().getZookeeper().getTlsSecretName())
+                            .endSecret()
                             .build()
             );
 
             volumes.add(
                     new VolumeBuilder()
                             .withName("certconverter")
-                            .withNewConfigMap().withName(pulsarFullName + "-certconverter-configmap").withDefaultMode(0755).endConfigMap()
+                            .withNewConfigMap().withName(pulsarFullName + "-certconverter-configmap")
+                            .withDefaultMode(0755).endConfigMap()
                             .build()
             );
         }
@@ -299,7 +301,8 @@ public class ZooKeeperResourcesController {
             volumes.add(
                     new VolumeBuilder()
                             .withName("zookeeper-config")
-                            .withNewConfigMap().withName(pulsarFullName + "-zookeeper-config").withDefaultMode(0755).endConfigMap()
+                            .withNewConfigMap().withName(pulsarFullName + "-zookeeper-config").withDefaultMode(0755)
+                            .endConfigMap()
                             .build()
             );
         }
@@ -338,8 +341,10 @@ public class ZooKeeperResourcesController {
                                         .withContainerPort(3888)
                                         .build()
                         ))
-                        .withEnv(List.of(new EnvVarBuilder().withName("ZOOKEEPER_SERVERS").withValue(zkConnectString).build()))
-                        .withEnvFrom(List.of(new EnvFromSourceBuilder().withNewConfigMapRef().withName(pulsarFullName + "-" + zkComponent).endConfigMapRef().build()))
+                        .withEnv(List.of(new EnvVarBuilder().withName("ZOOKEEPER_SERVERS").withValue(zkConnectString)
+                                .build()))
+                        .withEnvFrom(List.of(new EnvFromSourceBuilder().withNewConfigMapRef()
+                                .withName(pulsarFullName + "-" + zkComponent).endConfigMapRef().build()))
                         .withLivenessProbe(livenessProbe)
                         .withReadinessProbe(readinessProbe)
                         .withVolumeMounts(volumeMounts)
@@ -393,7 +398,7 @@ public class ZooKeeperResourcesController {
                 .withTerminationGracePeriodSeconds(gracePeriod)
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
                 .withContainers(containers)
-                .withVolumes()
+                .withVolumes(volumes)
                 .endSpec()
                 .endTemplate()
                 .withVolumeClaimTemplates(persistentVolumeClaims)

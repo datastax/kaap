@@ -1,21 +1,13 @@
 package com.datastax.oss.pulsaroperator.tests;
 
-import com.dajudge.kindcontainer.helm.Helm3Container;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
-import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
-import org.jetbrains.annotations.NotNull;
-import org.testcontainers.containers.Container;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @Slf4j
 public class ZooKeeperTest extends BaseK8sEnvironment {
@@ -36,6 +28,7 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
     }
 
     @Test
+    @SuppressWarnings("checkstyle:linelength")
     public void testInstallZookeeper() throws Exception {
         applyRBACManifests();
         applyOperatorManifests();

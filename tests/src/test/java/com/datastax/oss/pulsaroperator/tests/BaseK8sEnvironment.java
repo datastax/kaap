@@ -7,23 +7,10 @@ import com.dajudge.kindcontainer.exception.ExecutionException;
 import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.dajudge.kindcontainer.kubectl.KubectlContainer;
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.PullResponseItem;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
-import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.output.OutputFrame;
-import org.testcontainers.images.builder.Transferable;
-import org.testcontainers.utility.MountableFile;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,16 +19,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.images.builder.Transferable;
+import org.testcontainers.utility.MountableFile;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 
 @Slf4j
 public abstract class BaseK8sEnvironment {
@@ -64,7 +57,7 @@ public abstract class BaseK8sEnvironment {
     protected ReusableK3sContainer container;
     protected KubernetesClient client;
 
-    public static class ReusableK3sContainer<SELF extends ReusableK3sContainer<SELF>> extends K3sContainer<SELF> {
+    public static class ReusableK3sContainer<T extends ReusableK3sContainer<T>> extends K3sContainer<T> {
 
         Boolean reused;
         private Consumer<Helm3Container> helm3ContainerConsumer;
@@ -136,8 +129,9 @@ public abstract class BaseK8sEnvironment {
     public void before() throws Exception {
         boolean containerWasNull = container == null;
         if (containerWasNull) {
-            final KubernetesImageSpec<K3sContainerVersion> k3sImage = new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
-                    .withImage("rancher/k3s:v1.25.3-k3s1");
+            final KubernetesImageSpec<K3sContainerVersion> k3sImage =
+                    new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
+                            .withImage("rancher/k3s:v1.25.3-k3s1");
             container = new ReusableK3sContainer(k3sImage);
             createAndMountImageDigest(OPERATOR_IMAGE);
             createAndMountImageDigest(PULSAR_IMAGE);
@@ -163,11 +157,11 @@ public abstract class BaseK8sEnvironment {
                             });
 
                             kubectlApply("""
-                                apiVersion: v1
-                                kind: Namespace
-                                metadata:
-                                  name: %s
-                                """.formatted(NAMESPACE));
+                                    apiVersion: v1
+                                    kind: Namespace
+                                    metadata:
+                                      name: %s
+                                    """.formatted(NAMESPACE));
                             kubectl.delete.namespace(NAMESPACE).force().ignoreNotFound().run("all", "--all");
 
                         }
@@ -306,8 +300,9 @@ public abstract class BaseK8sEnvironment {
             return;
         }
 
-        final Container.ExecResult execResult = container.execInContainer("ctr", "-a", "/run/k3s/containerd/containerd.sock",
-                "image", "import", mountedImageFilename);
+        final Container.ExecResult execResult =
+                container.execInContainer("ctr", "-a", "/run/k3s/containerd/containerd.sock",
+                        "image", "import", mountedImageFilename);
         if (execResult.getExitCode() != 0) {
             throw new RuntimeException("ctr images import failed: " + execResult.getStderr());
         }

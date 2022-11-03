@@ -60,6 +60,7 @@ public class ZooKeeperResourcesController {
         this.namespace = namespace;
         this.spec = spec;
         this.global = global;
+        this.spec.mergeGlobalSpec(global);
     }
 
     public void createService() {
@@ -68,18 +69,7 @@ public class ZooKeeperResourcesController {
         if (spec.getService().getAnnotations() != null) {
             annotations.putAll(spec.getService().getAnnotations());
         }
-        List<ServicePort> ports = new ArrayList<>();
-        if (global.isEnableTls() && global.getTls().getZookeeper().isEnabled()) {
-            ports.add(
-                    new ServicePortBuilder()
-                            .withName("client-tls")
-                            .withPort(2281)
-                            .build()
-            );
-        }
-        if (spec.getService().getPorts() != null) {
-            ports.addAll(spec.getService().getPorts());
-        }
+        List<ServicePort> ports = getServicePorts();
 
         final Service service = new ServiceBuilder()
                 .withNewMetadata()
@@ -99,12 +89,23 @@ public class ZooKeeperResourcesController {
         client.resource(service).inNamespace(namespace).createOrReplace();
     }
 
-    public void createCaService() {
-        Map<String, String> annotations = new HashMap<>();
-        if (spec.getService().getAnnotations() != null) {
-            annotations.putAll(spec.getService().getAnnotations());
-        }
+    private List<ServicePort> getServicePorts() {
         List<ServicePort> ports = new ArrayList<>();
+        ports.add(new ServicePortBuilder()
+                .withName("server")
+                .withPort(2888)
+                .build()
+        );
+        ports.add(new ServicePortBuilder()
+                .withName("leader-election")
+                .withPort(3888)
+                .build()
+        );
+        ports.add(new ServicePortBuilder()
+                .withName("client")
+                .withPort(2181)
+                .build()
+        );
         if (global.isEnableTls() && global.getTls().getZookeeper().isEnabled()) {
             ports.add(
                     new ServicePortBuilder()
@@ -113,9 +114,18 @@ public class ZooKeeperResourcesController {
                             .build()
             );
         }
-        if (spec.getService().getPorts() != null) {
-            ports.addAll(spec.getService().getPorts());
+        if (spec.getService().getAdditionalPorts() != null) {
+            ports.addAll(spec.getService().getAdditionalPorts());
         }
+        return ports;
+    }
+
+    public void createCaService() {
+        Map<String, String> annotations = new HashMap<>();
+        if (spec.getService().getAnnotations() != null) {
+            annotations.putAll(spec.getService().getAnnotations());
+        }
+        List<ServicePort> ports = getServicePorts();
 
         final Service service = new ServiceBuilder()
                 .withNewMetadata()
@@ -309,7 +319,7 @@ public class ZooKeeperResourcesController {
         containers.add(
                 new ContainerBuilder()
                         .withName(pulsarFullName + "-" + zkComponent)
-                        .withImage(spec.getContainerImage())
+                        .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withResources(resources)
                         .withCommand("sh", "-c")

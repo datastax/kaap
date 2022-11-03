@@ -6,7 +6,7 @@ spec:
   global:
     name: pulsar
     fullname: pulsar
-    restartOnConfigMapChange: false
+    image: datastax/lunastreaming-core:2.10_2.3
     enableTls: false
     persistence: true
   zookeeper:
@@ -19,7 +19,6 @@ spec:
       PULSAR_LOG_ROOT_LEVEL: "info"
       PULSAR_EXTRA_OPTS: "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info"
     podManagementPolicy: Parallel
-    containerImage: datastax/lunastreaming-core:2.10_2.3
     imagePullPolicy: IfNotPresent
     updateStrategy:
       type: RollingUpdate
@@ -38,15 +37,6 @@ spec:
       size: 5Gi
       # K3S storage class name https://docs.k3s.io/storage
       existingStorageClassName:  local-path
-    service:
-      ports:
-        - name: server
-          port: 2888
-        - name: leader-election
-          port: 3888
-        - name: client
-          port: 2181
-
 
 
 

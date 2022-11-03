@@ -46,7 +46,7 @@ public class ZooKeeperReconcilierTest {
         final ZooKeeperSpec zkSpec = ZooKeeperSpec.builder()
                 .config(Map.of("zkconfig", "zkconfigvalue"))
                 .annotations(Map.of("ann1", "ann1value"))
-                .containerImage("apachepulsar/pulsar:2.10.2")
+                .image("apachepulsar/pulsar:2.10.2")
                 .dataVolume(ZooKeeperSpec.VolumeConfig.builder()
                         .name("volume-name")
                         .size("1g")
@@ -63,9 +63,9 @@ public class ZooKeeperReconcilierTest {
                 .imagePullPolicy("IfNotPresent")
                 .podManagementPolicy("Parallel")
                 .service(ZooKeeperSpec.ServiceConfig.builder().
-                        ports(List.of(new ServicePortBuilder()
+                        additionalPorts(List.of(new ServicePortBuilder()
                                 .withName("port1")
-                                .withPort(2181)
+                                .withPort(2190)
                                 .build())).build())
 
                 .build();

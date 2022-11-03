@@ -1,6 +1,6 @@
 package com.datastax.oss.pulsaroperator.crd.zookeeper;
 
-import com.datastax.oss.pulsaroperator.crd.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crd.BaseComponentSpec;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,8 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ZooKeeperSpec {
+@SuperBuilder
+public class ZooKeeperSpec extends BaseComponentSpec {
 
     @Data
     @NoArgsConstructor
@@ -49,7 +50,7 @@ public class ZooKeeperSpec {
     @Builder
     public static class ServiceConfig {
         private Map<String, String> annotations;
-        private List<ServicePort> ports;
+        private List<ServicePort> additionalPorts;
 
     }
 
@@ -60,7 +61,6 @@ public class ZooKeeperSpec {
     private Map<String, String> config;
     @Builder.Default
     private String podManagementPolicy = "Parallel";
-    private String containerImage;
     @Builder.Default
     private String imagePullPolicy = "IfNotPresent";
     private StatefulSetUpdateStrategy updateStrategy;

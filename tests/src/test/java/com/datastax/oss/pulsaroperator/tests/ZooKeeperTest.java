@@ -80,14 +80,6 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                       size: 5Gi
                       # K3S storage class name https://docs.k3s.io/storage
                       existingStorageClassName:  local-path
-                    service:
-                      ports:
-                        - name: server
-                          port: 2888
-                        - name: leader-election
-                          port: 3888
-                        - name: client
-                          port: 2181
                 """.formatted(PULSAR_IMAGE);
         kubectlApply(manifest);
 

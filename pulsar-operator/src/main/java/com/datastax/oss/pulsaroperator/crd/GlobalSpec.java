@@ -60,7 +60,6 @@ public class GlobalSpec {
 
     private String name;
     private String fullname;
-    private boolean restartOnConfigMapChange;
     private PodDNSConfig dnsConfig;
     private boolean priorityClass;
     private Map<String, String> globalNodeSelectors;
@@ -69,5 +68,7 @@ public class GlobalSpec {
     private boolean enableTls;
     private TlsConfig tls = new TlsConfig();
     private boolean persistence;
+    String image;
+
 
 }

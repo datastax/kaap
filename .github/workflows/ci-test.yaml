@@ -22,7 +22,7 @@ jobs:
           java-version: 17
 
       - name: Build
-        run: mvn -B -T 1C -ntp -nsu package
+        run: mvn -B -T 1C -ntp -nsu package -DskipTests
 
       - name: Check files changed
         run: |

@@ -41,9 +41,9 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                   global:
                     name: pulsar
                     fullname: pulsar
-                    restartOnConfigMapChange: false
                     enableTls: false
                     persistence: true
+                    image: %s
                   zookeeper:
                     component: zookeeper
                     replicas: 1
@@ -54,7 +54,6 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                       PULSAR_LOG_ROOT_LEVEL: "info"
                       PULSAR_EXTRA_OPTS: "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info"
                     podManagementPolicy: Parallel
-                    containerImage: %s
                     imagePullPolicy: Never
                     updateStrategy:
                       type: RollingUpdate

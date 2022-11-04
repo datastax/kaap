@@ -1,7 +1,10 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import java.util.Map;
+import javax.validation.ConstraintValidatorContext;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GlobalSpec {
+public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefaults {
 
     @Data
     @NoArgsConstructor
@@ -57,6 +60,7 @@ public class GlobalSpec {
     }
 
 
+    @NotNull
     private String name;
     private PodDNSConfig dnsConfig;
     private boolean priorityClass;
@@ -66,7 +70,19 @@ public class GlobalSpec {
     private boolean enableTls;
     private TlsConfig tls = new TlsConfig();
     private boolean persistence;
+
+    // overridable parameters
     String image;
+    @Builder.Default
+    private String imagePullPolicy = "IfNotPresent";
 
 
+    @Override
+    public void applyDefaults(GlobalSpec globalSpec) {
+    }
+
+    @Override
+    public boolean isValid(GlobalSpec value, ConstraintValidatorContext context) {
+        return true;
+    }
 }

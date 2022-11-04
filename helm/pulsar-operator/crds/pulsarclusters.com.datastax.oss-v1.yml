@@ -31,36 +31,6 @@ spec:
                             type: integer
                         type: object
                     type: object
-                  replicas:
-                    type: integer
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    type: object
-                  dataVolume:
-                    properties:
-                      size:
-                        type: string
-                      name:
-                        type: string
-                      existingStorageClassName:
-                        type: string
-                      storageClass:
-                        type: string
-                    type: object
-                  probe:
-                    properties:
-                      initial:
-                        type: integer
-                      enabled:
-                        type: boolean
-                      period:
-                        type: integer
-                      timeout:
-                        type: integer
-                    type: object
-                  zookeepernp:
-                    type: boolean
                   service:
                     properties:
                       additionalPorts:
@@ -88,10 +58,38 @@ spec:
                           type: string
                         type: object
                     type: object
+                  replicas:
+                    type: integer
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  probe:
+                    properties:
+                      period:
+                        type: integer
+                      timeout:
+                        type: integer
+                      initial:
+                        type: integer
+                      enabled:
+                        type: boolean
+                    type: object
                   gracePeriod:
                     type: integer
                   component:
                     type: string
+                  dataVolume:
+                    properties:
+                      size:
+                        type: string
+                      name:
+                        type: string
+                      existingStorageClassName:
+                        type: string
+                      storageClass:
+                        type: string
+                    type: object
                   podManagementPolicy:
                     type: string
                   tolerations:
@@ -313,21 +311,48 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
-                  imagePullPolicy:
-                    type: string
                   image:
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
                     type: object
+                  imagePullPolicy:
+                    type: string
                 required:
+                - component
                 - dataVolume
+                - podManagementPolicy
                 type: object
               global:
                 properties:
+                  antiAffinity:
+                    properties:
+                      zone:
+                        properties:
+                          enabled:
+                            type: boolean
+                        type: object
+                      host:
+                        properties:
+                          enabled:
+                            type: boolean
+                          mode:
+                            type: string
+                        type: object
+                    type: object
                   enableAntiAffinity:
                     type: boolean
+                  tls:
+                    properties:
+                      zookeeper:
+                        properties:
+                          enabled:
+                            type: boolean
+                          tlsSecretName:
+                            type: string
+                        type: object
+                    type: object
                   dnsConfig:
                     properties:
                       nameservers:
@@ -348,16 +373,6 @@ spec:
                           type: object
                         type: array
                     type: object
-                  tls:
-                    properties:
-                      zookeeper:
-                        properties:
-                          enabled:
-                            type: boolean
-                          tlsSecretName:
-                            type: string
-                        type: object
-                    type: object
                   name:
                     type: string
                   enableTls:
@@ -368,26 +383,17 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  imagePullPolicy:
+                    type: string
                   persistence:
                     type: boolean
-                  antiAffinity:
-                    properties:
-                      zone:
-                        properties:
-                          enabled:
-                            type: boolean
-                        type: object
-                      host:
-                        properties:
-                          enabled:
-                            type: boolean
-                          mode:
-                            type: string
-                        type: object
-                    type: object
                   image:
                     type: string
+                required:
+                - name
                 type: object
+            required:
+            - zookeeper
             type: object
           status:
             properties:
@@ -405,36 +411,6 @@ spec:
                                 type: integer
                             type: object
                         type: object
-                      replicas:
-                        type: integer
-                      annotations:
-                        additionalProperties:
-                          type: string
-                        type: object
-                      dataVolume:
-                        properties:
-                          size:
-                            type: string
-                          name:
-                            type: string
-                          existingStorageClassName:
-                            type: string
-                          storageClass:
-                            type: string
-                        type: object
-                      probe:
-                        properties:
-                          initial:
-                            type: integer
-                          enabled:
-                            type: boolean
-                          period:
-                            type: integer
-                          timeout:
-                            type: integer
-                        type: object
-                      zookeepernp:
-                        type: boolean
                       service:
                         properties:
                           additionalPorts:
@@ -462,10 +438,38 @@ spec:
                               type: string
                             type: object
                         type: object
+                      replicas:
+                        type: integer
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      probe:
+                        properties:
+                          period:
+                            type: integer
+                          timeout:
+                            type: integer
+                          initial:
+                            type: integer
+                          enabled:
+                            type: boolean
+                        type: object
                       gracePeriod:
                         type: integer
                       component:
                         type: string
+                      dataVolume:
+                        properties:
+                          size:
+                            type: string
+                          name:
+                            type: string
+                          existingStorageClassName:
+                            type: string
+                          storageClass:
+                            type: string
+                        type: object
                       podManagementPolicy:
                         type: string
                       tolerations:
@@ -687,21 +691,48 @@ spec:
                         additionalProperties:
                           type: string
                         type: object
-                      imagePullPolicy:
-                        type: string
                       image:
                         type: string
                       nodeSelectors:
                         additionalProperties:
                           type: string
                         type: object
+                      imagePullPolicy:
+                        type: string
                     required:
+                    - component
                     - dataVolume
+                    - podManagementPolicy
                     type: object
                   global:
                     properties:
+                      antiAffinity:
+                        properties:
+                          zone:
+                            properties:
+                              enabled:
+                                type: boolean
+                            type: object
+                          host:
+                            properties:
+                              enabled:
+                                type: boolean
+                              mode:
+                                type: string
+                            type: object
+                        type: object
                       enableAntiAffinity:
                         type: boolean
+                      tls:
+                        properties:
+                          zookeeper:
+                            properties:
+                              enabled:
+                                type: boolean
+                              tlsSecretName:
+                                type: string
+                            type: object
+                        type: object
                       dnsConfig:
                         properties:
                           nameservers:
@@ -722,16 +753,6 @@ spec:
                               type: object
                             type: array
                         type: object
-                      tls:
-                        properties:
-                          zookeeper:
-                            properties:
-                              enabled:
-                                type: boolean
-                              tlsSecretName:
-                                type: string
-                            type: object
-                        type: object
                       name:
                         type: string
                       enableTls:
@@ -742,27 +763,20 @@ spec:
                         additionalProperties:
                           type: string
                         type: object
+                      imagePullPolicy:
+                        type: string
                       persistence:
                         type: boolean
-                      antiAffinity:
-                        properties:
-                          zone:
-                            properties:
-                              enabled:
-                                type: boolean
-                            type: object
-                          host:
-                            properties:
-                              enabled:
-                                type: boolean
-                              mode:
-                                type: string
-                            type: object
-                        type: object
                       image:
                         type: string
+                    required:
+                    - name
                     type: object
+                required:
+                - zookeeper
                 type: object
+              error:
+                type: string
             type: object
         type: object
     served: true

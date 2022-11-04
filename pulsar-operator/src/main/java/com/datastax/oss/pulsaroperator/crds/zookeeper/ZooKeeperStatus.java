@@ -1,13 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class ZooKeeperStatus {
 
-    private ZooKeeperFullSpec currentSpec;
+public class ZooKeeperStatus extends BaseComponentStatus<ZooKeeperFullSpec> {
 }

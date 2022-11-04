@@ -1,5 +1,6 @@
-package com.datastax.oss.pulsaroperator.controllers;
+package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
+import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;

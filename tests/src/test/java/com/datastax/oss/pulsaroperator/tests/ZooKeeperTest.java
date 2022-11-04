@@ -40,8 +40,6 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                 spec:
                   global:
                     name: pulsar
-                    fullname: pulsar
-                    enableTls: false
                     persistence: true
                     image: %s
                   zookeeper:
@@ -53,23 +51,12 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                       PULSAR_LOG_LEVEL: "info"
                       PULSAR_LOG_ROOT_LEVEL: "info"
                       PULSAR_EXTRA_OPTS: "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info"
-                    podManagementPolicy: Parallel
                     imagePullPolicy: Never
                     updateStrategy:
                       type: RollingUpdate
-                    probe:
-                      enabled: true
-                      initial: 20
-                      period: 30
-                      timeout: 30
-                    gracePeriod: 60
-                    resources:
-                      requests:
-                        memory: 1Gi
-                        cpu: "0.3"
                     dataVolume:
                       name: data
-                      size: 5Gi
+                      size: 100Mb
                       # K3S storage class name https://docs.k3s.io/storage
                       existingStorageClassName:  local-path
                 """.formatted(PULSAR_IMAGE);

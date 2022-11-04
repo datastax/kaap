@@ -5,12 +5,9 @@ metadata:
 spec:
   global:
     name: pulsar
-    fullname: pulsar
     image: datastax/lunastreaming-core:2.10_2.3
-    enableTls: false
     persistence: true
   zookeeper:
-    component: zookeeper
     replicas: 1
     config:
       PULSAR_MEM: "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760"
@@ -18,23 +15,9 @@ spec:
       PULSAR_LOG_LEVEL: "info"
       PULSAR_LOG_ROOT_LEVEL: "info"
       PULSAR_EXTRA_OPTS: "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info"
-    podManagementPolicy: Parallel
-    imagePullPolicy: IfNotPresent
-    updateStrategy:
-      type: RollingUpdate
-    probe:
-      enabled: true
-      initial: 20
-      period: 30
-      timeout: 30
-    gracePeriod: 60
-    resources:
-      requests:
-        memory: 1Gi
-        cpu: "0.3"
     dataVolume:
       name: data
-      size: 5Gi
+      size: 100Mb
       # K3S storage class name https://docs.k3s.io/storage
       existingStorageClassName:  local-path
 

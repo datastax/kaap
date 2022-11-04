@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.controllers;
+package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -61,7 +61,6 @@ public class ZooKeeperResourcesFactory {
         this.namespace = namespace;
         this.spec = spec;
         this.global = global;
-        this.spec.mergeGlobalSpec(global);
 
         resourceName = String.format("%s-%s", global.getName(), spec.getComponent());
     }
@@ -69,7 +68,7 @@ public class ZooKeeperResourcesFactory {
     public void createService() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("service.alpha.kubernetes.io/tolerate-unready-endpoints", "true");
-        if (spec.getService().getAnnotations() != null) {
+        if (spec.getService() != null && spec.getService().getAnnotations() != null) {
             annotations.putAll(spec.getService().getAnnotations());
         }
         List<ServicePort> ports = getServicePorts();
@@ -117,7 +116,7 @@ public class ZooKeeperResourcesFactory {
                             .build()
             );
         }
-        if (spec.getService().getAdditionalPorts() != null) {
+        if (spec.getService() != null && spec.getService().getAdditionalPorts() != null) {
             ports.addAll(spec.getService().getAdditionalPorts());
         }
         return ports;
@@ -125,7 +124,7 @@ public class ZooKeeperResourcesFactory {
 
     public void createCaService() {
         Map<String, String> annotations = new HashMap<>();
-        if (spec.getService().getAnnotations() != null) {
+        if (spec.getService() != null && spec.getService().getAnnotations() != null) {
             annotations.putAll(spec.getService().getAnnotations());
         }
         List<ServicePort> ports = getServicePorts();
@@ -179,12 +178,12 @@ public class ZooKeeperResourcesFactory {
 
     public void createStatefulSet() {
         final int replicas = spec.getReplicas();
-        final String podManagementPolicy = spec.getPodManagementPolicy();
-
 
         Map<String, String> labels = getLabels();
         Map<String, String> matchLabels = getMatchLabels();
         Map<String, String> allAnnotations = new HashMap<>();
+        allAnnotations.put("prometheus.io/scrape", "true");
+        allAnnotations.put("prometheus.io/port", "8080");
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }
@@ -199,7 +198,6 @@ public class ZooKeeperResourcesFactory {
         List<Container> containers = new ArrayList<>();
         final ResourceRequirements resources = spec.getResources();
         boolean enableTls = global.isEnableTls() && global.getTls().getZookeeper().isEnabled();
-        boolean zookeepernp = spec.isZookeepernp();
 
         List<String> zkServers = new ArrayList<>();
         for (int i = 0; i < spec.getReplicas(); i++) {
@@ -207,26 +205,8 @@ public class ZooKeeperResourcesFactory {
         }
 
         final String zkConnectString = zkServers.stream().collect(Collectors.joining(","));
-        boolean probeEnabled = spec.getProbe().isEnabled();
-        int probeTimeout = spec.getProbe().getTimeout();
-        int probeInitialDelaySeconds = spec.getProbe().getInitial();
-        int probePeriodSeconds = spec.getProbe().getPeriod();
 
-        Probe readinessProbe = probeEnabled ? new ProbeBuilder().withNewExec()
-                .withCommand("timeout", probeTimeout + "", "bin/pulsar-zookeeper-ruok.sh")
-                .endExec()
-                .withInitialDelaySeconds(probeInitialDelaySeconds)
-                .withPeriodSeconds(probePeriodSeconds)
-                .withTimeoutSeconds(probeTimeout)
-                .build() : null;
-        Probe livenessProbe = probeEnabled ? new ProbeBuilder().withNewExec()
-                .withCommand("timeout", probeTimeout + "", "bin/pulsar-zookeeper-ruok.sh")
-                .endExec()
-                .withInitialDelaySeconds(probeInitialDelaySeconds)
-                .withPeriodSeconds(probePeriodSeconds)
-                .withTimeoutSeconds(probeTimeout)
-                .build() : null;
-
+        Probe probe = createProbe();
 
         final String volumeDataName = spec.getDataVolume().getName();
         final String storageVolumeName = resourceName + "-" + volumeDataName;
@@ -283,32 +263,13 @@ public class ZooKeeperResourcesFactory {
                             .build()
             );
         }
-        if (zookeepernp) {
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName("zookeeper-config")
-                            .withMountPath("/pulsar/zookeeper-config")
-                            .build()
-            );
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName("zookeeper-config")
-                            .withNewConfigMap().withName(global.getName() + "-zookeeper-config").withDefaultMode(0755)
-                            .endConfigMap()
-                            .build()
-            );
-        }
-
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
         if (enableTls) {
             command += "/pulsar/tools/certconverter.sh && ";
         }
-        if (zookeepernp) {
-            command += "/pulsar/zookeeper-config/generate-zookeeper-config-mixed.sh conf/zookeeper.conf && ";
-        } else {
-            command += "bin/generate-zookeeper-config.sh conf/zookeeper.conf && ";
-        }
+        command += "bin/generate-zookeeper-config.sh conf/zookeeper.conf && ";
+
         command += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar zookeeper";
 
         containers.add(
@@ -337,8 +298,8 @@ public class ZooKeeperResourcesFactory {
                                 .build()))
                         .withEnvFrom(List.of(new EnvFromSourceBuilder().withNewConfigMapRef()
                                 .withName(resourceName).endConfigMapRef().build()))
-                        .withLivenessProbe(livenessProbe)
-                        .withReadinessProbe(readinessProbe)
+                        .withLivenessProbe(probe)
+                        .withReadinessProbe(probe)
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
@@ -372,7 +333,7 @@ public class ZooKeeperResourcesFactory {
                 .withMatchLabels(matchLabels)
                 .endSelector()
                 .withUpdateStrategy(spec.getUpdateStrategy())
-                .withPodManagementPolicy(podManagementPolicy)
+                .withPodManagementPolicy(spec.getPodManagementPolicy())
                 .withNewTemplate()
                 .withNewMetadata()
                 .withLabels(labels)
@@ -405,6 +366,20 @@ public class ZooKeeperResourcesFactory {
         }
 
         client.resource(statefulSet).inNamespace(namespace).createOrReplace();
+    }
+
+    private Probe createProbe() {
+        final ZooKeeperSpec.ProbeConfig specProbe = spec.getProbe();
+        if (specProbe == null) {
+            return null;
+        }
+        return new ProbeBuilder().withNewExec()
+                .withCommand("timeout", specProbe.getTimeout() + "", "bin/pulsar-zookeeper-ruok.sh")
+                .endExec()
+                .withInitialDelaySeconds(specProbe.getInitial())
+                .withPeriodSeconds(specProbe.getPeriod())
+                .withTimeoutSeconds(specProbe.getTimeout())
+                .build();
     }
 
     private Map<String, String> getMatchLabels() {

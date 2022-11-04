@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.controllers;
+package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
@@ -22,7 +22,6 @@ public class ZooKeeperControllerTest {
 
     @Test
     public void testDefaults() throws Exception {
-        final MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         String spec = """
                 global:
                     name: pulsarname
@@ -35,8 +34,7 @@ public class ZooKeeperControllerTest {
                         storageClass: default
                 """;
 
-        invokeReconcilier(client, spec);
-
+        final MockKubernetesClient client = invokeController(spec);
 
         final MockKubernetesClient.ResourceInteraction configMapInt = client.getCreatedResources().get(0);
         Mockito.verify(configMapInt.getInteraction()).createOrReplace();
@@ -75,7 +73,7 @@ public class ZooKeeperControllerTest {
                           namespace: "ns"
                         spec:
                           podManagementPolicy: "Parallel"
-                          replicas: 1
+                          replicas: 3
                           selector:
                             matchLabels:
                               app: "pulsarname"
@@ -83,7 +81,9 @@ public class ZooKeeperControllerTest {
                           serviceName: "pulsarname-zookeeper"
                           template:
                             metadata:
-                              annotations: {}
+                              annotations:
+                                prometheus.io/port: "8080"
+                                prometheus.io/scrape: "true"
                               labels:
                                 app: "pulsarname"
                                 cluster: "pulsarname"
@@ -100,12 +100,21 @@ public class ZooKeeperControllerTest {
                                 - "-c"
                                 env:
                                 - name: "ZOOKEEPER_SERVERS"
-                                  value: "pulsarname-zookeeper-0"
+                                  value: "pulsarname-zookeeper-0,pulsarname-zookeeper-1,pulsarname-zookeeper-2"
                                 envFrom:
                                 - configMapRef:
                                     name: "pulsarname-zookeeper"
                                 image: "apachepulsar/pulsar:2.10.2"
                                 imagePullPolicy: "IfNotPresent"
+                                livenessProbe:
+                                  exec:
+                                    command:
+                                    - "timeout"
+                                    - "30"
+                                    - "bin/pulsar-zookeeper-ruok.sh"
+                                  initialDelaySeconds: 20
+                                  periodSeconds: 30
+                                  timeoutSeconds: 30
                                 name: "pulsarname-zookeeper"
                                 ports:
                                 - containerPort: 2181
@@ -114,9 +123,20 @@ public class ZooKeeperControllerTest {
                                   name: "server"
                                 - containerPort: 3888
                                   name: "leader-election"
+                                readinessProbe:
+                                  exec:
+                                    command:
+                                    - "timeout"
+                                    - "30"
+                                    - "bin/pulsar-zookeeper-ruok.sh"
+                                  initialDelaySeconds: 20
+                                  periodSeconds: 30
+                                  timeoutSeconds: 30
                               securityContext:
                                 fsGroup: 0
-                              terminationGracePeriodSeconds: 0
+                              terminationGracePeriodSeconds: 60
+                          updateStrategy:
+                            type: "RollingUpdate"
                           volumeClaimTemplates:
                           - apiVersion: "v1"
                             kind: "PersistentVolumeClaim"
@@ -195,7 +215,6 @@ public class ZooKeeperControllerTest {
 
     @Test
     public void testOverrideImage() throws Exception {
-        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         String spec = """
                 global:
                     name: pulsarname
@@ -207,7 +226,7 @@ public class ZooKeeperControllerTest {
                         size: 1g
                         storageClass: default
                 """;
-        invokeReconcilier(client, spec);
+        MockKubernetesClient client = invokeController(spec);
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
@@ -219,7 +238,6 @@ public class ZooKeeperControllerTest {
                 .getSpec().getContainers().get(0)
                 .getImage(), "apachepulsar/pulsar:global");
 
-        client = new MockKubernetesClient(NAMESPACE);
         spec = """
                 global:
                     name: pulsarname
@@ -232,8 +250,7 @@ public class ZooKeeperControllerTest {
                         size: 1g
                         storageClass: default
                 """;
-        invokeReconcilier(client, spec);
-
+        client = invokeController(spec);
         createdResource =
                 client.getCreatedResource(StatefulSet.class);
         Mockito.verify(createdResource.getInteraction()).createOrReplace();
@@ -246,9 +263,37 @@ public class ZooKeeperControllerTest {
 
     }
 
+    @Test
+    public void testValidateName() throws Exception {
+        String spec = """
+                global:
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    dataVolume:
+                        name: volume-name
+                        size: 1g
+                        storageClass: default
+                """;
+        invokeControllerAndAssertError(spec, "invalid configuration property "
+                + "\"global.name\" for value \"null\": must not be null");
+    }
+
+    @Test
+    public void testValidateZK() throws Exception {
+        String spec = """
+                global:
+                    name: pulsar
+                    image: apachepulsar/pulsar:global
+                """;
+        invokeControllerAndAssertError(spec, "invalid configuration property \"zookeeper\" "
+                + "for value \"null\": must not be null");
+    }
+
     @SneakyThrows
-    private void invokeReconcilier(MockKubernetesClient client, String spec) {
-        final ZooKeeperController reconcilier = new ZooKeeperController(client.getClient());
+    private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
+        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
+        final ZooKeeperController controller = new ZooKeeperController(mockKubernetesClient.getClient());
 
         final ZooKeeper zooKeeper = new ZooKeeper();
         ObjectMeta meta = new ObjectMeta();
@@ -259,7 +304,29 @@ public class ZooKeeperControllerTest {
         final ZooKeeperFullSpec zooKeeperFullSpec = MockKubernetesClient.readYaml(spec, ZooKeeperFullSpec.class);
         zooKeeper.setSpec(zooKeeperFullSpec);
 
-        final UpdateControl<ZooKeeper> result = reconcilier.reconcile(zooKeeper, mock(Context.class));
+        final UpdateControl<ZooKeeper> result = controller.reconcile(zooKeeper, mock(Context.class));
+        Assert.assertTrue(result.isUpdateStatus());
+
+        Assert.assertEquals(result.getResource().getStatus().getError(),
+                expectedErrorMessage);
+    }
+
+    @SneakyThrows
+    private MockKubernetesClient invokeController(String spec) {
+        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
+        final ZooKeeperController controller = new ZooKeeperController(mockKubernetesClient.getClient());
+
+        final ZooKeeper zooKeeper = new ZooKeeper();
+        ObjectMeta meta = new ObjectMeta();
+        meta.setName(CLUSTER_NAME + "-cr");
+        meta.setNamespace(NAMESPACE);
+        zooKeeper.setMetadata(meta);
+
+        final ZooKeeperFullSpec zooKeeperFullSpec = MockKubernetesClient.readYaml(spec, ZooKeeperFullSpec.class);
+        zooKeeper.setSpec(zooKeeperFullSpec);
+
+        final UpdateControl<ZooKeeper> result = controller.reconcile(zooKeeper, mock(Context.class));
         Assert.assertTrue(result.isUpdateResource());
+        return mockKubernetesClient;
     }
 }

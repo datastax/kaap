@@ -36,7 +36,7 @@ page at http://checkstyle.sourceforge.net/config.html -->
 
     <module name="LineLength">
         <!-- Checks if a line is too long. -->
-        <property name="max" value="120"/>
+        <property name="max" value="160"/>
         <property name="severity" value="error"/>
 
         <!-- Checks only for Java files. -->

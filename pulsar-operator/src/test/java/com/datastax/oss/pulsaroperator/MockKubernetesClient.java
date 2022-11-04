@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -13,7 +12,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -24,7 +22,7 @@ import lombok.extern.jbosslog.JBossLog;
 @Getter
 public class MockKubernetesClient {
 
-    private static ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory())
+    private static ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory())
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
     @Data
@@ -35,7 +33,7 @@ public class MockKubernetesClient {
 
         @SneakyThrows
         public String getResourceYaml() {
-            return YAML_MAPPER.writeValueAsString(resource);
+            return yamlMapper.writeValueAsString(resource);
         }
     }
 
@@ -64,6 +62,6 @@ public class MockKubernetesClient {
 
     @SneakyThrows
     public static <T> T readYaml(String yaml, Class<T> toClass) {
-        return YAML_MAPPER.readValue(yaml, toClass);
+        return yamlMapper.readValue(yaml, toClass);
     }
 }

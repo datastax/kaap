@@ -33,7 +33,6 @@ public class ZooKeeperControllerTest {
                         name: volume-name
                         size: 1g
                         storageClass: default
-                   
                 """;
 
         invokeReconcilier(client, spec);
@@ -169,29 +168,29 @@ public class ZooKeeperControllerTest {
         final String serviceCa = serviceIntCa.getResourceYaml();
         Assert.assertEquals(serviceCa,
                 """
-                    ---
-                    apiVersion: "v1"
-                    kind: "Service"
-                    metadata:
-                      annotations: {}
-                      labels:
-                        app: "pulsarname"
-                        cluster: "pulsarname"
-                        component: "zookeeper"
-                      name: "pulsarname-zookeeper-ca"
-                      namespace: "ns"
-                    spec:
-                      ports:
-                      - name: "server"
-                        port: 2888
-                      - name: "leader-election"
-                        port: 3888
-                      - name: "client"
-                        port: 2181
-                      selector:
-                        app: "pulsarname"
-                        component: "zookeeper"
-                        """);
+                        ---
+                        apiVersion: "v1"
+                        kind: "Service"
+                        metadata:
+                          annotations: {}
+                          labels:
+                            app: "pulsarname"
+                            cluster: "pulsarname"
+                            component: "zookeeper"
+                          name: "pulsarname-zookeeper-ca"
+                          namespace: "ns"
+                        spec:
+                          ports:
+                          - name: "server"
+                            port: 2888
+                          - name: "leader-election"
+                            port: 3888
+                          - name: "client"
+                            port: 2181
+                          selector:
+                            app: "pulsarname"
+                            component: "zookeeper"
+                            """);
     }
 
     @Test
@@ -202,7 +201,7 @@ public class ZooKeeperControllerTest {
                     name: pulsarname
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper: 
+                zookeeper:
                     dataVolume:
                         name: volume-name
                         size: 1g

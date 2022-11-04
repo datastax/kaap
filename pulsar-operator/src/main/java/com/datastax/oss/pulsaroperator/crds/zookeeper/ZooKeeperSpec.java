@@ -71,25 +71,18 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
 
     }
 
-    @Builder.Default
-    @NotNull
-    private String component = "zookeeper";
-    @Builder.Default
+    private String component;
     @Min(1)
-    private int replicas = 3;
+    private Integer replicas;
     private Map<String, String> config;
-    @Builder.Default
-    @NotNull
-    private String podManagementPolicy = "Parallel";
-    @Builder.Default
-    private StatefulSetUpdateStrategy updateStrategy = DEFAULT_UPDATE_STRATEGY;
+    private String podManagementPolicy;
+    private StatefulSetUpdateStrategy updateStrategy;
     private Map<String, String> annotations;
     private List<Toleration> tolerations;
     private NodeAffinity nodeAffinity;
     private PodAntiAffinity podAntiAffinity;
-    @Builder.Default
     @Min(0)
-    private int gracePeriod = 60;
+    private Integer gracePeriod;
     private ResourceRequirements resources;
     private ProbeConfig probe;
     @NotNull
@@ -100,6 +93,21 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
         applyProbeDefault();
+        if (podManagementPolicy == null) {
+            podManagementPolicy = "Parallel";
+        }
+        if (replicas == null) {
+            replicas = 3;
+        }
+        if (component == null) {
+            component = "zookeeper";
+        }
+        if (updateStrategy == null) {
+            updateStrategy = DEFAULT_UPDATE_STRATEGY;
+        }
+        if (gracePeriod == null) {
+            gracePeriod = 60;
+        }
     }
 
     private void applyProbeDefault() {

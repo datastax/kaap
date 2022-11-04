@@ -73,12 +73,14 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     // overridable parameters
     String image;
-    @Builder.Default
-    private String imagePullPolicy = "IfNotPresent";
+    private String imagePullPolicy;
 
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
+        if (imagePullPolicy == null) {
+            imagePullPolicy = "IfNotPresent";
+        }
     }
 
     @Override

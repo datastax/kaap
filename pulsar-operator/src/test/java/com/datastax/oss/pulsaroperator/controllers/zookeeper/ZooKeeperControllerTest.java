@@ -293,20 +293,8 @@ public class ZooKeeperControllerTest {
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final ZooKeeperController controller = new ZooKeeperController(mockKubernetesClient.getClient());
-
-        final ZooKeeper zooKeeper = new ZooKeeper();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        zooKeeper.setMetadata(meta);
-
-        final ZooKeeperFullSpec zooKeeperFullSpec = MockKubernetesClient.readYaml(spec, ZooKeeperFullSpec.class);
-        zooKeeper.setSpec(zooKeeperFullSpec);
-
-        final UpdateControl<ZooKeeper> result = controller.reconcile(zooKeeper, mock(Context.class));
+        final UpdateControl<ZooKeeper> result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
-
         Assert.assertEquals(result.getResource().getStatus().getError(),
                 expectedErrorMessage);
     }
@@ -314,6 +302,14 @@ public class ZooKeeperControllerTest {
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<ZooKeeper>
+                result = invokeController(mockKubernetesClient, spec);
+        Assert.assertTrue(result.isUpdateResource());
+        return mockKubernetesClient;
+    }
+
+    private UpdateControl<ZooKeeper> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
+            throws Exception {
         final ZooKeeperController controller = new ZooKeeperController(mockKubernetesClient.getClient());
 
         final ZooKeeper zooKeeper = new ZooKeeper();
@@ -326,7 +322,6 @@ public class ZooKeeperControllerTest {
         zooKeeper.setSpec(zooKeeperFullSpec);
 
         final UpdateControl<ZooKeeper> result = controller.reconcile(zooKeeper, mock(Context.class));
-        Assert.assertTrue(result.isUpdateResource());
-        return mockKubernetesClient;
+        return result;
     }
 }

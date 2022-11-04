@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterStatus;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
@@ -43,7 +44,10 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .build());
 
         zk.inNamespace(currentNamespace).createOrReplace(zooKeeper);
-        resource.getStatus().setCurrentSpec(clusterSpec);
+        final PulsarClusterStatus status = new PulsarClusterStatus();
+        status.setError(null);
+        status.setCurrentSpec(clusterSpec);
+        resource.setStatus(status);
         return UpdateControl.updateStatus(resource);
     }
 }

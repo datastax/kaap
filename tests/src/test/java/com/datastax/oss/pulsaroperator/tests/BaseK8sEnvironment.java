@@ -190,11 +190,15 @@ public abstract class BaseK8sEnvironment {
         client = new DefaultKubernetesClient(Config.fromKubeconfig(container.getKubeconfig()));
     }
 
-    private void printDebugInfo() throws IOException {
+    public static String getTmpKubeConfig(K3sContainer container) throws IOException {
         File tmpKubeConfig = File.createTempFile("test-kubeconfig", ".yaml");
         tmpKubeConfig.deleteOnExit();
         Files.write(tmpKubeConfig.toPath(), container.getKubeconfig().getBytes(StandardCharsets.UTF_8));
-        log.info("export KUBECONFIG={}", tmpKubeConfig.getAbsolutePath());
+        return tmpKubeConfig.getAbsolutePath();
+    }
+
+    private void printDebugInfo() throws IOException {
+        log.info("export KUBECONFIG={}", getTmpKubeConfig(container));
     }
 
     protected void applyOperatorManifests() throws IOException, ExecutionException, InterruptedException {

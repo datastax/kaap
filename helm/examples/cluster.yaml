@@ -17,7 +17,7 @@ spec:
       PULSAR_EXTRA_OPTS: "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info"
     dataVolume:
       name: data
-      size: 100Mb
+      size: 100M
       # K3S storage class name https://docs.k3s.io/storage
       existingStorageClassName:  local-path
 

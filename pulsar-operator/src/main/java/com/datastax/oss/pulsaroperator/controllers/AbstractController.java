@@ -76,7 +76,9 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 resource.getSpec(),
                 resource.getStatus());
 
-        resource.getSpec().applyDefaults(resource.getSpec().getGlobalSpec());
+        final GlobalSpec globalSpec = resource.getSpec().getGlobalSpec();
+        globalSpec.applyDefaults(null);
+        resource.getSpec().applyDefaults(globalSpec);
 
         final String validationErrorMessage = validate(resource);
         if (validationErrorMessage != null) {

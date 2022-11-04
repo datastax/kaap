@@ -31,6 +31,8 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  gracePeriod:
+                    type: integer
                   service:
                     properties:
                       additionalPorts:
@@ -58,8 +60,6 @@ spec:
                           type: string
                         type: object
                     type: object
-                  replicas:
-                    type: integer
                   annotations:
                     additionalProperties:
                       type: string
@@ -75,8 +75,6 @@ spec:
                       enabled:
                         type: boolean
                     type: object
-                  gracePeriod:
-                    type: integer
                   component:
                     type: string
                   dataVolume:
@@ -217,6 +215,8 @@ spec:
                           type: object
                         type: array
                     type: object
+                  replicas:
+                    type: integer
                   nodeAffinity:
                     properties:
                       preferredDuringSchedulingIgnoredDuringExecution:
@@ -320,9 +320,7 @@ spec:
                   imagePullPolicy:
                     type: string
                 required:
-                - component
                 - dataVolume
-                - podManagementPolicy
                 type: object
               global:
                 properties:
@@ -411,6 +409,8 @@ spec:
                                 type: integer
                             type: object
                         type: object
+                      gracePeriod:
+                        type: integer
                       service:
                         properties:
                           additionalPorts:
@@ -438,8 +438,6 @@ spec:
                               type: string
                             type: object
                         type: object
-                      replicas:
-                        type: integer
                       annotations:
                         additionalProperties:
                           type: string
@@ -455,8 +453,6 @@ spec:
                           enabled:
                             type: boolean
                         type: object
-                      gracePeriod:
-                        type: integer
                       component:
                         type: string
                       dataVolume:
@@ -597,6 +593,8 @@ spec:
                               type: object
                             type: array
                         type: object
+                      replicas:
+                        type: integer
                       nodeAffinity:
                         properties:
                           preferredDuringSchedulingIgnoredDuringExecution:
@@ -700,9 +698,7 @@ spec:
                       imagePullPolicy:
                         type: string
                     required:
-                    - component
                     - dataVolume
-                    - podManagementPolicy
                     type: object
                   global:
                     properties:

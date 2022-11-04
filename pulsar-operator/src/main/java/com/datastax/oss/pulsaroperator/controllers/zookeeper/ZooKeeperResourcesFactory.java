@@ -357,6 +357,11 @@ public class ZooKeeperResourcesFactory {
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
+        try {
+            log.infof("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         if (log.isDebugEnabled()) {
             try {
                 log.debugf("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));

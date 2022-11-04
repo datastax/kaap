@@ -56,7 +56,7 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                       type: RollingUpdate
                     dataVolume:
                       name: data
-                      size: 100Mb
+                      size: 100M
                       # K3S storage class name https://docs.k3s.io/storage
                       existingStorageClassName:  local-path
                 """.formatted(PULSAR_IMAGE);

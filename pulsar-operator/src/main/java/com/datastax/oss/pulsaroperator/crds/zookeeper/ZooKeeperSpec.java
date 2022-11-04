@@ -1,6 +1,6 @@
-package com.datastax.oss.pulsaroperator.crd.zookeeper;
+package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
-import com.datastax.oss.pulsaroperator.crd.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;

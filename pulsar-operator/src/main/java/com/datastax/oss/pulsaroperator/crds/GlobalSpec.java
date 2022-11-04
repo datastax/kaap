@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.crd;
+package com.datastax.oss.pulsaroperator.crds;
 
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import java.util.Map;

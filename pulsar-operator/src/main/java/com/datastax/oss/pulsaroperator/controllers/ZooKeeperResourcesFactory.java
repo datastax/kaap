@@ -1,8 +1,8 @@
-package com.datastax.oss.pulsaroperator.reconcilier;
+package com.datastax.oss.pulsaroperator.controllers;
 
-import com.datastax.oss.pulsaroperator.crd.CRDConstants;
-import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public class ZooKeeperResourcesController {
+public class ZooKeeperResourcesFactory {
 
     private final KubernetesClient client;
     private final String namespace;
@@ -55,8 +55,8 @@ public class ZooKeeperResourcesController {
     private final GlobalSpec global;
     private final String resourceName;
 
-    public ZooKeeperResourcesController(KubernetesClient client, String namespace, ZooKeeperSpec spec,
-                                        GlobalSpec global) {
+    public ZooKeeperResourcesFactory(KubernetesClient client, String namespace, ZooKeeperSpec spec,
+                                     GlobalSpec global) {
         this.client = client;
         this.namespace = namespace;
         this.spec = spec;

@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.crd.zookeeper;
+package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

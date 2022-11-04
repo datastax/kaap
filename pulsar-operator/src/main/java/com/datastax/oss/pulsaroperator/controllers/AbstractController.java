@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.reconcilier;
+package com.datastax.oss.pulsaroperator.controllers;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -13,17 +13,20 @@ import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public abstract class AbstractReconcilier<T extends CustomResource> implements Reconciler<T> {
+public abstract class AbstractController<T extends CustomResource> implements Reconciler<T> {
 
     protected final KubernetesClient client;
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-    @SneakyThrows
-    public AbstractReconcilier(KubernetesClient client) {
-        this.client = client;
+
+    public AbstractController() {
+        this(null);
     }
 
-
-    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    @SneakyThrows
+    public AbstractController(KubernetesClient client) {
+        this.client = client;
+    }
 
     @Override
     public UpdateControl<T> reconcile(T resource, Context<T> context) throws Exception {

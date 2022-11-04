@@ -1,9 +1,9 @@
-package com.datastax.oss.pulsaroperator.reconcilier;
+package com.datastax.oss.pulsaroperator.controllers;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeper;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
@@ -15,7 +15,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @JBossLog
-public class ZooKeeperReconcilierTest {
+public class ZooKeeperControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
@@ -249,7 +249,7 @@ public class ZooKeeperReconcilierTest {
 
     @SneakyThrows
     private void invokeReconcilier(MockKubernetesClient client, String spec) {
-        final ZooKeeperReconcilier reconcilier = new ZooKeeperReconcilier(client.getClient());
+        final ZooKeeperController reconcilier = new ZooKeeperController(client.getClient());
 
         final ZooKeeper zooKeeper = new ZooKeeper();
         ObjectMeta meta = new ObjectMeta();

@@ -1,7 +1,7 @@
-package com.datastax.oss.pulsaroperator.reconcilier;
+package com.datastax.oss.pulsaroperator.controllers;
 
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeper;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
@@ -12,9 +12,9 @@ import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-app")
 @JBossLog
-public class ZooKeeperReconcilier extends AbstractReconcilier<ZooKeeper> {
+public class ZooKeeperController extends AbstractController<ZooKeeper> {
 
-    public ZooKeeperReconcilier(KubernetesClient client) {
+    public ZooKeeperController(KubernetesClient client) {
         super(client);
     }
 
@@ -22,7 +22,7 @@ public class ZooKeeperReconcilier extends AbstractReconcilier<ZooKeeper> {
     protected UpdateControl<ZooKeeper> createResources(ZooKeeper resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperFullSpec spec = resource.getSpec();
-        final ZooKeeperResourcesController controller = new ZooKeeperResourcesController(
+        final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
                 client, namespace, spec.getZookeeper(), spec.getGlobal());
         controller.createConfigMap();
         controller.createStatefulSet();

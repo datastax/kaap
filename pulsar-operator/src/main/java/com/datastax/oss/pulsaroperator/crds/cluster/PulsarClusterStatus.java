@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.crd.cluster;
+package com.datastax.oss.pulsaroperator.crds.cluster;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

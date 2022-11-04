@@ -1,6 +1,6 @@
-package com.datastax.oss.pulsaroperator.crd.zookeeper;
+package com.datastax.oss.pulsaroperator.crds.cluster;
 
-import com.datastax.oss.pulsaroperator.crd.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
@@ -12,14 +12,14 @@ import io.fabric8.kubernetes.model.annotation.Version;
 
 @Version(CRDConstants.VERSION)
 @Group(CRDConstants.GROUP)
-@Kind("ZooKeeper")
-@Singular("zookeeper")
-@Plural("zookeepers")
-@ShortNames({"zk"})
-public class ZooKeeper extends CustomResource<ZooKeeperFullSpec, ZooKeeperStatus> implements Namespaced {
+@Kind("PulsarCluster")
+@Singular("pulsarcluster")
+@Plural("pulsarclusters")
+@ShortNames({"pulsar"})
+public class PulsarCluster extends CustomResource<PulsarClusterSpec, PulsarClusterStatus> implements Namespaced {
     @Override
-    protected ZooKeeperStatus initStatus() {
-        return new ZooKeeperStatus();
+    protected PulsarClusterStatus initStatus() {
+        return new PulsarClusterStatus();
     }
 }
 

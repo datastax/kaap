@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.crd;
+package com.datastax.oss.pulsaroperator.crds;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;

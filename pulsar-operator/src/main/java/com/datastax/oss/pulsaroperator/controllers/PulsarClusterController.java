@@ -1,9 +1,9 @@
-package com.datastax.oss.pulsaroperator.reconcilier;
+package com.datastax.oss.pulsaroperator.controllers;
 
-import com.datastax.oss.pulsaroperator.crd.cluster.PulsarCluster;
-import com.datastax.oss.pulsaroperator.crd.cluster.PulsarClusterSpec;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeper;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -17,9 +17,9 @@ import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
 @JBossLog
-public class PulsarClusterReconcilier extends AbstractReconcilier<PulsarCluster> {
+public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
-    public PulsarClusterReconcilier(KubernetesClient client) {
+    public PulsarClusterController(KubernetesClient client) {
         super(client);
     }
 

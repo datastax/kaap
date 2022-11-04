@@ -1,6 +1,6 @@
-package com.datastax.oss.pulsaroperator.crd.zookeeper;
+package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
-import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

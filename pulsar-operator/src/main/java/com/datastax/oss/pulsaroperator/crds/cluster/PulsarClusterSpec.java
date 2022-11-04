@@ -1,7 +1,7 @@
-package com.datastax.oss.pulsaroperator.crd.cluster;
+package com.datastax.oss.pulsaroperator.crds.cluster;
 
-import com.datastax.oss.pulsaroperator.crd.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crd.zookeeper.ZooKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

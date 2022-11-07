@@ -90,206 +90,8 @@ spec:
                     type: object
                   podManagementPolicy:
                     type: string
-                  tolerations:
-                    items:
-                      properties:
-                        key:
-                          type: string
-                        operator:
-                          type: string
-                        tolerationSeconds:
-                          type: integer
-                        value:
-                          type: string
-                        effect:
-                          type: string
-                      type: object
-                    type: array
-                  podAntiAffinity:
-                    properties:
-                      requiredDuringSchedulingIgnoredDuringExecution:
-                        items:
-                          properties:
-                            namespaces:
-                              items:
-                                type: string
-                              type: array
-                            topologyKey:
-                              type: string
-                            labelSelector:
-                              properties:
-                                matchExpressions:
-                                  items:
-                                    properties:
-                                      key:
-                                        type: string
-                                      values:
-                                        items:
-                                          type: string
-                                        type: array
-                                      operator:
-                                        type: string
-                                    type: object
-                                  type: array
-                                matchLabels:
-                                  additionalProperties:
-                                    type: string
-                                  type: object
-                              type: object
-                            namespaceSelector:
-                              properties:
-                                matchExpressions:
-                                  items:
-                                    properties:
-                                      key:
-                                        type: string
-                                      values:
-                                        items:
-                                          type: string
-                                        type: array
-                                      operator:
-                                        type: string
-                                    type: object
-                                  type: array
-                                matchLabels:
-                                  additionalProperties:
-                                    type: string
-                                  type: object
-                              type: object
-                          type: object
-                        type: array
-                      preferredDuringSchedulingIgnoredDuringExecution:
-                        items:
-                          properties:
-                            podAffinityTerm:
-                              properties:
-                                namespaces:
-                                  items:
-                                    type: string
-                                  type: array
-                                topologyKey:
-                                  type: string
-                                labelSelector:
-                                  properties:
-                                    matchExpressions:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                    matchLabels:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                  type: object
-                                namespaceSelector:
-                                  properties:
-                                    matchExpressions:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                    matchLabels:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                  type: object
-                              type: object
-                            weight:
-                              type: integer
-                          type: object
-                        type: array
-                    type: object
                   replicas:
                     type: integer
-                  nodeAffinity:
-                    properties:
-                      preferredDuringSchedulingIgnoredDuringExecution:
-                        items:
-                          properties:
-                            weight:
-                              type: integer
-                            preference:
-                              properties:
-                                matchFields:
-                                  items:
-                                    properties:
-                                      key:
-                                        type: string
-                                      values:
-                                        items:
-                                          type: string
-                                        type: array
-                                      operator:
-                                        type: string
-                                    type: object
-                                  type: array
-                                matchExpressions:
-                                  items:
-                                    properties:
-                                      key:
-                                        type: string
-                                      values:
-                                        items:
-                                          type: string
-                                        type: array
-                                      operator:
-                                        type: string
-                                    type: object
-                                  type: array
-                              type: object
-                          type: object
-                        type: array
-                      requiredDuringSchedulingIgnoredDuringExecution:
-                        properties:
-                          nodeSelectorTerms:
-                            items:
-                              properties:
-                                matchFields:
-                                  items:
-                                    properties:
-                                      key:
-                                        type: string
-                                      values:
-                                        items:
-                                          type: string
-                                        type: array
-                                      operator:
-                                        type: string
-                                    type: object
-                                  type: array
-                                matchExpressions:
-                                  items:
-                                    properties:
-                                      key:
-                                        type: string
-                                      values:
-                                        items:
-                                          type: string
-                                        type: array
-                                      operator:
-                                        type: string
-                                    type: object
-                                  type: array
-                              type: object
-                            type: array
-                        type: object
-                    type: object
                   resources:
                     properties:
                       limits:
@@ -324,25 +126,10 @@ spec:
                 type: object
               global:
                 properties:
-                  antiAffinity:
-                    properties:
-                      zone:
-                        properties:
-                          enabled:
-                            type: boolean
-                        type: object
-                      host:
-                        properties:
-                          enabled:
-                            type: boolean
-                          mode:
-                            type: string
-                        type: object
-                    type: object
-                  enableAntiAffinity:
-                    type: boolean
                   tls:
                     properties:
+                      enabled:
+                        type: boolean
                       zookeeper:
                         properties:
                           enabled:
@@ -373,10 +160,6 @@ spec:
                     type: object
                   name:
                     type: string
-                  enableTls:
-                    type: boolean
-                  priorityClass:
-                    type: boolean
                   nodeSelectors:
                     additionalProperties:
                       type: string
@@ -468,206 +251,8 @@ spec:
                         type: object
                       podManagementPolicy:
                         type: string
-                      tolerations:
-                        items:
-                          properties:
-                            key:
-                              type: string
-                            operator:
-                              type: string
-                            tolerationSeconds:
-                              type: integer
-                            value:
-                              type: string
-                            effect:
-                              type: string
-                          type: object
-                        type: array
-                      podAntiAffinity:
-                        properties:
-                          requiredDuringSchedulingIgnoredDuringExecution:
-                            items:
-                              properties:
-                                namespaces:
-                                  items:
-                                    type: string
-                                  type: array
-                                topologyKey:
-                                  type: string
-                                labelSelector:
-                                  properties:
-                                    matchExpressions:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                    matchLabels:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                  type: object
-                                namespaceSelector:
-                                  properties:
-                                    matchExpressions:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                    matchLabels:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                  type: object
-                              type: object
-                            type: array
-                          preferredDuringSchedulingIgnoredDuringExecution:
-                            items:
-                              properties:
-                                podAffinityTerm:
-                                  properties:
-                                    namespaces:
-                                      items:
-                                        type: string
-                                      type: array
-                                    topologyKey:
-                                      type: string
-                                    labelSelector:
-                                      properties:
-                                        matchExpressions:
-                                          items:
-                                            properties:
-                                              key:
-                                                type: string
-                                              values:
-                                                items:
-                                                  type: string
-                                                type: array
-                                              operator:
-                                                type: string
-                                            type: object
-                                          type: array
-                                        matchLabels:
-                                          additionalProperties:
-                                            type: string
-                                          type: object
-                                      type: object
-                                    namespaceSelector:
-                                      properties:
-                                        matchExpressions:
-                                          items:
-                                            properties:
-                                              key:
-                                                type: string
-                                              values:
-                                                items:
-                                                  type: string
-                                                type: array
-                                              operator:
-                                                type: string
-                                            type: object
-                                          type: array
-                                        matchLabels:
-                                          additionalProperties:
-                                            type: string
-                                          type: object
-                                      type: object
-                                  type: object
-                                weight:
-                                  type: integer
-                              type: object
-                            type: array
-                        type: object
                       replicas:
                         type: integer
-                      nodeAffinity:
-                        properties:
-                          preferredDuringSchedulingIgnoredDuringExecution:
-                            items:
-                              properties:
-                                weight:
-                                  type: integer
-                                preference:
-                                  properties:
-                                    matchFields:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                    matchExpressions:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                  type: object
-                              type: object
-                            type: array
-                          requiredDuringSchedulingIgnoredDuringExecution:
-                            properties:
-                              nodeSelectorTerms:
-                                items:
-                                  properties:
-                                    matchFields:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                    matchExpressions:
-                                      items:
-                                        properties:
-                                          key:
-                                            type: string
-                                          values:
-                                            items:
-                                              type: string
-                                            type: array
-                                          operator:
-                                            type: string
-                                        type: object
-                                      type: array
-                                  type: object
-                                type: array
-                            type: object
-                        type: object
                       resources:
                         properties:
                           limits:
@@ -702,25 +287,10 @@ spec:
                     type: object
                   global:
                     properties:
-                      antiAffinity:
-                        properties:
-                          zone:
-                            properties:
-                              enabled:
-                                type: boolean
-                            type: object
-                          host:
-                            properties:
-                              enabled:
-                                type: boolean
-                              mode:
-                                type: string
-                            type: object
-                        type: object
-                      enableAntiAffinity:
-                        type: boolean
                       tls:
                         properties:
+                          enabled:
+                            type: boolean
                           zookeeper:
                             properties:
                               enabled:
@@ -751,10 +321,6 @@ spec:
                         type: object
                       name:
                         type: string
-                      enableTls:
-                        type: boolean
-                      priorityClass:
-                        type: boolean
                       nodeSelectors:
                         additionalProperties:
                           type: string

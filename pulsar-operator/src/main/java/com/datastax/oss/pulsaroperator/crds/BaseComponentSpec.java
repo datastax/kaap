@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,11 +25,21 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (image == null) {
             image = globalSpec.getImage();
         }
-        if (nodeSelectors == null) {
-            nodeSelectors = globalSpec.getNodeSelectors();
-        }
+        nodeSelectors = mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
+    }
+
+    private Map<String, String> mergeMaps(Map<String, String> parent, Map<String, String> child) {
+        if (parent == null) {
+            return child;
+        }
+        if (child == null) {
+            return parent;
+        }
+        Map<String, String> result = new HashMap<>(parent);
+        result.putAll(child);
+        return result;
     }
 }

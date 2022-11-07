@@ -33,6 +33,7 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.MountableFile;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -44,6 +45,9 @@ public abstract class BaseK8sEnvironment {
 
     protected static final String PULSAR_IMAGE = System.getProperty("pulsar.operator.tests.pulsar.image",
             "datastax/lunastreaming-core:2.10_2.3");
+
+    private static final boolean RECYCLE_CONTAINER_SAME_TEST_CLASS = Boolean
+            .parseBoolean(System.getProperty("pulsar.operator.tests.container.recycle.sameclass", "true"));
 
     private static final boolean DEBUG_LOG_CONTAINER = Boolean
             .getBoolean("pulsar.operator.tests.container.log.debug");
@@ -259,6 +263,18 @@ public abstract class BaseK8sEnvironment {
     }
 
     @SneakyThrows
+    protected void deleteRBACManifests() {
+        container.kubectl().delete.ignoreNotFound().namespace(NAMESPACE)
+                .run("ServiceAccount", "pulsar-operator");
+
+        container.kubectl().delete.ignoreNotFound().namespace(NAMESPACE)
+                .run("ClusterRoleBinding", "pulsar-operator-role-admin-binding");
+
+        container.kubectl().delete.ignoreNotFound().namespace(NAMESPACE)
+                .run("ClusterRole", "pulsar-operator-role-admin");
+    }
+
+    @SneakyThrows
     private void createAndMountImageDigest(String image) {
         String imageFilename;
         try {
@@ -313,9 +329,21 @@ public abstract class BaseK8sEnvironment {
         log.info("Restored docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
     }
 
+
+    @AfterClass(alwaysRun = true)
+    public void afterClass() throws Exception {
+        if (!DEBUG_CONTAINER_KEEP && container != null) {
+            container.close();
+            container = null;
+        }
+    }
+
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
-        if (!DEBUG_CONTAINER_KEEP && container != null) {
+        if (container != null) {
+            deleteRBACManifests();
+        }
+        if (!RECYCLE_CONTAINER_SAME_TEST_CLASS && container != null) {
             container.close();
             container = null;
         }

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable;
@@ -22,8 +23,11 @@ import lombok.extern.jbosslog.JBossLog;
 @Getter
 public class MockKubernetesClient {
 
-    private static ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory())
-            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
+                .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
+                .disable(YAMLGenerator.Feature.SPLIT_LINES)
+                .build()
+    ).configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
     @Data
     @AllArgsConstructor
@@ -52,12 +56,18 @@ public class MockKubernetesClient {
     }
 
     public <T extends HasMetadata> ResourceInteraction<T> getCreatedResource(Class<T> castTo) {
+        final List<ResourceInteraction<T>> res = getCreatedResources(castTo);
+        return res.isEmpty() ? null : res.get(0);
+    }
+
+    public <T extends HasMetadata> List<ResourceInteraction<T>> getCreatedResources(Class<T> castTo) {
+        List<ResourceInteraction<T>> res = new ArrayList<>();
         for (ResourceInteraction createdResource : createdResources) {
             if (createdResource.getResource().getClass().isAssignableFrom(castTo)) {
-                return createdResource;
+                res.add(createdResource);
             }
         }
-        return null;
+        return res;
     }
 
     @SneakyThrows

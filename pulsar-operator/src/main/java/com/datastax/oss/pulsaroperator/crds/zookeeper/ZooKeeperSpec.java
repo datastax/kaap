@@ -2,11 +2,10 @@ package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
-import io.fabric8.kubernetes.api.model.PodAntiAffinity;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategy;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import java.util.List;
@@ -39,6 +38,11 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
             .timeout(30)
             .build();
 
+
+    private static final ResourceRequirements DEFAULT_RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
+            .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("0.3")))
+            .build();
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -55,7 +59,7 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     @AllArgsConstructor
     @Builder
     public static class VolumeConfig {
-        private String name = "data";
+        private String name;
         private String size;
         private String storageClass;
         private String existingStorageClassName;
@@ -78,9 +82,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private String podManagementPolicy;
     private StatefulSetUpdateStrategy updateStrategy;
     private Map<String, String> annotations;
-    private List<Toleration> tolerations;
-    private NodeAffinity nodeAffinity;
-    private PodAntiAffinity podAntiAffinity;
     @Min(0)
     private Integer gracePeriod;
     private ResourceRequirements resources;
@@ -107,6 +108,9 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         }
         if (gracePeriod == null) {
             gracePeriod = 60;
+        }
+        if (resources == null) {
+            resources = DEFAULT_RESOURCE_REQUIREMENTS;
         }
     }
 

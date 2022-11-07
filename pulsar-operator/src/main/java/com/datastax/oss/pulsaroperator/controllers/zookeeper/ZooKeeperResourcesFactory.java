@@ -11,14 +11,8 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
-import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
-import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
-import io.fabric8.kubernetes.api.model.PodAntiAffinity;
-import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
@@ -28,12 +22,10 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.api.model.WeightedPodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -108,7 +100,7 @@ public class ZooKeeperResourcesFactory {
                 .withPort(2181)
                 .build()
         );
-        if (global.isEnableTls() && global.getTls().getZookeeper().isEnabled()) {
+        if (isTlsEnabled()) {
             ports.add(
                     new ServicePortBuilder()
                             .withName("client-tls")
@@ -147,7 +139,13 @@ public class ZooKeeperResourcesFactory {
 
     public void createConfigMap() {
         Map<String, String> data = new HashMap<>();
-        if (global.isEnableTls() && global.getTls().getZookeeper().isEnabled()) {
+        data.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
+        data.put("PULSAR_GC", "-XX:+UseG1GC");
+        data.put("PULSAR_LOG_LEVEL", "info");
+        data.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        data.put("PULSAR_EXTRA_OPTS", "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info");
+
+        if (isTlsEnabled()) {
             data.put("PULSAR_PREFIX_serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("secureClientPort", "2281");
@@ -189,33 +187,30 @@ public class ZooKeeperResourcesFactory {
         }
         PodDNSConfig dnsConfig = global.getDnsConfig();
         Map<String, String> nodeSelectors = spec.getNodeSelectors();
-        List<Toleration> tolerations = spec.getTolerations();
 
-        NodeAffinity nodeAffinity = spec.getNodeAffinity();
-        PodAntiAffinity podAntiAffinity = getPodAntiAffinity();
         long gracePeriod = spec.getGracePeriod();
 
         List<Container> containers = new ArrayList<>();
         final ResourceRequirements resources = spec.getResources();
-        boolean enableTls = global.isEnableTls() && global.getTls().getZookeeper().isEnabled();
+        boolean enableTls = isTlsEnabled();
 
         List<String> zkServers = new ArrayList<>();
         for (int i = 0; i < spec.getReplicas(); i++) {
             zkServers.add(resourceName + "-" + i);
         }
 
-        final String zkConnectString = zkServers.stream().collect(Collectors.joining(","));
 
         Probe probe = createProbe();
-
-        final String volumeDataName = spec.getDataVolume().getName();
-        final String storageVolumeName = resourceName + "-" + volumeDataName;
-        final String storageClassName = spec.getDataVolume().getExistingStorageClassName() != null
-                ? spec.getDataVolume().getExistingStorageClassName() :
-                storageVolumeName;
+        final String dataStorageVolumeName = resourceName + "-" + spec.getDataVolume().getName();
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
+        volumeMounts.add(
+                new VolumeMountBuilder()
+                        .withName(dataStorageVolumeName)
+                        .withMountPath("/pulsar/data")
+                        .build()
+        );
         if (enableTls) {
             volumeMounts.add(
                     new VolumeMountBuilder()
@@ -247,23 +242,6 @@ public class ZooKeeperResourcesFactory {
             );
         }
 
-        boolean persistence = global.isPersistence();
-
-        if (!persistence) {
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName(storageVolumeName)
-                            .withMountPath("/pulsar/data")
-                            .build()
-            );
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName(storageVolumeName)
-                            .withNewEmptyDir().endEmptyDir()
-                            .build()
-            );
-        }
-
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
         if (enableTls) {
             command += "/pulsar/tools/certconverter.sh && ";
@@ -272,6 +250,7 @@ public class ZooKeeperResourcesFactory {
 
         command += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar zookeeper";
 
+        final String zkConnectString = zkServers.stream().collect(Collectors.joining(","));
         containers.add(
                 new ContainerBuilder()
                         .withName(resourceName)
@@ -305,14 +284,31 @@ public class ZooKeeperResourcesFactory {
         );
 
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();
-        if (persistence) {
+        if (!global.isPersistence()) {
+            volumes.add(
+                    new VolumeBuilder()
+                            .withName(dataStorageVolumeName)
+                            .withNewEmptyDir().endEmptyDir()
+                            .build()
+            );
+        } else {
+            String storageClassName = null;
+            final ZooKeeperSpec.VolumeConfig dataVolume = spec.getDataVolume();
+            if (dataVolume.getExistingStorageClassName() != null) {
+                if (!dataVolume.getExistingStorageClassName().equals("default")) {
+                    storageClassName = dataVolume.getExistingStorageClassName();
+                }
+            } else if (dataVolume.getStorageClass() != null) {
+                storageClassName = dataStorageVolumeName;
+            }
+
             persistentVolumeClaims.add(
                     new PersistentVolumeClaimBuilder()
-                            .withNewMetadata().withName(storageVolumeName).endMetadata()
+                            .withNewMetadata().withName(dataStorageVolumeName).endMetadata()
                             .withNewSpec()
                             .withAccessModes(List.of("ReadWriteOnce"))
                             .withNewResources()
-                            .withRequests(Map.of("storage", Quantity.parse(spec.getDataVolume().getSize())))
+                            .withRequests(Map.of("storage", Quantity.parse(dataVolume.getSize())))
                             .endResources()
                             .withStorageClassName(storageClassName)
                             .endSpec()
@@ -341,13 +337,7 @@ public class ZooKeeperResourcesFactory {
                 .endMetadata()
                 .withNewSpec()
                 .withDnsConfig(dnsConfig)
-                .withPriorityClassName(global.isPriorityClass() ? "pulsar-priority" : null)
                 .withNodeSelector(nodeSelectors)
-                .withTolerations(tolerations)
-                .withNewAffinity()
-                .withNodeAffinity(nodeAffinity)
-                .withPodAntiAffinity(podAntiAffinity)
-                .endAffinity()
                 .withTerminationGracePeriodSeconds(gracePeriod)
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
                 .withContainers(containers)
@@ -357,11 +347,6 @@ public class ZooKeeperResourcesFactory {
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
-        try {
-            log.infof("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
         if (log.isDebugEnabled()) {
             try {
                 log.debugf("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));
@@ -371,6 +356,11 @@ public class ZooKeeperResourcesFactory {
         }
 
         client.resource(statefulSet).inNamespace(namespace).createOrReplace();
+    }
+
+    private boolean isTlsEnabled() {
+        return global.getTls() != null && global.getTls().getZookeeper() != null
+                && global.getTls().getZookeeper().isEnabled();
     }
 
     private Probe createProbe() {
@@ -393,62 +383,6 @@ public class ZooKeeperResourcesFactory {
                 "component", spec.getComponent()
         );
         return matchLabels;
-    }
-
-    private PodAntiAffinity getPodAntiAffinity() {
-        if (global.isEnableAntiAffinity()) {
-            if (spec.getPodAntiAffinity() != null) {
-                return spec.getPodAntiAffinity();
-            } else {
-                PodAntiAffinityBuilder builder = new PodAntiAffinityBuilder();
-                if (global.getAntiAffinity() != null && global.getAntiAffinity().getHost().isEnabled()) {
-                    builder = builder.withRequiredDuringSchedulingIgnoredDuringExecution(
-                            new PodAffinityTermBuilder()
-                                    .withTopologyKey("kubernetes.io/hostname")
-                                    .withLabelSelector(new LabelSelectorBuilder()
-                                            .withMatchExpressions(
-                                                    new LabelSelectorRequirementBuilder()
-                                                            .withKey("app")
-                                                            .withOperator("In")
-                                                            .withValues(List.of(global.getName()))
-                                                            .build(),
-                                                    new LabelSelectorRequirementBuilder()
-                                                            .withKey("component")
-                                                            .withOperator("In")
-                                                            .withValues(List.of(spec.getComponent()))
-                                                            .build()
-
-                                            ).build())
-                                    .build()
-                    );
-                }
-                if (global.getAntiAffinity() != null && global.getAntiAffinity().getZone().isEnabled()) {
-                    builder = builder.withPreferredDuringSchedulingIgnoredDuringExecution(
-                            new WeightedPodAffinityTermBuilder()
-                                    .withWeight(100)
-                                    .withNewPodAffinityTerm()
-                                    .withTopologyKey("failure-domain.beta.kubernetes.io/zone")
-                                    .withLabelSelector(new LabelSelectorBuilder()
-                                            .withMatchExpressions(
-                                                    new LabelSelectorRequirementBuilder()
-                                                            .withKey("app")
-                                                            .withOperator("In")
-                                                            .withValues(List.of(global.getName()))
-                                                            .build(),
-                                                    new LabelSelectorRequirementBuilder()
-                                                            .withKey("component")
-                                                            .withOperator("In")
-                                                            .withValues(List.of(spec.getComponent()))
-                                                            .build()
-
-                                            ).build()).endPodAffinityTerm()
-                                    .build()
-                    );
-                }
-                return builder.build();
-            }
-        }
-        return null;
     }
 
 }

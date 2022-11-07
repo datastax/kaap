@@ -20,34 +20,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class AntiAffinityConfig {
-        AntiAffinityHostConfig host = new AntiAffinityHostConfig();
-        AntiAffinityZoneConfig zone = new AntiAffinityZoneConfig();
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class AntiAffinityHostConfig {
-        boolean enabled = true;
-        String mode = "required";
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class AntiAffinityZoneConfig {
-        boolean enabled = false;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
     public static class TlsConfig {
-        TlsEntryConfig zookeeper = new TlsEntryConfig();
+        private boolean enabled;
+        TlsEntryConfig zookeeper;
     }
 
     @Data
@@ -63,12 +38,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @NotNull
     private String name;
     private PodDNSConfig dnsConfig;
-    private boolean priorityClass;
     protected Map<String, String> nodeSelectors;
-    private boolean enableAntiAffinity;
-    private AntiAffinityConfig antiAffinity;
-    private boolean enableTls;
-    private TlsConfig tls = new TlsConfig();
+    private TlsConfig tls;
     private boolean persistence;
 
     // overridable parameters

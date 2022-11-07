@@ -4,7 +4,6 @@ import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +18,6 @@ public class ZooKeeperFullSpec implements FullSpecWithDefaults {
     @ValidSpec
     GlobalSpec global;
 
-    @NotNull
     @Valid
     @ValidSpec
     ZooKeeperSpec zookeeper;
@@ -31,8 +29,9 @@ public class ZooKeeperFullSpec implements FullSpecWithDefaults {
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
-        if (zookeeper != null) {
-            zookeeper.applyDefaults(globalSpec);
+        if (zookeeper == null) {
+            zookeeper = new ZooKeeperSpec();
         }
+        zookeeper.applyDefaults(globalSpec);
     }
 }

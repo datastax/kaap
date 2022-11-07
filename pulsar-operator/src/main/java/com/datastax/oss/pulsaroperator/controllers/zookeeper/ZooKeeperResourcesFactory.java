@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -28,6 +29,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import java.util.ArrayList;
@@ -143,7 +146,8 @@ public class ZooKeeperResourcesFactory {
         data.put("PULSAR_GC", "-XX:+UseG1GC");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        data.put("PULSAR_EXTRA_OPTS", "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info");
+        data.put("PULSAR_EXTRA_OPTS",
+                "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info");
 
         if (isTlsEnabled()) {
             data.put("PULSAR_PREFIX_serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
@@ -164,6 +168,42 @@ public class ZooKeeperResourcesFactory {
                 .withData(data)
                 .build();
         client.resource(configMap).inNamespace(namespace).createOrReplace();
+    }
+
+    public void createStorageClass() {
+
+        final ZooKeeperSpec.VolumeConfig dataVolume = spec.getDataVolume();
+        final String volumeFullName = resourceName + "-" + dataVolume.getName();
+        final StorageClassConfig storageClass = dataVolume.getStorageClass();
+        if (storageClass == null) {
+            throw new IllegalStateException("StorageClass is not defined");
+        }
+
+        Map<String, String> parameters = new HashMap<>();
+        if (storageClass.getType() != null) {
+            parameters.put("type", storageClass.getType());
+        }
+        if (storageClass.getFsType() != null) {
+            parameters.put("fsType", storageClass.getFsType());
+        }
+        if (storageClass.getExtraParams() != null) {
+            parameters.putAll(storageClass.getExtraParams());
+        }
+
+        final StorageClass storageClassResource = new StorageClassBuilder()
+                .withNewMetadata()
+                .withName(volumeFullName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .endMetadata()
+                .withAllowVolumeExpansion(true)
+                .withVolumeBindingMode("WaitForFirstConsumer")
+                .withReclaimPolicy(storageClass.getReclaimPolicy())
+                .withProvisioner(storageClass.getProvisioner())
+                .withParameters(parameters)
+                .build();
+
+        client.resource(storageClassResource).inNamespace(namespace).createOrReplace();
     }
 
     private Map<String, String> getLabels() {
@@ -284,7 +324,7 @@ public class ZooKeeperResourcesFactory {
         );
 
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();
-        if (!global.isPersistence()) {
+        if (!global.getPersistence()) {
             volumes.add(
                     new VolumeBuilder()
                             .withName(dataStorageVolumeName)

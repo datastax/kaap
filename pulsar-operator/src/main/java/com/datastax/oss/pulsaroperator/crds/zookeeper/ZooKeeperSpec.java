@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -13,7 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-
 public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
 
     private static final StatefulSetUpdateStrategy DEFAULT_UPDATE_STRATEGY = new StatefulSetUpdateStrategyBuilder()
@@ -42,6 +41,9 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private static final ResourceRequirements DEFAULT_RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("0.3")))
             .build();
+    public static final VolumeConfig DEFAULT_DATA_VOLUME = new VolumeConfig.VolumeConfigBuilder()
+            .name("data")
+            .size("5Gi").build();
 
     @Data
     @NoArgsConstructor
@@ -61,7 +63,7 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     public static class VolumeConfig {
         private String name;
         private String size;
-        private String storageClass;
+        private StorageClassConfig storageClass;
         private String existingStorageClassName;
     }
 
@@ -86,7 +88,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private Integer gracePeriod;
     private ResourceRequirements resources;
     private ProbeConfig probe;
-    @NotNull
     private VolumeConfig dataVolume;
     private ServiceConfig service;
 
@@ -111,6 +112,18 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         }
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS;
+        }
+        if (dataVolume == null) {
+            dataVolume = DEFAULT_DATA_VOLUME;
+        }
+        if (globalSpec.getStorage() != null) {
+            if (dataVolume.getExistingStorageClassName() == null && dataVolume.getStorageClass() == null) {
+                if (globalSpec.getStorage().getExistingStorageClassName() != null) {
+                    dataVolume.setExistingStorageClassName(globalSpec.getStorage().getExistingStorageClassName());
+                } else if (globalSpec.getStorage().getStorageClass() != null) {
+                    dataVolume.setStorageClass(globalSpec.getStorage().getStorageClass());
+                }
+            }
         }
     }
 

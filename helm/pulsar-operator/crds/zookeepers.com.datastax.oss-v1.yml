@@ -79,13 +79,26 @@ spec:
                     type: string
                   dataVolume:
                     properties:
+                      storageClass:
+                        properties:
+                          extraParams:
+                            additionalProperties:
+                              type: string
+                            type: object
+                          provisioner:
+                            type: string
+                          type:
+                            type: string
+                          fsType:
+                            type: string
+                          reclaimPolicy:
+                            type: string
+                        type: object
                       size:
                         type: string
                       name:
                         type: string
                       existingStorageClassName:
-                        type: string
-                      storageClass:
                         type: string
                     type: object
                   podManagementPolicy:
@@ -121,11 +134,29 @@ spec:
                     type: object
                   imagePullPolicy:
                     type: string
-                required:
-                - dataVolume
                 type: object
               global:
                 properties:
+                  storage:
+                    properties:
+                      storageClass:
+                        properties:
+                          extraParams:
+                            additionalProperties:
+                              type: string
+                            type: object
+                          provisioner:
+                            type: string
+                          type:
+                            type: string
+                          fsType:
+                            type: string
+                          reclaimPolicy:
+                            type: string
+                        type: object
+                      existingStorageClassName:
+                        type: string
+                    type: object
                   tls:
                     properties:
                       enabled:
@@ -158,6 +189,8 @@ spec:
                           type: object
                         type: array
                     type: object
+                  image:
+                    type: string
                   name:
                     type: string
                   nodeSelectors:
@@ -168,13 +201,9 @@ spec:
                     type: string
                   persistence:
                     type: boolean
-                  image:
-                    type: string
                 required:
                 - name
                 type: object
-            required:
-            - zookeeper
             type: object
           status:
             properties:
@@ -240,13 +269,26 @@ spec:
                         type: string
                       dataVolume:
                         properties:
+                          storageClass:
+                            properties:
+                              extraParams:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              provisioner:
+                                type: string
+                              type:
+                                type: string
+                              fsType:
+                                type: string
+                              reclaimPolicy:
+                                type: string
+                            type: object
                           size:
                             type: string
                           name:
                             type: string
                           existingStorageClassName:
-                            type: string
-                          storageClass:
                             type: string
                         type: object
                       podManagementPolicy:
@@ -282,11 +324,29 @@ spec:
                         type: object
                       imagePullPolicy:
                         type: string
-                    required:
-                    - dataVolume
                     type: object
                   global:
                     properties:
+                      storage:
+                        properties:
+                          storageClass:
+                            properties:
+                              extraParams:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              provisioner:
+                                type: string
+                              type:
+                                type: string
+                              fsType:
+                                type: string
+                              reclaimPolicy:
+                                type: string
+                            type: object
+                          existingStorageClassName:
+                            type: string
+                        type: object
                       tls:
                         properties:
                           enabled:
@@ -319,6 +379,8 @@ spec:
                               type: object
                             type: array
                         type: object
+                      image:
+                        type: string
                       name:
                         type: string
                       nodeSelectors:
@@ -329,13 +391,9 @@ spec:
                         type: string
                       persistence:
                         type: boolean
-                      image:
-                        type: string
                     required:
                     - name
                     type: object
-                required:
-                - zookeeper
                 type: object
               error:
                 type: string

@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.Collection;
@@ -28,6 +29,7 @@ import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @JBossLog
@@ -41,13 +43,7 @@ public class ZooKeeperControllerTest {
         String spec = """
                 global:
                     name: pulsarname
-                    persistence: true
                     image: apachepulsar/pulsar:2.10.2
-                zookeeper:
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         final MockKubernetesClient client = invokeController(spec);
@@ -158,7 +154,7 @@ public class ZooKeeperControllerTest {
                                     memory: 1Gi
                                 volumeMounts:
                                 - mountPath: /pulsar/data
-                                  name: pulsarname-zookeeper-volume-name
+                                  name: pulsarname-zookeeper-data
                               securityContext:
                                 fsGroup: 0
                               terminationGracePeriodSeconds: 60
@@ -168,14 +164,13 @@ public class ZooKeeperControllerTest {
                           - apiVersion: v1
                             kind: PersistentVolumeClaim
                             metadata:
-                              name: pulsarname-zookeeper-volume-name
+                              name: pulsarname-zookeeper-data
                             spec:
                               accessModes:
                               - ReadWriteOnce
                               resources:
                                 requests:
-                                  storage: 1g
-                              storageClassName: pulsarname-zookeeper-volume-name
+                                  storage: 5Gi
                         """);
 
         final MockKubernetesClient.ResourceInteraction<Service> serviceInt = client.getCreatedResources(Service.class).get(0);
@@ -252,8 +247,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     dataVolume:
                         name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -280,10 +273,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     image: apachepulsar/pulsar:zk
                     imagePullPolicy: Always
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         client = invokeController(spec);
         createdResource =
@@ -306,27 +295,11 @@ public class ZooKeeperControllerTest {
     public void testValidateName() throws Exception {
         String spec = """
                 global:
-                    persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
+                zookeeper: {}
                 """;
         invokeControllerAndAssertError(spec, "invalid configuration property "
                 + "\"global.name\" for value \"null\": must not be null");
-    }
-
-    @Test
-    public void testValidateZK() throws Exception {
-        String spec = """
-                global:
-                    name: pulsar
-                    image: apachepulsar/pulsar:global
-                """;
-        invokeControllerAndAssertError(spec, "invalid configuration property \"zookeeper\" "
-                + "for value \"null\": must not be null");
     }
 
     @Test
@@ -338,10 +311,6 @@ public class ZooKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                 zookeeper:
                     replicas: 5
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -374,10 +343,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     config:
                         serverCnxnFactory: my.class.MyClass
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -410,10 +375,6 @@ public class ZooKeeperControllerTest {
                         type: RollingUpdate
                         rollingUpdate:
                             partition: 3
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -442,10 +403,6 @@ public class ZooKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                 zookeeper:
                     podManagementPolicy: OrderedReady
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -469,10 +426,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     annotations:
                         annotation-1: ann1-value
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -498,10 +451,6 @@ public class ZooKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                 zookeeper:
                     gracePeriod: -1
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
         invokeControllerAndAssertError(spec, "invalid configuration property \"zookeeper.gracePeriod\" for value "
                 + "\"-1\": must be greater than or equal to 0");
@@ -513,10 +462,6 @@ public class ZooKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                 zookeeper:
                     gracePeriod: 0
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -536,10 +481,6 @@ public class ZooKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                 zookeeper:
                     gracePeriod: 120
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         client = invokeController(spec);
@@ -568,10 +509,6 @@ public class ZooKeeperControllerTest {
                         limits:
                           memory: 2Gi
                           cpu: 1
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -604,10 +541,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     nodeSelectors:
                         overridelabel: overridden
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -637,11 +570,6 @@ public class ZooKeeperControllerTest {
                         searches:
                           - ns1.svc.cluster-domain.example
                           - my.dns.search.suffix
-                zookeeper:
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -667,10 +595,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     probe:
                         enabled: false
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -695,10 +619,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     probe:
                         enabled: true
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         client = invokeController(spec);
@@ -724,10 +644,6 @@ public class ZooKeeperControllerTest {
                     probe:
                         enabled: true
                         period: 50
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         client = invokeController(spec);
@@ -781,6 +697,7 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
                 "/pulsar/data");
         Assert.assertNotNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol").getEmptyDir());
+        Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
 
@@ -822,11 +739,13 @@ public class ZooKeeperControllerTest {
                 Quantity.parse("1Gi"));
         Assert.assertNull(persistentVolumeClaim.getSpec().getStorageClassName());
 
+        Assert.assertNull(client.getCreatedResource(StorageClass.class));
+
     }
 
-    @Test
-    public void testDataVolumePersistenceExistingStorageClass() throws Exception {
-        String spec = """
+    @DataProvider(name = "dataVolumePersistenceExistingStorageClass")
+    public static Object[][] dataVolumePersistenceExistingStorageClass() {
+        return new Object[][] { {"""
                 global:
                     name: pul
                     persistence: true
@@ -836,8 +755,23 @@ public class ZooKeeperControllerTest {
                         name: myvol
                         size: 1Gi
                         existingStorageClassName: mystorage-class
-                """;
+                """ },
+                {"""
+                global:
+                    name: pul
+                    persistence: true
+                    image: apachepulsar/pulsar:global
+                    storage:
+                        existingStorageClassName: mystorage-class
+                zookeeper:
+                    dataVolume:
+                        name: myvol
+                        size: 1Gi
+                """ }};
+    }
 
+    @Test(dataProvider = "dataVolumePersistenceExistingStorageClass")
+    public void testDataVolumePersistenceExistingStorageClass(String spec) throws Exception {
         MockKubernetesClient client = invokeController(spec);
 
 
@@ -861,11 +795,13 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
                 Quantity.parse("1Gi"));
         Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "mystorage-class");
+
+        Assert.assertNull(client.getCreatedResource(StorageClass.class));
     }
 
-    @Test
-    public void testDataVolumePersistenceStorageClass() throws Exception {
-        String spec = """
+    @DataProvider(name = "dataVolumePersistenceStorageClass")
+    public static Object[][] dataVolumePersistenceStorageClass() {
+        return new Object[][] { {"""
                 global:
                     name: pul
                     persistence: true
@@ -874,11 +810,37 @@ public class ZooKeeperControllerTest {
                     dataVolume:
                         name: myvol
                         size: 1Gi
-                        storageClass: local-path
-                """;
+                        storageClass:
+                            reclaimPolicy: Retain
+                            provisioner: kubernetes.io/aws-ebs
+                            type: gp2
+                            fsType: ext4
+                            extraParams:
+                                iopsPerGB: "10"
+                """ },
+                {"""
+                global:
+                    name: pul
+                    persistence: true
+                    image: apachepulsar/pulsar:global
+                    storage:
+                        storageClass:
+                            reclaimPolicy: Retain
+                            provisioner: kubernetes.io/aws-ebs
+                            type: gp2
+                            fsType: ext4
+                            extraParams:
+                                iopsPerGB: "10"
+                zookeeper:
+                    dataVolume:
+                        name: myvol
+                        size: 1Gi
+                """ }};
+    }
 
+    @Test(dataProvider = "dataVolumePersistenceStorageClass")
+    public void testDataVolumePersistenceStorageClass(String spec) throws Exception {
         MockKubernetesClient client = invokeController(spec);
-
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
@@ -901,7 +863,22 @@ public class ZooKeeperControllerTest {
                 Quantity.parse("1Gi"));
         Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "pul-zookeeper-myvol");
 
-        // TODO: check storage class actually created
+
+        final MockKubernetesClient.ResourceInteraction<StorageClass> createdStorageClass =
+                client.getCreatedResource(StorageClass.class);
+        Mockito.verify(createdStorageClass.getInteraction()).createOrReplace();
+
+        final StorageClass storageClass = createdStorageClass.getResource();
+        Assert.assertEquals(storageClass.getMetadata().getName(), "pul-zookeeper-myvol");
+        Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
+
+        Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
+        Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
+        Assert.assertEquals(storageClass.getProvisioner(), "kubernetes.io/aws-ebs");
+        Assert.assertEquals(storageClass.getParameters().size(), 3);
+        Assert.assertEquals(storageClass.getParameters().get("type"), "gp2");
+        Assert.assertEquals(storageClass.getParameters().get("fsType"), "ext4");
+        Assert.assertEquals(storageClass.getParameters().get("iopsPerGB"), "10");
     }
 
     private VolumeMount getVolumeMountByName(Collection<VolumeMount> mounts, String name) {
@@ -937,10 +914,6 @@ public class ZooKeeperControllerTest {
                         additionalPorts:
                             - name: myport1
                               port: 3333
-                    dataVolume:
-                        name: volume-name
-                        size: 1g
-                        storageClass: default
                 """;
 
         MockKubernetesClient client = invokeController(spec);

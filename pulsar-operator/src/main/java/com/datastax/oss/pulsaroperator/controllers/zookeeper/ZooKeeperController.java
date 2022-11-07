@@ -26,9 +26,16 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
                 client, namespace, spec.getZookeeper(), spec.getGlobal());
         controller.createConfigMap();
+        if (spec.getGlobal().getPersistence()
+                && spec.getZookeeper().getDataVolume().getExistingStorageClassName() == null
+                && spec.getZookeeper().getDataVolume().getStorageClass() != null) {
+            controller.createStorageClass();
+        }
         controller.createStatefulSet();
         controller.createService();
         controller.createCaService();
+
+
 
         // statefulSet
         // service

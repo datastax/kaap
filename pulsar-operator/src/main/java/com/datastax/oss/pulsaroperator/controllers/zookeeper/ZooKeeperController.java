@@ -24,7 +24,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperFullSpec spec = resource.getSpec();
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
-                client, namespace, spec.getZookeeper(), spec.getGlobal());
+                client, namespace, spec.getZookeeper(), spec.getGlobal(), getOwnerReference(resource));
         controller.createConfigMap();
         if (spec.getGlobal().getPersistence()
                 && spec.getZookeeper().getDataVolume().getExistingStorageClassName() == null
@@ -45,7 +45,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         // config-map
 
         resource.getStatus().setCurrentSpec(spec);
-        return UpdateControl.updateResource(resource);
+        return UpdateControl.updateStatus(resource);
     }
 }
 

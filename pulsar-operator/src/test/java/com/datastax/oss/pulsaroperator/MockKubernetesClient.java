@@ -4,12 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,13 +29,14 @@ public class MockKubernetesClient {
                 .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
                 .disable(YAMLGenerator.Feature.SPLIT_LINES)
                 .build()
-    ).configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    )
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Data
     @AllArgsConstructor
     public static class ResourceInteraction<T extends HasMetadata> {
         T resource;
-        NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable interaction;
 
         @SneakyThrows
         public String getResourceYaml() {
@@ -46,13 +49,31 @@ public class MockKubernetesClient {
 
     public MockKubernetesClient(String namespace) {
         client = mock(KubernetesClient.class);
+
+
         when(client.resource(any(HasMetadata.class))).thenAnswer((ic) -> {
             final NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable interaction =
                     mock(NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable.class);
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
-            createdResources.add(new ResourceInteraction(ic.getArgument(0), interaction));
+            when(interaction.createOrReplace()).thenAnswer((ic1) -> {
+                createdResources.add(new ResourceInteraction(ic.getArgument(0)));
+                return null;
+            });
             return interaction;
         });
+
+
+        when(client.resources(any(HasMetadata.class.getClass()))).thenAnswer((ic) -> {
+            final MixedOperation interaction = mock(MixedOperation.class);
+            when(interaction.createOrReplace(any(HasMetadata.class))).thenAnswer((ic1) -> {
+                createdResources.add(new ResourceInteraction(ic1.getArgument(0)));
+                return null;
+            });
+            when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
+
+            return interaction;
+        });
+
     }
 
     public <T extends HasMetadata> ResourceInteraction<T> getCreatedResource(Class<T> castTo) {

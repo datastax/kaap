@@ -204,8 +204,6 @@ spec:
                 required:
                 - name
                 type: object
-            required:
-            - zookeeper
             type: object
           status:
             properties:
@@ -396,8 +394,6 @@ spec:
                     required:
                     - name
                     type: object
-                required:
-                - zookeeper
                 type: object
               error:
                 type: string

@@ -62,25 +62,45 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                 """.formatted(PULSAR_IMAGE);
         kubectlApply(manifest);
 
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
-            final int zk = client.pods().withLabel("component", "zookeeper").list().getItems().size();
-            Assert.assertEquals(zk, 1);
-        });
+        awaitInstalled();
+        container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
+        awaitUninstalled();
     }
+
+
 
     @Test
     public void testInstallZookeeperWithHelm() throws Exception {
-        installWithHelm();
+        helmInstall();
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             final int zk = client.pods().inNamespace(NAMESPACE).list().getItems().size();
             Assert.assertEquals(zk, 1);
         });
         kubectlApply(getHelmExampleFilePath("cluster.yaml"));
+        awaitInstalled();
+        container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
+        awaitUninstalled();
+    }
+
+    private void awaitInstalled() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
-            final int zk = client.pods().withLabel("component", "zookeeper").list().getItems().size();
-            Assert.assertEquals(zk, 1);
+            Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.services().withLabel("component", "zookeeper").list().getItems().size(), 2);
+            Assert.assertEquals(client.apps().statefulSets()
+                    .withLabel("component", "zookeeper").list().getItems().size(), 1);
+        });
+    }
+
+    private void awaitUninstalled() {
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
+            Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 0);
+            Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 0);
+            Assert.assertEquals(client.services().withLabel("component", "zookeeper").list().getItems().size(), 0);
+            Assert.assertEquals(client.apps().statefulSets()
+                    .withLabel("component", "zookeeper").list().getItems().size(), 0);
         });
     }
 }

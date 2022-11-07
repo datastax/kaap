@@ -24,5 +24,19 @@ make docker-build-push
 Install the operator and the CRDs
 ```
 helm install pos helm/pulsar-operator -n mypulsar
+```
+
+Install a cluster 
+```
 kubectl -n mypulsar apply -f helm/examples/cluster.yaml
+```
+
+Uninstall the cluster
+```
+kubectl -n mypulsar delete PulsarCluster pulsar-cluster
+```
+
+Uninstall the operator and the CRDs
+```
+helm delete pos -n mypulsar
 ```

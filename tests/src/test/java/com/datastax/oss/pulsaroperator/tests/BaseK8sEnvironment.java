@@ -30,6 +30,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Container;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.MountableFile;
@@ -274,8 +275,13 @@ public abstract class BaseK8sEnvironment {
                 .run("ClusterRole", "pulsar-operator-role-admin");
     }
 
-    @SneakyThrows
+
     private void createAndMountImageDigest(String image) {
+        createAndMountImageDigest(image, container);
+    }
+
+    @SneakyThrows
+    protected static void createAndMountImageDigest(String image, GenericContainer container) {
         String imageFilename;
         try {
             imageFilename = getMountedImageFilename(hostDockerClient, image);
@@ -294,7 +300,7 @@ public abstract class BaseK8sEnvironment {
             log.info("Local image {} digest already exists, reusing it", image);
         } else {
             long start = System.currentTimeMillis();
-            log.info("Local image {} digest not found, generating", image);
+            log.info("Local image {} digest not found in {}, generating", image, imageBinPath.toFile().getAbsolutePath());
             final InputStream saved = hostDockerClient.saveImageCmd(image).exec();
             Files.copy(saved, imageBinPath, StandardCopyOption.REPLACE_EXISTING);
             log.info("Local image {} digest generated in {} ms", image, (System.currentTimeMillis() - start));
@@ -302,7 +308,7 @@ public abstract class BaseK8sEnvironment {
         container.withFileSystemBind(imageBinPath.toFile().getAbsolutePath(), "/" + imageFilename);
     }
 
-    private String getMountedImageFilename(DockerClient dockerClient, String image) {
+    private static String getMountedImageFilename(DockerClient dockerClient, String image) {
         final String dockerImageId = dockerClient.inspectImageCmd(image).exec()
                 .getId()
                 .replace("sha256:", "");
@@ -310,8 +316,12 @@ public abstract class BaseK8sEnvironment {
         return "docker-digest-" + dockerImageId + ".bin";
     }
 
-    @SneakyThrows
     private void restoreDockerImageInK3s(String imageName) {
+        restoreDockerImageInK3s(imageName, container);
+    }
+
+    @SneakyThrows
+    protected static void restoreDockerImageInK3s(String imageName, GenericContainer container) {
         log.info("Restoring docker image {} in k3s", imageName);
         long start = System.currentTimeMillis();
         final String mountedImageFilename = getMountedImageFilename(hostDockerClient, imageName);
@@ -371,7 +381,7 @@ public abstract class BaseK8sEnvironment {
 
 
     @SneakyThrows
-    protected void installWithHelm() {
+    protected void helmInstall() {
         final Path helmHome = Paths.get("..", "helm", "pulsar-operator");
 
 
@@ -386,6 +396,16 @@ public abstract class BaseK8sEnvironment {
         final Container.ExecResult exec = helm3Container.execInContainer(cmd.split(" "));
         if (exec.getExitCode() != 0) {
             throw new RuntimeException("Helm installation failed: " + exec.getStderr());
+        }
+    }
+
+    @SneakyThrows
+    protected void helmUninstall() {
+        final Helm3Container helm3Container = container.helm3();
+        final Container.ExecResult exec =
+                helm3Container.execInContainer("helm", "delete", "test", "-n", NAMESPACE);
+        if (exec.getExitCode() != 0) {
+            throw new RuntimeException("Helm uninstallation failed: " + exec.getStderr());
         }
     }
 

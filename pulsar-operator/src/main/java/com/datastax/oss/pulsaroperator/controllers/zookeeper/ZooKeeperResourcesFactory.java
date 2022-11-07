@@ -12,6 +12,8 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
@@ -49,15 +51,22 @@ public class ZooKeeperResourcesFactory {
     private final ZooKeeperSpec spec;
     private final GlobalSpec global;
     private final String resourceName;
+    private final OwnerReference ownerReference;
 
     public ZooKeeperResourcesFactory(KubernetesClient client, String namespace, ZooKeeperSpec spec,
-                                     GlobalSpec global) {
+                                     GlobalSpec global, OwnerReference ownerReference) {
         this.client = client;
         this.namespace = namespace;
         this.spec = spec;
         this.global = global;
+        this.ownerReference = ownerReference;
 
         resourceName = String.format("%s-%s", global.getName(), spec.getComponent());
+    }
+
+    private void commonCreateOrReplace(HasMetadata resource) {
+        resource.getMetadata().setOwnerReferences(List.of(ownerReference));
+        client.resource(resource).inNamespace(namespace).createOrReplace();
     }
 
     public void createService() {
@@ -83,7 +92,7 @@ public class ZooKeeperResourcesFactory {
                 .endSpec()
                 .build();
 
-        client.resource(service).inNamespace(namespace).createOrReplace();
+        commonCreateOrReplace(service);
     }
 
     private List<ServicePort> getServicePorts() {
@@ -137,7 +146,7 @@ public class ZooKeeperResourcesFactory {
                 .endSpec()
                 .build();
 
-        client.resource(service).inNamespace(namespace).createOrReplace();
+        commonCreateOrReplace(service);
     }
 
     public void createConfigMap() {
@@ -167,7 +176,7 @@ public class ZooKeeperResourcesFactory {
                 .withLabels(getLabels()).endMetadata()
                 .withData(data)
                 .build();
-        client.resource(configMap).inNamespace(namespace).createOrReplace();
+        commonCreateOrReplace(configMap);
     }
 
     public void createStorageClass() {
@@ -203,7 +212,7 @@ public class ZooKeeperResourcesFactory {
                 .withParameters(parameters)
                 .build();
 
-        client.resource(storageClassResource).inNamespace(namespace).createOrReplace();
+        commonCreateOrReplace(storageClassResource);
     }
 
     private Map<String, String> getLabels() {
@@ -395,7 +404,7 @@ public class ZooKeeperResourcesFactory {
             }
         }
 
-        client.resource(statefulSet).inNamespace(namespace).createOrReplace();
+        commonCreateOrReplace(statefulSet);
     }
 
     private boolean isTlsEnabled() {

@@ -7,7 +7,6 @@ import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +24,6 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
     @ValidSpec
     @Valid
-    @NotNull
     private ZooKeeperSpec zookeeper;
 
     @Override

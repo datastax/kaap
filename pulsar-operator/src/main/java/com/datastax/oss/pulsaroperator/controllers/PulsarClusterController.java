@@ -14,6 +14,7 @@ import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
@@ -27,14 +28,20 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     @Override
     protected UpdateControl<PulsarCluster> createResources(PulsarCluster resource, Context<PulsarCluster> context)
             throws Exception {
-        final MixedOperation<ZooKeeper, KubernetesResourceList<ZooKeeper>, Resource<ZooKeeper>> zk = client
-                .customResources(ZooKeeper.class);
+
+        final MixedOperation<ZooKeeper, KubernetesResourceList<ZooKeeper>, Resource<ZooKeeper>> zkResourceClient =
+                client.resources(ZooKeeper.class);
+
+        if (zkResourceClient == null) {
+            throw new IllegalStateException("ZooKeeper CRD not found");
+        }
+
         final String currentNamespace = resource.getMetadata().getNamespace();
         final PulsarClusterSpec clusterSpec = resource.getSpec();
         ObjectMeta meta = new ObjectMeta();
-        meta.setName(clusterSpec.getGlobal().getName() + "-zookeeeper-cr");
+        meta.setName(clusterSpec.getGlobal().getName() + "-zookeeeper");
         meta.setNamespace(currentNamespace);
-
+        meta.setOwnerReferences(List.of(getOwnerReference(resource)));
         final ZooKeeper zooKeeper = new ZooKeeper();
         zooKeeper.setMetadata(meta);
 
@@ -43,7 +50,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .zookeeper(clusterSpec.getZookeeper())
                 .build());
 
-        zk.inNamespace(currentNamespace).createOrReplace(zooKeeper);
+        zkResourceClient.inNamespace(currentNamespace).createOrReplace(zooKeeper);
         final PulsarClusterStatus status = new PulsarClusterStatus();
         status.setError(null);
         status.setCurrentSpec(clusterSpec);

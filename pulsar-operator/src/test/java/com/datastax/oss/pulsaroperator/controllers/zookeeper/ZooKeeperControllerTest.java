@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -50,7 +49,6 @@ public class ZooKeeperControllerTest {
 
         final MockKubernetesClient.ResourceInteraction<ConfigMap> configMapInt = client
                 .getCreatedResource(ConfigMap.class);
-        Mockito.verify(configMapInt.getInteraction()).createOrReplace();
         final String configMap = configMapInt.getResourceYaml();
         log.info(configMap);
         Assert.assertEquals(configMap,
@@ -65,6 +63,12 @@ public class ZooKeeperControllerTest {
                             component: zookeeper
                           name: pulsarname-zookeeper
                           namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: ZooKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info
                           PULSAR_GC: -XX:+UseG1GC
@@ -76,7 +80,6 @@ public class ZooKeeperControllerTest {
 
         final MockKubernetesClient.ResourceInteraction<StatefulSet> statefulSetInt = client
                 .getCreatedResource(StatefulSet.class);
-        Mockito.verify(statefulSetInt.getInteraction()).createOrReplace();
         final String statefulSet = statefulSetInt.getResourceYaml();
         Assert.assertEquals(statefulSet,
                 """
@@ -90,6 +93,12 @@ public class ZooKeeperControllerTest {
                             component: zookeeper
                           name: pulsarname-zookeeper
                           namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: ZooKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
                         spec:
                           podManagementPolicy: Parallel
                           replicas: 3
@@ -174,7 +183,6 @@ public class ZooKeeperControllerTest {
                         """);
 
         final MockKubernetesClient.ResourceInteraction<Service> serviceInt = client.getCreatedResources(Service.class).get(0);
-        Mockito.verify(serviceInt.getInteraction()).createOrReplace();
         final String service = serviceInt.getResourceYaml();
         Assert.assertEquals(service,
                 """
@@ -190,6 +198,12 @@ public class ZooKeeperControllerTest {
                             component: zookeeper
                           name: pulsarname-zookeeper
                           namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: ZooKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
                         spec:
                           clusterIP: None
                           ports:
@@ -207,7 +221,6 @@ public class ZooKeeperControllerTest {
 
         final MockKubernetesClient.ResourceInteraction<Service> serviceIntCa = client
                 .getCreatedResources(Service.class).get(1);
-        Mockito.verify(serviceIntCa.getInteraction()).createOrReplace();
         final String serviceCa = serviceIntCa.getResourceYaml();
         Assert.assertEquals(serviceCa,
                 """
@@ -222,6 +235,12 @@ public class ZooKeeperControllerTest {
                             component: zookeeper
                           name: pulsarname-zookeeper-ca
                           namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: ZooKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
                         spec:
                           ports:
                           - name: server
@@ -252,7 +271,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
 
         Assert.assertEquals(createdResource.getResource().getSpec()
@@ -277,7 +295,6 @@ public class ZooKeeperControllerTest {
         client = invokeController(spec);
         createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
 
         Assert.assertEquals(createdResource.getResource().getSpec()
@@ -316,7 +333,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
 
         Assert.assertEquals((int) createdResource.getResource().getSpec().getReplicas(), 5);
@@ -348,7 +364,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
                 client.getCreatedResource(ConfigMap.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         Map<String, String> expectedData = new HashMap<>();
         expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
@@ -380,7 +395,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         Assert.assertEquals(
                 createdResource.getResource().getSpec().getUpdateStrategy()
@@ -408,7 +422,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         Assert.assertEquals(
                 createdResource.getResource().getSpec().getPodManagementPolicy(),
@@ -431,7 +444,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         final Map<String, String> annotations =
                 createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
@@ -469,7 +481,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         Assert.assertEquals((long) createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getTerminationGracePeriodSeconds(), 0L);
@@ -487,7 +498,6 @@ public class ZooKeeperControllerTest {
 
         createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         Assert.assertEquals((long) createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getTerminationGracePeriodSeconds(), 120L);
@@ -516,7 +526,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
         final ResourceRequirements resources = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0).getResources();
 
@@ -548,7 +557,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
         final Map<String, String> nodeSelectors = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getNodeSelector();
         Assert.assertEquals(nodeSelectors.size(), 2);
@@ -577,7 +585,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
         final PodDNSConfig dnsConfig = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getDnsConfig();
         Assert.assertEquals(dnsConfig.getNameservers(), List.of("1.2.3.4"));
@@ -602,7 +609,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
 
         Container container = createdResource.getResource().getSpec().getTemplate()
@@ -626,7 +632,6 @@ public class ZooKeeperControllerTest {
 
         createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
@@ -651,7 +656,6 @@ public class ZooKeeperControllerTest {
 
         createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
@@ -688,7 +692,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         final PodSpec podSpec = createdResource.getResource().getSpec().getTemplate()
                 .getSpec();
@@ -720,7 +723,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         final PodSpec podSpec = createdResource.getResource().getSpec().getTemplate()
                 .getSpec();
@@ -777,7 +779,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         final PodSpec podSpec = createdResource.getResource().getSpec().getTemplate()
                 .getSpec();
@@ -844,7 +845,6 @@ public class ZooKeeperControllerTest {
 
         MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
                 client.getCreatedResource(StatefulSet.class);
-        Mockito.verify(createdResource.getInteraction()).createOrReplace();
 
         final PodSpec podSpec = createdResource.getResource().getSpec().getTemplate()
                 .getSpec();
@@ -866,11 +866,11 @@ public class ZooKeeperControllerTest {
 
         final MockKubernetesClient.ResourceInteraction<StorageClass> createdStorageClass =
                 client.getCreatedResource(StorageClass.class);
-        Mockito.verify(createdStorageClass.getInteraction()).createOrReplace();
 
         final StorageClass storageClass = createdStorageClass.getResource();
         Assert.assertEquals(storageClass.getMetadata().getName(), "pul-zookeeper-myvol");
         Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
+        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "ZooKeeper");
 
         Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
         Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
@@ -924,7 +924,6 @@ public class ZooKeeperControllerTest {
 
         Assert.assertEquals(services.size(), 2);
         for (MockKubernetesClient.ResourceInteraction<Service> service : services) {
-            Mockito.verify(service.getInteraction()).createOrReplace();
             final ObjectMeta metadata = service.getResource().getMetadata();
             boolean isCaService = false;
             if (metadata.getName().equals("pul-zookeeper-ca")) {
@@ -988,7 +987,7 @@ public class ZooKeeperControllerTest {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<ZooKeeper>
                 result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateResource());
+        Assert.assertTrue(result.isUpdateStatus());
         return mockKubernetesClient;
     }
 

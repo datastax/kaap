@@ -6,6 +6,8 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
+import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
@@ -105,5 +107,17 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             errors.add(errorMessage);
         }
         return errors.stream().collect(Collectors.joining(System.lineSeparator()));
+    }
+
+
+    protected OwnerReference getOwnerReference(T cr) {
+        return new OwnerReferenceBuilder()
+                .withApiVersion(cr.getApiVersion())
+                .withKind(cr.getKind())
+                .withName(cr.getMetadata().getName())
+                .withUid(cr.getMetadata().getUid())
+                .withBlockOwnerDeletion(true)
+                .withController(true)
+                .build();
     }
 }

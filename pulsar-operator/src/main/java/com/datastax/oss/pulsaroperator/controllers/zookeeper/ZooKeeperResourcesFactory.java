@@ -5,7 +5,6 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -40,7 +39,6 @@ import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
-import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -74,14 +72,6 @@ public class ZooKeeperResourcesFactory {
     private void commonCreateOrReplace(HasMetadata resource) {
         resource.getMetadata().setOwnerReferences(List.of(ownerReference));
         client.resource(resource).inNamespace(namespace).createOrReplace();
-        if (log.isDebugEnabled()) {
-            try {
-                log.debugf("Created %s: \n%s", resource.getFullResourceName(),
-                        SerializationUtils.dumpAsYaml(resource));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public void createService() {
@@ -511,7 +501,7 @@ public class ZooKeeperResourcesFactory {
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withVolumeMounts(volumeMounts)
                 .withResources(jobConfig.getResources())
-                .withCommand("timeout", jobConfig.getInitTimeout() + "", "sh", "-c")
+                .withCommand("timeout", jobConfig.getTimeout() + "", "sh", "-c")
                 .withArgs(mainArgs)
                 .build();
 

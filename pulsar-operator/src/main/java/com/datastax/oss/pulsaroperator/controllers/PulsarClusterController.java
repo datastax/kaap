@@ -50,7 +50,9 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .zookeeper(clusterSpec.getZookeeper())
                 .build());
 
-        zkResourceClient.inNamespace(currentNamespace).createOrReplace(zooKeeper);
+        zkResourceClient
+                .inNamespace(currentNamespace)
+                .resource(zooKeeper).createOrReplace();
         final PulsarClusterStatus status = new PulsarClusterStatus();
         status.setError(null);
         status.setCurrentSpec(clusterSpec);

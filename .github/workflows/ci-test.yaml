@@ -24,14 +24,16 @@ jobs:
       - name: Build
         run: mvn -B -T 1C -ntp -nsu install -DskipTests
 
-      - name: Check files changed
+      - name: Check CRDs and doc up-to-date
         run: |
           #!/bin/bash
+          ./src/generate-crds-docs.sh
           if [[ `git status --porcelain` ]]; then
             echo "Found files changed after building"
             git status
             exit 1
           fi
+      
 
       - name: Unit tests
         run: mvn -B -ntp -nsu test -pl pulsar-operator

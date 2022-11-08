@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -16,8 +17,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements WithDefaults {
 
+    @JsonPropertyDescription("Pulsar image to use for this component.")
     protected String image;
+    @JsonPropertyDescription("Pulsar image pull policy to use for this component.")
     private String imagePullPolicy;
+    @JsonPropertyDescription("Additional node selectors for this component.")
     protected Map<String, String> nodeSelectors;
 
     @Override

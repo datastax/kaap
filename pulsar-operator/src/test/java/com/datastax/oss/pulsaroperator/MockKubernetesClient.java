@@ -13,7 +13,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable;
+import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -53,8 +54,8 @@ public class MockKubernetesClient {
 
 
         when(client.resource(any(HasMetadata.class))).thenAnswer((ic) -> {
-            final NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable interaction =
-                    mock(NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable.class);
+            final NamespaceableResource interaction =
+                    mock(NamespaceableResource.class);
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
             when(interaction.createOrReplace()).thenAnswer((ic1) -> {
                 createdResources.add(new ResourceInteraction(ic.getArgument(0)));
@@ -66,9 +67,14 @@ public class MockKubernetesClient {
 
         when(client.resources(any(HasMetadata.class.getClass()))).thenAnswer((ic) -> {
             final MixedOperation interaction = mock(MixedOperation.class);
-            when(interaction.createOrReplace(any(HasMetadata.class))).thenAnswer((ic1) -> {
-                createdResources.add(new ResourceInteraction(ic1.getArgument(0)));
-                return null;
+
+            when(interaction.resource(any(HasMetadata.class))).thenAnswer(ic2 -> {
+                final Resource mockedResource = mock(Resource.class);
+                when(mockedResource.createOrReplace()).thenAnswer((ic3) -> {
+                    createdResources.add(new ResourceInteraction(ic2.getArgument(0)));
+                    return null;
+                });
+                return mockedResource;
             });
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
 

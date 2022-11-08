@@ -19,6 +19,12 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>crd-generator-apt</artifactId>
+            <version>${kubernetes-client.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.operatorsdk</groupId>
             <artifactId>quarkus-operator-sdk</artifactId>
         </dependency>

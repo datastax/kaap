@@ -1,17 +1,36 @@
 package com.datastax.oss.pulsaroperator.tests;
 
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
-public class ZooKeeperTest extends BaseK8sEnvironment {
+public class PulsarClusterTest extends BaseK8sEnvironment {
+
+    private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
+            .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
+            .disable(YAMLGenerator.Feature.SPLIT_LINES)
+            .build()
+    )
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
 
     @Test
     public void testCRDs() throws Exception {
@@ -29,40 +48,64 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
     }
 
     @Test
-    @SuppressWarnings("checkstyle:linelength")
-    public void testInstallZookeeper() throws Exception {
+    public void testBaseInstall() throws Exception {
         applyRBACManifests();
         applyOperatorManifests();
-        String manifest = """
-                apiVersion: com.datastax.oss/v1alpha1
-                kind: PulsarCluster
-                metadata:
-                  name: pulsar-cluster
-                spec:
-                  global:
-                    name: pulsar
-                    persistence: true
-                    image: %s
-                    imagePullPolicy: Never
-                    storage:
-                        # K3S storage class name https://docs.k3s.io/storage
-                        existingStorageClassName:  local-path
-                  zookeeper:
-                    replicas: 1
-                    dataVolume:
-                      name: data
-                      size: 100M
-                """.formatted(PULSAR_IMAGE);
-        kubectlApply(manifest);
-
+        final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+        kubectlApply(specsToYaml(specs));
         awaitInstalled();
+
+        specs.getZookeeper().setReplicas(3);
+        kubectlApply(specsToYaml(specs));
+
+        client.pods()
+                .inNamespace(NAMESPACE)
+                .withName("pulsar-zookeeper-2")
+                .waitUntilReady(90, TimeUnit.SECONDS);
+
         container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
         awaitUninstalled();
     }
 
+    @SneakyThrows
+    private String specsToYaml(PulsarClusterSpec spec) {
+        final Map map = yamlMapper.readValue(
+                """
+                        apiVersion: com.datastax.oss/v1alpha1
+                        kind: PulsarCluster
+                        metadata:
+                            name: pulsar-cluster
+                        """, Map.class);
+
+        map.put("spec", spec);
+        return yamlMapper.writeValueAsString(map);
+    }
+
+    private PulsarClusterSpec getDefaultPulsarClusterSpecs() {
+        final PulsarClusterSpec defaultSpecs = new PulsarClusterSpec();
+        defaultSpecs.setGlobal(GlobalSpec.builder()
+                .name("pulsar")
+                .persistence(true)
+                .image(PULSAR_IMAGE)
+                .imagePullPolicy("Never")
+                .storage(GlobalSpec.GlobalStorageConfig.builder()
+                        .existingStorageClassName("local-path")
+                        .build())
+                .build());
+
+        defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
+                .replicas(1)
+                .dataVolume(ZooKeeperSpec.VolumeConfig.builder()
+                        .size("100M")
+                        .build()
+                )
+                .build());
+        return defaultSpecs;
+    }
+
 
     @Test
-    public void testInstallZookeeperWithHelm() throws Exception {
+    public void testInstallWithHelm() throws Exception {
         helmInstall();
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             final int zk = client.pods().inNamespace(NAMESPACE).list().getItems().size();
@@ -79,7 +122,7 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
             log.info("pdb1 {}", client.policy().v1().podDisruptionBudget().list().getItems());
-             Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget().
                     withLabel("component", "zookeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 1);

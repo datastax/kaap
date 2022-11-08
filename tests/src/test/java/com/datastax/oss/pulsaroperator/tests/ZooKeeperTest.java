@@ -42,23 +42,15 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
                     name: pulsar
                     persistence: true
                     image: %s
-                  zookeeper:
-                    component: zookeeper
-                    replicas: 1
-                    config:
-                      PULSAR_MEM: "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760"
-                      PULSAR_GC: "-XX:+UseG1GC"
-                      PULSAR_LOG_LEVEL: "info"
-                      PULSAR_LOG_ROOT_LEVEL: "info"
-                      PULSAR_EXTRA_OPTS: "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info"
                     imagePullPolicy: Never
-                    updateStrategy:
-                      type: RollingUpdate
+                    storage:
+                        # K3S storage class name https://docs.k3s.io/storage
+                        existingStorageClassName:  local-path
+                  zookeeper:
+                    replicas: 1
                     dataVolume:
                       name: data
                       size: 100M
-                      # K3S storage class name https://docs.k3s.io/storage
-                      existingStorageClassName:  local-path
                 """.formatted(PULSAR_IMAGE);
         kubectlApply(manifest);
 
@@ -66,7 +58,6 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
         container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
         awaitUninstalled();
     }
-
 
 
     @Test
@@ -83,9 +74,13 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
     }
 
     private void awaitInstalled() {
+        awaitOperatorRunning();
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
-            Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 1);
+            log.info("pdb1 {}", client.policy().v1().podDisruptionBudget().list().getItems());
+             Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
+                    withLabel("component", "zookeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.services().withLabel("component", "zookeeper").list().getItems().size(), 2);
             Assert.assertEquals(client.apps().statefulSets()
@@ -97,6 +92,8 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
             Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 0);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
+                    withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.services().withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.apps().statefulSets()

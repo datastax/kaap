@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -44,6 +45,10 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     public static final VolumeConfig DEFAULT_DATA_VOLUME = new VolumeConfig.VolumeConfigBuilder()
             .name("data")
             .size("5Gi").build();
+    public static final PodDisruptionBudgetConfig DEFAULT_PDB = PodDisruptionBudgetConfig.builder()
+            .enabled(true)
+            .maxUnavailable(1)
+            .build();
 
     @Data
     @NoArgsConstructor
@@ -90,6 +95,7 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private ProbeConfig probe;
     private VolumeConfig dataVolume;
     private ServiceConfig service;
+    private PodDisruptionBudgetConfig pdb;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -124,6 +130,13 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
                     dataVolume.setStorageClass(globalSpec.getStorage().getStorageClass());
                 }
             }
+        }
+        if (pdb != null) {
+            pdb.setEnabled(Objects.requireNonNullElse(pdb.getEnabled(), DEFAULT_PDB.getEnabled()));
+            pdb.setMaxUnavailable(Objects.requireNonNullElse(pdb.getMaxUnavailable(),
+                    DEFAULT_PDB.getMaxUnavailable()));
+        } else {
+            pdb = DEFAULT_PDB;
         }
     }
 

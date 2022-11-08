@@ -8,9 +8,14 @@ import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.dajudge.kindcontainer.kubectl.KubectlContainer;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,17 +28,20 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.MountableFile;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -61,6 +69,8 @@ public abstract class BaseK8sEnvironment {
     private static final DockerClient hostDockerClient = DockerClientFactory.lazyClient();
     protected ReusableK3sContainer container;
     protected KubernetesClient client;
+    private Watch eventsWatch;
+    private String operatorPodName;
 
     public static class ReusableK3sContainer<T extends ReusableK3sContainer<T>> extends K3sContainer<T> {
 
@@ -144,6 +154,7 @@ public abstract class BaseK8sEnvironment {
 
 
         container.start();
+
         container.kubectl().start();
 
         final ExecutorService executorService = Executors.newFixedThreadPool(3);
@@ -193,6 +204,18 @@ public abstract class BaseK8sEnvironment {
         }
         printDebugInfo();
         client = new DefaultKubernetesClient(Config.fromKubeconfig(container.getKubeconfig()));
+        eventsWatch = client.resources(Event.class).watch(new Watcher<Event>() {
+            @Override
+            public void eventReceived(Action action, Event resource) {
+                log.info("event[{}-{}]: {} - {}", resource.getRegarding().getName(),
+                        resource.getRegarding().getKind(),
+                        resource.getNote(), resource.getReason());
+            }
+
+            @Override
+            public void onClose(WatcherException cause) {
+            }
+        });
     }
 
     public static String getTmpKubeConfig(K3sContainer container) throws IOException {
@@ -202,7 +225,7 @@ public abstract class BaseK8sEnvironment {
         return tmpKubeConfig.getAbsolutePath();
     }
 
-    private void printDebugInfo() throws IOException {
+    protected void printDebugInfo() throws IOException {
         log.info("export KUBECONFIG={}", getTmpKubeConfig(container));
     }
 
@@ -246,6 +269,12 @@ public abstract class BaseK8sEnvironment {
                     - services
                     verbs:
                     - '*'
+                  - apiGroups:
+                    - policy
+                    resources:
+                    - poddisruptionbudgets
+                    verbs:
+                    - "*"
                 ---
                 apiVersion: rbac.authorization.k8s.io/v1
                 kind: ClusterRoleBinding
@@ -300,7 +329,8 @@ public abstract class BaseK8sEnvironment {
             log.info("Local image {} digest already exists, reusing it", image);
         } else {
             long start = System.currentTimeMillis();
-            log.info("Local image {} digest not found in {}, generating", image, imageBinPath.toFile().getAbsolutePath());
+            log.info("Local image {} digest not found in {}, generating", image,
+                    imageBinPath.toFile().getAbsolutePath());
             final InputStream saved = hostDockerClient.saveImageCmd(image).exec();
             Files.copy(saved, imageBinPath, StandardCopyOption.REPLACE_EXISTING);
             log.info("Local image {} digest generated in {} ms", image, (System.currentTimeMillis() - start));
@@ -350,6 +380,7 @@ public abstract class BaseK8sEnvironment {
 
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
+        printOperatorPodLogs();
         if (container != null) {
             deleteRBACManifests();
         }
@@ -357,9 +388,26 @@ public abstract class BaseK8sEnvironment {
             container.close();
             container = null;
         }
+        if (eventsWatch != null) {
+            eventsWatch.close();
+        }
         if (client != null) {
             client.close();
             client = null;
+        }
+    }
+
+    private void printOperatorPodLogs() {
+        if (operatorPodName != null) {
+            try {
+                final String podLog = client.pods().inNamespace(NAMESPACE)
+                        .withName(operatorPodName)
+                        .tailingLines(30)
+                        .getLog();
+                log.info("operator pod logs:\n{}", podLog);
+            } catch (Throwable t) {
+                log.error("failed to get operator pod logs: {}", t.getMessage(), t);
+            }
         }
     }
 
@@ -412,6 +460,24 @@ public abstract class BaseK8sEnvironment {
     @SneakyThrows
     protected Path getHelmExampleFilePath(String name) {
         return Paths.get("..", "helm", "examples", name);
+    }
+
+
+    protected void awaitOperatorRunning() {
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            final List<Pod> pods = client.pods()
+                    .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
+            Assert.assertEquals(pods.size(), 1);
+            Assert.assertEquals(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
+                    .count(), 1);
+        });
+        operatorPodName = client.pods()
+                .withLabel("app.kubernetes.io/name", "pulsar-operator")
+                .list()
+                .getItems()
+                .get(0)
+                .getMetadata()
+                .getName();
     }
 
 }

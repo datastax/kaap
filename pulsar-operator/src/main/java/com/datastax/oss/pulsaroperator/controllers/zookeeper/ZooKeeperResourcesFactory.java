@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,9 +32,12 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +56,7 @@ public class ZooKeeperResourcesFactory {
     private final GlobalSpec global;
     private final String resourceName;
     private final OwnerReference ownerReference;
+    private VersionInfo version;
 
     public ZooKeeperResourcesFactory(KubernetesClient client, String namespace, ZooKeeperSpec spec,
                                      GlobalSpec global, OwnerReference ownerReference) {
@@ -67,6 +72,14 @@ public class ZooKeeperResourcesFactory {
     private void commonCreateOrReplace(HasMetadata resource) {
         resource.getMetadata().setOwnerReferences(List.of(ownerReference));
         client.resource(resource).inNamespace(namespace).createOrReplace();
+        if (log.isDebugEnabled()) {
+            try {
+                log.debugf("Created %s: \n%s", resource.getFullResourceName(),
+                        SerializationUtils.dumpAsYaml(resource));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void createService() {
@@ -213,6 +226,34 @@ public class ZooKeeperResourcesFactory {
                 .build();
 
         commonCreateOrReplace(storageClassResource);
+    }
+
+    public void createPodDisruptionBudget() {
+        final PodDisruptionBudgetConfig pdb = spec.getPdb();
+        if (!pdb.getEnabled()) {
+            return;
+        }
+        final boolean pdbSupported = isPdbSupported();
+
+        final PodDisruptionBudget pdbResource = new PodDisruptionBudgetBuilder()
+                .withNewMetadata()
+                .withName(resourceName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .endMetadata()
+                .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(getMatchLabels())
+                .endSelector()
+                .withNewMaxUnavailable(pdb.getMaxUnavailable())
+                .endSpec()
+                .build();
+
+        if (!pdbSupported) {
+            pdbResource.setApiVersion("policy/v1beta1");
+        }
+
+        commonCreateOrReplace(pdbResource);
     }
 
     private Map<String, String> getLabels() {
@@ -396,14 +437,6 @@ public class ZooKeeperResourcesFactory {
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
-        if (log.isDebugEnabled()) {
-            try {
-                log.debugf("Created statefulset:\n" + SerializationUtils.dumpAsYaml(statefulSet));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        }
-
         commonCreateOrReplace(statefulSet);
     }
 
@@ -432,6 +465,22 @@ public class ZooKeeperResourcesFactory {
                 "component", spec.getComponent()
         );
         return matchLabels;
+    }
+
+    private boolean isPdbSupported() {
+        final VersionInfo version = getVersion();
+        if (version.getMajor().compareTo("1") >= 0
+                && version.getMinor().compareTo("21") >= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private VersionInfo getVersion() {
+        if (version == null) {
+            version = client.getKubernetesVersion();
+        }
+        return version;
     }
 
 }

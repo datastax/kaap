@@ -11,6 +11,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicable;
 import java.util.ArrayList;
@@ -73,6 +74,9 @@ public class MockKubernetesClient {
 
             return interaction;
         });
+        when(client.getKubernetesVersion()).thenReturn(new VersionInfo.Builder()
+                .withMajor("1")
+                .withMinor("25").build());
 
     }
 

@@ -103,6 +103,13 @@ spec:
                     type: object
                   podManagementPolicy:
                     type: string
+                  pdb:
+                    properties:
+                      maxUnavailable:
+                        type: integer
+                      enabled:
+                        type: boolean
+                    type: object
                   replicas:
                     type: integer
                   resources:
@@ -293,6 +300,13 @@ spec:
                         type: object
                       podManagementPolicy:
                         type: string
+                      pdb:
+                        properties:
+                          maxUnavailable:
+                            type: integer
+                          enabled:
+                            type: boolean
+                        type: object
                       replicas:
                         type: integer
                       resources:

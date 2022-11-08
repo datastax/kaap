@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
@@ -252,6 +253,35 @@ public class ZooKeeperControllerTest {
                           selector:
                             app: pulsarname
                             component: zookeeper
+                            """);
+
+        final MockKubernetesClient.ResourceInteraction<PodDisruptionBudget> pdbInt = client
+                .getCreatedResource(PodDisruptionBudget.class);
+        final String pdb = pdbInt.getResourceYaml();
+        Assert.assertEquals(pdb,
+                """
+                        ---
+                        apiVersion: policy/v1
+                        kind: PodDisruptionBudget
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: zookeeper
+                          name: pulsarname-zookeeper
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: ZooKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        spec:
+                          maxUnavailable: 1
+                          selector:
+                            matchLabels:
+                              app: pulsarname
+                              component: zookeeper
                             """);
     }
 
@@ -971,6 +1001,26 @@ public class ZooKeeperControllerTest {
 
             }
         }
+    }
+
+    @Test
+    public void testPdbMaxUnavailable() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    pdb:
+                        maxUnavailable: 3
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+        final MockKubernetesClient.ResourceInteraction<PodDisruptionBudget> pdb =
+                client.getCreatedResource(PodDisruptionBudget.class);
+
+        Assert.assertEquals((int) pdb.getResource().getSpec().getMaxUnavailable().getIntVal(), 3);
     }
 
     @SneakyThrows

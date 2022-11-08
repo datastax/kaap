@@ -207,7 +207,7 @@ public abstract class BaseK8sEnvironment {
         eventsWatch = client.resources(Event.class).watch(new Watcher<Event>() {
             @Override
             public void eventReceived(Action action, Event resource) {
-                log.info("event[{}-{}]: {} - {}", resource.getRegarding().getName(),
+                log.info("event [{} - {}]: {} - {}", resource.getRegarding().getName(),
                         resource.getRegarding().getKind(),
                         resource.getNote(), resource.getReason());
             }
@@ -267,6 +267,12 @@ public abstract class BaseK8sEnvironment {
                     - pods
                     - configmaps
                     - services
+                    verbs:
+                    - '*'
+                  - apiGroups:
+                    - "batch"
+                    resources:
+                    - jobs
                     verbs:
                     - '*'
                   - apiGroups:

@@ -25,17 +25,17 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         final ZooKeeperFullSpec spec = resource.getSpec();
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
                 client, namespace, spec.getZookeeper(), spec.getGlobal(), getOwnerReference(resource));
-        controller.createService();
-        controller.createCaService();
-        controller.createConfigMap();
         controller.createPodDisruptionBudget();
+        controller.createConfigMap();
         if (spec.getGlobal().getPersistence()
                 && spec.getZookeeper().getDataVolume().getExistingStorageClassName() == null
                 && spec.getZookeeper().getDataVolume().getStorageClass() != null) {
             controller.createStorageClass();
         }
+        controller.createService();
+        controller.createCaService();
         controller.createStatefulSet();
-
+        controller.createMetadataInitializationJob();
         // statefulSet
         // service
         // storageClass

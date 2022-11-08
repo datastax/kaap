@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.tests;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -86,17 +87,29 @@ public class ZooKeeperTest extends BaseK8sEnvironment {
             Assert.assertEquals(client.apps().statefulSets()
                     .withLabel("component", "zookeeper").list().getItems().size(), 1);
         });
+
+        client.pods()
+                .inNamespace(NAMESPACE)
+                .withName("pulsar-zookeeper-0")
+                .waitUntilReady(90, TimeUnit.SECONDS);
+
+        final Pod jobPod = client.pods().inNamespace(NAMESPACE).withLabel("job-name", "pulsar-zookeeper")
+                .list().getItems().get(0);
+        client.pods().inNamespace(NAMESPACE).withName(jobPod.getMetadata().getName())
+                .waitUntilCondition(pod -> pod.getStatus().getPhase().equals("Succeeded"), 2, TimeUnit.MINUTES);
+
     }
 
     private void awaitUninstalled() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
             Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget().
                     withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.services().withLabel("component", "zookeeper").list().getItems().size(), 0);
             Assert.assertEquals(client.apps().statefulSets()
+                    .withLabel("component", "zookeeper").list().getItems().size(), 0);
+            Assert.assertEquals(client.batch().v1().jobs()
                     .withLabel("component", "zookeeper").list().getItems().size(), 0);
         });
     }

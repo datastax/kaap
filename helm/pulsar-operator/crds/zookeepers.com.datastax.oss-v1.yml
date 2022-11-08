@@ -21,6 +21,28 @@ spec:
             properties:
               zookeeper:
                 properties:
+                  metadataInitializationJob:
+                    properties:
+                      initTimeout:
+                        type: integer
+                      resources:
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                        type: object
+                    type: object
                   updateStrategy:
                     properties:
                       type:
@@ -164,6 +186,8 @@ spec:
                       existingStorageClassName:
                         type: string
                     type: object
+                  kubernetesClusterDomain:
+                    type: string
                   tls:
                     properties:
                       enabled:
@@ -218,6 +242,28 @@ spec:
                 properties:
                   zookeeper:
                     properties:
+                      metadataInitializationJob:
+                        properties:
+                          initTimeout:
+                            type: integer
+                          resources:
+                            properties:
+                              limits:
+                                additionalProperties:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                              requests:
+                                additionalProperties:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                            type: object
+                        type: object
                       updateStrategy:
                         properties:
                           type:
@@ -361,6 +407,8 @@ spec:
                           existingStorageClassName:
                             type: string
                         type: object
+                      kubernetesClusterDomain:
+                        type: string
                       tls:
                         properties:
                           enabled:

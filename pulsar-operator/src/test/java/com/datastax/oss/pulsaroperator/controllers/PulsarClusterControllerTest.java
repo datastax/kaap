@@ -45,6 +45,7 @@ public class PulsarClusterControllerTest {
                 spec:
                   global:
                     name: pulsarname
+                    kubernetesClusterDomain: cluster.local
                     persistence: true
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent

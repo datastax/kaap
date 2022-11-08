@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
@@ -282,6 +283,62 @@ public class ZooKeeperControllerTest {
                             matchLabels:
                               app: pulsarname
                               component: zookeeper
+                            """);
+
+        final String job = client
+                .getCreatedResource(Job.class).getResourceYaml();
+        Assert.assertEquals(job,
+                """
+                        ---
+                        apiVersion: batch/v1
+                        kind: Job
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: zookeeper
+                          name: pulsarname-zookeeper
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: ZooKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        spec:
+                          template:
+                            spec:
+                              containers:
+                              - args:
+                                - |
+                                  bin/pulsar initialize-cluster-metadata --cluster pulsarname \\
+                                      --zookeeper pulsarname-zookeeper-ca.ns.svc.cluster.local:2181 \\
+                                      --configuration-store pulsarname-zookeeper-ca.ns.svc.cluster.local:2181 \\
+                                      --web-service-url http://pulsarname-broker.ns.svc.cluster.local:8080/ \\
+                                      --broker-service-url pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                                command:
+                                - timeout
+                                - 60
+                                - sh
+                                - -c
+                                image: apachepulsar/pulsar:2.10.2
+                                imagePullPolicy: IfNotPresent
+                                name: pulsarname-zookeeper
+                              initContainers:
+                              - args:
+                                - |
+                                  until [ "$(echo ruok | nc pulsarname-zookeeper-2.pulsarname-zookeeper.ns 2181)" = "imok" ]; do
+                                    echo Zookeeper not yet ready. Will try again after 3 seconds.
+                                    sleep 3;
+                                  done;
+                                  echo Zookeeper is ready.
+                                command:
+                                - sh
+                                - -c
+                                image: apachepulsar/pulsar:2.10.2
+                                imagePullPolicy: IfNotPresent
+                                name: wait-zookeeper-ready
+                              restartPolicy: OnFailure
                             """);
     }
 

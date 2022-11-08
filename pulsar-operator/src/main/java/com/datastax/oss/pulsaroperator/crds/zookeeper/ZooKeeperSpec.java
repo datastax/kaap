@@ -49,6 +49,10 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
             .enabled(true)
             .maxUnavailable(1)
             .build();
+    public static final MetadataInitializationJobConfig
+            DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG = MetadataInitializationJobConfig.builder()
+            .initTimeout(60)
+            .build();
 
     @Data
     @NoArgsConstructor
@@ -82,6 +86,16 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
 
     }
 
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MetadataInitializationJobConfig {
+        private ResourceRequirements resources;
+        private int initTimeout;
+    }
+
     private String component;
     @Min(1)
     private Integer replicas;
@@ -96,6 +110,7 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private VolumeConfig dataVolume;
     private ServiceConfig service;
     private PodDisruptionBudgetConfig pdb;
+    private MetadataInitializationJobConfig metadataInitializationJob;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -137,6 +152,16 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
                     DEFAULT_PDB.getMaxUnavailable()));
         } else {
             pdb = DEFAULT_PDB;
+        }
+        if (metadataInitializationJob != null) {
+            metadataInitializationJob.setInitTimeout(Objects.requireNonNullElse(
+                    metadataInitializationJob.getInitTimeout(),
+                    DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.getInitTimeout()));
+            metadataInitializationJob.setResources(Objects.requireNonNullElse(
+                    metadataInitializationJob.getResources(),
+                    DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.getResources()));
+        } else {
+            metadataInitializationJob = DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG;
         }
     }
 

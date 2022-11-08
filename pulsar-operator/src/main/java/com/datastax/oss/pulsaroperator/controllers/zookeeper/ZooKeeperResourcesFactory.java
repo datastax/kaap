@@ -32,6 +32,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
@@ -125,7 +127,7 @@ public class ZooKeeperResourcesFactory {
                 .withPort(2181)
                 .build()
         );
-        if (isTlsEnabled()) {
+        if (isTlsEnabledOnZooKeeper()) {
             ports.add(
                     new ServicePortBuilder()
                             .withName("client-tls")
@@ -171,7 +173,7 @@ public class ZooKeeperResourcesFactory {
         data.put("PULSAR_EXTRA_OPTS",
                 "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info");
 
-        if (isTlsEnabled()) {
+        if (isTlsEnabledOnZooKeeper()) {
             data.put("PULSAR_PREFIX_serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("secureClientPort", "2281");
@@ -282,7 +284,7 @@ public class ZooKeeperResourcesFactory {
 
         List<Container> containers = new ArrayList<>();
         final ResourceRequirements resources = spec.getResources();
-        boolean enableTls = isTlsEnabled();
+        boolean enableTls = isTlsEnabledOnZooKeeper();
 
         List<String> zkServers = new ArrayList<>();
         for (int i = 0; i < spec.getReplicas(); i++) {
@@ -302,34 +304,7 @@ public class ZooKeeperResourcesFactory {
                         .build()
         );
         if (enableTls) {
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName("certs")
-                            .withReadOnly(true)
-                            .withMountPath("/pulsar/certs")
-                            .build()
-            );
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName("certconverter")
-                            .withMountPath("/pulsar/tools")
-                            .build()
-            );
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName("certs")
-                            .withNewSecret().withSecretName(global.getTls().getZookeeper().getTlsSecretName())
-                            .endSecret()
-                            .build()
-            );
-
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName("certconverter")
-                            .withNewConfigMap().withName(global.getName() + "-certconverter-configmap")
-                            .withDefaultMode(0755).endConfigMap()
-                            .build()
-            );
+            addTlsVolumes(volumeMounts, volumes);
         }
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
@@ -440,8 +415,137 @@ public class ZooKeeperResourcesFactory {
         commonCreateOrReplace(statefulSet);
     }
 
-    private boolean isTlsEnabled() {
-        return global.getTls() != null && global.getTls().getZookeeper() != null
+    private void addTlsVolumes(List<VolumeMount> volumeMounts, List<Volume> volumes) {
+        volumeMounts.add(
+                new VolumeMountBuilder()
+                        .withName("certs")
+                        .withReadOnly(true)
+                        .withMountPath("/pulsar/certs")
+                        .build()
+        );
+        volumeMounts.add(
+                new VolumeMountBuilder()
+                        .withName("certconverter")
+                        .withMountPath("/pulsar/tools")
+                        .build()
+        );
+        volumes.add(
+                new VolumeBuilder()
+                        .withName("certs")
+                        .withNewSecret().withSecretName(global.getTls().getZookeeper().getTlsSecretName())
+                        .endSecret()
+                        .build()
+        );
+
+        volumes.add(
+                new VolumeBuilder()
+                        .withName("certconverter")
+                        .withNewConfigMap().withName(global.getName() + "-certconverter-configmap")
+                        .withDefaultMode(0755).endConfigMap()
+                        .build()
+        );
+    }
+
+    public void createMetadataInitializationJob() {
+
+        final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
+                spec.getMetadataInitializationJob();
+
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        List<Volume> volumes = new ArrayList<>();
+        final boolean tlsEnabled = isTlsEnabledOnZooKeeper();
+        if (tlsEnabled) {
+            addTlsVolumes(volumeMounts, volumes);
+        }
+
+        final String waitZKHostname =
+                String.format("%s-%d.%s.%s", resourceName, spec.getReplicas() - 1, resourceName, namespace);
+
+        final Container initContainer = new ContainerBuilder()
+                .withName("wait-zookeeper-ready")
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withCommand("sh", "-c")
+                .withArgs("""
+                        until [ "$(echo ruok | nc %s 2181)" = "imok" ]; do
+                          echo Zookeeper not yet ready. Will try again after 3 seconds.
+                          sleep 3;
+                        done;
+                        echo Zookeeper is ready.
+                        """.formatted(waitZKHostname))
+                .build();
+
+        String mainArgs = "";
+        if (tlsEnabled) {
+            mainArgs += "/pulsar/tools/certconverter.sh &&";
+        }
+
+        final String clusterName = global.getName();
+        final String serviceDnsSuffix = "%s.svc.%s".formatted(namespace, global.getKubernetesClusterDomain());
+        final String zkParam = "%s-ca.%s:%d".formatted(resourceName, serviceDnsSuffix, tlsEnabled ? 2281 : 2181);
+        final boolean tlsEnabledOnBroker = isTlsEnabledGlobally();
+
+        final String webService = "%s://%s-%s.%s:%d/".formatted(
+                tlsEnabledOnBroker ? "https" : "http",
+                clusterName, "broker", serviceDnsSuffix, tlsEnabledOnBroker ? 8443 : 8080);
+
+        final String brokerService = "%s://%s-%s.%s:%d/".formatted(
+                tlsEnabledOnBroker ? "pulsar+ssl" : "pulsar",
+                clusterName, "broker", serviceDnsSuffix, tlsEnabledOnBroker ? 6651 : 6650);
+
+        mainArgs += """
+                bin/pulsar initialize-cluster-metadata --cluster %s \\
+                    --zookeeper %s \\
+                    --configuration-store %s \\
+                    %s %s \\
+                    %s %s
+                """.formatted(clusterName, zkParam, zkParam,
+                tlsEnabledOnBroker ? "--web-service-url-tls" : "--web-service-url",
+                webService,
+                tlsEnabledOnBroker ? "--broker-service-url-tls" : "--broker-service-url",
+                brokerService);
+
+        final Container container = new ContainerBuilder()
+                .withName(resourceName)
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withVolumeMounts(volumeMounts)
+                .withResources(jobConfig.getResources())
+                .withCommand("timeout", jobConfig.getInitTimeout() + "", "sh", "-c")
+                .withArgs(mainArgs)
+                .build();
+
+
+        final Job job = new JobBuilder()
+                .withNewMetadata()
+                .withName(resourceName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .endMetadata()
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .withDnsConfig(global.getDnsConfig())
+                .withNodeSelector(spec.getNodeSelectors())
+                .withVolumes(volumes)
+                .withInitContainers(List.of(initContainer))
+                .withContainers(List.of(container))
+                .withRestartPolicy("OnFailure")
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .build();
+
+        commonCreateOrReplace(job);
+    }
+
+    private boolean isTlsEnabledGlobally() {
+        return global.getTls() != null && global.getTls().isEnabled();
+    }
+
+    private boolean isTlsEnabledOnZooKeeper() {
+        return isTlsEnabledGlobally()
+                && global.getTls().getZookeeper() != null
                 && global.getTls().getZookeeper().isEnabled();
     }
 

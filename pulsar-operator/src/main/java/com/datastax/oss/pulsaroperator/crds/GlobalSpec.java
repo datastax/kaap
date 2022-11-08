@@ -48,6 +48,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @NotNull
     private String name;
     private PodDNSConfig dnsConfig;
+    private String kubernetesClusterDomain;
     protected Map<String, String> nodeSelectors;
     private TlsConfig tls;
     private Boolean persistence;
@@ -60,6 +61,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
+        if (kubernetesClusterDomain == null) {
+            kubernetesClusterDomain = "cluster.local";
+        }
         if (imagePullPolicy == null) {
             imagePullPolicy = "IfNotPresent";
         }

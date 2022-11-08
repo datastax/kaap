@@ -40,3 +40,6 @@ Uninstall the operator and the CRDs
 ```
 helm delete pos -n mypulsar
 ```
+
+## Configuration
+The configuration for the operator and the Pulsar Cluster CRD is in the [docs](https://github.com/riptano/pulsar-operator/blob/main/docs/crds.md) directory.

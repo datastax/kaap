@@ -11,13 +11,13 @@ It requires JDK17+.
 * [Kubernetes Java Operator SDK](https://javaoperatorsdk.io/)
 
 ### Creates the operator docker image
-1. Set credentials for the docker image: 
+Set credentials for the docker image and push it to dockerhub: 
 ```
 export QUARKUS_CONTAINER_IMAGE_GROUP=<your_dockerhub_username>
 export QUARKUS_CONTAINER_IMAGE_USERNAME=<your_dockerhub_username>
 export QUARKUS_CONTAINER_IMAGE_PASSWORD=<your_dockerhub_token>
 
-make docker-build-push
+mvn package -DskipTests -Dquarkus.container-image.push=true -pl pulsar-operator
 ```
 
 ### Helm deployment

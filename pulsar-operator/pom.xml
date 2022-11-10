@@ -12,9 +12,6 @@
     <artifactId>pulsar-operator</artifactId>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <quarkus.container-image.build>true</quarkus.container-image.build>
     </properties>
     <dependencies>

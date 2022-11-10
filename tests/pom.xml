@@ -12,8 +12,6 @@
     <artifactId>tests</artifactId>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <kindcontainer.version>1.3.1</kindcontainer.version>
         <awaitility.version>4.2.0</awaitility.version>
     </properties>

@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -34,6 +35,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     protected Integer replicas;
     @JsonPropertyDescription("Liveness and readiness probe values.")
     private ProbeConfig probe;
+    @JsonPropertyDescription("Pod disruption budget configuration for this component.")
+    private PodDisruptionBudgetConfig pdb;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -45,6 +48,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
         applyProbeDefault();
+        applyPdbDefault();
     }
 
     private void applyProbeDefault() {
@@ -69,8 +73,16 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         }
     }
 
-
-
+    public void applyPdbDefault() {
+        PodDisruptionBudgetConfig defaultPdb = getDefaultPdb();
+        if (pdb != null) {
+            pdb.setEnabled(ObjectUtils.firstNonNull(pdb.getEnabled(), defaultPdb.getEnabled()));
+            pdb.setMaxUnavailable(ObjectUtils.firstNonNull(pdb.getMaxUnavailable(),
+                    defaultPdb.getMaxUnavailable()));
+        } else {
+            pdb = defaultPdb;
+        }
+    }
 
     private Map<String, String> mergeMaps(Map<String, String> parent, Map<String, String> child) {
         if (parent == null) {
@@ -85,6 +97,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     }
 
 
-
     protected abstract ProbeConfig getDefaultProbeConfig();
+
+    protected abstract PodDisruptionBudgetConfig getDefaultPdb();
 }

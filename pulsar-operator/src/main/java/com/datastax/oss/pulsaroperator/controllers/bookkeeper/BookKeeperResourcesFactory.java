@@ -326,6 +326,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         createStorageClassIfNeeded(spec.getVolumes().getLedgers());
     }
 
+    public void createPodDisruptionBudgetIfEnabled() {
+        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+    }
 
 }
 

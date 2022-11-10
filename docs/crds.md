@@ -166,6 +166,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#bookkeeperspecbookkeeperpdb">pdb</a></b></td>
+        <td>object</td>
+        <td>
+          Pod disruption budget configuration for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>podManagementPolicy</b></td>
         <td>string</td>
         <td>
@@ -221,6 +228,40 @@ Resource Types:
         <td>object</td>
         <td>
           Volumes configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.bookkeeper.pdb
+<sup><sup>[↩ Parent](#bookkeeperspecbookkeeper)</sup></sup>
+
+
+
+Pod disruption budget configuration for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the maxUnavailable property for the Pdb.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1313,6 +1354,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperpdb">pdb</a></b></td>
+        <td>object</td>
+        <td>
+          Pod disruption budget configuration for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>podManagementPolicy</b></td>
         <td>string</td>
         <td>
@@ -1368,6 +1416,40 @@ TLS configurations related to the ZooKeeper component.
         <td>object</td>
         <td>
           Volumes configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.pdb
+<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
+
+
+
+Pod disruption budget configuration for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the maxUnavailable property for the Pdb.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2340,7 +2422,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b><a href="#pulsarclusterspeczookeeperpdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for the ZooKeeper pod.<br/>
+          Pod disruption budget configuration for this component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2567,7 +2649,7 @@ Resource requirements for the Job's Pod.
 
 
 
-Pod disruption budget configuration for the ZooKeeper pod.
+Pod disruption budget configuration for this component.
 
 <table>
     <thead>
@@ -3452,7 +3534,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b><a href="#zookeeperspeczookeeperpdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for the ZooKeeper pod.<br/>
+          Pod disruption budget configuration for this component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3679,7 +3761,7 @@ Resource requirements for the Job's Pod.
 
 
 
-Pod disruption budget configuration for the ZooKeeper pod.
+Pod disruption budget configuration for this component.
 
 <table>
     <thead>

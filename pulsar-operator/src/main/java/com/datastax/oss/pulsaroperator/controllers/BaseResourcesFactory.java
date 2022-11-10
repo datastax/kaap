@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -11,6 +12,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -185,6 +188,33 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                 .build();
         commonCreateOrReplace(storage);
         return true;
+    }
+
+    protected void createPodDisruptionBudgetIfEnabled(PodDisruptionBudgetConfig pdb) {
+        if (!pdb.getEnabled()) {
+            return;
+        }
+        final boolean pdbSupported = isPdbSupported();
+
+        final PodDisruptionBudget pdbResource = new PodDisruptionBudgetBuilder()
+                .withNewMetadata()
+                .withName(resourceName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .endMetadata()
+                .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(getMatchLabels())
+                .endSelector()
+                .withNewMaxUnavailable(pdb.getMaxUnavailable())
+                .endSpec()
+                .build();
+
+        if (!pdbSupported) {
+            pdbResource.setApiVersion("policy/v1beta1");
+        }
+
+        commonCreateOrReplace(pdbResource);
     }
 
 }

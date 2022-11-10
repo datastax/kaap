@@ -133,36 +133,11 @@ spec:
                       pod. Default value is 60.
                     minimum: 0.0
                     type: integer
-                  podManagementPolicy:
-                    description: Pod management policy for the BookKeeper pod. Default
-                      value is 'Parallel'.
-                    type: string
                   annotations:
                     additionalProperties:
                       type: string
                     description: Annotations to add to each BookKeeper resource.
                     type: object
-                  resources:
-                    description: Resource requirements for the BookKeeper pod.
-                    properties:
-                      limits:
-                        additionalProperties:
-                          anyOf:
-                          - type: integer
-                          - type: string
-                          x-kubernetes-int-or-string: true
-                        type: object
-                      requests:
-                        additionalProperties:
-                          anyOf:
-                          - type: integer
-                          - type: string
-                          x-kubernetes-int-or-string: true
-                        type: object
-                    type: object
-                  pvcPrefix:
-                    description: Prefix for each PVC created.
-                    type: string
                   service:
                     description: Configurations for the Service resources associated
                       to the BookKeeper pod.
@@ -195,6 +170,31 @@ spec:
                           Service resources.
                         type: object
                     type: object
+                  podManagementPolicy:
+                    description: Pod management policy for the BookKeeper pod. Default
+                      value is 'Parallel'.
+                    type: string
+                  resources:
+                    description: Resource requirements for the BookKeeper pod.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  pvcPrefix:
+                    description: Prefix for each PVC created.
+                    type: string
                   probe:
                     description: Liveness and readiness probe values.
                     properties:
@@ -216,6 +216,18 @@ spec:
                     description: Replicas of this component.
                     minimum: 1.0
                     type: integer
+                  pdb:
+                    description: Pod disruption budget configuration for this component.
+                    properties:
+                      maxUnavailable:
+                        description: Indicates the maxUnavailable property for the
+                          Pdb.
+                        type: integer
+                      enabled:
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
+                        type: boolean
+                    type: object
                   image:
                     description: Pulsar image to use for this component.
                     type: string
@@ -325,19 +337,6 @@ spec:
                     description: Pod management policy for the ZooKeeper pod. Default
                       value is 'Parallel'.
                     type: string
-                  pdb:
-                    description: Pod disruption budget configuration for the ZooKeeper
-                      pod.
-                    properties:
-                      maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
-                        type: integer
-                      enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
-                        type: boolean
-                    type: object
                   dataVolume:
                     description: Volume configuration for ZooKeeper data.
                     properties:
@@ -419,6 +418,18 @@ spec:
                     description: Replicas of this component.
                     minimum: 1.0
                     type: integer
+                  pdb:
+                    description: Pod disruption budget configuration for this component.
+                    properties:
+                      maxUnavailable:
+                        description: Indicates the maxUnavailable property for the
+                          Pdb.
+                        type: integer
+                      enabled:
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
+                        type: boolean
+                    type: object
                   image:
                     description: Pulsar image to use for this component.
                     type: string

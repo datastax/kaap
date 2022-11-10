@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.crds.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -54,6 +55,11 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
 
     private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", Quantity.parse("2Gi"), "cpu", Quantity.parse("1")))
+            .build();
+
+    public static final Supplier<PodDisruptionBudgetConfig> DEFAULT_PDB = () -> PodDisruptionBudgetConfig.builder()
+            .enabled(true)
+            .maxUnavailable(1)
             .build();
 
 
@@ -135,6 +141,11 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     @Override
     protected ProbeConfig getDefaultProbeConfig() {
         return DEFAULT_PROBE.get();
+    }
+
+    @Override
+    protected PodDisruptionBudgetConfig getDefaultPdb() {
+        return DEFAULT_PDB.get();
     }
 
     @Override

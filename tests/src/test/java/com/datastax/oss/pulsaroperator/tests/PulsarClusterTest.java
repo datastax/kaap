@@ -182,6 +182,8 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
     private void awaitBookKeeperRunning() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
             Assert.assertEquals(client.pods().withLabel("component", "bookkeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
+                    withLabel("component", "bookkeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.configMaps().withLabel("component", "bookkeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.apps().statefulSets()
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);

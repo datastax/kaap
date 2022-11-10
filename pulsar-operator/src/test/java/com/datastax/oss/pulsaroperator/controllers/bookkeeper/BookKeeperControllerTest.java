@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
@@ -240,6 +241,35 @@ public class BookKeeperControllerTest {
                         requests:
                           storage: 50Gi
                 """);
+
+        final MockKubernetesClient.ResourceInteraction<PodDisruptionBudget> pdbInt = client
+                .getCreatedResource(PodDisruptionBudget.class);
+        final String pdb = pdbInt.getResourceYaml();
+        Assert.assertEquals(pdb,
+                """
+                        ---
+                        apiVersion: policy/v1
+                        kind: PodDisruptionBudget
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: bookkeeper
+                          name: pulsarname-bookkeeper
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: BookKeeper
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        spec:
+                          maxUnavailable: 1
+                          selector:
+                            matchLabels:
+                              app: pulsarname
+                              component: bookkeeper
+                            """);
 
     }
 
@@ -965,6 +995,26 @@ public class BookKeeperControllerTest {
 
         Assert.assertEquals(service.getResource().getSpec().getClusterIP(), "None");
         Assert.assertEquals((boolean) service.getResource().getSpec().getPublishNotReadyAddresses(), true);
+    }
+
+    @Test
+    public void testPdbMaxUnavailable() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    pdb:
+                        maxUnavailable: 3
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+        final MockKubernetesClient.ResourceInteraction<PodDisruptionBudget> pdb =
+                client.getCreatedResource(PodDisruptionBudget.class);
+
+        Assert.assertEquals((int) pdb.getResource().getSpec().getMaxUnavailable().getIntVal(), 3);
     }
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {

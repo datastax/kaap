@@ -26,6 +26,7 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
         final BookKeeperResourcesFactory controller = new BookKeeperResourcesFactory(
                 client, namespace, spec.getBookkeeper(), spec.getGlobal(), getOwnerReference(resource));
 
+        controller.createPodDisruptionBudgetIfEnabled();
         controller.createConfigMap();
         controller.createStorageClassesIfNeeded();
         controller.createService();

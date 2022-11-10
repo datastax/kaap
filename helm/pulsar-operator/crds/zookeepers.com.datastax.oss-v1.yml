@@ -111,19 +111,6 @@ spec:
                     description: Pod management policy for the ZooKeeper pod. Default
                       value is 'Parallel'.
                     type: string
-                  pdb:
-                    description: Pod disruption budget configuration for the ZooKeeper
-                      pod.
-                    properties:
-                      maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
-                        type: integer
-                      enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
-                        type: boolean
-                    type: object
                   dataVolume:
                     description: Volume configuration for ZooKeeper data.
                     properties:
@@ -205,6 +192,18 @@ spec:
                     description: Replicas of this component.
                     minimum: 1.0
                     type: integer
+                  pdb:
+                    description: Pod disruption budget configuration for this component.
+                    properties:
+                      maxUnavailable:
+                        description: Indicates the maxUnavailable property for the
+                          Pdb.
+                        type: integer
+                      enabled:
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
+                        type: boolean
+                    type: object
                   image:
                     description: Pulsar image to use for this component.
                     type: string

@@ -24,7 +24,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         final ZooKeeperFullSpec spec = resource.getSpec();
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
                 client, namespace, spec.getZookeeper(), spec.getGlobal(), getOwnerReference(resource));
-        controller.createPodDisruptionBudget();
+        controller.createPodDisruptionBudgetIfEnabled();
         controller.createConfigMap();
         controller.createStorageClassIfNeeded();
         controller.createService();

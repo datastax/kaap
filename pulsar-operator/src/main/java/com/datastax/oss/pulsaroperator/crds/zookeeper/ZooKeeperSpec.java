@@ -99,8 +99,7 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private VolumeConfig dataVolume;
     @JsonPropertyDescription("Configurations for the Service resources associated to the ZooKeeper pod.")
     private ServiceConfig service;
-    @JsonPropertyDescription("Pod disruption budget configuration for the ZooKeeper pod.")
-    private PodDisruptionBudgetConfig pdb;
+
     @JsonPropertyDescription("Configuration about the job that initializes the Pulsar cluster creating the needed "
             + "ZooKeeper nodes.")
     private MetadataInitializationJobConfig metadataInitializationJob;
@@ -128,13 +127,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         }
         dataVolume.mergeVolumeConfigWithGlobal(globalSpec.getStorage());
         dataVolume.merge(DEFAULT_DATA_VOLUME.get());
-        if (pdb != null) {
-            pdb.setEnabled(ObjectUtils.firstNonNull(pdb.getEnabled(), DEFAULT_PDB.get().getEnabled()));
-            pdb.setMaxUnavailable(ObjectUtils.firstNonNull(pdb.getMaxUnavailable(),
-                    DEFAULT_PDB.get().getMaxUnavailable()));
-        } else {
-            pdb = DEFAULT_PDB.get();
-        }
         if (metadataInitializationJob != null) {
             metadataInitializationJob.setTimeout(ObjectUtils.firstNonNull(
                     metadataInitializationJob.getTimeout(),
@@ -152,6 +144,11 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     @Override
     protected ProbeConfig getDefaultProbeConfig() {
         return DEFAULT_PROBE.get();
+    }
+
+    @Override
+    protected PodDisruptionBudgetConfig getDefaultPdb() {
+        return DEFAULT_PDB.get();
     }
 
     @Override

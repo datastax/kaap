@@ -2,7 +2,6 @@ package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
@@ -33,8 +32,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
-import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -172,32 +169,8 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         createStorageClassIfNeeded(spec.getDataVolume());
     }
 
-    public void createPodDisruptionBudget() {
-        final PodDisruptionBudgetConfig pdb = spec.getPdb();
-        if (!pdb.getEnabled()) {
-            return;
-        }
-        final boolean pdbSupported = isPdbSupported();
-
-        final PodDisruptionBudget pdbResource = new PodDisruptionBudgetBuilder()
-                .withNewMetadata()
-                .withName(resourceName)
-                .withNamespace(namespace)
-                .withLabels(getLabels())
-                .endMetadata()
-                .withNewSpec()
-                .withNewSelector()
-                .withMatchLabels(getMatchLabels())
-                .endSelector()
-                .withNewMaxUnavailable(pdb.getMaxUnavailable())
-                .endSpec()
-                .build();
-
-        if (!pdbSupported) {
-            pdbResource.setApiVersion("policy/v1beta1");
-        }
-
-        commonCreateOrReplace(pdbResource);
+    public void createPodDisruptionBudgetIfEnabled() {
+        createPodDisruptionBudgetIfEnabled(spec.getPdb());
     }
 
 

@@ -14,6 +14,8 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -79,6 +81,38 @@ public class BookKeeperControllerTest {
                           useHostNameAsBookieID: "true"
                           zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
+
+        final String service = client
+                .getCreatedResource(Service.class).getResourceYaml();
+        Assert.assertEquals(service, """
+                ---
+                apiVersion: v1
+                kind: Service
+                metadata:
+                  annotations:
+                    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+                  labels:
+                    app: pulsarname
+                    cluster: pulsarname
+                    component: bookkeeper
+                  name: pulsarname-bookkeeper
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: BookKeeper
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsarname-cr
+                spec:
+                  clusterIP: None
+                  ports:
+                  - name: server
+                    port: 3181
+                  publishNotReadyAddresses: true
+                  selector:
+                    app: pulsarname
+                    component: bookkeeper
+                """);
 
         final String sts = client
                 .getCreatedResource(StatefulSet.class).getResourceYaml();
@@ -579,7 +613,7 @@ public class BookKeeperControllerTest {
         Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-lname"));
 
 
-        for (final PersistentVolumeClaim persistentVolumeClaim: createdResource.getResource().getSpec()
+        for (final PersistentVolumeClaim persistentVolumeClaim : createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates()) {
             Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
             Assert.assertNull(persistentVolumeClaim.getSpec().getStorageClassName());
@@ -600,7 +634,7 @@ public class BookKeeperControllerTest {
 
     @DataProvider(name = "dataVolumePersistenceExistingStorageClass")
     public static Object[][] dataVolumePersistenceExistingStorageClass() {
-        return new Object[][] { {"""
+        return new Object[][]{{"""
                 global:
                     name: pul
                     persistence: true
@@ -611,7 +645,7 @@ public class BookKeeperControllerTest {
                             existingStorageClassName: mystorage-class
                         ledgers:
                             existingStorageClassName: mystorage-class
-                """ },
+                """},
                 {"""
                 global:
                     name: pul
@@ -619,7 +653,7 @@ public class BookKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                     storage:
                         existingStorageClassName: mystorage-class
-                """ }};
+                """}};
     }
 
     @Test(dataProvider = "dataVolumePersistenceExistingStorageClass")
@@ -643,8 +677,7 @@ public class BookKeeperControllerTest {
         Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-ledgers"));
 
 
-
-        for (final PersistentVolumeClaim persistentVolumeClaim: createdResource.getResource().getSpec()
+        for (final PersistentVolumeClaim persistentVolumeClaim : createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates()) {
             Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
             Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "mystorage-class");
@@ -665,7 +698,7 @@ public class BookKeeperControllerTest {
 
     @DataProvider(name = "dataVolumePersistenceStorageClass")
     public static Object[][] dataVolumePersistenceStorageClass() {
-        return new Object[][] { {"""
+        return new Object[][]{{"""
                 global:
                     name: pul
                     persistence: true
@@ -688,7 +721,7 @@ public class BookKeeperControllerTest {
                                 fsType: ext4
                                 extraParams:
                                     iopsPerGB: "100"
-                """ },
+                """},
                 {"""
                 global:
                     name: pul
@@ -702,7 +735,7 @@ public class BookKeeperControllerTest {
                             fsType: ext4
                             extraParams:
                                 iopsPerGB: "10"
-                """ }};
+                """}};
     }
 
     @Test(dataProvider = "dataVolumePersistenceStorageClass")
@@ -726,19 +759,20 @@ public class BookKeeperControllerTest {
         Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-ledgers"));
 
 
-
-        for (final PersistentVolumeClaim persistentVolumeClaim: createdResource.getResource().getSpec()
+        for (final PersistentVolumeClaim persistentVolumeClaim : createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates()) {
             Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
             Assert.assertNull(client.getCreatedResource(StorageClass.class));
             switch (persistentVolumeClaim.getMetadata().getName()) {
                 case "pul-bookkeeper-journal":
-                    Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "pul-bookkeeper-journal");
+                    Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(),
+                            "pul-bookkeeper-journal");
                     Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
                             Quantity.parse("20Gi"));
                     break;
                 case "pul-bookkeeper-ledgers":
-                    Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "pul-bookkeeper-ledgers");
+                    Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(),
+                            "pul-bookkeeper-ledgers");
                     Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
                             Quantity.parse("50Gi"));
                     break;
@@ -867,6 +901,56 @@ public class BookKeeperControllerTest {
         assertProbe(container.getLivenessProbe(), 5, 10, 50);
         assertProbe(container.getReadinessProbe(), 5, 10, 50);
 
+    }
+
+
+    @Test
+    public void testService() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    service:
+                        annotations:
+                            myann: myann-value
+                        additionalPorts:
+                            - name: myport1
+                              port: 3333
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        final MockKubernetesClient.ResourceInteraction<Service> service =
+                client.getCreatedResource(Service.class);
+
+        final ObjectMeta metadata = service.getResource().getMetadata();
+        Assert.assertEquals(metadata.getName(), "pul-bookkeeper");
+        Assert.assertEquals(metadata.getNamespace(), NAMESPACE);
+        final List<ServicePort> ports = service.getResource().getSpec().getPorts();
+        Assert.assertEquals(ports.size(), 2);
+        for (ServicePort port : ports) {
+            switch (port.getName()) {
+                case "server":
+                    Assert.assertEquals((int) port.getPort(), 3181);
+                    break;
+                case "myport1":
+                    Assert.assertEquals((int) port.getPort(), 3333);
+                    break;
+                default:
+                    Assert.fail("unexpected port " + port.getName());
+                    break;
+            }
+        }
+        final Map<String, String> annotations = service.getResource().getMetadata().getAnnotations();
+        Assert.assertEquals(annotations.size(), 2);
+        Assert.assertEquals(annotations.get("service.alpha.kubernetes.io/tolerate-unready-endpoints"), "true");
+        Assert.assertEquals(annotations.get("myann"), "myann-value");
+
+        Assert.assertEquals(service.getResource().getSpec().getClusterIP(), "None");
+        Assert.assertEquals((boolean) service.getResource().getSpec().getPublishNotReadyAddresses(), true);
     }
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {

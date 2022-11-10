@@ -163,6 +163,38 @@ spec:
                   pvcPrefix:
                     description: Prefix for each PVC created.
                     type: string
+                  service:
+                    description: Configurations for the Service resources associated
+                      to the BookKeeper pod.
+                    properties:
+                      additionalPorts:
+                        description: Additional ports for the BookKeeper Service resources.
+                        items:
+                          properties:
+                            targetPort:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            port:
+                              type: integer
+                            nodePort:
+                              type: integer
+                            name:
+                              type: string
+                            appProtocol:
+                              type: string
+                            protocol:
+                              type: string
+                          type: object
+                        type: array
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Additional annotations to add to the BookKeeper
+                          Service resources.
+                        type: object
+                    type: object
                   probe:
                     description: Liveness and readiness probe values.
                     properties:

@@ -8,8 +8,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategy;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
@@ -66,6 +68,18 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
         private VolumeConfig ledgers;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ServiceConfig {
+        @JsonPropertyDescription("Additional annotations to add to the BookKeeper Service resources.")
+        private Map<String, String> annotations;
+        @JsonPropertyDescription("Additional ports for the BookKeeper Service resources.")
+        private List<ServicePort> additionalPorts;
+    }
+
+
     @JsonPropertyDescription("Update strategy for the BookKeeper pod/s. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy for the BookKeeper pod. Default value is 'Parallel'.")
@@ -82,6 +96,8 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     private Volumes volumes;
     @JsonPropertyDescription("Prefix for each PVC created.")
     private String pvcPrefix;
+    @JsonPropertyDescription("Configurations for the Service resources associated to the BookKeeper pod.")
+    private ServiceConfig service;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

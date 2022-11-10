@@ -185,6 +185,8 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
             Assert.assertEquals(client.configMaps().withLabel("component", "bookkeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.apps().statefulSets()
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.services()
+                    .withLabel("component", "bookkeeper").list().getItems().size(), 1);
         });
 
         client.pods()

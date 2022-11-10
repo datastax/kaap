@@ -27,6 +27,7 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
                 client, namespace, spec.getBookkeeper(), spec.getGlobal(), getOwnerReference(resource));
 
         controller.createConfigMap();
+        controller.createService();
         controller.createStatefulSet();
     }
 }

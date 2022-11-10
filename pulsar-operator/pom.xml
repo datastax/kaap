@@ -143,6 +143,15 @@
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
         </profile>
+        <profile>
+            <id>update-crds</id>
+            <properties>
+                <quarkus.container-image.build>false</quarkus.container-image.build>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
     </profiles>
 
 </project>

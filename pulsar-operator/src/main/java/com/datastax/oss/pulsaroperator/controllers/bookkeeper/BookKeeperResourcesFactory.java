@@ -18,6 +18,10 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -45,6 +49,42 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     protected String getComponentBaseName() {
         return global.getComponents().getBookkeeperBaseName();
     }
+
+
+    public void createService() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("service.alpha.kubernetes.io/tolerate-unready-endpoints", "true");
+        if (spec.getService() != null && spec.getService().getAnnotations() != null) {
+            annotations.putAll(spec.getService().getAnnotations());
+        }
+        List<ServicePort> ports = new ArrayList<>();
+        ports.add(new ServicePortBuilder()
+                .withName("server")
+                .withPort(3181)
+                .build());
+        if (spec.getService() != null && spec.getService().getAdditionalPorts() != null) {
+            ports.addAll(spec.getService().getAdditionalPorts());
+        }
+
+
+        final Service service = new ServiceBuilder()
+                .withNewMetadata()
+                .withName(resourceName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .withAnnotations(annotations)
+                .endMetadata()
+                .withNewSpec()
+                .withPorts(ports)
+                .withClusterIP("None")
+                .withPublishNotReadyAddresses(true)
+                .withSelector(getMatchLabels())
+                .endSpec()
+                .build();
+
+        commonCreateOrReplace(service);
+    }
+
 
     public void createConfigMap() {
         Map<String, String> data = new HashMap<>();
@@ -129,15 +169,15 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         final Probe probe = createProbe();
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
         if (isTlsEnabledOnBookKeeper()) {
-            mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && ";
+            mainArg +=
+                    "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key"
+                            + " -nocrypt && ";
         }
         if (isTlsEnabledOnZooKeeper()) {
             mainArg += "/pulsar/tools/certconverter.sh && ";
         }
 
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar bookie";
-
-
 
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
@@ -252,15 +292,15 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
 
         return new PersistentVolumeClaimBuilder()
-                        .withNewMetadata().withName(name).endMetadata()
-                        .withNewSpec()
-                        .withAccessModes(List.of("ReadWriteOnce"))
-                        .withNewResources()
-                        .withRequests(Map.of("storage", Quantity.parse(volumeConfig.getSize())))
-                        .endResources()
-                        .withStorageClassName(storageClassName)
-                        .endSpec()
-                        .build();
+                .withNewMetadata().withName(name).endMetadata()
+                .withNewSpec()
+                .withAccessModes(List.of("ReadWriteOnce"))
+                .withNewResources()
+                .withRequests(Map.of("storage", Quantity.parse(volumeConfig.getSize())))
+                .endResources()
+                .withStorageClassName(storageClassName)
+                .endSpec()
+                .build();
     }
 
 

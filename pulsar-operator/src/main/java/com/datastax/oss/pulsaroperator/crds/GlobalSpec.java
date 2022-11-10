@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Data
 @NoArgsConstructor
@@ -23,11 +24,24 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    public static class Components {
+        @JsonPropertyDescription("Zookeeper base name. Default value is 'zookeeper'.")
+        private String zookeeperBaseName;
+        @JsonPropertyDescription("BookKeeper base name. Default value is 'bookkeeper'.")
+        private String bookkeeperBaseName;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class TlsConfig {
         @JsonPropertyDescription("Global switch to turn on or off the TLS configurations.")
         private boolean enabled;
         @JsonPropertyDescription("TLS configurations related to the ZooKeeper component.")
         TlsEntryConfig zookeeper;
+        @JsonPropertyDescription("TLS configurations related to the BookKeeper component.")
+        TlsEntryConfig bookkeeper;
     }
 
     @Data
@@ -57,6 +71,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @Required
     @JsonPropertyDescription("Pulsar cluster base name.")
     private String name;
+    @JsonPropertyDescription("Pulsar cluster components names.")
+    private Components components;
     @JsonPropertyDescription("Additional DNS config for each pod created by the operator.")
     private PodDNSConfig dnsConfig;
     @JsonPropertyDescription("""
@@ -86,6 +102,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
+        applyComponentsDefaults();
+
         if (kubernetesClusterDomain == null) {
             kubernetesClusterDomain = "cluster.local";
         }
@@ -104,6 +122,14 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         if (storage.getStorageClass() != null && storage.getStorageClass().getReclaimPolicy() == null) {
             storage.getStorageClass().setReclaimPolicy("Retain");
         }
+    }
+
+    private void applyComponentsDefaults() {
+        if (components == null) {
+            components = new Components();
+        }
+        components.setZookeeperBaseName(ObjectUtils.firstNonNull(components.getZookeeperBaseName(), "zookeeper"));
+        components.setBookkeeperBaseName(ObjectUtils.firstNonNull(components.getBookkeeperBaseName(), "bookkeeper"));
     }
 
     @Override

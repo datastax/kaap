@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
@@ -27,14 +28,12 @@ public class PulsarClusterControllerTest {
                 """;
         final MockKubernetesClient client = invokeController(spec);
 
-        final MockKubernetesClient.ResourceInteraction<ZooKeeper> zk = client
-                .getCreatedResource(ZooKeeper.class);
         Assert.assertEquals("""
                 ---
                 apiVersion: com.datastax.oss/v1alpha1
                 kind: ZooKeeper
                 metadata:
-                  name: pulsarname-zookeeeper
+                  name: pulsarname-zookeeper
                   namespace: ns
                   ownerReferences:
                   - apiVersion: com.datastax.oss/v1alpha1
@@ -45,6 +44,9 @@ public class PulsarClusterControllerTest {
                 spec:
                   global:
                     name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
                     kubernetesClusterDomain: cluster.local
                     persistence: true
                     image: apachepulsar/pulsar:2.10.2
@@ -52,17 +54,36 @@ public class PulsarClusterControllerTest {
                     storage:
                       existingStorageClassName: default
                 status: {}
-                """, zk.getResourceYaml());
+                """, client.getCreatedResource(ZooKeeper.class).getResourceYaml());
 
-    }
+        Assert.assertEquals("""
+                ---
+                apiVersion: com.datastax.oss/v1alpha1
+                kind: BookKeeper
+                metadata:
+                  name: pulsarname-bookkeeper
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: PulsarCluster
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsar-cluster
+                spec:
+                  global:
+                    name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
+                    kubernetesClusterDomain: cluster.local
+                    persistence: true
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    storage:
+                      existingStorageClassName: default
+                status: {}
+                """, client.getCreatedResource(BookKeeper.class).getResourceYaml());
 
-    @SneakyThrows
-    private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<PulsarCluster> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertEquals(result.getResource().getStatus().getError(),
-                expectedErrorMessage);
     }
 
     @SneakyThrows

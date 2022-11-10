@@ -14,3 +14,10 @@ spec:
     dataVolume:
       name: data
       size: 100M
+  bookkeeper:
+    replicas: 1
+    volumes:
+      journal:
+        size: 1Gi
+      ledgers:
+        size: 1Gi

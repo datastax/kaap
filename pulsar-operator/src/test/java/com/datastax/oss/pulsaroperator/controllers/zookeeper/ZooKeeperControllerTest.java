@@ -230,7 +230,6 @@ public class ZooKeeperControllerTest {
                         apiVersion: v1
                         kind: Service
                         metadata:
-                          annotations: {}
                           labels:
                             app: pulsarname
                             cluster: pulsarname

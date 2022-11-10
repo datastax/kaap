@@ -11,7 +11,7 @@ import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-app")
+@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-controller")
 @JBossLog
 public class ZooKeeperController extends AbstractController<ZooKeeper> {
 
@@ -36,13 +36,6 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         controller.createCaService();
         controller.createStatefulSet();
         controller.createMetadataInitializationJob();
-        // statefulSet
-        // service
-        // storageClass
-        // pdb
-        // metadata init job
-        // config-map
-
         resource.getStatus().setCurrentSpec(spec);
         return UpdateControl.updateStatus(resource);
     }

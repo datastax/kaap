@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
@@ -53,7 +54,8 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         configuration.addMapping(getConstraintMapping(configuration,
                 PulsarClusterSpec.class,
                 GlobalSpec.class,
-                ZooKeeperSpec.class
+                ZooKeeperSpec.class,
+                BookKeeperSpec.class
         ));
         return configuration.buildValidatorFactory().getValidator();
     }

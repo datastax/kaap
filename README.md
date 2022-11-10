@@ -13,7 +13,7 @@ It requires JDK17+.
 ### Creates the operator docker image
 Set credentials for the docker image and push it to dockerhub: 
 ```
-export QUARKUS_CONTAINER_IMAGE_GROUP=<your_dockerhub_username>
+export QUARKUS_CONTAINER_IMAGE_IMAGE=<your_dockerhub_repo>/pulsar-operator:latest
 export QUARKUS_CONTAINER_IMAGE_USERNAME=<your_dockerhub_username>
 export QUARKUS_CONTAINER_IMAGE_PASSWORD=<your_dockerhub_token>
 

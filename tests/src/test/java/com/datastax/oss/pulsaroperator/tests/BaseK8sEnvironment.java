@@ -408,7 +408,7 @@ public abstract class BaseK8sEnvironment {
             try {
                 final String podLog = client.pods().inNamespace(NAMESPACE)
                         .withName(operatorPodName)
-                        .tailingLines(30)
+                        .tailingLines(60)
                         .getLog();
                 log.info("operator pod logs:\n{}", podLog);
             } catch (Throwable t) {

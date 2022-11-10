@@ -1,14 +1,17 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.HashMap;
 import java.util.Map;
+import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Getter
 @Setter
@@ -23,6 +26,14 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private String imagePullPolicy;
     @JsonPropertyDescription("Additional node selectors for this component.")
     protected Map<String, String> nodeSelectors;
+    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    protected Map<String, String> config;
+    @Min(1)
+    @io.fabric8.generator.annotation.Min(1)
+    @JsonPropertyDescription("Replicas of this component.")
+    protected Integer replicas;
+    @JsonPropertyDescription("Liveness and readiness probe values.")
+    private ProbeConfig probe;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -33,7 +44,33 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
+        applyProbeDefault();
     }
+
+    private void applyProbeDefault() {
+        final ProbeConfig defaultProbe = getDefaultProbeConfig();
+        if (probe == null) {
+            probe = defaultProbe;
+        } else if (defaultProbe != null) {
+            boolean enabled = probe.getEnabled() == null
+                    ? defaultProbe.getEnabled() : probe.getEnabled();
+            if (!enabled) {
+                probe = null;
+            } else {
+                probe = ProbeConfig.builder()
+                        .initial(ObjectUtils.firstNonNull(probe.getInitial(),
+                                defaultProbe.getInitial()))
+                        .period(ObjectUtils.firstNonNull(probe.getPeriod(),
+                                defaultProbe.getPeriod()))
+                        .timeout(ObjectUtils.firstNonNull(probe.getTimeout(),
+                                defaultProbe.getTimeout()))
+                        .build();
+            }
+        }
+    }
+
+
+
 
     private Map<String, String> mergeMaps(Map<String, String> parent, Map<String, String> child) {
         if (parent == null) {
@@ -46,4 +83,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         result.putAll(child);
         return result;
     }
+
+
+
+    protected abstract ProbeConfig getDefaultProbeConfig();
 }

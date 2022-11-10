@@ -19,6 +19,188 @@ spec:
         properties:
           spec:
             properties:
+              bookkeeper:
+                properties:
+                  volumes:
+                    description: Volumes configuration.
+                    properties:
+                      journal:
+                        description: Indicates the volume config for the journal.
+                        properties:
+                          storageClass:
+                            description: Indicates if a StorageClass is used. The
+                              operator will create the StorageClass if needed.
+                            properties:
+                              extraParams:
+                                additionalProperties:
+                                  type: string
+                                description: Adds extra parameters for the StorageClass.
+                                type: object
+                              provisioner:
+                                description: Indicates the provisioner property for
+                                  the StorageClass.
+                                type: string
+                              type:
+                                description: Indicates the 'type' parameter for the
+                                  StorageClass.
+                                type: string
+                              fsType:
+                                description: Indicates the 'fsType' parameter for
+                                  the StorageClass.
+                                type: string
+                              reclaimPolicy:
+                                description: Indicates the reclaimPolicy property
+                                  for the StorageClass.
+                                type: string
+                            type: object
+                          size:
+                            description: Indicates the requested size for the volume.
+                              The format follows the Kubernetes' Quantity. Default
+                              value is '5Gi'.
+                            type: string
+                          name:
+                            description: Indicates the suffix for the volume. Default
+                              value is 'data'.
+                            type: string
+                          existingStorageClassName:
+                            description: Indicates if an already existing storage
+                              class should be used.
+                            type: string
+                        type: object
+                      ledgers:
+                        description: Indicates the volume config for the ledgers.
+                        properties:
+                          storageClass:
+                            description: Indicates if a StorageClass is used. The
+                              operator will create the StorageClass if needed.
+                            properties:
+                              extraParams:
+                                additionalProperties:
+                                  type: string
+                                description: Adds extra parameters for the StorageClass.
+                                type: object
+                              provisioner:
+                                description: Indicates the provisioner property for
+                                  the StorageClass.
+                                type: string
+                              type:
+                                description: Indicates the 'type' parameter for the
+                                  StorageClass.
+                                type: string
+                              fsType:
+                                description: Indicates the 'fsType' parameter for
+                                  the StorageClass.
+                                type: string
+                              reclaimPolicy:
+                                description: Indicates the reclaimPolicy property
+                                  for the StorageClass.
+                                type: string
+                            type: object
+                          size:
+                            description: Indicates the requested size for the volume.
+                              The format follows the Kubernetes' Quantity. Default
+                              value is '5Gi'.
+                            type: string
+                          name:
+                            description: Indicates the suffix for the volume. Default
+                              value is 'data'.
+                            type: string
+                          existingStorageClassName:
+                            description: Indicates if an already existing storage
+                              class should be used.
+                            type: string
+                        type: object
+                    type: object
+                  updateStrategy:
+                    description: Update strategy for the BookKeeper pod/s. Default
+                      value is rolling update.
+                    properties:
+                      type:
+                        type: string
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          partition:
+                            type: integer
+                        type: object
+                    type: object
+                  gracePeriod:
+                    description: Termination grace period in seconds for the BookKeeper
+                      pod. Default value is 60.
+                    minimum: 0.0
+                    type: integer
+                  podManagementPolicy:
+                    description: Pod management policy for the BookKeeper pod. Default
+                      value is 'Parallel'.
+                    type: string
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each BookKeeper resource.
+                    type: object
+                  resources:
+                    description: Resource requirements for the BookKeeper pod.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  pvcPrefix:
+                    description: Prefix for each PVC created.
+                    type: string
+                  probe:
+                    description: Liveness and readiness probe values.
+                    properties:
+                      period:
+                        description: Indicates the period (in seconds) for the probe.
+                        type: integer
+                      timeout:
+                        description: Indicates the timeout (in seconds) for the probe.
+                        type: integer
+                      initial:
+                        description: Indicates the initial delay (in seconds) for
+                          the probe.
+                        type: integer
+                      enabled:
+                        description: Indicates whether the probe is enabled or not.
+                        type: boolean
+                    type: object
+                  replicas:
+                    description: Replicas of this component.
+                    minimum: 1.0
+                    type: integer
+                  image:
+                    description: Pulsar image to use for this component.
+                    type: string
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: Additional node selectors for this component.
+                    type: object
+                  imagePullPolicy:
+                    description: Pulsar image pull policy to use for this component.
+                    type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
+                type: object
               zookeeper:
                 properties:
                   metadataInitializationJob:
@@ -107,27 +289,23 @@ spec:
                       type: string
                     description: Annotations to add to each ZooKeeper resource.
                     type: object
-                  probe:
-                    description: Liveness and readiness probe values.
+                  podManagementPolicy:
+                    description: Pod management policy for the ZooKeeper pod. Default
+                      value is 'Parallel'.
+                    type: string
+                  pdb:
+                    description: Pod disruption budget configuration for the ZooKeeper
+                      pod.
                     properties:
-                      period:
-                        description: Indicates the period (in seconds) for the probe.
-                        type: integer
-                      timeout:
-                        description: Indicates the timeout (in seconds) for the probe.
-                        type: integer
-                      initial:
-                        description: Indicates the initial delay (in seconds) for
-                          the probe.
+                      maxUnavailable:
+                        description: Indicates the maxUnavailable property for the
+                          Pdb.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
                         type: boolean
                     type: object
-                  component:
-                    description: Base name of the ZooKeeper component. Default is
-                      'zookeeper'.
-                    type: string
                   dataVolume:
                     description: Volume configuration for ZooKeeper data.
                     properties:
@@ -170,27 +348,6 @@ spec:
                           should be used.
                         type: string
                     type: object
-                  podManagementPolicy:
-                    description: Pod management policy for the ZooKeeper pod. Default
-                      value is 'Parallel'.
-                    type: string
-                  pdb:
-                    description: Pod disruption budget configuration for the ZooKeeper
-                      pod.
-                    properties:
-                      maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
-                        type: integer
-                      enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
-                        type: boolean
-                    type: object
-                  replicas:
-                    description: Replicas of ZooKeeper instances.
-                    minimum: 1.0
-                    type: integer
                   resources:
                     description: Resource requirements for the ZooKeeper pod.
                     properties:
@@ -209,12 +366,27 @@ spec:
                           x-kubernetes-int-or-string: true
                         type: object
                     type: object
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration entries directly passed to the ZooKeeper
-                      server.
+                  probe:
+                    description: Liveness and readiness probe values.
+                    properties:
+                      period:
+                        description: Indicates the period (in seconds) for the probe.
+                        type: integer
+                      timeout:
+                        description: Indicates the timeout (in seconds) for the probe.
+                        type: integer
+                      initial:
+                        description: Indicates the initial delay (in seconds) for
+                          the probe.
+                        type: integer
+                      enabled:
+                        description: Indicates whether the probe is enabled or not.
+                        type: boolean
                     type: object
+                  replicas:
+                    description: Replicas of this component.
+                    minimum: 1.0
+                    type: integer
                   image:
                     description: Pulsar image to use for this component.
                     type: string
@@ -226,6 +398,11 @@ spec:
                   imagePullPolicy:
                     description: Pulsar image pull policy to use for this component.
                     type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
                 type: object
               global:
                 properties:
@@ -269,6 +446,16 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
+                  components:
+                    description: Pulsar cluster components names.
+                    properties:
+                      zookeeperBaseName:
+                        description: Zookeeper base name. Default value is 'zookeeper'.
+                        type: string
+                      bookkeeperBaseName:
+                        description: BookKeeper base name. Default value is 'bookkeeper'.
+                        type: string
+                    type: object
                   tls:
                     description: TLS configuration for the cluster.
                     properties:
@@ -277,6 +464,17 @@ spec:
                         type: boolean
                       zookeeper:
                         description: TLS configurations related to the ZooKeeper component.
+                        properties:
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                          tlsSecretName:
+                            description: Enable certificates for this component.
+                            type: string
+                        type: object
+                      bookkeeper:
+                        description: TLS configurations related to the BookKeeper
+                          component.
                         properties:
                           enabled:
                             description: Enable tls for this component.
@@ -338,6 +536,192 @@ spec:
             properties:
               currentSpec:
                 properties:
+                  bookkeeper:
+                    properties:
+                      volumes:
+                        description: Volumes configuration.
+                        properties:
+                          journal:
+                            description: Indicates the volume config for the journal.
+                            properties:
+                              storageClass:
+                                description: Indicates if a StorageClass is used.
+                                  The operator will create the StorageClass if needed.
+                                properties:
+                                  extraParams:
+                                    additionalProperties:
+                                      type: string
+                                    description: Adds extra parameters for the StorageClass.
+                                    type: object
+                                  provisioner:
+                                    description: Indicates the provisioner property
+                                      for the StorageClass.
+                                    type: string
+                                  type:
+                                    description: Indicates the 'type' parameter for
+                                      the StorageClass.
+                                    type: string
+                                  fsType:
+                                    description: Indicates the 'fsType' parameter
+                                      for the StorageClass.
+                                    type: string
+                                  reclaimPolicy:
+                                    description: Indicates the reclaimPolicy property
+                                      for the StorageClass.
+                                    type: string
+                                type: object
+                              size:
+                                description: Indicates the requested size for the
+                                  volume. The format follows the Kubernetes' Quantity.
+                                  Default value is '5Gi'.
+                                type: string
+                              name:
+                                description: Indicates the suffix for the volume.
+                                  Default value is 'data'.
+                                type: string
+                              existingStorageClassName:
+                                description: Indicates if an already existing storage
+                                  class should be used.
+                                type: string
+                            type: object
+                          ledgers:
+                            description: Indicates the volume config for the ledgers.
+                            properties:
+                              storageClass:
+                                description: Indicates if a StorageClass is used.
+                                  The operator will create the StorageClass if needed.
+                                properties:
+                                  extraParams:
+                                    additionalProperties:
+                                      type: string
+                                    description: Adds extra parameters for the StorageClass.
+                                    type: object
+                                  provisioner:
+                                    description: Indicates the provisioner property
+                                      for the StorageClass.
+                                    type: string
+                                  type:
+                                    description: Indicates the 'type' parameter for
+                                      the StorageClass.
+                                    type: string
+                                  fsType:
+                                    description: Indicates the 'fsType' parameter
+                                      for the StorageClass.
+                                    type: string
+                                  reclaimPolicy:
+                                    description: Indicates the reclaimPolicy property
+                                      for the StorageClass.
+                                    type: string
+                                type: object
+                              size:
+                                description: Indicates the requested size for the
+                                  volume. The format follows the Kubernetes' Quantity.
+                                  Default value is '5Gi'.
+                                type: string
+                              name:
+                                description: Indicates the suffix for the volume.
+                                  Default value is 'data'.
+                                type: string
+                              existingStorageClassName:
+                                description: Indicates if an already existing storage
+                                  class should be used.
+                                type: string
+                            type: object
+                        type: object
+                      updateStrategy:
+                        description: Update strategy for the BookKeeper pod/s. Default
+                          value is rolling update.
+                        properties:
+                          type:
+                            type: string
+                          rollingUpdate:
+                            properties:
+                              maxUnavailable:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                x-kubernetes-int-or-string: true
+                              partition:
+                                type: integer
+                            type: object
+                        type: object
+                      gracePeriod:
+                        description: Termination grace period in seconds for the BookKeeper
+                          pod. Default value is 60.
+                        minimum: 0.0
+                        type: integer
+                      podManagementPolicy:
+                        description: Pod management policy for the BookKeeper pod.
+                          Default value is 'Parallel'.
+                        type: string
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations to add to each BookKeeper resource.
+                        type: object
+                      resources:
+                        description: Resource requirements for the BookKeeper pod.
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                        type: object
+                      pvcPrefix:
+                        description: Prefix for each PVC created.
+                        type: string
+                      probe:
+                        description: Liveness and readiness probe values.
+                        properties:
+                          period:
+                            description: Indicates the period (in seconds) for the
+                              probe.
+                            type: integer
+                          timeout:
+                            description: Indicates the timeout (in seconds) for the
+                              probe.
+                            type: integer
+                          initial:
+                            description: Indicates the initial delay (in seconds)
+                              for the probe.
+                            type: integer
+                          enabled:
+                            description: Indicates whether the probe is enabled or
+                              not.
+                            type: boolean
+                        type: object
+                      replicas:
+                        description: Replicas of this component.
+                        minimum: 1.0
+                        type: integer
+                      image:
+                        description: Pulsar image to use for this component.
+                        type: string
+                      nodeSelectors:
+                        additionalProperties:
+                          type: string
+                        description: Additional node selectors for this component.
+                        type: object
+                      imagePullPolicy:
+                        description: Pulsar image pull policy to use for this component.
+                        type: string
+                      config:
+                        additionalProperties:
+                          type: string
+                        description: Configuration entries directly passed to this
+                          component.
+                        type: object
+                    type: object
                   zookeeper:
                     properties:
                       metadataInitializationJob:
@@ -427,30 +811,23 @@ spec:
                           type: string
                         description: Annotations to add to each ZooKeeper resource.
                         type: object
-                      probe:
-                        description: Liveness and readiness probe values.
+                      podManagementPolicy:
+                        description: Pod management policy for the ZooKeeper pod.
+                          Default value is 'Parallel'.
+                        type: string
+                      pdb:
+                        description: Pod disruption budget configuration for the ZooKeeper
+                          pod.
                         properties:
-                          period:
-                            description: Indicates the period (in seconds) for the
-                              probe.
-                            type: integer
-                          timeout:
-                            description: Indicates the timeout (in seconds) for the
-                              probe.
-                            type: integer
-                          initial:
-                            description: Indicates the initial delay (in seconds)
-                              for the probe.
+                          maxUnavailable:
+                            description: Indicates the maxUnavailable property for
+                              the Pdb.
                             type: integer
                           enabled:
-                            description: Indicates whether the probe is enabled or
-                              not.
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
                             type: boolean
                         type: object
-                      component:
-                        description: Base name of the ZooKeeper component. Default
-                          is 'zookeeper'.
-                        type: string
                       dataVolume:
                         description: Volume configuration for ZooKeeper data.
                         properties:
@@ -494,27 +871,6 @@ spec:
                               class should be used.
                             type: string
                         type: object
-                      podManagementPolicy:
-                        description: Pod management policy for the ZooKeeper pod.
-                          Default value is 'Parallel'.
-                        type: string
-                      pdb:
-                        description: Pod disruption budget configuration for the ZooKeeper
-                          pod.
-                        properties:
-                          maxUnavailable:
-                            description: Indicates the maxUnavailable property for
-                              the Pdb.
-                            type: integer
-                          enabled:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
-                            type: boolean
-                        type: object
-                      replicas:
-                        description: Replicas of ZooKeeper instances.
-                        minimum: 1.0
-                        type: integer
                       resources:
                         description: Resource requirements for the ZooKeeper pod.
                         properties:
@@ -533,12 +889,30 @@ spec:
                               x-kubernetes-int-or-string: true
                             type: object
                         type: object
-                      config:
-                        additionalProperties:
-                          type: string
-                        description: Configuration entries directly passed to the
-                          ZooKeeper server.
+                      probe:
+                        description: Liveness and readiness probe values.
+                        properties:
+                          period:
+                            description: Indicates the period (in seconds) for the
+                              probe.
+                            type: integer
+                          timeout:
+                            description: Indicates the timeout (in seconds) for the
+                              probe.
+                            type: integer
+                          initial:
+                            description: Indicates the initial delay (in seconds)
+                              for the probe.
+                            type: integer
+                          enabled:
+                            description: Indicates whether the probe is enabled or
+                              not.
+                            type: boolean
                         type: object
+                      replicas:
+                        description: Replicas of this component.
+                        minimum: 1.0
+                        type: integer
                       image:
                         description: Pulsar image to use for this component.
                         type: string
@@ -550,6 +924,12 @@ spec:
                       imagePullPolicy:
                         description: Pulsar image pull policy to use for this component.
                         type: string
+                      config:
+                        additionalProperties:
+                          type: string
+                        description: Configuration entries directly passed to this
+                          component.
+                        type: object
                     type: object
                   global:
                     properties:
@@ -594,6 +974,16 @@ spec:
                           It's used to fully qualify service names when configuring Pulsar.
                           The default value is 'cluster.local'.
                         type: string
+                      components:
+                        description: Pulsar cluster components names.
+                        properties:
+                          zookeeperBaseName:
+                            description: Zookeeper base name. Default value is 'zookeeper'.
+                            type: string
+                          bookkeeperBaseName:
+                            description: BookKeeper base name. Default value is 'bookkeeper'.
+                            type: string
+                        type: object
                       tls:
                         description: TLS configuration for the cluster.
                         properties:
@@ -602,6 +992,17 @@ spec:
                             type: boolean
                           zookeeper:
                             description: TLS configurations related to the ZooKeeper
+                              component.
+                            properties:
+                              enabled:
+                                description: Enable tls for this component.
+                                type: boolean
+                              tlsSecretName:
+                                description: Enable certificates for this component.
+                                type: string
+                            type: object
+                          bookkeeper:
+                            description: TLS configurations related to the BookKeeper
                               component.
                             properties:
                               enabled:

@@ -1,9 +1,11 @@
 package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
-import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -12,7 +14,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
@@ -38,7 +39,6 @@ import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.VersionInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,30 +48,17 @@ import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public class ZooKeeperResourcesFactory {
+public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpec> {
 
-    private final KubernetesClient client;
-    private final String namespace;
-    private final ZooKeeperSpec spec;
-    private final GlobalSpec global;
-    private final String resourceName;
-    private final OwnerReference ownerReference;
-    private VersionInfo version;
-
-    public ZooKeeperResourcesFactory(KubernetesClient client, String namespace, ZooKeeperSpec spec,
-                                     GlobalSpec global, OwnerReference ownerReference) {
-        this.client = client;
-        this.namespace = namespace;
-        this.spec = spec;
-        this.global = global;
-        this.ownerReference = ownerReference;
-
-        resourceName = String.format("%s-%s", global.getName(), spec.getComponent());
+    public ZooKeeperResourcesFactory(KubernetesClient client, String namespace,
+                                     ZooKeeperSpec spec, GlobalSpec global,
+                                     OwnerReference ownerReference) {
+        super(client, namespace, spec, global, ownerReference);
     }
 
-    private void commonCreateOrReplace(HasMetadata resource) {
-        resource.getMetadata().setOwnerReferences(List.of(ownerReference));
-        client.resource(resource).inNamespace(namespace).createOrReplace();
+    @Override
+    protected String getComponentBaseName() {
+        return global.getComponents().getZookeeperBaseName();
     }
 
     public void createService() {
@@ -186,7 +173,7 @@ public class ZooKeeperResourcesFactory {
 
     public void createStorageClass() {
 
-        final ZooKeeperSpec.VolumeConfig dataVolume = spec.getDataVolume();
+        final VolumeConfig dataVolume = spec.getDataVolume();
         final String volumeFullName = resourceName + "-" + dataVolume.getName();
         final StorageClassConfig storageClass = dataVolume.getStorageClass();
         if (storageClass == null) {
@@ -248,13 +235,6 @@ public class ZooKeeperResourcesFactory {
         commonCreateOrReplace(pdbResource);
     }
 
-    private Map<String, String> getLabels() {
-        return Map.of(
-                CRDConstants.LABEL_APP, global.getName(),
-                CRDConstants.LABEL_COMPONENT, spec.getComponent(),
-                CRDConstants.LABEL_CLUSTER, global.getName()
-        );
-    }
 
     public void createStatefulSet() {
         final int replicas = spec.getReplicas();
@@ -294,7 +274,7 @@ public class ZooKeeperResourcesFactory {
                         .build()
         );
         if (enableTls) {
-            addTlsVolumes(volumeMounts, volumes);
+            addTlsVolumesIfEnabled(volumeMounts, volumes);
         }
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
@@ -348,7 +328,7 @@ public class ZooKeeperResourcesFactory {
             );
         } else {
             String storageClassName = null;
-            final ZooKeeperSpec.VolumeConfig dataVolume = spec.getDataVolume();
+            final VolumeConfig dataVolume = spec.getDataVolume();
             if (dataVolume.getExistingStorageClassName() != null) {
                 if (!dataVolume.getExistingStorageClassName().equals("default")) {
                     storageClassName = dataVolume.getExistingStorageClassName();
@@ -405,39 +385,8 @@ public class ZooKeeperResourcesFactory {
         commonCreateOrReplace(statefulSet);
     }
 
-    private void addTlsVolumes(List<VolumeMount> volumeMounts, List<Volume> volumes) {
-        volumeMounts.add(
-                new VolumeMountBuilder()
-                        .withName("certs")
-                        .withReadOnly(true)
-                        .withMountPath("/pulsar/certs")
-                        .build()
-        );
-        volumeMounts.add(
-                new VolumeMountBuilder()
-                        .withName("certconverter")
-                        .withMountPath("/pulsar/tools")
-                        .build()
-        );
-        volumes.add(
-                new VolumeBuilder()
-                        .withName("certs")
-                        .withNewSecret().withSecretName(global.getTls().getZookeeper().getTlsSecretName())
-                        .endSecret()
-                        .build()
-        );
-
-        volumes.add(
-                new VolumeBuilder()
-                        .withName("certconverter")
-                        .withNewConfigMap().withName(global.getName() + "-certconverter-configmap")
-                        .withDefaultMode(0755).endConfigMap()
-                        .build()
-        );
-    }
 
     public void createMetadataInitializationJob() {
-
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
                 spec.getMetadataInitializationJob();
 
@@ -445,7 +394,7 @@ public class ZooKeeperResourcesFactory {
         List<Volume> volumes = new ArrayList<>();
         final boolean tlsEnabled = isTlsEnabledOnZooKeeper();
         if (tlsEnabled) {
-            addTlsVolumes(volumeMounts, volumes);
+            addTlsVolumesIfEnabled(volumeMounts, volumes);
         }
 
         final String waitZKHostname =
@@ -471,9 +420,10 @@ public class ZooKeeperResourcesFactory {
         }
 
         final String clusterName = global.getName();
-        final String serviceDnsSuffix = "%s.svc.%s".formatted(namespace, global.getKubernetesClusterDomain());
-        final String zkParam = "%s-ca.%s:%d".formatted(resourceName, serviceDnsSuffix, tlsEnabled ? 2281 : 2181);
-        final boolean tlsEnabledOnBroker = isTlsEnabledGlobally();
+
+        final String serviceDnsSuffix = getServiceDnsSuffix();
+        final String zkServers = getZkServers();
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 
         final String webService = "%s://%s-%s.%s:%d/".formatted(
                 tlsEnabledOnBroker ? "https" : "http",
@@ -489,7 +439,7 @@ public class ZooKeeperResourcesFactory {
                     --configuration-store %s \\
                     %s %s \\
                     %s %s
-                """.formatted(clusterName, zkParam, zkParam,
+                """.formatted(clusterName, zkServers, zkServers,
                 tlsEnabledOnBroker ? "--web-service-url-tls" : "--web-service-url",
                 webService,
                 tlsEnabledOnBroker ? "--broker-service-url-tls" : "--broker-service-url",
@@ -529,18 +479,10 @@ public class ZooKeeperResourcesFactory {
         commonCreateOrReplace(job);
     }
 
-    private boolean isTlsEnabledGlobally() {
-        return global.getTls() != null && global.getTls().isEnabled();
-    }
 
-    private boolean isTlsEnabledOnZooKeeper() {
-        return isTlsEnabledGlobally()
-                && global.getTls().getZookeeper() != null
-                && global.getTls().getZookeeper().isEnabled();
-    }
 
     private Probe createProbe() {
-        final ZooKeeperSpec.ProbeConfig specProbe = spec.getProbe();
+        final ProbeConfig specProbe = spec.getProbe();
         if (specProbe == null) {
             return null;
         }
@@ -551,30 +493,6 @@ public class ZooKeeperResourcesFactory {
                 .withPeriodSeconds(specProbe.getPeriod())
                 .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
-    }
-
-    private Map<String, String> getMatchLabels() {
-        Map<String, String> matchLabels = Map.of(
-                "app", global.getName(),
-                "component", spec.getComponent()
-        );
-        return matchLabels;
-    }
-
-    private boolean isPdbSupported() {
-        final VersionInfo version = getVersion();
-        if (version.getMajor().compareTo("1") >= 0
-                && version.getMinor().compareTo("21") >= 0) {
-            return true;
-        }
-        return false;
-    }
-
-    private VersionInfo getVersion() {
-        if (version == null) {
-            version = client.getKubernetesVersion();
-        }
-        return version;
     }
 
 }

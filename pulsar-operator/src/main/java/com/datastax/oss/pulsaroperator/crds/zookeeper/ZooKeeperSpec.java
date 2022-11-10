@@ -3,7 +3,8 @@ package com.datastax.oss.pulsaroperator.crds.zookeeper;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -13,7 +14,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategy;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Data
 @NoArgsConstructor
@@ -28,11 +30,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
 
-    private static final StatefulSetUpdateStrategy DEFAULT_UPDATE_STRATEGY = new StatefulSetUpdateStrategyBuilder()
+    private static final Supplier<StatefulSetUpdateStrategy> DEFAULT_UPDATE_STRATEGY = () -> new StatefulSetUpdateStrategyBuilder()
             .withType("RollingUpdate")
             .build();
 
-    public static final ProbeConfig DEFAULT_PROBE = ProbeConfig.builder()
+    public static final Supplier<ProbeConfig> DEFAULT_PROBE = () -> ProbeConfig.builder()
             .enabled(true)
             .initial(20)
             .period(30)
@@ -40,54 +42,23 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
             .build();
 
 
-    private static final ResourceRequirements DEFAULT_RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
+    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("0.3")))
             .build();
-    public static final VolumeConfig DEFAULT_DATA_VOLUME = new VolumeConfig.VolumeConfigBuilder()
+
+    public static final Supplier<VolumeConfig> DEFAULT_DATA_VOLUME = () -> VolumeConfig.builder()
             .name("data")
             .size("5Gi").build();
 
-    public static final PodDisruptionBudgetConfig DEFAULT_PDB = PodDisruptionBudgetConfig.builder()
+    public static final Supplier<PodDisruptionBudgetConfig> DEFAULT_PDB = () -> PodDisruptionBudgetConfig.builder()
             .enabled(true)
             .maxUnavailable(1)
             .build();
 
-    public static final MetadataInitializationJobConfig
-            DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG = MetadataInitializationJobConfig.builder()
+    public static final Supplier<MetadataInitializationJobConfig>
+            DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG = () -> MetadataInitializationJobConfig.builder()
             .timeout(60)
             .build();
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class ProbeConfig {
-        @JsonPropertyDescription("Indicates whether the probe is enabled or not.")
-        private Boolean enabled;
-        @JsonPropertyDescription("Indicates the timeout (in seconds) for the probe.")
-        private Integer timeout;
-        @JsonPropertyDescription("Indicates the initial delay (in seconds) for the probe.")
-        private Integer initial;
-        @JsonPropertyDescription("Indicates the period (in seconds) for the probe.")
-        private Integer period;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class VolumeConfig {
-        @JsonPropertyDescription("Indicates the suffix for the volume. Default value is 'data'.")
-        private String name;
-        @JsonPropertyDescription("Indicates the requested size for the volume. The format follows the Kubernetes' "
-                + "Quantity. Default value is '5Gi'.")
-        private String size;
-        @JsonPropertyDescription("Indicates if a StorageClass is used. The operator will create the StorageClass if "
-                + "needed.")
-        private StorageClassConfig storageClass;
-        @JsonPropertyDescription("Indicates if an already existing storage class should be used.")
-        private String existingStorageClassName;
-    }
 
     @Data
     @NoArgsConstructor
@@ -112,14 +83,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         private int timeout;
     }
 
-    @JsonPropertyDescription("Base name of the ZooKeeper component. Default is 'zookeeper'.")
-    private String component;
-    @Min(1)
-    @io.fabric8.generator.annotation.Min(1)
-    @JsonPropertyDescription("Replicas of ZooKeeper instances.")
-    private Integer replicas;
-    @JsonPropertyDescription("Configuration entries directly passed to the ZooKeeper server.")
-    private Map<String, String> config;
     @JsonPropertyDescription("Pod management policy for the ZooKeeper pod. Default value is 'Parallel'.")
     private String podManagementPolicy;
     @JsonPropertyDescription("Update strategy for the ZooKeeper pod. Default value is rolling update.")
@@ -132,8 +95,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private Integer gracePeriod;
     @JsonPropertyDescription("Resource requirements for the ZooKeeper pod.")
     private ResourceRequirements resources;
-    @JsonPropertyDescription("Liveness and readiness probe values.")
-    private ProbeConfig probe;
     @JsonPropertyDescription("Volume configuration for ZooKeeper data.")
     private VolumeConfig dataVolume;
     @JsonPropertyDescription("Configurations for the Service resources associated to the ZooKeeper pod.")
@@ -147,75 +108,50 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
-        applyProbeDefault();
         if (podManagementPolicy == null) {
             podManagementPolicy = "Parallel";
         }
         if (replicas == null) {
             replicas = 3;
         }
-        if (component == null) {
-            component = "zookeeper";
-        }
         if (updateStrategy == null) {
-            updateStrategy = DEFAULT_UPDATE_STRATEGY;
+            updateStrategy = DEFAULT_UPDATE_STRATEGY.get();
         }
         if (gracePeriod == null) {
             gracePeriod = 60;
         }
         if (resources == null) {
-            resources = DEFAULT_RESOURCE_REQUIREMENTS;
+            resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
         if (dataVolume == null) {
-            dataVolume = DEFAULT_DATA_VOLUME;
+            dataVolume = DEFAULT_DATA_VOLUME.get();
         }
-        if (globalSpec.getStorage() != null) {
-            if (dataVolume.getExistingStorageClassName() == null && dataVolume.getStorageClass() == null) {
-                if (globalSpec.getStorage().getExistingStorageClassName() != null) {
-                    dataVolume.setExistingStorageClassName(globalSpec.getStorage().getExistingStorageClassName());
-                } else if (globalSpec.getStorage().getStorageClass() != null) {
-                    dataVolume.setStorageClass(globalSpec.getStorage().getStorageClass());
-                }
-            }
-        }
+        dataVolume.mergeVolumeConfigWithGlobal(globalSpec.getStorage());
+        dataVolume.merge(DEFAULT_DATA_VOLUME.get());
         if (pdb != null) {
-            pdb.setEnabled(Objects.requireNonNullElse(pdb.getEnabled(), DEFAULT_PDB.getEnabled()));
-            pdb.setMaxUnavailable(Objects.requireNonNullElse(pdb.getMaxUnavailable(),
-                    DEFAULT_PDB.getMaxUnavailable()));
+            pdb.setEnabled(ObjectUtils.firstNonNull(pdb.getEnabled(), DEFAULT_PDB.get().getEnabled()));
+            pdb.setMaxUnavailable(ObjectUtils.firstNonNull(pdb.getMaxUnavailable(),
+                    DEFAULT_PDB.get().getMaxUnavailable()));
         } else {
-            pdb = DEFAULT_PDB;
+            pdb = DEFAULT_PDB.get();
         }
         if (metadataInitializationJob != null) {
-            metadataInitializationJob.setTimeout(Objects.requireNonNullElse(
+            metadataInitializationJob.setTimeout(ObjectUtils.firstNonNull(
                     metadataInitializationJob.getTimeout(),
-                    DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.getTimeout()));
-            metadataInitializationJob.setResources(Objects.requireNonNullElse(
+                    DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.get().getTimeout()));
+            metadataInitializationJob.setResources(ObjectUtils.firstNonNull(
                     metadataInitializationJob.getResources(),
-                    DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.getResources()));
+                    DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.get().getResources()));
         } else {
-            metadataInitializationJob = DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG;
+            metadataInitializationJob = DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.get();
         }
     }
 
-    private void applyProbeDefault() {
-        if (probe == null) {
-            probe = ZooKeeperSpec.DEFAULT_PROBE;
-        } else {
-            boolean enabled = probe.getEnabled() == null
-                    ? ZooKeeperSpec.DEFAULT_PROBE.getEnabled() : probe.getEnabled();
-            if (!enabled) {
-                probe = null;
-            } else {
-                probe = ProbeConfig.builder()
-                        .initial(Objects.requireNonNullElse(probe.getInitial(),
-                                ZooKeeperSpec.DEFAULT_PROBE.getInitial()))
-                        .period(Objects.requireNonNullElse(probe.getPeriod(),
-                                ZooKeeperSpec.DEFAULT_PROBE.getPeriod()))
-                        .timeout(Objects.requireNonNullElse(probe.getTimeout(),
-                                ZooKeeperSpec.DEFAULT_PROBE.getTimeout()))
-                        .build();
-            }
-        }
+
+
+    @Override
+    protected ProbeConfig getDefaultProbeConfig() {
+        return DEFAULT_PROBE.get();
     }
 
     @Override

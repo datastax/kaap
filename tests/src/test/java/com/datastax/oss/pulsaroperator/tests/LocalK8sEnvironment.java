@@ -16,6 +16,7 @@ public class LocalK8sEnvironment extends BaseK8sEnvironment {
             createAndMountImageDigest(PULSAR_IMAGE, container);
             container.start();
             container.kubectl().create.namespace.run("ns");
+            log.info("To see k3s logs: docker logs {}", container.getContainerName());
             log.info("You can now access the K8s cluster, namespace 'ns'.");
             log.info("Now paste this in a new terminal:\nexport KUBECONFIG={} && kubectl config set-context --current --namespace=ns "
                     + "&& mvn quarkus:dev -pl pulsar-operator", getTmpKubeConfig(container));

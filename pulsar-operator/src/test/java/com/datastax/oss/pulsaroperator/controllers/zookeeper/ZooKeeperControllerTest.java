@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -1084,8 +1085,10 @@ public class ZooKeeperControllerTest {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<ZooKeeper> result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertEquals(result.getResource().getStatus().getError(),
+        Assert.assertEquals(result.getResource().getStatus().getMessage(),
                 expectedErrorMessage);
+        Assert.assertEquals(result.getResource().getStatus().getReason(),
+                BaseComponentStatus.Reason.ErrorConfig);
     }
 
     @SneakyThrows

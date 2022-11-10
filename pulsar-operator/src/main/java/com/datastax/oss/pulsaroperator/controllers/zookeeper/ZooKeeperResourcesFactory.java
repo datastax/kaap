@@ -386,6 +386,17 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
 
+    public boolean metadataInitializationJobExists() {
+        return client
+                .batch()
+                .v1()
+                .jobs()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .get() != null;
+    }
+
+
     public void createMetadataInitializationJob() {
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
                 spec.getMetadataInitializationJob();
@@ -478,7 +489,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         commonCreateOrReplace(job);
     }
-
 
 
     private Probe createProbe() {

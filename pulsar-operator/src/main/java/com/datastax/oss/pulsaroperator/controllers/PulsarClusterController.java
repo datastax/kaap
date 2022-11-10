@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
@@ -29,7 +28,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     }
 
     @Override
-    protected UpdateControl<PulsarCluster> createResources(PulsarCluster resource, Context<PulsarCluster> context)
+    protected void createResources(PulsarCluster resource, Context<PulsarCluster> context)
             throws Exception {
 
         final String currentNamespace = resource.getMetadata().getNamespace();
@@ -39,13 +38,6 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
         createZookeeper(currentNamespace, clusterSpec, ownerReference);
         createBookkeeper(currentNamespace, clusterSpec, ownerReference);
-
-
-        final PulsarClusterStatus status = new PulsarClusterStatus();
-        status.setError(null);
-        status.setCurrentSpec(clusterSpec);
-        resource.setStatus(status);
-        return UpdateControl.updateStatus(resource);
     }
 
     private void createZookeeper(String currentNamespace, PulsarClusterSpec clusterSpec,

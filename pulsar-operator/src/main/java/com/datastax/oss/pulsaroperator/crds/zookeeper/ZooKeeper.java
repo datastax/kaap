@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -16,10 +17,10 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Singular("zookeeper")
 @Plural("zookeepers")
 @ShortNames({"zk"})
-public class ZooKeeper extends CustomResource<ZooKeeperFullSpec, ZooKeeperStatus> implements Namespaced {
+public class ZooKeeper extends CustomResource<ZooKeeperFullSpec, BaseComponentStatus> implements Namespaced {
     @Override
-    protected ZooKeeperStatus initStatus() {
-        return new ZooKeeperStatus();
+    protected BaseComponentStatus initStatus() {
+        return new BaseComponentStatus();
     }
 }
 

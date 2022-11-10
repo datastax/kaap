@@ -29,8 +29,7 @@ import org.hibernate.validator.cfg.ConstraintMapping;
 import org.hibernate.validator.cfg.context.ConstraintDefinitionContext;
 
 @JBossLog
-public abstract class AbstractController<T extends CustomResource<? extends FullSpecWithDefaults, ?
-        extends BaseComponentStatus>>
+public abstract class AbstractController<T extends CustomResource<? extends FullSpecWithDefaults, BaseComponentStatus>>
         implements Reconciler<T> {
 
     protected final KubernetesClient client;
@@ -75,10 +74,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
 
     @Override
     public UpdateControl<T> reconcile(T resource, Context<T> context) throws Exception {
-        log.infof("%s controller, new spec %s, status %s",
-                resource.getFullResourceName(),
-                resource.getSpec(),
-                resource.getStatus());
+        log.infof("%s controller reconciliation started", resource.getFullResourceName());
 
         final GlobalSpec globalSpec = resource.getSpec().getGlobalSpec();
         globalSpec.applyDefaults(null);
@@ -86,14 +82,25 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
 
         final String validationErrorMessage = validate(resource);
         if (validationErrorMessage != null) {
-            resource.getStatus().setError(validationErrorMessage);
+            resource.setStatus(BaseComponentStatus.createErrorStatus(BaseComponentStatus
+                    .Reason.ErrorConfig, validationErrorMessage));
             return UpdateControl.updateStatus(resource);
         }
-        final UpdateControl<T> result = createResources(resource, context);
-        return result;
+        try {
+            createResources(resource, context);
+            resource.setStatus(BaseComponentStatus.createReadyStatus());
+        } catch (Throwable throwable) {
+            log.errorv(throwable, "Error during reconciliation for resource %s with name %s: %s",
+                    resource.getFullResourceName(),
+                    resource.getMetadata().getName(),
+                    throwable.getMessage());
+            resource.setStatus(BaseComponentStatus.createErrorStatus(BaseComponentStatus
+                    .Reason.ErrorUpgrading, throwable.getMessage()));
+        }
+        return UpdateControl.updateStatus(resource);
     }
 
-    protected abstract UpdateControl<T> createResources(T resource, Context<T> context) throws Exception;
+    protected abstract void createResources(T resource, Context<T> context) throws Exception;
 
     protected String validate(T resource) {
         final Set<ConstraintViolation<Object>> violations = validator.validate(resource.getSpec());

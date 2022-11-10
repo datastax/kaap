@@ -63,18 +63,18 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         specs.getZookeeper().setReplicas(3);
         kubectlApply(specsToYaml(specs));
 
-        client.pods()
+        client.apps().statefulSets()
                 .inNamespace(NAMESPACE)
-                .withName("pulsar-zookeeper-2")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .withName("pulsar-zookeeper")
+                .waitUntilCondition(s -> s.getStatus().getReplicas() == 3, 180, TimeUnit.SECONDS);
 
         specs.getBookkeeper().setReplicas(3);
         kubectlApply(specsToYaml(specs));
 
-        client.pods()
+        client.apps().statefulSets()
                 .inNamespace(NAMESPACE)
-                .withName("pulsar-bookkeeper-2")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .withName("pulsar-bookkeeper")
+                .waitUntilCondition(s -> s.getStatus().getReplicas() == 3, 180, TimeUnit.SECONDS);
 
         container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
         awaitUninstalled();
@@ -109,7 +109,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("1")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
                         .build())
                 .dataVolume(VolumeConfig.builder()
                         .size("100M")
@@ -120,7 +120,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("1")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
                         .build())
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
@@ -159,8 +159,6 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
     private void awaitZooKeeperRunning() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            log.info("statefulsets {}", client.apps().statefulSets().list().getItems());
-            log.info("pdb1 {}", client.policy().v1().podDisruptionBudget().list().getItems());
             Assert.assertEquals(client.pods().withLabel("component", "zookeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget().
                     withLabel("component", "zookeeper").list().getItems().size(), 1);

@@ -11,8 +11,8 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -154,6 +154,7 @@ public abstract class BaseK8sEnvironment {
 
 
         container.start();
+        printDebugInfo();
 
         container.kubectl().start();
 
@@ -202,9 +203,10 @@ public abstract class BaseK8sEnvironment {
             });
 
         }
-        printDebugInfo();
-        client = new DefaultKubernetesClient(Config.fromKubeconfig(container.getKubeconfig()));
-        eventsWatch = client.resources(Event.class).watch(new Watcher<Event>() {
+        client = new KubernetesClientBuilder()
+                .withConfig(Config.fromKubeconfig(container.getKubeconfig()))
+                .build();
+        eventsWatch = client.resources(Event.class).inNamespace(NAMESPACE).watch(new Watcher<Event>() {
             @Override
             public void eventReceived(Action action, Event resource) {
                 log.info("event [{} - {}]: {} - {}", resource.getRegarding().getName(),

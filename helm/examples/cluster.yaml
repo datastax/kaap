@@ -11,6 +11,9 @@ spec:
       existingStorageClassName:  local-path
   zookeeper:
     replicas: 1
+    resources:
+      requests:
+        cpu: "0.3"
     dataVolume:
       name: data
       size: 100M

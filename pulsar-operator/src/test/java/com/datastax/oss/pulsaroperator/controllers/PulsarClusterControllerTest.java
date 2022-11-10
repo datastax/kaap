@@ -28,7 +28,7 @@ public class PulsarClusterControllerTest {
                 """;
         final MockKubernetesClient client = invokeController(spec);
 
-        Assert.assertEquals("""
+        Assert.assertEquals(client.getCreatedResource(ZooKeeper.class).getResourceYaml(), """
                 ---
                 apiVersion: com.datastax.oss/v1alpha1
                 kind: ZooKeeper
@@ -53,10 +53,11 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
-                status: {}
-                """, client.getCreatedResource(ZooKeeper.class).getResourceYaml());
+                status:
+                  ready: false
+                """);
 
-        Assert.assertEquals("""
+        Assert.assertEquals(client.getCreatedResource(BookKeeper.class).getResourceYaml(), """
                 ---
                 apiVersion: com.datastax.oss/v1alpha1
                 kind: BookKeeper
@@ -81,8 +82,9 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
-                status: {}
-                """, client.getCreatedResource(BookKeeper.class).getResourceYaml());
+                status:
+                  ready: false
+                """);
 
     }
 

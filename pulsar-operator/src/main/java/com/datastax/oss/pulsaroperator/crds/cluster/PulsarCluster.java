@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.crds.cluster;
 
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -16,10 +17,10 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Singular("pulsarcluster")
 @Plural("pulsarclusters")
 @ShortNames({"pulsar"})
-public class PulsarCluster extends CustomResource<PulsarClusterSpec, PulsarClusterStatus> implements Namespaced {
+public class PulsarCluster extends CustomResource<PulsarClusterSpec, BaseComponentStatus> implements Namespaced {
     @Override
-    protected PulsarClusterStatus initStatus() {
-        return new PulsarClusterStatus();
+    protected BaseComponentStatus initStatus() {
+        return new BaseComponentStatus();
     }
 }
 

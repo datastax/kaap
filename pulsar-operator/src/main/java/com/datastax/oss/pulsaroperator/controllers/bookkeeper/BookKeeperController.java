@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.extern.jbosslog.JBossLog;
 
 
@@ -20,7 +19,7 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
     }
 
     @Override
-    protected UpdateControl<BookKeeper> createResources(BookKeeper resource, Context context) throws Exception {
+    protected void createResources(BookKeeper resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final BookKeeperFullSpec spec = resource.getSpec();
 
@@ -29,8 +28,6 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
 
         controller.createConfigMap();
         controller.createStatefulSet();
-
-        return UpdateControl.updateStatus(resource);
     }
 }
 

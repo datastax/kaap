@@ -12,9 +12,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
+import io.fabric8.kubernetes.client.dsl.BatchAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.ScalableResource;
+import io.fabric8.kubernetes.client.dsl.V1BatchAPIGroupDSL;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -52,6 +55,16 @@ public class MockKubernetesClient {
     public MockKubernetesClient(String namespace) {
         client = mock(KubernetesClient.class);
 
+        final BatchAPIGroupDSL batch = mock(BatchAPIGroupDSL.class);
+
+        final V1BatchAPIGroupDSL v1BatchAPIGroupDSL = mock(V1BatchAPIGroupDSL.class);
+        final MixedOperation jobs = mock(MixedOperation.class);
+
+        when(v1BatchAPIGroupDSL.jobs()).thenReturn(jobs);
+        when(batch.v1()).thenReturn(v1BatchAPIGroupDSL);
+        when(client.batch()).thenReturn(batch);
+        when(jobs.inNamespace(eq(namespace))).thenReturn(jobs);
+        when(jobs.withName(any())).thenReturn(mock(ScalableResource.class));
 
         when(client.resource(any(HasMetadata.class))).thenAnswer((ic) -> {
             final NamespaceableResource interaction =

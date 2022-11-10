@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.crds.bookkeeper;
 
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -16,10 +17,10 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Singular("bookkeeper")
 @Plural("bookkeepers")
 @ShortNames({"bk"})
-public class BookKeeper extends CustomResource<BookKeeperFullSpec, BookKeeperStatus> implements Namespaced {
+public class BookKeeper extends CustomResource<BookKeeperFullSpec, BaseComponentStatus> implements Namespaced {
     @Override
-    protected BookKeeperStatus initStatus() {
-        return new BookKeeperStatus();
+    protected BaseComponentStatus initStatus() {
+        return new BaseComponentStatus();
     }
 }
 

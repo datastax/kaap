@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.extern.jbosslog.JBossLog;
 
 
@@ -20,7 +19,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
     }
 
     @Override
-    protected UpdateControl<ZooKeeper> createResources(ZooKeeper resource, Context context) throws Exception {
+    protected void createResources(ZooKeeper resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperFullSpec spec = resource.getSpec();
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
@@ -35,9 +34,13 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         controller.createService();
         controller.createCaService();
         controller.createStatefulSet();
-        controller.createMetadataInitializationJob();
-        resource.getStatus().setCurrentSpec(spec);
-        return UpdateControl.updateStatus(resource);
+
+        if (!controller.metadataInitializationJobExists()) {
+            controller.createMetadataInitializationJob();
+            log.info("Resources created");
+        } else {
+            log.info("Resources patched");
+        }
     }
 }
 

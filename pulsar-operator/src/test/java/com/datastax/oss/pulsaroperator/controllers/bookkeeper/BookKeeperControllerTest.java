@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -883,8 +884,11 @@ public class BookKeeperControllerTest {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<BookKeeper> result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertEquals(result.getResource().getStatus().getError(),
+        Assert.assertFalse(result.getResource().getStatus().isReady());
+        Assert.assertEquals(result.getResource().getStatus().getMessage(),
                 expectedErrorMessage);
+        Assert.assertEquals(result.getResource().getStatus().getReason(),
+                BaseComponentStatus.Reason.ErrorConfig);
     }
 
     @SneakyThrows
@@ -893,6 +897,9 @@ public class BookKeeperControllerTest {
         final UpdateControl<BookKeeper>
                 result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
+        Assert.assertTrue(result.getResource().getStatus().isReady());
+        Assert.assertNull(result.getResource().getStatus().getMessage());
+        Assert.assertNull(result.getResource().getStatus().getReason());
         return mockKubernetesClient;
     }
 

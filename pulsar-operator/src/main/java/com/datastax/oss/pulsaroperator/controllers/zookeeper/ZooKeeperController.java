@@ -26,11 +26,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
                 client, namespace, spec.getZookeeper(), spec.getGlobal(), getOwnerReference(resource));
         controller.createPodDisruptionBudget();
         controller.createConfigMap();
-        if (spec.getGlobal().getPersistence()
-                && spec.getZookeeper().getDataVolume().getExistingStorageClassName() == null
-                && spec.getZookeeper().getDataVolume().getStorageClass() != null) {
-            controller.createStorageClass();
-        }
+        controller.createStorageClassIfNeeded();
         controller.createService();
         controller.createCaService();
         controller.createStatefulSet();

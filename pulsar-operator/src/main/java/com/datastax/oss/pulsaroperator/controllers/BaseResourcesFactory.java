@@ -3,14 +3,19 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -137,6 +142,49 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                         .withDefaultMode(0755).endConfigMap()
                         .build()
         );
+    }
+
+    protected boolean createStorageClassIfNeeded(VolumeConfig volumeConfig) {
+        if (!global.getPersistence()) {
+            return false;
+        }
+        if (volumeConfig.getExistingStorageClassName() != null) {
+            return false;
+        }
+        if (volumeConfig.getStorageClass() == null) {
+            return false;
+        }
+        final String volumeFullName = resourceName + "-" + volumeConfig.getName();
+        final StorageClassConfig storageClass = volumeConfig.getStorageClass();
+        if (storageClass == null) {
+            throw new IllegalStateException("StorageClass is not defined");
+        }
+
+        Map<String, String> parameters = new HashMap<>();
+        if (storageClass.getType() != null) {
+            parameters.put("type", storageClass.getType());
+        }
+        if (storageClass.getFsType() != null) {
+            parameters.put("fsType", storageClass.getFsType());
+        }
+        if (storageClass.getExtraParams() != null) {
+            parameters.putAll(storageClass.getExtraParams());
+        }
+
+        final StorageClass storage = new StorageClassBuilder()
+                .withNewMetadata()
+                .withName(volumeFullName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .endMetadata()
+                .withAllowVolumeExpansion(true)
+                .withVolumeBindingMode("WaitForFirstConsumer")
+                .withReclaimPolicy(storageClass.getReclaimPolicy())
+                .withProvisioner(storageClass.getProvisioner())
+                .withParameters(parameters)
+                .build();
+        commonCreateOrReplace(storage);
+        return true;
     }
 
 }

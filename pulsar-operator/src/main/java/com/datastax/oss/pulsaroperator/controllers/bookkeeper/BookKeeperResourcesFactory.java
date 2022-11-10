@@ -321,6 +321,11 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .build();
     }
 
+    public void createStorageClassesIfNeeded() {
+        createStorageClassIfNeeded(spec.getVolumes().getJournal());
+        createStorageClassIfNeeded(spec.getVolumes().getLedgers());
+    }
+
 
 }
 

@@ -572,6 +572,7 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(mounts.get(0).getMountPath(), "/pulsar/data/bookkeeper/journal");
         Assert.assertEquals(mounts.get(1).getName(), "pul-bookkeeper-ledgers");
         Assert.assertEquals(mounts.get(1).getMountPath(), "/pulsar/data/bookkeeper/ledgers");
+        Assert.assertNull(client.getCreatedResource(StorageClass.class));
     }
 
 
@@ -617,7 +618,6 @@ public class BookKeeperControllerTest {
                 .getVolumeClaimTemplates()) {
             Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
             Assert.assertNull(persistentVolumeClaim.getSpec().getStorageClassName());
-            Assert.assertNull(client.getCreatedResource(StorageClass.class));
             switch (persistentVolumeClaim.getMetadata().getName()) {
                 case "pul-bookkeeper-jname":
                     Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
@@ -629,6 +629,7 @@ public class BookKeeperControllerTest {
                     break;
             }
         }
+        Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
 
@@ -681,7 +682,6 @@ public class BookKeeperControllerTest {
                 .getVolumeClaimTemplates()) {
             Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
             Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "mystorage-class");
-            Assert.assertNull(client.getCreatedResource(StorageClass.class));
             switch (persistentVolumeClaim.getMetadata().getName()) {
                 case "pul-bookkeeper-journal":
                     Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
@@ -693,6 +693,7 @@ public class BookKeeperControllerTest {
                     break;
             }
         }
+        Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
 
@@ -720,7 +721,7 @@ public class BookKeeperControllerTest {
                                 type: gp2
                                 fsType: ext4
                                 extraParams:
-                                    iopsPerGB: "100"
+                                    iopsPerGB: "10"
                 """},
                 {"""
                 global:
@@ -762,25 +763,38 @@ public class BookKeeperControllerTest {
         for (final PersistentVolumeClaim persistentVolumeClaim : createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates()) {
             Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
-            Assert.assertNull(client.getCreatedResource(StorageClass.class));
             switch (persistentVolumeClaim.getMetadata().getName()) {
                 case "pul-bookkeeper-journal":
-                    Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(),
-                            "pul-bookkeeper-journal");
                     Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
                             Quantity.parse("20Gi"));
                     break;
                 case "pul-bookkeeper-ledgers":
-                    Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(),
-                            "pul-bookkeeper-ledgers");
                     Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
                             Quantity.parse("50Gi"));
                     break;
             }
         }
+        final List<MockKubernetesClient.ResourceInteraction<StorageClass>> storageClasses =
+                client.getCreatedResources(StorageClass.class);
+        Assert.assertEquals(storageClasses.size(), 2);
+        for (MockKubernetesClient.ResourceInteraction<StorageClass> createdStorageClass : storageClasses) {
 
+            final StorageClass storageClass = createdStorageClass.getResource();
+            if (!storageClass.getMetadata().getName().equals("pul-bookkeeper-journal")
+                    && !storageClass.getMetadata().getName().equals("pul-bookkeeper-ledgers")) {
+                Assert.fail("unexpected storageClass " + storageClass.getMetadata().getName());
+            }
+            Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
+            Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "BookKeeper");
 
-        // TODO: verify StorageClass objects
+            Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
+            Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
+            Assert.assertEquals(storageClass.getProvisioner(), "kubernetes.io/aws-ebs");
+            Assert.assertEquals(storageClass.getParameters().size(), 3);
+            Assert.assertEquals(storageClass.getParameters().get("type"), "gp2");
+            Assert.assertEquals(storageClass.getParameters().get("fsType"), "ext4");
+            Assert.assertEquals(storageClass.getParameters().get("iopsPerGB"), "10");
+        }
     }
 
     private VolumeMount getVolumeMountByName(Collection<VolumeMount> mounts, String name) {

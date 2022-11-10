@@ -4,7 +4,6 @@ import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -36,8 +35,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
-import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -171,40 +168,8 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         commonCreateOrReplace(configMap);
     }
 
-    public void createStorageClass() {
-
-        final VolumeConfig dataVolume = spec.getDataVolume();
-        final String volumeFullName = resourceName + "-" + dataVolume.getName();
-        final StorageClassConfig storageClass = dataVolume.getStorageClass();
-        if (storageClass == null) {
-            throw new IllegalStateException("StorageClass is not defined");
-        }
-
-        Map<String, String> parameters = new HashMap<>();
-        if (storageClass.getType() != null) {
-            parameters.put("type", storageClass.getType());
-        }
-        if (storageClass.getFsType() != null) {
-            parameters.put("fsType", storageClass.getFsType());
-        }
-        if (storageClass.getExtraParams() != null) {
-            parameters.putAll(storageClass.getExtraParams());
-        }
-
-        final StorageClass storageClassResource = new StorageClassBuilder()
-                .withNewMetadata()
-                .withName(volumeFullName)
-                .withNamespace(namespace)
-                .withLabels(getLabels())
-                .endMetadata()
-                .withAllowVolumeExpansion(true)
-                .withVolumeBindingMode("WaitForFirstConsumer")
-                .withReclaimPolicy(storageClass.getReclaimPolicy())
-                .withProvisioner(storageClass.getProvisioner())
-                .withParameters(parameters)
-                .build();
-
-        commonCreateOrReplace(storageClassResource);
+    public void createStorageClassIfNeeded() {
+        createStorageClassIfNeeded(spec.getDataVolume());
     }
 
     public void createPodDisruptionBudget() {

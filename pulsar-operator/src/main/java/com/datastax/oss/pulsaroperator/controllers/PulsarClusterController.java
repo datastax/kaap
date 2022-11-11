@@ -2,6 +2,8 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.Broker;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
@@ -9,6 +11,7 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -16,6 +19,7 @@ import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.List;
+import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
@@ -35,59 +39,69 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
 
-        createZookeeper(currentNamespace, clusterSpec, ownerReference);
-        createBookkeeper(currentNamespace, clusterSpec, ownerReference);
+        createCustomResource(
+                "zookeeper",
+                ZooKeeper.class,
+                ZooKeeperFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .zookeeper(clusterSpec.getZookeeper())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+
+        createCustomResource(
+                "bookkeeper",
+                BookKeeper.class,
+                BookKeeperFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .bookkeeper(clusterSpec.getBookkeeper())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+        createCustomResource(
+                "broker",
+                Broker.class,
+                BrokerFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .broker(clusterSpec.getBroker())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
     }
 
-    private void createZookeeper(String currentNamespace, PulsarClusterSpec clusterSpec,
-                                 List<OwnerReference> ownerReferences) {
-        final MixedOperation<ZooKeeper, KubernetesResourceList<ZooKeeper>, Resource<ZooKeeper>> zkResourceClient =
-                client.resources(ZooKeeper.class);
-
-        if (zkResourceClient == null) {
-            throw new IllegalStateException("ZooKeeper CRD not found");
-        }
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(clusterSpec.getGlobal().getName() + "-zookeeper");
-        meta.setNamespace(currentNamespace);
-        meta.setOwnerReferences(ownerReferences);
-        final ZooKeeper zooKeeper = new ZooKeeper();
-        zooKeeper.setMetadata(meta);
-
-        zooKeeper.setSpec(ZooKeeperFullSpec.builder()
-                .global(clusterSpec.getGlobal())
-                .zookeeper(clusterSpec.getZookeeper())
-                .build());
-
-        zkResourceClient
-                .inNamespace(currentNamespace)
-                .resource(zooKeeper).createOrReplace();
-    }
-
-    private void createBookkeeper(String currentNamespace, PulsarClusterSpec clusterSpec,
-                                  List<OwnerReference> ownerReferences) {
-        final MixedOperation<BookKeeper, KubernetesResourceList<BookKeeper>, Resource<BookKeeper>> bkResourceClient =
-                client.resources(BookKeeper.class);
-        if (bkResourceClient == null) {
-            throw new IllegalStateException("BookKeeper CRD not found");
+    @SneakyThrows
+    private <CR extends CustomResource<SPEC, ?>, SPEC> void createCustomResource(
+            String customResourceName,
+            Class<CR> resourceClass,
+            SPEC spec,
+            String namespace,
+            PulsarClusterSpec clusterSpec,
+            List<OwnerReference> ownerReferences) {
+        final MixedOperation<CR, KubernetesResourceList<CR>, Resource<CR>> resourceClient =
+                client.resources(resourceClass);
+        if (resourceClient == null) {
+            throw new IllegalStateException(customResourceName + " CRD not found");
         }
 
         ObjectMeta meta = new ObjectMeta();
-        meta.setName(clusterSpec.getGlobal().getName() + "-bookkeeper");
-        meta.setNamespace(currentNamespace);
+        final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), customResourceName);
+        meta.setName(crFullName);
+        meta.setNamespace(namespace);
         meta.setOwnerReferences(ownerReferences);
-        final BookKeeper bk = new BookKeeper();
-        bk.setMetadata(meta);
-
-        bk.setSpec(BookKeeperFullSpec.builder()
-                .global(clusterSpec.getGlobal())
-                .bookkeeper(clusterSpec.getBookkeeper())
-                .build());
-
-        bkResourceClient
-                .inNamespace(currentNamespace)
-                .resource(bk)
+        final CR cr = resourceClass.getConstructor().newInstance();
+        cr.setMetadata(meta);
+        cr.setSpec(spec);
+        resourceClient
+                .inNamespace(namespace)
+                .resource(cr)
                 .createOrReplace();
+        log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
     }
 }
 

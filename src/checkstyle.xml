@@ -264,10 +264,10 @@ page at http://checkstyle.sourceforge.net/config.html -->
             <property name="severity" value="error"/>
         </module>
 
-        <module name="MethodTypeParameterName">
-            <property name="format" value="^(((T|K|V|W|X|R)[0-9]*)|([A-Z][a-z][a-zA-Z]*T))$"/>
-            <property name="severity" value="error"/>
-        </module>
+<!--        <module name="MethodTypeParameterName">-->
+<!--            <property name="format" value="^(((T|K|V|W|X|R)[0-9]*)|([A-Z][a-z][a-zA-Z]*T))$"/>-->
+<!--            <property name="severity" value="error"/>-->
+<!--        </module>-->
 
         <module name="InterfaceTypeParameterName">
             <property name="format" value="^(((T|K|V|W|X|R)[0-9]*)|([A-Z][a-z][a-zA-Z]*T))$"/>

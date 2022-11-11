@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.VersionInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.ObjectUtils;
 
 public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
 
@@ -82,7 +83,7 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
     }
 
     protected boolean isTlsEnabledGlobally() {
-        return global.getTls() != null && global.getTls().isEnabled();
+        return global.getTls() != null && global.getTls().getEnabled();
     }
 
     protected boolean isTlsEnabledOnZooKeeper() {
@@ -113,7 +114,32 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                 isTlsEnabledOnZooKeeper() ? 2281 : 2181);
     }
 
-    protected void addTlsVolumesIfEnabled(List<VolumeMount> volumeMounts, List<Volume> volumes) {
+    protected String getTlsSecretNameForZookeeper() {
+        final String name = global.getTls().getZookeeper() == null
+                ? null : global.getTls().getZookeeper().getTlsSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected String getTlsSecretNameForBookkeeper() {
+        final String name = global.getTls().getBookkeeper() == null
+                ? null : global.getTls().getBookkeeper().getTlsSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected String getTlsSecretNameForBroker() {
+        final String name = global.getTls().getBroker() == null
+                ? null : global.getTls().getBroker().getTlsSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected void addTlsVolumesIfEnabled(List<VolumeMount> volumeMounts, List<Volume> volumes,
+                                          String secretName) {
         if (!isTlsEnabledGlobally()) {
             return;
         }
@@ -133,7 +159,7 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
         volumes.add(
                 new VolumeBuilder()
                         .withName("certs")
-                        .withNewSecret().withSecretName(global.getTls().getZookeeper().getTlsSecretName())
+                        .withNewSecret().withSecretName(secretName)
                         .endSecret()
                         .build()
         );

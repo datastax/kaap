@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
+import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
@@ -47,7 +48,11 @@ public class PulsarClusterControllerTest {
                     components:
                       zookeeperBaseName: zookeeper
                       bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
                     kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
                     persistence: true
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -76,7 +81,11 @@ public class PulsarClusterControllerTest {
                     components:
                       zookeeperBaseName: zookeeper
                       bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
                     kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
                     persistence: true
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -84,6 +93,39 @@ public class PulsarClusterControllerTest {
                       existingStorageClassName: default
                 status:
                   ready: false
+                """);
+
+        Assert.assertEquals(client.getCreatedResource(Broker.class).getResourceYaml(), """
+              ---
+              apiVersion: com.datastax.oss/v1alpha1
+              kind: Broker
+              metadata:
+                name: pulsarname-broker
+                namespace: ns
+                ownerReferences:
+                - apiVersion: com.datastax.oss/v1alpha1
+                  kind: PulsarCluster
+                  blockOwnerDeletion: true
+                  controller: true
+                  name: pulsar-cluster
+              spec:
+                global:
+                  name: pulsarname
+                  components:
+                    zookeeperBaseName: zookeeper
+                    bookkeeperBaseName: bookkeeper
+                    brokerBaseName: broker
+                  kubernetesClusterDomain: cluster.local
+                  tls:
+                    enabled: false
+                    defaultSecretName: pulsar-tls
+                  persistence: true
+                  image: apachepulsar/pulsar:2.10.2
+                  imagePullPolicy: IfNotPresent
+                  storage:
+                    existingStorageClassName: default
+              status:
+                ready: false
                 """);
 
     }

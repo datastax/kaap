@@ -245,6 +245,199 @@ spec:
                     description: Configuration entries directly passed to this component.
                     type: object
                 type: object
+              broker:
+                properties:
+                  service:
+                    description: Configurations for the Service resources associated
+                      to the Broker pod.
+                    properties:
+                      headless:
+                        description: Do not assign an IP to the Service.
+                        type: boolean
+                      additionalPorts:
+                        description: Additional ports for the Broker Service resources.
+                        items:
+                          properties:
+                            targetPort:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            port:
+                              type: integer
+                            nodePort:
+                              type: integer
+                            name:
+                              type: string
+                            appProtocol:
+                              type: string
+                            protocol:
+                              type: string
+                          type: object
+                        type: array
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Additional annotations to add to the Broker Service
+                          resources.
+                        type: object
+                      type:
+                        description: Service type. Default value is 'ClusterIP'
+                        type: string
+                    type: object
+                  updateStrategy:
+                    description: 'Update strategy for the Broker pod/s. '
+                    properties:
+                      type:
+                        type: string
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          partition:
+                            type: integer
+                        type: object
+                    type: object
+                  webSocketServiceEnabled:
+                    description: Enable websocket service in the broker.
+                    type: boolean
+                  gracePeriod:
+                    description: Termination grace period in seconds for the Broker
+                      pod. Default value is 60.
+                    minimum: 0.0
+                    type: integer
+                  ledger:
+                    description: Ledger config.
+                    properties:
+                      defaultAckQuorum:
+                        description: Ack quorum value.
+                        type: integer
+                      defaultEnsembleSize:
+                        description: Ensemble value.
+                        type: integer
+                      defaultWriteQuorum:
+                        description: Write quorum value.
+                        type: integer
+                    type: object
+                  functionsWorkerEnabled:
+                    description: Enable functions worker embedded in the broker.
+                    type: boolean
+                  transactions:
+                    description: Enable transactions in the broker.
+                    properties:
+                      partitions:
+                        description: Partitions count for the transaction's topic.
+                        type: integer
+                      enabled:
+                        description: Enable the transaction coordinator in the broker.
+                        type: boolean
+                    type: object
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each Broker resource.
+                    type: object
+                  initContainer:
+                    description: Additional init container.
+                    properties:
+                      args:
+                        description: The command args used for the container.
+                        items:
+                          type: string
+                        type: array
+                      command:
+                        description: The command used for the container.
+                        items:
+                          type: string
+                        type: array
+                      image:
+                        description: The image used to run the container.
+                        type: string
+                      emptyDirPath:
+                        description: The container path where the emptyDir volume
+                          is mounted.
+                        type: string
+                      imagePullPolicy:
+                        description: The image pull policy used for the container.
+                        type: string
+                    type: object
+                  podManagementPolicy:
+                    description: Pod management policy for the Broker pod.
+                    type: string
+                  resources:
+                    description: Resource requirements for the Broker pod.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  serviceAccountName:
+                    description: Service account name for the Broker StatefulSet.
+                    type: string
+                  probe:
+                    description: Liveness and readiness probe values.
+                    properties:
+                      period:
+                        description: Indicates the period (in seconds) for the probe.
+                        type: integer
+                      timeout:
+                        description: Indicates the timeout (in seconds) for the probe.
+                        type: integer
+                      initial:
+                        description: Indicates the initial delay (in seconds) for
+                          the probe.
+                        type: integer
+                      enabled:
+                        description: Indicates whether the probe is enabled or not.
+                        type: boolean
+                    type: object
+                  replicas:
+                    description: Replicas of this component.
+                    minimum: 1.0
+                    type: integer
+                  pdb:
+                    description: Pod disruption budget configuration for this component.
+                    properties:
+                      maxUnavailable:
+                        description: Indicates the maxUnavailable property for the
+                          Pdb.
+                        type: integer
+                      enabled:
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
+                        type: boolean
+                    type: object
+                  image:
+                    description: Pulsar image to use for this component.
+                    type: string
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: Additional node selectors for this component.
+                    type: object
+                  imagePullPolicy:
+                    description: Pulsar image pull policy to use for this component.
+                    type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
+                type: object
               zookeeper:
                 properties:
                   metadataInitializationJob:
@@ -492,6 +685,9 @@ spec:
                   components:
                     description: Pulsar cluster components names.
                     properties:
+                      brokerBaseName:
+                        description: Broker base name. Default value is 'broker'.
+                        type: string
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
                         type: string
@@ -502,6 +698,19 @@ spec:
                   tls:
                     description: TLS configuration for the cluster.
                     properties:
+                      defaultSecretName:
+                        description: Default secret name.
+                        type: string
+                      broker:
+                        description: TLS configurations related to the broker component.
+                        properties:
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                          tlsSecretName:
+                            description: Enable certificates for this component.
+                            type: string
+                        type: object
                       enabled:
                         description: Global switch to turn on or off the TLS configurations.
                         type: boolean

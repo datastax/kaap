@@ -24,3 +24,5 @@ spec:
         size: 1Gi
       ledgers:
         size: 1Gi
+  broker:
+    replicas: 1

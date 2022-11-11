@@ -290,6 +290,9 @@ spec:
                   components:
                     description: Pulsar cluster components names.
                     properties:
+                      brokerBaseName:
+                        description: Broker base name. Default value is 'broker'.
+                        type: string
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
                         type: string
@@ -300,6 +303,19 @@ spec:
                   tls:
                     description: TLS configuration for the cluster.
                     properties:
+                      defaultSecretName:
+                        description: Default secret name.
+                        type: string
+                      broker:
+                        description: TLS configurations related to the broker component.
+                        properties:
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                          tlsSecretName:
+                            description: Enable certificates for this component.
+                            type: string
+                        type: object
                       enabled:
                         description: Global switch to turn on or off the TLS configurations.
                         type: boolean

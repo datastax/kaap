@@ -2,15 +2,15 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: zookeepers.com.datastax.oss
+  name: brokers.com.datastax.oss
 spec:
   group: com.datastax.oss
   names:
-    kind: ZooKeeper
-    plural: zookeepers
+    kind: Broker
+    plural: brokers
     shortNames:
-    - zk
-    singular: zookeeper
+    - br
+    singular: broker
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -19,63 +19,17 @@ spec:
         properties:
           spec:
             properties:
-              zookeeper:
+              broker:
                 properties:
-                  metadataInitializationJob:
-                    description: Configuration about the job that initializes the
-                      Pulsar cluster creating the needed ZooKeeper nodes.
-                    properties:
-                      resources:
-                        description: Resource requirements for the Job's Pod.
-                        properties:
-                          limits:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              x-kubernetes-int-or-string: true
-                            type: object
-                          requests:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
-                      timeout:
-                        description: Timeout (in seconds) for the metadata initialization
-                          execution. Default value is 60.
-                        type: integer
-                    type: object
-                  updateStrategy:
-                    description: Update strategy for the ZooKeeper pod. Default value
-                      is rolling update.
-                    properties:
-                      type:
-                        type: string
-                      rollingUpdate:
-                        properties:
-                          maxUnavailable:
-                            anyOf:
-                            - type: integer
-                            - type: string
-                            x-kubernetes-int-or-string: true
-                          partition:
-                            type: integer
-                        type: object
-                    type: object
-                  gracePeriod:
-                    description: Termination grace period in seconds for the ZooKeeper
-                      pod. Default value is 60.
-                    minimum: 0.0
-                    type: integer
                   service:
                     description: Configurations for the Service resources associated
-                      to the ZooKeeper pod.
+                      to the Broker pod.
                     properties:
+                      headless:
+                        description: Do not assign an IP to the Service.
+                        type: boolean
                       additionalPorts:
-                        description: Additional ports for the ZooKeeper Service resources.
+                        description: Additional ports for the Broker Service resources.
                         items:
                           properties:
                             targetPort:
@@ -98,63 +52,97 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the ZooKeeper
-                          Service resources.
+                        description: Additional annotations to add to the Broker Service
+                          resources.
                         type: object
+                      type:
+                        description: Service type. Default value is 'ClusterIP'
+                        type: string
+                    type: object
+                  updateStrategy:
+                    description: 'Update strategy for the Broker pod/s. '
+                    properties:
+                      type:
+                        type: string
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          partition:
+                            type: integer
+                        type: object
+                    type: object
+                  webSocketServiceEnabled:
+                    description: Enable websocket service in the broker.
+                    type: boolean
+                  gracePeriod:
+                    description: Termination grace period in seconds for the Broker
+                      pod. Default value is 60.
+                    minimum: 0.0
+                    type: integer
+                  ledger:
+                    description: Ledger config.
+                    properties:
+                      defaultAckQuorum:
+                        description: Ack quorum value.
+                        type: integer
+                      defaultEnsembleSize:
+                        description: Ensemble value.
+                        type: integer
+                      defaultWriteQuorum:
+                        description: Write quorum value.
+                        type: integer
+                    type: object
+                  functionsWorkerEnabled:
+                    description: Enable functions worker embedded in the broker.
+                    type: boolean
+                  transactions:
+                    description: Enable transactions in the broker.
+                    properties:
+                      partitions:
+                        description: Partitions count for the transaction's topic.
+                        type: integer
+                      enabled:
+                        description: Enable the transaction coordinator in the broker.
+                        type: boolean
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each ZooKeeper resource.
+                    description: Annotations to add to each Broker resource.
+                    type: object
+                  initContainer:
+                    description: Additional init container.
+                    properties:
+                      args:
+                        description: The command args used for the container.
+                        items:
+                          type: string
+                        type: array
+                      command:
+                        description: The command used for the container.
+                        items:
+                          type: string
+                        type: array
+                      image:
+                        description: The image used to run the container.
+                        type: string
+                      emptyDirPath:
+                        description: The container path where the emptyDir volume
+                          is mounted.
+                        type: string
+                      imagePullPolicy:
+                        description: The image pull policy used for the container.
+                        type: string
                     type: object
                   podManagementPolicy:
-                    description: Pod management policy for the ZooKeeper pod. Default
-                      value is 'Parallel'.
+                    description: Pod management policy for the Broker pod.
                     type: string
-                  dataVolume:
-                    description: Volume configuration for ZooKeeper data.
-                    properties:
-                      storageClass:
-                        description: Indicates if a StorageClass is used. The operator
-                          will create the StorageClass if needed.
-                        properties:
-                          extraParams:
-                            additionalProperties:
-                              type: string
-                            description: Adds extra parameters for the StorageClass.
-                            type: object
-                          provisioner:
-                            description: Indicates the provisioner property for the
-                              StorageClass.
-                            type: string
-                          type:
-                            description: Indicates the 'type' parameter for the StorageClass.
-                            type: string
-                          fsType:
-                            description: Indicates the 'fsType' parameter for the
-                              StorageClass.
-                            type: string
-                          reclaimPolicy:
-                            description: Indicates the reclaimPolicy property for
-                              the StorageClass.
-                            type: string
-                        type: object
-                      size:
-                        description: Indicates the requested size for the volume.
-                          The format follows the Kubernetes' Quantity. Default value
-                          is '5Gi'.
-                        type: string
-                      name:
-                        description: Indicates the suffix for the volume. Default
-                          value is 'data'.
-                        type: string
-                      existingStorageClassName:
-                        description: Indicates if an already existing storage class
-                          should be used.
-                        type: string
-                    type: object
                   resources:
-                    description: Resource requirements for the ZooKeeper pod.
+                    description: Resource requirements for the Broker pod.
                     properties:
                       limits:
                         additionalProperties:
@@ -171,6 +159,9 @@ spec:
                           x-kubernetes-int-or-string: true
                         type: object
                     type: object
+                  serviceAccountName:
+                    description: Service account name for the Broker StatefulSet.
+                    type: string
                   probe:
                     description: Liveness and readiness probe values.
                     properties:

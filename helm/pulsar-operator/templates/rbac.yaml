@@ -77,6 +77,8 @@ rules:
         - zookeepers/status
         - bookkeepers
         - bookkeepers/status
+        - brokers
+        - brokers/status
     verbs:
         - "*"
 ---

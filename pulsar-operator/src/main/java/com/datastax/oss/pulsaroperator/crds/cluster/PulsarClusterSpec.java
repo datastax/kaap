@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.crds.cluster;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
@@ -31,6 +32,10 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     @Valid
     private BookKeeperSpec bookkeeper;
 
+    @ValidSpec
+    @Valid
+    private BrokerSpec broker;
+
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
     }
@@ -44,6 +49,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     public boolean isValid(PulsarClusterSpec value, ConstraintValidatorContext context) {
         return global.isValid(value.getGlobal(), context)
                 && zookeeper.isValid(value.getZookeeper(), context)
-                && bookkeeper.isValid(value.getBookkeeper(), context);
+                && bookkeeper.isValid(value.getBookkeeper(), context)
+                && broker.isValid(value.getBroker(), context);
     }
 }

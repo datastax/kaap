@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
@@ -76,6 +77,14 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
                 .withName("pulsar-bookkeeper")
                 .waitUntilCondition(s -> s.getStatus().getReplicas() == 3, 180, TimeUnit.SECONDS);
 
+        specs.getBroker().setReplicas(3);
+        kubectlApply(specsToYaml(specs));
+
+        client.apps().statefulSets()
+                .inNamespace(NAMESPACE)
+                .withName("pulsar-broker")
+                .waitUntilCondition(s -> s.getStatus().getReplicas() == 3, 180, TimeUnit.SECONDS);
+
         container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
         awaitUninstalled();
     }
@@ -134,6 +143,13 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
                         .build()
                 )
                 .build());
+
+        defaultSpecs.setBroker(BrokerSpec.builder()
+                .replicas(1)
+                .resources(new ResourceRequirementsBuilder()
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .build())
+                .build());
         return defaultSpecs;
     }
 
@@ -155,6 +171,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         awaitOperatorRunning();
         awaitZooKeeperRunning();
         awaitBookKeeperRunning();
+        awaitBrokerRunning();
     }
 
     private void awaitZooKeeperRunning() {
@@ -198,9 +215,31 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
     }
 
-    private void awaitUninstalled() {
+    private void awaitBrokerRunning() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            Assert.assertEquals(client.pods().withLabel("app", "pulsar").list().getItems().size(), 0);
+            Assert.assertEquals(client.pods().withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
+                    withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps().withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.apps().statefulSets()
+                    .withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.services()
+                    .withLabel("component", "broker").list().getItems().size(), 1);
+        });
+
+        client.pods()
+                .inNamespace(NAMESPACE)
+                .withName("pulsar-broker-0")
+                .waitUntilReady(90, TimeUnit.SECONDS);
+
+    }
+
+    private void awaitUninstalled() {
+        Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            final List<Pod> pods = client.pods().withLabel("app", "pulsar").list().getItems();
+            log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
+                    Collectors.joining()));
+            Assert.assertEquals(pods.size(), 0);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget().withLabel("app", "pulsar").list().getItems().size(), 0);
             Assert.assertEquals(client.configMaps().withLabel("app", "pulsar").list().getItems().size(), 0);
             Assert.assertEquals(client.services().withLabel("app", "pulsar").list().getItems().size(), 0);

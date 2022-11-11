@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,12 @@ import org.apache.commons.lang3.ObjectUtils;
 @Builder
 public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefaults {
 
+
+    private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
+            .enabled(false)
+            .defaultSecretName("pulsar-tls")
+            .build();
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -29,6 +36,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         private String zookeeperBaseName;
         @JsonPropertyDescription("BookKeeper base name. Default value is 'bookkeeper'.")
         private String bookkeeperBaseName;
+        @JsonPropertyDescription("Broker base name. Default value is 'broker'.")
+        private String brokerBaseName;
     }
 
     @Data
@@ -37,11 +46,15 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @Builder
     public static class TlsConfig {
         @JsonPropertyDescription("Global switch to turn on or off the TLS configurations.")
-        private boolean enabled;
+        private Boolean enabled;
+        @JsonPropertyDescription("Default secret name.")
+        private String defaultSecretName;
         @JsonPropertyDescription("TLS configurations related to the ZooKeeper component.")
         TlsEntryConfig zookeeper;
         @JsonPropertyDescription("TLS configurations related to the BookKeeper component.")
         TlsEntryConfig bookkeeper;
+        @JsonPropertyDescription("TLS configurations related to the broker component.")
+        TlsEntryConfig broker;
     }
 
     @Data
@@ -122,6 +135,22 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         if (storage.getStorageClass() != null && storage.getStorageClass().getReclaimPolicy() == null) {
             storage.getStorageClass().setReclaimPolicy("Retain");
         }
+        applyTlsDefaults();
+
+    }
+
+    private void applyTlsDefaults() {
+        if (tls == null) {
+            tls = DEFAULT_TLS_CONFIG.get();
+        }
+        tls.setEnabled(ObjectUtils.getFirstNonNull(
+                () -> tls.getEnabled(),
+                () -> DEFAULT_TLS_CONFIG.get().getEnabled())
+        );
+        tls.setDefaultSecretName(ObjectUtils.getFirstNonNull(
+                () -> tls.getDefaultSecretName(),
+                () -> DEFAULT_TLS_CONFIG.get().getDefaultSecretName())
+        );
     }
 
     private void applyComponentsDefaults() {
@@ -130,6 +159,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         }
         components.setZookeeperBaseName(ObjectUtils.firstNonNull(components.getZookeeperBaseName(), "zookeeper"));
         components.setBookkeeperBaseName(ObjectUtils.firstNonNull(components.getBookkeeperBaseName(), "bookkeeper"));
+        components.setBrokerBaseName(ObjectUtils.firstNonNull(components.getBrokerBaseName(), "broker"));
     }
 
     @Override

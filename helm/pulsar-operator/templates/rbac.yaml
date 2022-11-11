@@ -75,6 +75,8 @@ rules:
         - pulsarclusters/status
         - zookeepers
         - zookeepers/status
+        - bookkeepers
+        - bookkeepers/status
     verbs:
         - "*"
 ---

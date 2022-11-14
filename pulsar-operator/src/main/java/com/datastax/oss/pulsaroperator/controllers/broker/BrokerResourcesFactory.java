@@ -11,8 +11,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
@@ -36,6 +34,14 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getBrokerBaseName();
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec) {
+        return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
+    }
+
     public BrokerResourcesFactory(KubernetesClient client, String namespace,
                                   BrokerSpec spec, GlobalSpec global,
                                   OwnerReference ownerReference) {
@@ -44,7 +50,12 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getBrokerBaseName();
+        return getComponentBaseName(global);
+    }
+
+    @Override
+    protected String getResourceName() {
+        return getResourceName(global);
     }
 
     public void createService() {
@@ -93,7 +104,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .endSpec()
                 .build();
 
-        commonCreateOrReplace(service);
+        patchResource(service);
     }
 
 
@@ -119,7 +130,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         }
 
         data.put("allowAutoTopicCreationType", "non-partitioned");
-        data.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        data.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
         data.put("PULSAR_GC", "-XX:+UseG1GC");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
@@ -140,12 +153,17 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withLabels(getLabels()).endMetadata()
                 .withData(data)
                 .build();
-        commonCreateOrReplace(configMap);
+        patchResource(configMap);
     }
 
 
     public void createStatefulSet() {
-        final int replicas = spec.getReplicas();
+        final StatefulSet statefulSet = generateStatefulSet();
+        patchResource(statefulSet);
+    }
+
+    public StatefulSet generateStatefulSet() {
+        final Integer replicas = spec.getReplicas();
 
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = new HashMap<>();
@@ -245,25 +263,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         }
 
 
-        List<EnvVar> envVars = new ArrayList<>();
-        if (spec.getLedger() != null) {
-            envVars.add(new EnvVarBuilder()
-                    .withName("managedLedgerDefaultAckQuorum")
-                    .withValue(spec.getLedger().getDefaultAckQuorum() + "")
-                    .build()
-            );
-            envVars.add(new EnvVarBuilder()
-                    .withName("managedLedgerDefaultEnsembleSize")
-                    .withValue(spec.getLedger().getDefaultEnsembleSize() + "")
-                    .build()
-            );
-            envVars.add(new EnvVarBuilder()
-                    .withName("managedLedgerDefaultWriteQuorum")
-                    .withValue(spec.getLedger().getDefaultWriteQuorum() + "")
-                    .build()
-            );
-        }
-
         List<Container> containers = List.of(
                 new ContainerBuilder()
                         .withName(resourceName)
@@ -280,7 +279,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                                 .withName(resourceName)
                                 .endConfigMapRef()
                                 .build())
-                        .withEnv(envVars)
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
@@ -315,7 +313,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .endTemplate()
                 .endSpec()
                 .build();
-        commonCreateOrReplace(statefulSet);
+        return statefulSet;
     }
 
     private Probe createProbe() {

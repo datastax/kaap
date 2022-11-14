@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
-import com.datastax.oss.pulsaroperator.controllers.autoscaler.AutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -55,7 +54,6 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         configuration.addMapping(getConstraintMapping(configuration,
                 PulsarClusterSpec.class,
                 GlobalSpec.class,
-                AutoscalerSpec.class,
                 ZooKeeperSpec.class,
                 BookKeeperSpec.class,
                 BrokerSpec.class
@@ -94,7 +92,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             createResources(resource, context);
             resource.setStatus(BaseComponentStatus.createReadyStatus());
         } catch (Throwable throwable) {
-            log.errorv(throwable, "Error during reconciliation for resource %s with name %s: %s",
+            log.errorf(throwable, "Error during reconciliation for resource %s with name %s: %s",
                     resource.getFullResourceName(),
                     resource.getMetadata().getName(),
                     throwable.getMessage());

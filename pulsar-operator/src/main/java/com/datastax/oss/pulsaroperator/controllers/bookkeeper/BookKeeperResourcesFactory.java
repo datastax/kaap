@@ -50,6 +50,10 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return global.getComponents().getBookkeeperBaseName();
     }
 
+    @Override
+    protected String getResourceName() {
+        return "%s-%s".formatted(global.getName(), getComponentBaseName());
+    }
 
     public void createService() {
         Map<String, String> annotations = new HashMap<>();
@@ -82,7 +86,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .endSpec()
                 .build();
 
-        commonCreateOrReplace(service);
+        patchResource(service);
     }
 
 
@@ -119,7 +123,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withLabels(getLabels()).endMetadata()
                 .withData(data)
                 .build();
-        commonCreateOrReplace(configMap);
+        patchResource(configMap);
     }
 
 
@@ -277,7 +281,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
-        commonCreateOrReplace(statefulSet);
+        patchResource(statefulSet);
     }
 
     private PersistentVolumeClaim createPersistentVolumeClaim(String name,

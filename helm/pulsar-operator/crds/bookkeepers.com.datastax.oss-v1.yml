@@ -214,7 +214,6 @@ spec:
                     type: object
                   replicas:
                     description: Replicas of this component.
-                    minimum: 1.0
                     type: integer
                   pdb:
                     description: Pod disruption budget configuration for this component.

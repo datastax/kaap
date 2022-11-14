@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.crds.cluster;
 
-import com.datastax.oss.pulsaroperator.controllers.autoscaler.AutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
@@ -27,10 +26,6 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
     @ValidSpec
     @Valid
-    private AutoscalerSpec autoscaler;
-
-    @ValidSpec
-    @Valid
     private ZooKeeperSpec zookeeper;
 
     @ValidSpec
@@ -53,7 +48,6 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     @Override
     public boolean isValid(PulsarClusterSpec value, ConstraintValidatorContext context) {
         return global.isValid(value.getGlobal(), context)
-                && autoscaler.isValid(value.getAutoscaler(), context)
                 && zookeeper.isValid(value.getZookeeper(), context)
                 && bookkeeper.isValid(value.getBookkeeper(), context)
                 && broker.isValid(value.getBroker(), context);

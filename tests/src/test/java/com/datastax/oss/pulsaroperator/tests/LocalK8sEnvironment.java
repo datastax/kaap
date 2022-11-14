@@ -22,7 +22,7 @@ public class LocalK8sEnvironment extends BaseK8sEnvironment {
                     + "&& mvn quarkus:dev -pl pulsar-operator", getTmpKubeConfig(container));
 
             log.info("To install a sample cluster open another terminal and paste:\nexport KUBECONFIG={} && kubectl config set-context --current --namespace=ns "
-                    + "&& kubectl apply -f helm/examples/cluster.yaml", getTmpKubeConfig(container));
+                    + "&& kubectl apply -f helm/examples/local-k3s.yaml", getTmpKubeConfig(container));
             restoreDockerImageInK3s(PULSAR_IMAGE, container);
             Thread.sleep(Integer.MAX_VALUE);
         }

@@ -3,40 +3,14 @@ kind: PulsarCluster
 metadata:
   name: pulsar-cluster
 spec:
-  autoscaler:
-    broker:
-      enabled: true
-      periodMs: 10000
   global:
     name: pulsar
     image: datastax/lunastreaming-core:2.10_2.3
     storage:
-      # K3S storage class name https://docs.k3s.io/storage
-      existingStorageClassName:  local-path
+      existingStorageClassName: default
   zookeeper:
-    replicas: 1
-    resources:
-      requests:
-        cpu: "0.3"
-    dataVolume:
-      name: data
-      size: 100M
+    replicas: 3
   bookkeeper:
-    replicas: 1
-    volumes:
-      journal:
-        size: 1Gi
-      ledgers:
-        size: 1Gi
-    resources:
-      requests:
-        cpu: "0.3"
+    replicas: 3
   broker:
-    replicas: 1
-    config:
-      managedLedgerDefaultAckQuorum: "1"
-      managedLedgerDefaultEnsembleSize: "1"
-      managedLedgerDefaultWriteQuorum: "1"
-    resources:
-      requests:
-        cpu: "0.3"
+    replicas: 3

@@ -1,5 +1,6 @@
-package com.datastax.oss.pulsaroperator.controllers.autoscaler;
+package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -23,12 +24,12 @@ public class AutoscalerDaemon implements AutoCloseable {
 
     @Data
     private static class NamespaceContext {
-        private AutoscalerSpec currentSpec;
+        private BrokerAutoscalerSpec currentSpec;
 
-        private boolean brokerSpecChanged(AutoscalerSpec spec) {
+        private boolean brokerSpecChanged(BrokerAutoscalerSpec spec) {
             if (currentSpec != null
                     && spec != null
-                    && Objects.equals(spec.getBroker(), currentSpec.getBroker())) {
+                    && Objects.equals(spec, currentSpec)) {
                 return false;
             }
             return true;
@@ -45,39 +46,40 @@ public class AutoscalerDaemon implements AutoCloseable {
     public void onSpecChange(PulsarClusterSpec clusterSpec, String namespace) {
         final NamespaceContext namespaceContext = namespaces.getOrDefault(namespace,
                 new NamespaceContext());
-        final AutoscalerSpec spec = clusterSpec.getAutoscaler();
-        if (namespaceContext.brokerSpecChanged(spec)) {
-            if (brokerAutoscaler != null) {
-                brokerAutoscaler.cancel(true);
-                try {
-                    brokerAutoscaler.get();
-                } catch (Throwable ignore) {
+        if (clusterSpec.getBroker() != null) {
+            final BrokerAutoscalerSpec spec = clusterSpec.getBroker().getAutoscaler();
+            if (namespaceContext.brokerSpecChanged(spec)) {
+                cancelCurrentTask();
+                boolean enabled = spec != null && spec.getEnabled();
+                if (enabled) {
+                    log.infof("Scheduling broker autoscaler every %d ms", spec.getPeriodMs());
+                    brokerAutoscaler = executorService.scheduleWithFixedDelay(
+                            new BrokerAutoscaler(client, namespace, clusterSpec),
+                            spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS);
+                } else {
+                    log.info("Broker autoscaler is disabled");
                 }
-            }
-            boolean enabled = spec.getBroker() != null && spec.getBroker().getEnabled();
-            if (enabled) {
-                final AutoscalerSpec.BrokerConfig brokerConfig = spec.getBroker();
-                log.infof("Scheduling broker autoscaler every %d ms", brokerConfig.getPeriodMs());
-                brokerAutoscaler = executorService.scheduleWithFixedDelay(
-                        new BrokerAutoscaler(client, namespace, clusterSpec),
-                        brokerConfig.getPeriodMs(), brokerConfig.getPeriodMs(), TimeUnit.MILLISECONDS);
             } else {
-                log.info("Broker autoscaler is disabled");
+                log.info("Broker autoscaler not changed");
             }
-        } else {
-            log.info("Broker autoscaler not changed");
         }
-        namespaceContext.setCurrentSpec(spec);
+        namespaceContext.setCurrentSpec(clusterSpec.getBroker() == null ? null : clusterSpec.getBroker().getAutoscaler());
         namespaces.put(namespace, namespaceContext);
     }
 
     @Override
     public void close() {
-        brokerAutoscaler.cancel(true);
-        try {
-            brokerAutoscaler.get();
-        } catch (Throwable ignore) {
-        }
+        cancelCurrentTask();
         executorService.shutdownNow();
+    }
+
+    private void cancelCurrentTask() {
+        if (brokerAutoscaler != null) {
+            brokerAutoscaler.cancel(true);
+            try {
+                brokerAutoscaler.get();
+            } catch (Throwable ignore) {
+            }
+        }
     }
 }

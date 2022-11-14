@@ -39,15 +39,30 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
         this.namespace = namespace;
         this.spec = spec;
         this.global = global;
-        resourceName = String.format("%s-%s", global.getName(), getComponentBaseName());
+        this.resourceName = getResourceName();
         this.ownerReference = ownerReference;
     }
 
+    protected abstract String getResourceName();
+
     protected abstract String getComponentBaseName();
 
-    protected void commonCreateOrReplace(HasMetadata resource) {
+    protected <R extends HasMetadata> void patchResource(R resource) {
         resource.getMetadata().setOwnerReferences(List.of(ownerReference));
-        client.resource(resource).inNamespace(namespace).createOrReplace();
+        final R current = (R) client.resources(resource.getClass())
+                .inNamespace(namespace)
+                .withName(resource.getMetadata().getName())
+                .get();
+        if (current == null) {
+            client.resource(resource)
+                    .inNamespace(namespace)
+                    .create();
+        } else {
+            client
+                    .resource(current)
+                    .inNamespace(namespace)
+                    .patch(resource);
+        }
     }
 
     protected Map<String, String> getLabels() {
@@ -212,7 +227,7 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                 .withProvisioner(storageClass.getProvisioner())
                 .withParameters(parameters)
                 .build();
-        commonCreateOrReplace(storage);
+        patchResource(storage);
         return true;
     }
 
@@ -240,7 +255,7 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
             pdbResource.setApiVersion("policy/v1beta1");
         }
 
-        commonCreateOrReplace(pdbResource);
+        patchResource(pdbResource);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
-import com.datastax.oss.pulsaroperator.controllers.autoscaler.AutoscalerDaemon;
+import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
+import com.datastax.oss.pulsaroperator.crds.CRDUtil;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
@@ -31,6 +32,10 @@ import lombok.extern.jbosslog.JBossLog;
 @ApplicationScoped
 public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
+    public static final String CUSTOM_RESOURCE_BROKER = "broker";
+    public static final String CUSTOM_RESOURCE_BOOKKEEPER = "bookkeeper";
+    public static final String CUSTOM_RESOURCE_ZOOKEEPER = "zookeeper";
+
     private final AutoscalerDaemon autoscaler;
 
     public PulsarClusterController(KubernetesClient client) {
@@ -47,8 +52,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
 
-        createCustomResource(
-                "zookeeper",
+        patchCustomResource(
+                CUSTOM_RESOURCE_ZOOKEEPER,
                 ZooKeeper.class,
                 ZooKeeperFullSpec.builder()
                         .global(clusterSpec.getGlobal())
@@ -59,8 +64,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 ownerReference
         );
 
-        createCustomResource(
-                "bookkeeper",
+        patchCustomResource(CUSTOM_RESOURCE_BOOKKEEPER,
                 BookKeeper.class,
                 BookKeeperFullSpec.builder()
                         .global(clusterSpec.getGlobal())
@@ -70,8 +74,28 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 clusterSpec,
                 ownerReference
         );
-        createCustomResource(
-                "broker",
+
+        PulsarClusterSpec pulsarClusterSpecWithDefaults = CRDUtil.deepCloneObject(clusterSpec);
+        pulsarClusterSpecWithDefaults.applyDefaults(clusterSpec.getGlobalSpec());
+
+        if (pulsarClusterSpecWithDefaults.getBroker() != null
+                && pulsarClusterSpecWithDefaults.getBroker().getAutoscaler() != null
+                && pulsarClusterSpecWithDefaults.getBroker().getAutoscaler().getEnabled()) {
+
+            final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BROKER);
+            final Broker current = client.resources(Broker.class)
+                    .inNamespace(currentNamespace)
+                    .withName(crFullName)
+                    .get();
+            if (current != null) {
+                final Integer currentReplicas = current.getSpec().getBroker().getReplicas();
+                // do not update replicas if patching, leave whatever the autoscaler have set
+                clusterSpec.getBroker().setReplicas(currentReplicas);
+                pulsarClusterSpecWithDefaults.getBroker().setReplicas(currentReplicas);
+            }
+        }
+        patchCustomResource(
+                CUSTOM_RESOURCE_BROKER,
                 Broker.class,
                 BrokerFullSpec.builder()
                         .global(clusterSpec.getGlobal())
@@ -81,15 +105,11 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 clusterSpec,
                 ownerReference
         );
-
-        if (clusterSpec.getAutoscaler() != null) {
-            clusterSpec.getAutoscaler().applyDefaults(clusterSpec.getGlobalSpec());
-        }
-        autoscaler.onSpecChange(clusterSpec, currentNamespace);
+        autoscaler.onSpecChange(pulsarClusterSpecWithDefaults, currentNamespace);
     }
 
     @SneakyThrows
-    private <CR extends CustomResource<SPEC, ?>, SPEC> void createCustomResource(
+    private <CR extends CustomResource<SPEC, ?>, SPEC> void patchCustomResource(
             String customResourceName,
             Class<CR> resourceClass,
             SPEC spec,
@@ -107,12 +127,29 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         meta.setName(crFullName);
         meta.setNamespace(namespace);
         meta.setOwnerReferences(ownerReferences);
-        final CR cr = resourceClass.getConstructor().newInstance();
-        cr.setMetadata(meta);
-        cr.setSpec(spec);
+
+        final CR resource = resourceClass.getConstructor().newInstance();
+        resource.setMetadata(meta);
+        resource.setSpec(spec);
+
+        final CR current = client.resources(resourceClass)
+                .inNamespace(namespace)
+                .withName(crFullName)
+                .get();
+        if (current == null) {
+            client.resource(resource)
+                    .inNamespace(namespace)
+                    .create();
+        } else {
+            client
+                    .resource(current)
+                    .inNamespace(namespace)
+                    .patch(resource);
+        }
+
         resourceClient
                 .inNamespace(namespace)
-                .resource(cr)
+                .resource(resource)
                 .createOrReplace();
         log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
     }

@@ -3,6 +3,10 @@ kind: PulsarCluster
 metadata:
   name: pulsar-cluster
 spec:
+  autoscaler:
+    broker:
+      enabled: true
+      periodMs: 10000
   global:
     name: pulsar
     image: datastax/lunastreaming-core:2.10_2.3
@@ -24,5 +28,15 @@ spec:
         size: 1Gi
       ledgers:
         size: 1Gi
+    resources:
+      requests:
+        cpu: "0.3"
   broker:
     replicas: 1
+    config:
+      managedLedgerDefaultAckQuorum: "1"
+      managedLedgerDefaultEnsembleSize: "1"
+      managedLedgerDefaultWriteQuorum: "1"
+    resources:
+      requests:
+        cpu: "0.3"

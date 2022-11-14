@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
+import com.datastax.oss.pulsaroperator.controllers.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
@@ -18,16 +19,23 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
+import io.quarkus.runtime.ShutdownEvent;
 import java.util.List;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
 @JBossLog
+@ApplicationScoped
 public class PulsarClusterController extends AbstractController<PulsarCluster> {
+
+    private final AutoscalerDaemon autoscaler;
 
     public PulsarClusterController(KubernetesClient client) {
         super(client);
+        autoscaler = new AutoscalerDaemon(client);
     }
 
     @Override
@@ -73,6 +81,11 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 clusterSpec,
                 ownerReference
         );
+
+        if (clusterSpec.getAutoscaler() != null) {
+            clusterSpec.getAutoscaler().applyDefaults(clusterSpec.getGlobalSpec());
+        }
+        autoscaler.onSpecChange(clusterSpec, currentNamespace);
     }
 
     @SneakyThrows
@@ -102,6 +115,12 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .resource(cr)
                 .createOrReplace();
         log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
+    }
+
+    void onStop(@Observes ShutdownEvent ev) {
+        if (autoscaler != null) {
+            autoscaler.close();
+        }
     }
 }
 

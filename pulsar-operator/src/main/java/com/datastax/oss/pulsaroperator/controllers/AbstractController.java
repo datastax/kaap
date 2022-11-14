@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
+import com.datastax.oss.pulsaroperator.controllers.autoscaler.AutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -54,6 +55,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         configuration.addMapping(getConstraintMapping(configuration,
                 PulsarClusterSpec.class,
                 GlobalSpec.class,
+                AutoscalerSpec.class,
                 ZooKeeperSpec.class,
                 BookKeeperSpec.class,
                 BrokerSpec.class

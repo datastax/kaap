@@ -31,6 +31,7 @@ public class BrokerController extends AbstractController<Broker> {
         controller.createConfigMap();
         controller.createService();
         controller.createStatefulSet();
+        controller.createTransactionsInitJobIfNeeded();
     }
 }
 

@@ -63,7 +63,11 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
             .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
             .build();
 
-
+    private static final Supplier<TransactionCoordinatorConfig> DEFAULT_TRANSACTION_COORDINATOR_CONFIG = () ->
+            TransactionCoordinatorConfig.builder()
+                    .enabled(false)
+                    .partitions(16)
+                    .build();
 
     @Data
     @NoArgsConstructor
@@ -90,6 +94,17 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         private Boolean enabled;
         @JsonPropertyDescription("Partitions count for the transaction's topic.")
         private Integer partitions;
+        @JsonPropertyDescription("Initialization job configuration.")
+        private TransactionCoordinatorInitJobConfig initJob;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class TransactionCoordinatorInitJobConfig {
+        @JsonPropertyDescription("Resource requirements for the Job's Pod.")
+        private ResourceRequirements resources;
     }
 
 
@@ -162,6 +177,25 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
                 replicas = 3;
             }
         }
+        applyTransactionsDefaults();
+    }
+
+    private void applyTransactionsDefaults() {
+        if (transactions == null) {
+            transactions = DEFAULT_TRANSACTION_COORDINATOR_CONFIG.get();
+        }
+        transactions.setEnabled(
+                ObjectUtils.getFirstNonNull(
+                        () -> transactions.getEnabled(),
+                        () -> DEFAULT_TRANSACTION_COORDINATOR_CONFIG.get().getEnabled()
+                )
+        );
+        transactions.setPartitions(
+                ObjectUtils.getFirstNonNull(
+                        () -> transactions.getPartitions(),
+                        () -> DEFAULT_TRANSACTION_COORDINATOR_CONFIG.get().getPartitions()
+                )
+        );
     }
 
     private void applyServiceDefaults() {

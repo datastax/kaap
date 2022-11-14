@@ -30,13 +30,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         controller.createService();
         controller.createCaService();
         controller.createStatefulSet();
-
-        if (!controller.metadataInitializationJobExists()) {
-            controller.createMetadataInitializationJob();
-            log.info("Resources created");
-        } else {
-            log.info("Resources patched");
-        }
+        controller.createMetadataInitializationJobIfNeeded();
     }
 }
 

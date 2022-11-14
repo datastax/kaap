@@ -329,7 +329,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
 
-    public boolean metadataInitializationJobExists() {
+    private boolean metadataInitializationJobExists() {
         return client
                 .batch()
                 .v1()
@@ -340,7 +340,10 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
 
-    public void createMetadataInitializationJob() {
+    public void createMetadataInitializationJobIfNeeded() {
+        if (metadataInitializationJobExists()) {
+            return;
+        }
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
                 spec.getMetadataInitializationJob();
 
@@ -379,9 +382,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         final String zkServers = getZkServers();
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 
-        final String webService = "%s://%s-%s.%s:%d/".formatted(
-                tlsEnabledOnBroker ? "https" : "http",
-                clusterName, "broker", serviceDnsSuffix, tlsEnabledOnBroker ? 8443 : 8080);
+        final String webService = getBrokerServiceUrl();
 
         final String brokerService = "%s://%s-%s.%s:%d/".formatted(
                 tlsEnabledOnBroker ? "pulsar+ssl" : "pulsar",

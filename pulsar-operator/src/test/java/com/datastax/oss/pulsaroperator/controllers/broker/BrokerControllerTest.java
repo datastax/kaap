@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
@@ -231,6 +232,173 @@ public class BrokerControllerTest {
     }
 
     @Test
+    public void testEnableFnWorker() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    functionsWorkerEnabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
+        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("brokerDeduplicationEnabled", "false");
+        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("functionsWorkerEnabled", "true");
+        expectedData.put("PF_pulsarFunctionsCluster", "pul");
+        expectedData.put("PF_pulsarServiceUrl", "pulsar://localhost:6650");
+        expectedData.put("PF_pulsarWebServiceUrl", "http://localhost:8080");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+    }
+
+
+    @Test
+    public void testEnableWebSocket() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    webSocketServiceEnabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
+        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("brokerDeduplicationEnabled", "false");
+        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("webSocketServiceEnabled", "true");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+    }
+
+
+    @Test
+    public void testTransactions() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    transactions:
+                        enabled: true
+                        
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
+        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("brokerDeduplicationEnabled", "false");
+        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        Assert.assertEquals("""
+                ---
+                apiVersion: batch/v1
+                kind: Job
+                metadata:
+                  labels:
+                    app: pul
+                    cluster: pul
+                    component: broker
+                  name: pul-broker
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: Broker
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsarname-cr
+                spec:
+                  template:
+                    spec:
+                      containers:
+                      - args:
+                        - |
+                          bin/pulsar initialize-transaction-coordinator-metadata --cluster pul \\
+                              --configuration-store pul-zookeeper-ca.ns.svc.cluster.local:2181 \\
+                              --initial-num-transaction-coordinators 16
+                        command:
+                        - sh
+                        - -c
+                        image: apachepulsar/pulsar:global
+                        imagePullPolicy: IfNotPresent
+                        name: pul-broker
+                      initContainers:
+                      - args:
+                        - |
+                          until curl http://pul-broker.ns.svc.cluster.local:8080/; do
+                              sleep 3;
+                          done;
+                        command:
+                        - sh
+                        - -c
+                        image: apachepulsar/pulsar:global
+                        imagePullPolicy: IfNotPresent
+                        name: wait-broker-ready
+                      restartPolicy: OnFailure
+                """, client.getCreatedResource(Job.class).getResourceYaml());
+    }
+
+
+    @Test
     public void testConfig() throws Exception {
         String spec = """
                 global:
@@ -252,7 +420,9 @@ public class BrokerControllerTest {
         expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("clusterName", "pul");
         expectedData.put("allowAutoTopicCreationType", "non-partitioned");
-        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");

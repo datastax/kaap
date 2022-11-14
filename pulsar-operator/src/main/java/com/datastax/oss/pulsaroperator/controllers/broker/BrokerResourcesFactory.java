@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,6 +129,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         }
         if (spec.getWebSocketServiceEnabled()) {
             data.put("webSocketServiceEnabled", "true");
+        }
+        if (spec.getTransactions() != null && spec.getTransactions().getEnabled()) {
+            data.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
         }
 
         data.put("allowAutoTopicCreationType", "non-partitioned");
@@ -315,6 +320,93 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .build();
         return statefulSet;
     }
+
+    public void createTransactionsInitJobIfNeeded() {
+        if (client.batch().v1().jobs()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .get() != null) {
+            return;
+        }
+        final BrokerSpec.TransactionCoordinatorConfig transactions = spec.getTransactions();
+        if (transactions == null || !transactions.getEnabled()) {
+            return;
+        }
+
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        List<Volume> volumes = new ArrayList<>();
+        final boolean tlsEnabled = isTlsEnabledOnZooKeeper();
+        if (tlsEnabled) {
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
+        }
+
+        String brokerCurlTarget = "";
+
+        if (isTlsEnabledOnBroker()) {
+            brokerCurlTarget = "--cacert /pulsar/certs/ca.crt ";
+        }
+        brokerCurlTarget += getBrokerServiceUrl();
+
+        final Container initContainer = new ContainerBuilder()
+                .withName("wait-broker-ready")
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withCommand("sh", "-c")
+                .withArgs("""
+                        until curl %s; do
+                            sleep 3;
+                        done;
+                        """.formatted(brokerCurlTarget))
+                .build();
+
+        String mainArgs = "";
+        if (tlsEnabled) {
+            mainArgs += "/pulsar/tools/certconverter.sh &&";
+        }
+
+        final String clusterName = global.getName();
+        final String zkServers = getZkServers();
+
+        mainArgs += """
+                bin/pulsar initialize-transaction-coordinator-metadata --cluster %s \\
+                    --configuration-store %s \\
+                    --initial-num-transaction-coordinators %d
+                """.formatted(clusterName, zkServers, transactions.getPartitions());
+
+        final Container container = new ContainerBuilder()
+                .withName(resourceName)
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withVolumeMounts(volumeMounts)
+                .withResources(transactions.getInitJob() == null ? null : transactions.getInitJob().getResources())
+                .withCommand("sh", "-c")
+                .withArgs(mainArgs)
+                .build();
+
+
+        final Job job = new JobBuilder()
+                .withNewMetadata()
+                .withName(resourceName)
+                .withNamespace(namespace)
+                .withLabels(getLabels())
+                .endMetadata()
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .withDnsConfig(global.getDnsConfig())
+                .withNodeSelector(spec.getNodeSelectors())
+                .withVolumes(volumes)
+                .withInitContainers(List.of(initContainer))
+                .withContainers(List.of(container))
+                .withRestartPolicy("OnFailure")
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .build();
+
+        patchResource(job);
+    }
+
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();

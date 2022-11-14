@@ -129,6 +129,15 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                 isTlsEnabledOnZooKeeper() ? 2281 : 2181);
     }
 
+    protected String getBrokerServiceUrl() {
+        final boolean tls = isTlsEnabledOnBroker();
+        return "%s://%s-%s.%s:%d/".formatted(
+                tls ? "https" : "http",
+                global.getName(),
+                global.getComponents().getBrokerBaseName(),
+                getServiceDnsSuffix(), tls ? 8443 : 8080);
+    }
+
     protected String getTlsSecretNameForZookeeper() {
         final String name = global.getTls().getZookeeper() == null
                 ? null : global.getTls().getZookeeper().getTlsSecretName();

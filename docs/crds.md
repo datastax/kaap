@@ -200,8 +200,6 @@ Resource Types:
         <td>integer</td>
         <td>
           Replicas of this component.<br/>
-          <br/>
-            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1367,6 +1365,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#brokerspecbrokerautoscaler">autoscaler</a></b></td>
+        <td>object</td>
+        <td>
+          Autoscaling config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
@@ -1411,13 +1416,6 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#brokerspecbrokerledger">ledger</a></b></td>
-        <td>object</td>
-        <td>
-          Ledger config.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
@@ -1450,8 +1448,6 @@ TLS configurations related to the ZooKeeper component.
         <td>integer</td>
         <td>
           Replicas of this component.<br/>
-          <br/>
-            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1494,6 +1490,105 @@ TLS configurations related to the ZooKeeper component.
         <td>boolean</td>
         <td>
           Enable websocket service in the broker.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.broker.autoscaler
+<sup><sup>[↩ Parent](#brokerspecbroker)</sup></sup>
+
+
+
+Autoscaling config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>higherCpuThreshold</b></td>
+        <td>object</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lowerCpuThreshold</b></td>
+        <td>object</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>max</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>min</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>periodMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1000<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleDownBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleUpBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stabilizationWindowMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1549,47 +1644,6 @@ Additional init container.
         <td>string</td>
         <td>
           The image pull policy used for the container.<br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### Broker.spec.broker.ledger
-<sup><sup>[↩ Parent](#brokerspecbroker)</sup></sup>
-
-
-
-Ledger config.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>defaultAckQuorum</b></td>
-        <td>integer</td>
-        <td>
-          Ack quorum value.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>defaultEnsembleSize</b></td>
-        <td>integer</td>
-        <td>
-          Ensemble value.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>defaultWriteQuorum</b></td>
-        <td>integer</td>
-        <td>
-          Write quorum value.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2618,8 +2672,6 @@ TLS configurations related to the ZooKeeper component.
         <td>integer</td>
         <td>
           Replicas of this component.<br/>
-          <br/>
-            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3198,6 +3250,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerautoscaler">autoscaler</a></b></td>
+        <td>object</td>
+        <td>
+          Autoscaling config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
@@ -3242,13 +3301,6 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokerledger">ledger</a></b></td>
-        <td>object</td>
-        <td>
-          Ledger config.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
@@ -3281,8 +3333,6 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>integer</td>
         <td>
           Replicas of this component.<br/>
-          <br/>
-            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3325,6 +3375,105 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>boolean</td>
         <td>
           Enable websocket service in the broker.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.autoscaler
+<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
+
+
+
+Autoscaling config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>higherCpuThreshold</b></td>
+        <td>object</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lowerCpuThreshold</b></td>
+        <td>object</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>max</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>min</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>periodMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1000<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleDownBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleUpBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stabilizationWindowMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3380,47 +3529,6 @@ Additional init container.
         <td>string</td>
         <td>
           The image pull policy used for the container.<br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.ledger
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
-
-
-
-Ledger config.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>defaultAckQuorum</b></td>
-        <td>integer</td>
-        <td>
-          Ack quorum value.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>defaultEnsembleSize</b></td>
-        <td>integer</td>
-        <td>
-          Ensemble value.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>defaultWriteQuorum</b></td>
-        <td>integer</td>
-        <td>
-          Write quorum value.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -4312,8 +4420,6 @@ TLS configurations related to the ZooKeeper component.
         <td>integer</td>
         <td>
           Replicas of this component.<br/>
-          <br/>
-            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5479,8 +5585,6 @@ TLS configurations related to the ZooKeeper component.
         <td>integer</td>
         <td>
           Replicas of this component.<br/>
-          <br/>
-            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr><tr>

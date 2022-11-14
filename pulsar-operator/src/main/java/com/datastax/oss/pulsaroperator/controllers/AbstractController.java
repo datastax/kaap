@@ -92,7 +92,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             createResources(resource, context);
             resource.setStatus(BaseComponentStatus.createReadyStatus());
         } catch (Throwable throwable) {
-            log.errorv(throwable, "Error during reconciliation for resource %s with name %s: %s",
+            log.errorf(throwable, "Error during reconciliation for resource %s with name %s: %s",
                     resource.getFullResourceName(),
                     resource.getMetadata().getName(),
                     throwable.getMessage());

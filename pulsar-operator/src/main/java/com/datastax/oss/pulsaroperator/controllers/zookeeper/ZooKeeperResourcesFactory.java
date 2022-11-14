@@ -55,6 +55,11 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         return global.getComponents().getZookeeperBaseName();
     }
 
+    @Override
+    protected String getResourceName() {
+        return "%s-%s".formatted(global.getName(), getComponentBaseName());
+    }
+
     public void createService() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("service.alpha.kubernetes.io/tolerate-unready-endpoints", "true");
@@ -78,7 +83,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .endSpec()
                 .build();
 
-        commonCreateOrReplace(service);
+        patchResource(service);
     }
 
     private List<ServicePort> getServicePorts() {
@@ -132,7 +137,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .endSpec()
                 .build();
 
-        commonCreateOrReplace(service);
+        patchResource(service);
     }
 
     public void createConfigMap() {
@@ -162,7 +167,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withLabels(getLabels()).endMetadata()
                 .withData(data)
                 .build();
-        commonCreateOrReplace(configMap);
+        patchResource(configMap);
     }
 
     public void createStorageClassIfNeeded() {
@@ -320,7 +325,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
-        commonCreateOrReplace(statefulSet);
+        patchResource(statefulSet);
     }
 
 
@@ -425,7 +430,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .endSpec()
                 .build();
 
-        commonCreateOrReplace(job);
+        patchResource(job);
     }
 
 

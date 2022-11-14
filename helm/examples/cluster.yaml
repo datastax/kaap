@@ -7,22 +7,10 @@ spec:
     name: pulsar
     image: datastax/lunastreaming-core:2.10_2.3
     storage:
-      # K3S storage class name https://docs.k3s.io/storage
-      existingStorageClassName:  local-path
+      existingStorageClassName: default
   zookeeper:
-    replicas: 1
-    resources:
-      requests:
-        cpu: "0.3"
-    dataVolume:
-      name: data
-      size: 100M
+    replicas: 3
   bookkeeper:
-    replicas: 1
-    volumes:
-      journal:
-        size: 1Gi
-      ledgers:
-        size: 1Gi
+    replicas: 3
   broker:
-    replicas: 1
+    replicas: 3

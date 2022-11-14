@@ -6,7 +6,6 @@ import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,8 +28,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription("Configuration entries directly passed to this component.")
     protected Map<String, String> config;
-    @Min(1)
-    @io.fabric8.generator.annotation.Min(1)
     @JsonPropertyDescription("Replicas of this component.")
     protected Integer replicas;
     @JsonPropertyDescription("Liveness and readiness probe values.")

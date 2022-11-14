@@ -12,8 +12,10 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategy;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,6 +50,19 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
             .headless(false)
             .type("ClusterIP")
             .build();
+
+
+    private static final Supplier<BrokerAutoscalerSpec> DEFAULT_BROKER_CONFIG = () -> BrokerAutoscalerSpec.builder()
+            .enabled(false)
+            .periodMs(TimeUnit.SECONDS.toMillis(10))
+            .min(1)
+            .lowerCpuThreshold(0.3f)
+            .higherCpuThreshold(0.8f)
+            .scaleUpBy(1)
+            .scaleDownBy(1)
+            .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
+            .build();
+
 
 
     @Data
@@ -96,19 +111,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     }
 
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class LedgerConfig {
-        @JsonPropertyDescription("Ensemble value.")
-        private int defaultEnsembleSize;
-        @JsonPropertyDescription("Ack quorum value.")
-        private int defaultAckQuorum;
-        @JsonPropertyDescription("Write quorum value.")
-        private int defaultWriteQuorum;
-    }
-
     @JsonPropertyDescription("Enable functions worker embedded in the broker.")
     private Boolean functionsWorkerEnabled;
     @JsonPropertyDescription("Enable websocket service in the broker.")
@@ -133,15 +135,14 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     private String serviceAccountName;
     @JsonPropertyDescription("Additional init container.")
     private InitContainerConfig initContainer;
-    @JsonPropertyDescription("Ledger config.")
-    private LedgerConfig ledger;
+    @JsonPropertyDescription("Autoscaling config.")
+    @Valid
+    private BrokerAutoscalerSpec autoscaler;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
-        if (replicas == null) {
-            replicas = 3;
-        }
+
         if (gracePeriod == null) {
             gracePeriod = 60;
         }
@@ -154,6 +155,12 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         }
         if (webSocketServiceEnabled == null) {
             webSocketServiceEnabled = false;
+        }
+        applyAutoscalerDefaults();
+        if (replicas == null) {
+            if (!autoscaler.getEnabled()) {
+                replicas = 3;
+            }
         }
     }
 
@@ -177,6 +184,50 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
                 () -> service.getAdditionalPorts(),
                 () -> DEFAULT_SERVICE_CONFIG.get().getAdditionalPorts()));
     }
+
+
+    private void applyAutoscalerDefaults() {
+        if (autoscaler == null) {
+            autoscaler = DEFAULT_BROKER_CONFIG.get();
+        }
+        autoscaler.setEnabled(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getEnabled(),
+                () -> DEFAULT_BROKER_CONFIG.get().getEnabled()
+        ));
+        autoscaler.setPeriodMs(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getPeriodMs(),
+                () -> DEFAULT_BROKER_CONFIG.get().getPeriodMs()
+        ));
+        autoscaler.setMin(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getMin(),
+                () -> DEFAULT_BROKER_CONFIG.get().getMin()
+        ));
+        autoscaler.setMax(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getMax(),
+                () -> DEFAULT_BROKER_CONFIG.get().getMax()
+        ));
+        autoscaler.setLowerCpuThreshold(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getLowerCpuThreshold(),
+                () -> DEFAULT_BROKER_CONFIG.get().getLowerCpuThreshold()
+        ));
+        autoscaler.setHigherCpuThreshold(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getHigherCpuThreshold(),
+                () -> DEFAULT_BROKER_CONFIG.get().getHigherCpuThreshold()
+        ));
+        autoscaler.setScaleUpBy(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getScaleUpBy(),
+                () -> DEFAULT_BROKER_CONFIG.get().getScaleUpBy()
+        ));
+        autoscaler.setScaleDownBy(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getScaleDownBy(),
+                () -> DEFAULT_BROKER_CONFIG.get().getScaleDownBy()
+        ));
+        autoscaler.setStabilizationWindowMs(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getStabilizationWindowMs(),
+                () -> DEFAULT_BROKER_CONFIG.get().getStabilizationWindowMs()
+        ));
+    }
+
 
     @Override
     protected ProbeConfig getDefaultProbeConfig() {

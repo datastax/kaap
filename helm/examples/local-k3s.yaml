@@ -1,0 +1,38 @@
+apiVersion: com.datastax.oss/v1alpha1
+kind: PulsarCluster
+metadata:
+  name: pulsar-cluster
+spec:
+  global:
+    name: pulsar
+    image: datastax/lunastreaming-core:2.10_2.3
+    storage:
+      # K3S storage class name https://docs.k3s.io/storage
+      existingStorageClassName:  local-path
+  zookeeper:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "0.3"
+    dataVolume:
+      name: data
+      size: 100M
+  bookkeeper:
+    replicas: 1
+    volumes:
+      journal:
+        size: 1Gi
+      ledgers:
+        size: 1Gi
+    resources:
+      requests:
+        cpu: "0.3"
+  broker:
+    replicas: 1
+    config:
+      managedLedgerDefaultAckQuorum: "1"
+      managedLedgerDefaultEnsembleSize: "1"
+      managedLedgerDefaultWriteQuorum: "1"
+    resources:
+      requests:
+        cpu: "0.4"

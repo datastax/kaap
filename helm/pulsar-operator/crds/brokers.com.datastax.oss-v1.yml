@@ -83,19 +83,6 @@ spec:
                       pod. Default value is 60.
                     minimum: 0.0
                     type: integer
-                  ledger:
-                    description: Ledger config.
-                    properties:
-                      defaultAckQuorum:
-                        description: Ack quorum value.
-                        type: integer
-                      defaultEnsembleSize:
-                        description: Ensemble value.
-                        type: integer
-                      defaultWriteQuorum:
-                        description: Write quorum value.
-                        type: integer
-                    type: object
                   functionsWorkerEnabled:
                     description: Enable functions worker embedded in the broker.
                     type: boolean
@@ -113,6 +100,37 @@ spec:
                     additionalProperties:
                       type: string
                     description: Annotations to add to each Broker resource.
+                    type: object
+                  autoscaler:
+                    description: Autoscaling config.
+                    properties:
+                      periodMs:
+                        minimum: 1000.0
+                        type: integer
+                      higherCpuThreshold:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: object
+                      max:
+                        type: integer
+                      lowerCpuThreshold:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: object
+                      enabled:
+                        type: boolean
+                      min:
+                        minimum: 1.0
+                        type: integer
+                      scaleUpBy:
+                        minimum: 1.0
+                        type: integer
+                      stabilizationWindowMs:
+                        minimum: 1.0
+                        type: integer
+                      scaleDownBy:
+                        minimum: 1.0
+                        type: integer
                     type: object
                   initContainer:
                     description: Additional init container.
@@ -181,7 +199,6 @@ spec:
                     type: object
                   replicas:
                     description: Replicas of this component.
-                    minimum: 1.0
                     type: integer
                   pdb:
                     description: Pod disruption budget configuration for this component.

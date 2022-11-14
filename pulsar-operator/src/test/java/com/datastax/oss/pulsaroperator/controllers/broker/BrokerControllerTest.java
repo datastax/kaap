@@ -159,6 +159,8 @@ public class BrokerControllerTest {
                         livenessProbe:
                           exec:
                             command:
+                            - sh
+                            - -c
                             - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
@@ -172,6 +174,8 @@ public class BrokerControllerTest {
                         readinessProbe:
                           exec:
                             command:
+                            - sh
+                            - -c
                             - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
@@ -693,7 +697,7 @@ public class BrokerControllerTest {
     }
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
-        Assert.assertEquals(probe.getExec().getCommand(), List.of(
+        Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
                 "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);

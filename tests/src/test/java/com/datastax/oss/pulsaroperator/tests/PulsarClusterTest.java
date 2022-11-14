@@ -15,8 +15,12 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -85,8 +89,24 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
                 .withName("pulsar-broker")
                 .waitUntilCondition(s -> s.getStatus().getReplicas() == 3, 180, TimeUnit.SECONDS);
 
+        assertProduceConsume();
         container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
         awaitUninstalled();
+    }
+
+    private void assertProduceConsume() throws InterruptedException, ExecutionException, IOException {
+        final ExecWatch exec = client.pods().inNamespace(NAMESPACE).withName("pulsar-broker")
+                .exec("bin/pulsar-client", "produce", "-m", "test", "test-topic");
+        if (exec.exitCode().get().intValue() != 0) {
+            log.error("Produce failed:\n{}", new String(exec.getOutput().readAllBytes(), StandardCharsets.UTF_8));
+            Assert.fail();
+        }
+        final ExecWatch execConsume = client.pods().inNamespace(NAMESPACE).withName("pulsar-broker")
+                .exec("bin/pulsar-client", "consume", "-s", "sub1", "-p", "Earliest", "test-topic");
+        if (execConsume.exitCode().get().intValue() != 0) {
+            log.error("Produce failed:\n{}", new String(execConsume.getOutput().readAllBytes(), StandardCharsets.UTF_8));
+            Assert.fail();
+        }
     }
 
     @SneakyThrows
@@ -118,7 +138,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("100m")))
                         .build())
                 .dataVolume(VolumeConfig.builder()
                         .size("100M")
@@ -129,7 +149,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("100m")))
                         .build())
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
@@ -147,7 +167,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("100m")))
                         .build())
                 .build());
         return defaultSpecs;
@@ -161,7 +181,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
             final int zk = client.pods().inNamespace(NAMESPACE).list().getItems().size();
             Assert.assertEquals(zk, 1);
         });
-        kubectlApply(getHelmExampleFilePath("cluster.yaml"));
+        kubectlApply(getHelmExampleFilePath("local-k3s.yaml"));
         awaitInstalled();
         container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
         awaitUninstalled();

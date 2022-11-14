@@ -70,7 +70,7 @@ public class MockKubernetesClient {
             final NamespaceableResource interaction =
                     mock(NamespaceableResource.class);
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
-            when(interaction.createOrReplace()).thenAnswer((ic1) -> {
+            when(interaction.create()).thenAnswer((ic1) -> {
                 createdResources.add(new ResourceInteraction(ic.getArgument(0)));
                 return null;
             });
@@ -81,16 +81,17 @@ public class MockKubernetesClient {
         when(client.resources(any(HasMetadata.class.getClass()))).thenAnswer((ic) -> {
             final MixedOperation interaction = mock(MixedOperation.class);
 
+            final Resource resourceMock = mock(Resource.class);
             when(interaction.resource(any(HasMetadata.class))).thenAnswer(ic2 -> {
-                final Resource mockedResource = mock(Resource.class);
-                when(mockedResource.createOrReplace()).thenAnswer((ic3) -> {
+                final Resource mockedResource = resourceMock;
+                when(mockedResource.create()).thenAnswer((ic3) -> {
                     createdResources.add(new ResourceInteraction(ic2.getArgument(0)));
                     return null;
                 });
                 return mockedResource;
             });
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
-
+            when(interaction.withName(any())).thenReturn(resourceMock);
             return interaction;
         });
         when(client.getKubernetesVersion()).thenReturn(new VersionInfo.Builder()

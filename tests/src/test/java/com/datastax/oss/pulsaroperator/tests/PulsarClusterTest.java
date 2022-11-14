@@ -138,7 +138,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("100m")))
                         .build())
                 .dataVolume(VolumeConfig.builder()
                         .size("100M")
@@ -149,7 +149,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("100m")))
                         .build())
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
@@ -167,7 +167,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
                 .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("300m")))
+                        .withRequests(Map.of("memory", Quantity.parse("512Mi"), "cpu", Quantity.parse("100m")))
                         .build())
                 .build());
         return defaultSpecs;

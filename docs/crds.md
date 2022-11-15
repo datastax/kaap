@@ -1900,10 +1900,78 @@ Enable transactions in the broker.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#brokerspecbrokertransactionsinitjob">initJob</a></b></td>
+        <td>object</td>
+        <td>
+          Initialization job configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>partitions</b></td>
         <td>integer</td>
         <td>
           Partitions count for the transaction's topic.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.broker.transactions.initJob
+<sup><sup>[↩ Parent](#brokerspecbrokertransactions)</sup></sup>
+
+
+
+Initialization job configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#brokerspecbrokertransactionsinitjobresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the Job's Pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.broker.transactions.initJob.resources
+<sup><sup>[↩ Parent](#brokerspecbrokertransactionsinitjob)</sup></sup>
+
+
+
+Resource requirements for the Job's Pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3785,10 +3853,78 @@ Enable transactions in the broker.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokertransactionsinitjob">initJob</a></b></td>
+        <td>object</td>
+        <td>
+          Initialization job configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>partitions</b></td>
         <td>integer</td>
         <td>
           Partitions count for the transaction's topic.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.transactions.initJob
+<sup><sup>[↩ Parent](#pulsarclusterspecbrokertransactions)</sup></sup>
+
+
+
+Initialization job configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokertransactionsinitjobresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the Job's Pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.transactions.initJob.resources
+<sup><sup>[↩ Parent](#pulsarclusterspecbrokertransactionsinitjob)</sup></sup>
+
+
+
+Resource requirements for the Job's Pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>

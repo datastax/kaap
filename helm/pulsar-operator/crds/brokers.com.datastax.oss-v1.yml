@@ -92,6 +92,28 @@ spec:
                       partitions:
                         description: Partitions count for the transaction's topic.
                         type: integer
+                      initJob:
+                        description: Initialization job configuration.
+                        properties:
+                          resources:
+                            description: Resource requirements for the Job's Pod.
+                            properties:
+                              limits:
+                                additionalProperties:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                              requests:
+                                additionalProperties:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                            type: object
+                        type: object
                       enabled:
                         description: Enable the transaction coordinator in the broker.
                         type: boolean

@@ -1540,7 +1540,7 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b>lowerCpuThreshold</b></td>
-        <td>object</td>
+        <td>number</td>
         <td>
           <br/>
           <br/>
@@ -4570,7 +4570,7 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b>lowerCpuThreshold</b></td>
-        <td>object</td>
+        <td>number</td>
         <td>
           <br/>
           <br/>

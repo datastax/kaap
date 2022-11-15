@@ -374,7 +374,7 @@ spec:
                       lowerCpuThreshold:
                         maximum: 1.0
                         minimum: 0.0
-                        type: object
+                        type: number
                       scaleDownBy:
                         minimum: 1.0
                         type: integer

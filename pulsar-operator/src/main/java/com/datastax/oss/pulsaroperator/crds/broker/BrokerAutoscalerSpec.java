@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.crds.broker;
 
-import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.generator.annotation.Max;
 import io.fabric8.generator.annotation.Min;
 import lombok.AllArgsConstructor;
@@ -26,7 +25,6 @@ public class BrokerAutoscalerSpec {
     @Max(1)
     @javax.validation.constraints.Min(0)
     @javax.validation.constraints.Max(1)
-    @SchemaFrom(type = float.class)
     Double lowerCpuThreshold;
     @Min(0)
     @Max(1)

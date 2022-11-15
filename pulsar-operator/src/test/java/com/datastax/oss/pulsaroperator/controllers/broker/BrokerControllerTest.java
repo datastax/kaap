@@ -321,7 +321,6 @@ public class BrokerControllerTest {
                 broker:
                     transactions:
                         enabled: true
-                        
                 """;
         MockKubernetesClient client = invokeController(spec);
 

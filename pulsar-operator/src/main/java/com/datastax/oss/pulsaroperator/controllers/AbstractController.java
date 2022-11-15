@@ -6,6 +6,7 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -56,7 +57,8 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 GlobalSpec.class,
                 ZooKeeperSpec.class,
                 BookKeeperSpec.class,
-                BrokerSpec.class
+                BrokerSpec.class,
+                ProxySpec.class
         ));
         return configuration.buildValidatorFactory().getValidator();
     }

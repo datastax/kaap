@@ -8,6 +8,8 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
@@ -35,6 +37,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     public static final String CUSTOM_RESOURCE_BROKER = "broker";
     public static final String CUSTOM_RESOURCE_BOOKKEEPER = "bookkeeper";
     public static final String CUSTOM_RESOURCE_ZOOKEEPER = "zookeeper";
+    public static final String CUSTOM_RESOURCE_PROXY = "proxy";
 
     private final AutoscalerDaemon autoscaler;
 
@@ -106,6 +109,17 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 ownerReference
         );
         autoscaler.onSpecChange(pulsarClusterSpecWithDefaults, currentNamespace);
+
+        patchCustomResource(CUSTOM_RESOURCE_PROXY,
+                Proxy.class,
+                ProxyFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .proxy(clusterSpec.getProxy())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
     }
 
     @SneakyThrows

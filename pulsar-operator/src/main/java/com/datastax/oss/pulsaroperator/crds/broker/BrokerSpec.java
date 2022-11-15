@@ -47,7 +47,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
             .build();
 
     public static final Supplier<ServiceConfig> DEFAULT_SERVICE_CONFIG = () -> ServiceConfig.builder()
-            .headless(false)
             .type("ClusterIP")
             .build();
 
@@ -56,8 +55,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
             .enabled(false)
             .periodMs(TimeUnit.SECONDS.toMillis(10))
             .min(1)
-            .lowerCpuThreshold(0.3f)
-            .higherCpuThreshold(0.8f)
+            .lowerCpuThreshold(0.3d)
+            .higherCpuThreshold(0.8d)
             .scaleUpBy(1)
             .scaleDownBy(1)
             .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
@@ -209,10 +208,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         service.setType(ObjectUtils.getFirstNonNull(
                 () -> service.getType(),
                 () -> DEFAULT_SERVICE_CONFIG.get().getType()));
-
-        service.setHeadless(ObjectUtils.getFirstNonNull(
-                () -> service.getHeadless(),
-                () -> DEFAULT_SERVICE_CONFIG.get().getHeadless()));
 
         service.setAdditionalPorts(ObjectUtils.getFirstNonNull(
                 () -> service.getAdditionalPorts(),

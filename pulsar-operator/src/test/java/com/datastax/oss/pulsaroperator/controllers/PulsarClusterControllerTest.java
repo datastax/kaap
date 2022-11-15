@@ -6,6 +6,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
@@ -49,6 +50,7 @@ public class PulsarClusterControllerTest {
                       zookeeperBaseName: zookeeper
                       bookkeeperBaseName: bookkeeper
                       brokerBaseName: broker
+                      proxyBaseName: proxy
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -82,6 +84,7 @@ public class PulsarClusterControllerTest {
                       zookeeperBaseName: zookeeper
                       bookkeeperBaseName: bookkeeper
                       brokerBaseName: broker
+                      proxyBaseName: proxy
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -115,6 +118,7 @@ public class PulsarClusterControllerTest {
                     zookeeperBaseName: zookeeper
                     bookkeeperBaseName: bookkeeper
                     brokerBaseName: broker
+                    proxyBaseName: proxy
                   kubernetesClusterDomain: cluster.local
                   tls:
                     enabled: false
@@ -126,6 +130,41 @@ public class PulsarClusterControllerTest {
                     existingStorageClassName: default
               status:
                 ready: false
+                """);
+
+
+        Assert.assertEquals(client.getCreatedResource(Proxy.class).getResourceYaml(), """
+                ---
+                apiVersion: com.datastax.oss/v1alpha1
+                kind: Proxy
+                metadata:
+                  name: pulsarname-proxy
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: PulsarCluster
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsar-cluster
+                spec:
+                  global:
+                    name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
+                      proxyBaseName: proxy
+                    kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
+                    persistence: true
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    storage:
+                      existingStorageClassName: default
+                status:
+                  ready: false
                 """);
 
     }

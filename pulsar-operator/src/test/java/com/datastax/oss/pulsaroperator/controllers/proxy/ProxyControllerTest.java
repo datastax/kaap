@@ -1,10 +1,11 @@
-package com.datastax.oss.pulsaroperator.controllers.broker;
+package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.controllers.proxy.broker.ProxyController;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
-import com.datastax.oss.pulsaroperator.crds.broker.Broker;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
+import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -14,8 +15,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
@@ -28,7 +28,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @JBossLog
-public class BrokerControllerTest {
+public class ProxyControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
@@ -54,12 +54,12 @@ public class BrokerControllerTest {
                           labels:
                             app: pulsarname
                             cluster: pulsarname
-                            component: broker
-                          name: pulsarname-broker
+                            component: proxy
+                          name: pulsarname-proxy
                           namespace: ns
                           ownerReferences:
                           - apiVersion: com.datastax.oss/v1alpha1
-                            kind: Broker
+                            kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
                             name: pulsarname-cr
@@ -68,14 +68,13 @@ public class BrokerControllerTest {
                           PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError
-                          allowAutoTopicCreationType: non-partitioned
-                          backlogQuotaDefaultRetentionPolicy: producer_exception
-                          brokerDeduplicationEnabled: "false"
-                          clusterName: pulsarname
+                          PULSAR_MEM: -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
+                          brokerServiceURL: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                          brokerServiceURLTLS: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
+                          brokerWebServiceURL: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                          brokerWebServiceURLTLS: https://pulsarname-broker.ns.svc.cluster.local:8443/
                           configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
-                          exposeConsumerLevelMetricsInPrometheus: "false"
-                          exposeTopicLevelMetricsInPrometheus: "true"
+                          numHttpServerThreads: 10
                           zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
@@ -89,17 +88,16 @@ public class BrokerControllerTest {
                   labels:
                     app: pulsarname
                     cluster: pulsarname
-                    component: broker
-                  name: pulsarname-broker
+                    component: proxy
+                  name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
                   - apiVersion: com.datastax.oss/v1alpha1
-                    kind: Broker
+                    kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
                     name: pulsarname-cr
                 spec:
-                  clusterIP: None
                   ports:
                   - name: http
                     port: 8080
@@ -107,26 +105,26 @@ public class BrokerControllerTest {
                     port: 6650
                   selector:
                     app: pulsarname
-                    component: broker
-                  type: ClusterIP
+                    component: proxy
+                  type: LoadBalancer
                 """);
 
-        final String sts = client
-                .getCreatedResource(StatefulSet.class).getResourceYaml();
-        Assert.assertEquals(sts, """
+        final String depl = client
+                .getCreatedResource(Deployment.class).getResourceYaml();
+        Assert.assertEquals(depl, """
                 ---
                 apiVersion: apps/v1
-                kind: StatefulSet
+                kind: Deployment
                 metadata:
                   labels:
                     app: pulsarname
                     cluster: pulsarname
-                    component: broker
-                  name: pulsarname-broker
+                    component: proxy
+                  name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
                   - apiVersion: com.datastax.oss/v1alpha1
-                    kind: Broker
+                    kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
                     name: pulsarname-cr
@@ -135,8 +133,12 @@ public class BrokerControllerTest {
                   selector:
                     matchLabels:
                       app: pulsarname
-                      component: broker
-                  serviceName: pulsarname-broker
+                      component: proxy
+                  strategy:
+                    rollingUpdate:
+                      maxSurge: 1
+                      maxUnavailable: 0
+                    type: RollingUpdate
                   template:
                     metadata:
                       annotations:
@@ -145,17 +147,17 @@ public class BrokerControllerTest {
                       labels:
                         app: pulsarname
                         cluster: pulsarname
-                        component: broker
+                        component: proxy
                     spec:
                       containers:
                       - args:
-                        - "bin/apply-config-from-env.py conf/broker.conf && bin/apply-config-from-env.py conf/client.conf && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar broker"
+                        - "bin/apply-config-from-env.py conf/proxy.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar proxy"
                         command:
                         - sh
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-broker
+                            name: pulsarname-proxy
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
                         livenessProbe:
@@ -167,12 +169,10 @@ public class BrokerControllerTest {
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
-                        name: pulsarname-broker
+                        name: pulsarname-proxy
                         ports:
-                        - containerPort: 8080
-                          name: http
-                        - containerPort: 6650
-                          name: pulsar
+                        - containerPort: 8001
+                          name: wss
                         readinessProbe:
                           exec:
                             command:
@@ -185,7 +185,7 @@ public class BrokerControllerTest {
                         resources:
                           requests:
                             cpu: 1
-                            memory: 2Gi
+                            memory: 1Gi
                       initContainers:
                       - args:
                         - |
@@ -213,12 +213,12 @@ public class BrokerControllerTest {
                           labels:
                             app: pulsarname
                             cluster: pulsarname
-                            component: broker
-                          name: pulsarname-broker
+                            component: proxy
+                          name: pulsarname-proxy
                           namespace: ns
                           ownerReferences:
                           - apiVersion: com.datastax.oss/v1alpha1
-                            kind: Broker
+                            kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
                             name: pulsarname-cr
@@ -227,177 +227,10 @@ public class BrokerControllerTest {
                           selector:
                             matchLabels:
                               app: pulsarname
-                              component: broker
+                              component: proxy
                             """);
 
     }
-
-    @Test
-    public void testEnableFnWorker() throws Exception {
-        String spec = """
-                global:
-                    name: pul
-                    persistence: false
-                    image: apachepulsar/pulsar:global
-                broker:
-                    functionsWorkerEnabled: true
-                """;
-        MockKubernetesClient client = invokeController(spec);
-
-        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
-                client.getCreatedResource(ConfigMap.class);
-
-        Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
-        expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
-                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "info");
-        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("functionsWorkerEnabled", "true");
-        expectedData.put("PF_pulsarFunctionsCluster", "pul");
-        expectedData.put("PF_pulsarServiceUrl", "pulsar://localhost:6650");
-        expectedData.put("PF_pulsarWebServiceUrl", "http://localhost:8080");
-
-
-        final Map<String, String> data = createdResource.getResource().getData();
-        Assert.assertEquals(data, expectedData);
-    }
-
-
-    @Test
-    public void testEnableWebSocket() throws Exception {
-        String spec = """
-                global:
-                    name: pul
-                    persistence: false
-                    image: apachepulsar/pulsar:global
-                broker:
-                    webSocketServiceEnabled: true
-                """;
-        MockKubernetesClient client = invokeController(spec);
-
-        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
-                client.getCreatedResource(ConfigMap.class);
-
-        Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
-        expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
-                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "info");
-        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("webSocketServiceEnabled", "true");
-
-        final Map<String, String> data = createdResource.getResource().getData();
-        Assert.assertEquals(data, expectedData);
-    }
-
-
-    @Test
-    public void testTransactions() throws Exception {
-        String spec = """
-                global:
-                    name: pul
-                    persistence: false
-                    image: apachepulsar/pulsar:global
-                broker:
-                    transactions:
-                        enabled: true
-                """;
-        MockKubernetesClient client = invokeController(spec);
-
-        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
-                client.getCreatedResource(ConfigMap.class);
-
-        Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
-        expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
-                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "info");
-        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
-
-        final Map<String, String> data = createdResource.getResource().getData();
-        Assert.assertEquals(data, expectedData);
-
-        Assert.assertEquals("""
-                ---
-                apiVersion: batch/v1
-                kind: Job
-                metadata:
-                  labels:
-                    app: pul
-                    cluster: pul
-                    component: broker
-                  name: pul-broker
-                  namespace: ns
-                  ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
-                    kind: Broker
-                    blockOwnerDeletion: true
-                    controller: true
-                    name: pulsarname-cr
-                spec:
-                  template:
-                    spec:
-                      containers:
-                      - args:
-                        - |
-                          bin/pulsar initialize-transaction-coordinator-metadata --cluster pul \\
-                              --configuration-store pul-zookeeper-ca.ns.svc.cluster.local:2181 \\
-                              --initial-num-transaction-coordinators 16
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:global
-                        imagePullPolicy: IfNotPresent
-                        name: pul-broker
-                      initContainers:
-                      - args:
-                        - |
-                          until curl http://pul-broker.ns.svc.cluster.local:8080/; do
-                              sleep 3;
-                          done;
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:global
-                        imagePullPolicy: IfNotPresent
-                        name: wait-broker-ready
-                      restartPolicy: OnFailure
-                """, client.getCreatedResource(Job.class).getResourceYaml());
-    }
-
-
     @Test
     public void testConfig() throws Exception {
         String spec = """
@@ -405,7 +238,7 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     config:
                         PULSAR_LOG_LEVEL: debug
                         customConfig: customValue
@@ -416,23 +249,21 @@ public class BrokerControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
+
+        expectedData.put("brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
         expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
-        expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
-                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("numHttpServerThreads", "10");
         expectedData.put("customConfig", "customValue");
-
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -446,13 +277,13 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     replicas: 5
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
 
         Assert.assertEquals((int) createdResource.getResource().getSpec().getReplicas(), 5);
     }
@@ -468,8 +299,8 @@ public class BrokerControllerTest {
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
 
 
         Assert.assertEquals(createdResource.getResource().getSpec()
@@ -487,13 +318,13 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
-                broker:
+                proxy:
                     image: apachepulsar/pulsar:zk
                     imagePullPolicy: Always
                 """;
         client = invokeController(spec);
         createdResource =
-                client.getCreatedResource(StatefulSet.class);
+                client.getCreatedResource(Deployment.class);
 
 
         Assert.assertEquals(createdResource.getResource().getSpec()
@@ -515,47 +346,26 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     updateStrategy:
                         type: RollingUpdate
                         rollingUpdate:
-                            partition: 3
+                            maxUnavailable: 2
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
 
         Assert.assertEquals(
-                createdResource.getResource().getSpec().getUpdateStrategy()
+                createdResource.getResource().getSpec().getStrategy()
                         .getType(),
                 "RollingUpdate"
         );
         Assert.assertEquals(
-                (int) createdResource.getResource().getSpec().getUpdateStrategy()
-                        .getRollingUpdate().getPartition(),
-                3
-        );
-    }
-
-    @Test
-    public void testPodManagementPolicy() throws Exception {
-        String spec = """
-                global:
-                    name: pul
-                    persistence: false
-                    image: apachepulsar/pulsar:global
-                broker:
-                    podManagementPolicy: OrderedReady
-                """;
-        MockKubernetesClient client = invokeController(spec);
-
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
-
-        Assert.assertEquals(
-                createdResource.getResource().getSpec().getPodManagementPolicy(),
-                "OrderedReady"
+                (int) createdResource.getResource().getSpec().getStrategy()
+                        .getRollingUpdate().getMaxUnavailable().getIntVal(),
+                2
         );
     }
 
@@ -566,14 +376,14 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     annotations:
                         annotation-1: ann1-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
 
         final Map<String, String> annotations =
                 createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
@@ -591,10 +401,10 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     gracePeriod: -1
                 """;
-        invokeControllerAndAssertError(spec, "invalid configuration property \"broker.gracePeriod\" for value "
+        invokeControllerAndAssertError(spec, "invalid configuration property \"proxy.gracePeriod\" for value "
                 + "\"-1\": must be greater than or equal to 0");
 
         spec = """
@@ -602,15 +412,15 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     gracePeriod: 0
                 """;
 
         MockKubernetesClient client = invokeController(spec);
 
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
 
         Assert.assertEquals((long) createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getTerminationGracePeriodSeconds(), 0L);
@@ -620,14 +430,14 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     gracePeriod: 120
                 """;
 
         client = invokeController(spec);
 
         createdResource =
-                client.getCreatedResource(StatefulSet.class);
+                client.getCreatedResource(Deployment.class);
 
         Assert.assertEquals((long) createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getTerminationGracePeriodSeconds(), 120L);
@@ -641,7 +451,7 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     resources:
                         requests:
                           memory: 1.5Gi
@@ -654,8 +464,8 @@ public class BrokerControllerTest {
         MockKubernetesClient client = invokeController(spec);
 
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
         final ResourceRequirements resources = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0).getResources();
 
@@ -677,7 +487,7 @@ public class BrokerControllerTest {
                     nodeSelectors:
                         globallabel: global
                         overridelabel: to-be-overridden
-                broker:
+                proxy:
                     nodeSelectors:
                         overridelabel: overridden
                 """;
@@ -685,8 +495,8 @@ public class BrokerControllerTest {
         MockKubernetesClient client = invokeController(spec);
 
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
         final Map<String, String> nodeSelectors = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getNodeSelector();
         Assert.assertEquals(nodeSelectors.size(), 2);
@@ -712,8 +522,8 @@ public class BrokerControllerTest {
         MockKubernetesClient client = invokeController(spec);
 
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
         final PodDNSConfig dnsConfig = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getDnsConfig();
         Assert.assertEquals(dnsConfig.getNameservers(), List.of("1.2.3.4"));
@@ -728,7 +538,7 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     probe:
                         enabled: false
                 """;
@@ -736,8 +546,8 @@ public class BrokerControllerTest {
         MockKubernetesClient client = invokeController(spec);
 
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
 
 
         Container container = createdResource.getResource().getSpec().getTemplate()
@@ -751,7 +561,7 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     probe:
                         enabled: true
                 """;
@@ -760,7 +570,7 @@ public class BrokerControllerTest {
 
 
         createdResource =
-                client.getCreatedResource(StatefulSet.class);
+                client.getCreatedResource(Deployment.class);
 
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
@@ -774,7 +584,7 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     probe:
                         enabled: true
                         period: 50
@@ -784,7 +594,7 @@ public class BrokerControllerTest {
 
 
         createdResource =
-                client.getCreatedResource(StatefulSet.class);
+                client.getCreatedResource(Deployment.class);
 
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
@@ -802,13 +612,16 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     service:
                         annotations:
                             myann: myann-value
                         additionalPorts:
                             - name: myport1
                               port: 3333
+                        loadBalancerIP: 10.11.11.11
+                        type: ClusterIP
+                        enablePlainTextWithTLS: true
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -818,7 +631,7 @@ public class BrokerControllerTest {
                 client.getCreatedResource(Service.class);
 
         final ObjectMeta metadata = service.getResource().getMetadata();
-        Assert.assertEquals(metadata.getName(), "pul-broker");
+        Assert.assertEquals(metadata.getName(), "pul-proxy");
         Assert.assertEquals(metadata.getNamespace(), NAMESPACE);
         final List<ServicePort> ports = service.getResource().getSpec().getPorts();
         Assert.assertEquals(ports.size(), 3);
@@ -842,8 +655,9 @@ public class BrokerControllerTest {
         Assert.assertEquals(annotations.size(), 1);
         Assert.assertEquals(annotations.get("myann"), "myann-value");
 
-        Assert.assertEquals(service.getResource().getSpec().getClusterIP(), "None");
+        Assert.assertNull(service.getResource().getSpec().getClusterIP());
         Assert.assertEquals(service.getResource().getSpec().getType(), "ClusterIP");
+        Assert.assertEquals(service.getResource().getSpec().getLoadBalancerIP(), "10.11.11.11");
     }
 
     @Test
@@ -853,7 +667,7 @@ public class BrokerControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                broker:
+                proxy:
                     pdb:
                         maxUnavailable: 3
                 """;
@@ -879,7 +693,7 @@ public class BrokerControllerTest {
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Broker> result = invokeController(mockKubernetesClient, spec);
+        final UpdateControl<Proxy> result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
         Assert.assertFalse(result.getResource().getStatus().isReady());
         Assert.assertEquals(result.getResource().getStatus().getMessage(),
@@ -891,7 +705,7 @@ public class BrokerControllerTest {
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Broker>
+        final UpdateControl<Proxy>
                 result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
         Assert.assertTrue(result.getResource().getStatus().isReady());
@@ -900,20 +714,20 @@ public class BrokerControllerTest {
         return mockKubernetesClient;
     }
 
-    private UpdateControl<Broker> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
+    private UpdateControl<Proxy> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
             throws Exception {
-        final BrokerController controller = new BrokerController(mockKubernetesClient.getClient());
+        final ProxyController controller = new ProxyController(mockKubernetesClient.getClient());
 
-        final Broker broker = new Broker();
+        final Proxy proxy = new Proxy();
         ObjectMeta meta = new ObjectMeta();
         meta.setName(CLUSTER_NAME + "-cr");
         meta.setNamespace(NAMESPACE);
-        broker.setMetadata(meta);
+        proxy.setMetadata(meta);
 
-        final BrokerFullSpec brokerFullSpec = MockKubernetesClient.readYaml(spec, BrokerFullSpec.class);
-        broker.setSpec(brokerFullSpec);
+        final ProxyFullSpec proxyFullSpec = MockKubernetesClient.readYaml(spec, ProxyFullSpec.class);
+        proxy.setSpec(proxyFullSpec);
 
-        final UpdateControl<Broker> result = controller.reconcile(broker, mock(Context.class));
+        final UpdateControl<Proxy> result = controller.reconcile(proxy, mock(Context.class));
         return result;
     }
 }

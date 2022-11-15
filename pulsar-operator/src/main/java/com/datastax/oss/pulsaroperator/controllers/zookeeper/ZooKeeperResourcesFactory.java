@@ -382,7 +382,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         final String zkServers = getZkServers();
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 
-        final String webService = getBrokerServiceUrl();
+        final String webService = getBrokerWebServiceUrl();
 
         final String brokerService = "%s://%s-%s.%s:%d/".formatted(
                 tlsEnabledOnBroker ? "pulsar+ssl" : "pulsar",

@@ -266,6 +266,24 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
     }
+    private void awaitProxyRunning() {
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            Assert.assertEquals(client.pods().withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
+                    withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps().withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.apps().deployments()
+                    .withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.services()
+                    .withLabel("component", "proxy").list().getItems().size(), 1);
+        });
+
+        client.apps().deployments()
+                .inNamespace(NAMESPACE)
+                .withName("pulsar-proxy")
+                .waitUntilReady(90, TimeUnit.SECONDS);
+
+    }
 
     private void awaitUninstalled() {
         Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(5, TimeUnit.SECONDS).untilAsserted(() -> {

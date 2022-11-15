@@ -14,3 +14,5 @@ spec:
     replicas: 3
   broker:
     replicas: 3
+  proxy:
+    replicas: 3

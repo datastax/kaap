@@ -6,6 +6,8 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Volume;
@@ -129,14 +131,48 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                 isTlsEnabledOnZooKeeper() ? 2281 : 2181);
     }
 
-    protected String getBrokerServiceUrl() {
-        final boolean tls = isTlsEnabledOnBroker();
+    private String getBrokerWebServiceUrl(boolean tls) {
         return "%s://%s-%s.%s:%d/".formatted(
                 tls ? "https" : "http",
                 global.getName(),
                 global.getComponents().getBrokerBaseName(),
                 getServiceDnsSuffix(), tls ? 8443 : 8080);
     }
+
+    protected String getBrokerWebServiceUrl() {
+        final boolean tls = isTlsEnabledOnBroker();
+        return getBrokerWebServiceUrl(tls);
+    }
+
+    protected String getBrokerWebServiceUrlTls() {
+        return getBrokerWebServiceUrl(true);
+    }
+
+    protected String getBrokerWebServiceUrlPlain() {
+        return getBrokerWebServiceUrl(false);
+    }
+
+    private String getBrokerServiceUrl(boolean tls) {
+        return "%s://%s-%s.%s:%d/".formatted(
+                tls ? "pulsar+ssl" : "pulsar",
+                global.getName(),
+                global.getComponents().getBrokerBaseName(),
+                getServiceDnsSuffix(), tls ? 6651 : 6650);
+    }
+
+    protected String getBrokerServiceUrl() {
+        final boolean tls = isTlsEnabledOnBroker();
+        return getBrokerServiceUrl(tls);
+    }
+
+    protected String getBrokerServiceUrlTls() {
+        return getBrokerServiceUrl(true);
+    }
+
+    protected String getBrokerServiceUrlPlain() {
+        return getBrokerServiceUrl(false);
+    }
+
 
     protected String getTlsSecretNameForZookeeper() {
         final String name = global.getTls().getZookeeper() == null
@@ -267,4 +303,20 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
         patchResource(pdbResource);
     }
 
+    protected Container createWaitBKReadyContainer() {
+        final String bkBaseName = global.getComponents().getBookkeeperBaseName();
+        final String bkHostname = "%s-%s-%d.%s-%s.%s"
+                .formatted(global.getName(), bkBaseName, 0, global.getName(), bkBaseName, namespace);
+        return new ContainerBuilder()
+                .withName("wait-bookkeeper-ready")
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withCommand("sh", "-c")
+                .withArgs("""
+                        until nslookup %s; do
+                            sleep 3;
+                        done;
+                        """.formatted(bkHostname))
+                .build();
+    }
 }

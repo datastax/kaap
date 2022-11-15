@@ -2,15 +2,15 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: brokers.com.datastax.oss
+  name: proxies.com.datastax.oss
 spec:
   group: com.datastax.oss
   names:
-    kind: Broker
-    plural: brokers
+    kind: Proxy
+    plural: proxies
     shortNames:
-    - br
-    singular: broker
+    - pr
+    singular: proxy
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -19,15 +19,12 @@ spec:
         properties:
           spec:
             properties:
-              broker:
+              proxy:
                 properties:
                   service:
                     description: Configurations for the Service resources associated
                       to the Broker pod.
                     properties:
-                      headless:
-                        description: Do not assign an IP to the Service.
-                        type: boolean
                       additionalPorts:
                         description: Additional ports for the Broker Service resources.
                         items:
@@ -49,6 +46,9 @@ spec:
                               type: string
                           type: object
                         type: array
+                      loadBalancerIP:
+                        description: Assign a load balancer IP.
+                        type: string
                       annotations:
                         additionalProperties:
                           type: string
@@ -58,102 +58,16 @@ spec:
                       type:
                         description: Service type. Default value is 'ClusterIP'
                         type: string
+                      enablePlainTextWithTLS:
+                        description: Enable plain text connections even if TLS is
+                          enabled.
+                        type: boolean
                     type: object
-                  updateStrategy:
-                    description: 'Update strategy for the Broker pod/s. '
-                    properties:
-                      type:
-                        type: string
-                      rollingUpdate:
-                        properties:
-                          maxUnavailable:
-                            anyOf:
-                            - type: integer
-                            - type: string
-                            x-kubernetes-int-or-string: true
-                          partition:
-                            type: integer
-                        type: object
-                    type: object
-                  webSocketServiceEnabled:
-                    description: Enable websocket service in the broker.
-                    type: boolean
                   gracePeriod:
                     description: Termination grace period in seconds for the Broker
                       pod. Default value is 60.
                     minimum: 0.0
                     type: integer
-                  functionsWorkerEnabled:
-                    description: Enable functions worker embedded in the broker.
-                    type: boolean
-                  transactions:
-                    description: Enable transactions in the broker.
-                    properties:
-                      partitions:
-                        description: Partitions count for the transaction's topic.
-                        type: integer
-                      initJob:
-                        description: Initialization job configuration.
-                        properties:
-                          resources:
-                            description: Resource requirements for the Job's Pod.
-                            properties:
-                              limits:
-                                additionalProperties:
-                                  anyOf:
-                                  - type: integer
-                                  - type: string
-                                  x-kubernetes-int-or-string: true
-                                type: object
-                              requests:
-                                additionalProperties:
-                                  anyOf:
-                                  - type: integer
-                                  - type: string
-                                  x-kubernetes-int-or-string: true
-                                type: object
-                            type: object
-                        type: object
-                      enabled:
-                        description: Enable the transaction coordinator in the broker.
-                        type: boolean
-                    type: object
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Annotations to add to each Broker resource.
-                    type: object
-                  autoscaler:
-                    description: Autoscaling config.
-                    properties:
-                      periodMs:
-                        minimum: 1000.0
-                        type: integer
-                      max:
-                        type: integer
-                      higherCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: number
-                      enabled:
-                        type: boolean
-                      min:
-                        minimum: 1.0
-                        type: integer
-                      scaleUpBy:
-                        minimum: 1.0
-                        type: integer
-                      stabilizationWindowMs:
-                        minimum: 1.0
-                        type: integer
-                      lowerCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: object
-                      scaleDownBy:
-                        minimum: 1.0
-                        type: integer
-                    type: object
                   initContainer:
                     description: Additional init container.
                     properties:
@@ -178,9 +92,30 @@ spec:
                         description: The image pull policy used for the container.
                         type: string
                     type: object
-                  podManagementPolicy:
-                    description: Pod management policy for the Broker pod.
-                    type: string
+                  updateStrategy:
+                    description: 'Update strategy for the Broker pod/s. '
+                    properties:
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          maxSurge:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
+                      type:
+                        type: string
+                    type: object
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each Broker resource.
+                    type: object
                   resources:
                     description: Resource requirements for the Broker pod.
                     properties:
@@ -199,9 +134,6 @@ spec:
                           x-kubernetes-int-or-string: true
                         type: object
                     type: object
-                  serviceAccountName:
-                    description: Service account name for the Broker StatefulSet.
-                    type: string
                   probe:
                     description: Liveness and readiness probe values.
                     properties:

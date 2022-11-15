@@ -1,9 +1,9 @@
-package com.datastax.oss.pulsaroperator.controllers.broker;
+package com.datastax.oss.pulsaroperator.controllers.proxy.broker;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -22,10 +22,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,19 +32,19 @@ import java.util.Map;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
+public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
-        return globalSpec.getComponents().getBrokerBaseName();
+        return globalSpec.getComponents().getProxyBaseName();
     }
 
     public static String getResourceName(GlobalSpec globalSpec) {
         return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
     }
 
-    public BrokerResourcesFactory(KubernetesClient client, String namespace,
-                                  BrokerSpec spec, GlobalSpec global,
-                                  OwnerReference ownerReference) {
+    public ProxyResourcesFactory(KubernetesClient client, String namespace,
+                                 ProxySpec spec, GlobalSpec global,
+                                 OwnerReference ownerReference) {
         super(client, namespace, spec, global, ownerReference);
     }
 
@@ -62,22 +60,15 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
     public void createService() {
 
-        final BrokerSpec.ServiceConfig serviceSpec = spec.getService();
+        final ProxySpec.ServiceConfig serviceSpec = spec.getService();
 
         Map<String, String> annotations = null;
         if (serviceSpec.getAnnotations() != null) {
             annotations = serviceSpec.getAnnotations();
         }
         List<ServicePort> ports = new ArrayList<>();
-        ports.add(new ServicePortBuilder()
-                .withName("http")
-                .withPort(8080)
-                .build());
-        ports.add(new ServicePortBuilder()
-                .withName("pulsar")
-                .withPort(6650)
-                .build());
-        if (isTlsEnabledOnBroker()) {
+        final boolean tlsEnabledGlobally = isTlsEnabledGlobally();
+        if (tlsEnabledGlobally) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
                     .withPort(8443)
@@ -85,6 +76,17 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             ports.add(new ServicePortBuilder()
                     .withName("pulsarssl")
                     .withPort(6651)
+                    .build());
+
+        }
+        if (!tlsEnabledGlobally || serviceSpec.getEnablePlainTextWithTLS()) {
+            ports.add(new ServicePortBuilder()
+                    .withName("http")
+                    .withPort(8080)
+                    .build());
+            ports.add(new ServicePortBuilder()
+                    .withName("pulsar")
+                    .withPort(6650)
                     .build());
         }
         if (serviceSpec.getAdditionalPorts() != null) {
@@ -100,7 +102,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
-                .withClusterIP("None")
+                .withLoadBalancerIP(serviceSpec.getLoadBalancerIP())
                 .withType(serviceSpec.getType())
                 .withSelector(getMatchLabels())
                 .endSpec()
@@ -113,39 +115,19 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     public void createConfigMap() {
         Map<String, String> data = new HashMap<>();
         final String zkServers = getZkServers();
+        data.put("brokerServiceURL", getBrokerServiceUrlPlain());
+        data.put("brokerServiceURLTLS", getBrokerServiceUrlTls());
+        data.put("brokerWebServiceURL", getBrokerWebServiceUrlPlain());
+        data.put("brokerWebServiceURLTLS", getBrokerWebServiceUrlTls());
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
-        data.put("clusterName", global.getName());
-        // TODO: TLS config
 
-        if (spec.getFunctionsWorkerEnabled()) {
-            data.put("functionsWorkerEnabled", "true");
-            data.put("PF_pulsarFunctionsCluster", global.getName());
-
-            // Since function worker connects on localhost, we can always non-TLS ports
-            // when running with the broker
-            data.put("PF_pulsarServiceUrl", "pulsar://localhost:6650");
-            data.put("PF_pulsarWebServiceUrl", "http://localhost:8080");
-        }
-        if (spec.getWebSocketServiceEnabled()) {
-            data.put("webSocketServiceEnabled", "true");
-        }
-        if (spec.getTransactions() != null && spec.getTransactions().getEnabled()) {
-            data.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
-        }
-
-        data.put("allowAutoTopicCreationType", "non-partitioned");
-        data.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
-                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        data.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         data.put("PULSAR_GC", "-XX:+UseG1GC");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        data.put("brokerDeduplicationEnabled", "false");
-        data.put("exposeTopicLevelMetricsInPrometheus", "true");
-        data.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        data.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        data.put("numHttpServerThreads", "10");
 
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
@@ -162,14 +144,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
 
-    public void createStatefulSet() {
-        final StatefulSet statefulSet = generateStatefulSet();
-        patchResource(statefulSet);
-    }
-
-    public StatefulSet generateStatefulSet() {
-        final Integer replicas = spec.getReplicas();
-
+    public void createDeployment() {
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = new HashMap<>();
         allAnnotations.put("prometheus.io/scrape", "true");
@@ -183,6 +158,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
 
         List<Container> initContainers = new ArrayList<>();
+
+
         initContainers.add(createWaitBKReadyContainer());
 
         if (spec.getInitContainer() != null) {
@@ -218,41 +195,16 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
                     + ". /pulsar/tools/certconverter.sh && ";
         }
-        mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
-                + "bin/apply-config-from-env.py conf/client.conf && "
-                + "bin/gen-yml-from-env.py conf/functions_worker.yml && ";
-
-        mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar broker";
+        mainArg += "bin/apply-config-from-env.py conf/proxy.conf && ";
+        mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar proxy";
 
 
         List<ContainerPort> containerPorts = new ArrayList<>();
         containerPorts.add(new ContainerPortBuilder()
-                .withName("http")
-                .withContainerPort(8080)
+                .withName("wss")
+                .withContainerPort(8001)
                 .build()
         );
-        containerPorts.add(
-                new ContainerPortBuilder()
-                        .withName("pulsar")
-                        .withContainerPort(6650)
-                        .build()
-        );
-        if (isTlsEnabledGlobally()) {
-
-            containerPorts.add(new ContainerPortBuilder()
-                    .withName("https")
-                    .withContainerPort(8843)
-                    .build()
-            );
-            containerPorts.add(
-                    new ContainerPortBuilder()
-                            .withName("pulsarssl")
-                            .withContainerPort(6651)
-                            .build()
-            );
-        }
-
-
         List<Container> containers = List.of(
                 new ContainerBuilder()
                         .withName(resourceName)
@@ -272,20 +224,19 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
-        final StatefulSet statefulSet = new StatefulSetBuilder()
+
+        Deployment deployment = new DeploymentBuilder()
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
-                .withServiceName(resourceName)
-                .withReplicas(replicas)
+                .withReplicas(spec.getReplicas())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels())
                 .endSelector()
-                .withUpdateStrategy(spec.getUpdateStrategy())
-                .withPodManagementPolicy(spec.getPodManagementPolicy())
+                .withStrategy(spec.getUpdateStrategy())
                 .withNewTemplate()
                 .withNewMetadata()
                 .withLabels(labels)
@@ -293,7 +244,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .endMetadata()
                 .withNewSpec()
                 .withDnsConfig(global.getDnsConfig())
-                .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withInitContainers(initContainers)
@@ -303,95 +253,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .endTemplate()
                 .endSpec()
                 .build();
-        return statefulSet;
+        patchResource(deployment);
     }
-
-    public void createTransactionsInitJobIfNeeded() {
-        if (client.batch().v1().jobs()
-                .inNamespace(namespace)
-                .withName(resourceName)
-                .get() != null) {
-            return;
-        }
-        final BrokerSpec.TransactionCoordinatorConfig transactions = spec.getTransactions();
-        if (transactions == null || !transactions.getEnabled()) {
-            return;
-        }
-
-        List<VolumeMount> volumeMounts = new ArrayList<>();
-        List<Volume> volumes = new ArrayList<>();
-        final boolean tlsEnabled = isTlsEnabledOnZooKeeper();
-        if (tlsEnabled) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
-        }
-
-        String brokerCurlTarget = "";
-
-        if (isTlsEnabledOnBroker()) {
-            brokerCurlTarget = "--cacert /pulsar/certs/ca.crt ";
-        }
-        brokerCurlTarget += getBrokerWebServiceUrl();
-
-        final Container initContainer = new ContainerBuilder()
-                .withName("wait-broker-ready")
-                .withImage(spec.getImage())
-                .withImagePullPolicy(spec.getImagePullPolicy())
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until curl %s; do
-                            sleep 3;
-                        done;
-                        """.formatted(brokerCurlTarget))
-                .build();
-
-        String mainArgs = "";
-        if (tlsEnabled) {
-            mainArgs += "/pulsar/tools/certconverter.sh &&";
-        }
-
-        final String clusterName = global.getName();
-        final String zkServers = getZkServers();
-
-        mainArgs += """
-                bin/pulsar initialize-transaction-coordinator-metadata --cluster %s \\
-                    --configuration-store %s \\
-                    --initial-num-transaction-coordinators %d
-                """.formatted(clusterName, zkServers, transactions.getPartitions());
-
-        final Container container = new ContainerBuilder()
-                .withName(resourceName)
-                .withImage(spec.getImage())
-                .withImagePullPolicy(spec.getImagePullPolicy())
-                .withVolumeMounts(volumeMounts)
-                .withResources(transactions.getInitJob() == null ? null : transactions.getInitJob().getResources())
-                .withCommand("sh", "-c")
-                .withArgs(mainArgs)
-                .build();
-
-
-        final Job job = new JobBuilder()
-                .withNewMetadata()
-                .withName(resourceName)
-                .withNamespace(namespace)
-                .withLabels(getLabels())
-                .endMetadata()
-                .withNewSpec()
-                .withNewTemplate()
-                .withNewSpec()
-                .withDnsConfig(global.getDnsConfig())
-                .withNodeSelector(spec.getNodeSelectors())
-                .withVolumes(volumes)
-                .withInitContainers(List.of(initContainer))
-                .withContainers(List.of(container))
-                .withRestartPolicy("OnFailure")
-                .endSpec()
-                .endTemplate()
-                .endSpec()
-                .build();
-
-        patchResource(job);
-    }
-
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();

@@ -60,7 +60,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         return "%s-%s".formatted(global.getName(), getComponentBaseName());
     }
 
-    public void createService() {
+    public void patchService() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("service.alpha.kubernetes.io/tolerate-unready-endpoints", "true");
         if (spec.getService() != null && spec.getService().getAnnotations() != null) {
@@ -117,7 +117,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         return ports;
     }
 
-    public void createCaService() {
+    public void patchCaService() {
         Map<String, String> annotations = new HashMap<>();
         if (spec.getService() != null && spec.getService().getAnnotations() != null) {
             annotations.putAll(spec.getService().getAnnotations());
@@ -140,7 +140,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         patchResource(service);
     }
 
-    public void createConfigMap() {
+    public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         data.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
         data.put("PULSAR_GC", "-XX:+UseG1GC");
@@ -170,17 +170,22 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         patchResource(configMap);
     }
 
-    public void createStorageClassIfNeeded() {
+    public void patchStorageClass() {
         createStorageClassIfNeeded(spec.getDataVolume());
     }
 
-    public void createPodDisruptionBudgetIfEnabled() {
+    public void patchPodDisruptionBudget() {
         createPodDisruptionBudgetIfEnabled(spec.getPdb());
     }
 
 
-    public void createStatefulSet() {
+    public void patchStatefulSet() {
         final int replicas = spec.getReplicas();
+        if (replicas == 0) {
+            log.warn("Got replicas=0, deleting sts");
+            deleteStatefulSet();
+            return;
+        }
 
         Map<String, String> labels = getLabels();
         Map<String, String> matchLabels = getMatchLabels();

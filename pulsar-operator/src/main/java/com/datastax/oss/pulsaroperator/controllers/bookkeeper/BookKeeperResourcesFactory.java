@@ -55,7 +55,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return "%s-%s".formatted(global.getName(), getComponentBaseName());
     }
 
-    public void createService() {
+    public void patchService() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("service.alpha.kubernetes.io/tolerate-unready-endpoints", "true");
         if (spec.getService() != null && spec.getService().getAnnotations() != null) {
@@ -90,7 +90,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
 
-    public void createConfigMap() {
+    public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         // disable auto recovery on bookies since we will start AutoRecovery in separated pods
         data.put("autoRecoveryDaemonEnabled", "false");
@@ -127,8 +127,13 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
 
-    public void createStatefulSet() {
+    public void patchStatefulSet() {
         final int replicas = spec.getReplicas();
+        if (replicas == 0) {
+            log.warn("Got replicas=0, deleting sts");
+            deleteStatefulSet();
+            return;
+        }
 
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = new HashMap<>();
@@ -325,12 +330,12 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .build();
     }
 
-    public void createStorageClassesIfNeeded() {
+    public void patchStorageClasses() {
         createStorageClassIfNeeded(spec.getVolumes().getJournal());
         createStorageClassIfNeeded(spec.getVolumes().getLedgers());
     }
 
-    public void createPodDisruptionBudgetIfEnabled() {
+    public void patchPodDisruptionBudget() {
         createPodDisruptionBudgetIfEnabled(spec.getPdb());
     }
 

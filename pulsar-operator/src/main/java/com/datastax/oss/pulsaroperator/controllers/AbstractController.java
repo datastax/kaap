@@ -91,7 +91,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             return UpdateControl.updateStatus(resource);
         }
         try {
-            createResources(resource, context);
+            patchResources(resource, context);
             resource.setStatus(BaseComponentStatus.createReadyStatus());
         } catch (Throwable throwable) {
             log.errorf(throwable, "Error during reconciliation for resource %s with name %s: %s",
@@ -104,7 +104,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         return UpdateControl.updateStatus(resource);
     }
 
-    protected abstract void createResources(T resource, Context<T> context) throws Exception;
+    protected abstract void patchResources(T resource, Context<T> context) throws Exception;
 
     protected String validate(T resource) {
         final Set<ConstraintViolation<Object>> violations = validator.validate(resource.getSpec());

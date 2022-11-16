@@ -60,7 +60,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         return getResourceName(global);
     }
 
-    public void createService() {
+    public void patchService() {
 
         final BrokerSpec.ServiceConfig serviceSpec = spec.getService();
 
@@ -110,7 +110,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
 
-    public void createConfigMap() {
+    public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         final String zkServers = getZkServers();
         data.put("zookeeperServers", zkServers);
@@ -162,13 +162,24 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
 
-    public void createStatefulSet() {
+
+
+    public void patchStatefulSet() {
+        final int replicas = spec.getReplicas();
+        if (replicas == 0) {
+            log.warn("Got replicas=0, deleting sts");
+            deleteStatefulSet();
+            return;
+        }
         final StatefulSet statefulSet = generateStatefulSet();
         patchResource(statefulSet);
     }
 
     public StatefulSet generateStatefulSet() {
         final Integer replicas = spec.getReplicas();
+        if (replicas == 0) {
+            return null;
+        }
 
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = new HashMap<>();
@@ -409,7 +420,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .build();
     }
 
-    public void createPodDisruptionBudgetIfEnabled() {
+    public void patchPodDisruptionBudget() {
         createPodDisruptionBudgetIfEnabled(spec.getPdb());
     }
 

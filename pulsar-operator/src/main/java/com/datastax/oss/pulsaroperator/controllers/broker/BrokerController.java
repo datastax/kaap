@@ -19,7 +19,7 @@ public class BrokerController extends AbstractController<Broker> {
     }
 
     @Override
-    protected void createResources(Broker resource, Context context) throws Exception {
+    protected void patchResources(Broker resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final BrokerFullSpec spec = resource.getSpec();
 
@@ -27,10 +27,10 @@ public class BrokerController extends AbstractController<Broker> {
                 controller = new BrokerResourcesFactory(
                 client, namespace, spec.getBroker(), spec.getGlobal(), getOwnerReference(resource));
 
-        controller.createPodDisruptionBudgetIfEnabled();
-        controller.createConfigMap();
-        controller.createService();
-        controller.createStatefulSet();
+        controller.patchPodDisruptionBudget();
+        controller.patchConfigMap();
+        controller.patchService();
+        controller.patchStatefulSet();
         controller.createTransactionsInitJobIfNeeded();
     }
 }

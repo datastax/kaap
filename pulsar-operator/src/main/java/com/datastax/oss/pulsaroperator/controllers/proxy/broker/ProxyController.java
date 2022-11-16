@@ -19,7 +19,7 @@ public class ProxyController extends AbstractController<Proxy> {
     }
 
     @Override
-    protected void createResources(Proxy resource, Context context) throws Exception {
+    protected void patchResources(Proxy resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final ProxyFullSpec spec = resource.getSpec();
 

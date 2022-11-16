@@ -19,17 +19,17 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
     }
 
     @Override
-    protected void createResources(ZooKeeper resource, Context context) throws Exception {
+    protected void patchResources(ZooKeeper resource, Context context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperFullSpec spec = resource.getSpec();
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(
                 client, namespace, spec.getZookeeper(), spec.getGlobal(), getOwnerReference(resource));
-        controller.createPodDisruptionBudgetIfEnabled();
-        controller.createConfigMap();
-        controller.createStorageClassIfNeeded();
-        controller.createService();
-        controller.createCaService();
-        controller.createStatefulSet();
+        controller.patchPodDisruptionBudget();
+        controller.patchConfigMap();
+        controller.patchStorageClass();
+        controller.patchService();
+        controller.patchCaService();
+        controller.patchStatefulSet();
         controller.createMetadataInitializationJobIfNeeded();
     }
 }

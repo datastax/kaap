@@ -47,7 +47,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     }
 
     @Override
-    protected void createResources(PulsarCluster resource, Context<PulsarCluster> context)
+    protected void patchResources(PulsarCluster resource, Context<PulsarCluster> context)
             throws Exception {
 
         final String currentNamespace = resource.getMetadata().getNamespace();

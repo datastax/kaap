@@ -112,11 +112,17 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
     @SneakyThrows
     private void execInPod(String podName, String cmd) {
-        log.info("Executing in pod %s: %s", podName, cmd);
+        execInPod(podName, null, cmd);
+    }
+
+    @SneakyThrows
+    private void execInPod(String podName, String containerName, String cmd) {
+        log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
         try (final ExecWatch exec = client
                 .pods()
                 .inNamespace(NAMESPACE)
                 .withName(podName)
+                .inContainer(containerName)
                 .writingOutput(System.out)
                 .writingError(System.err)
                 .withTTY()

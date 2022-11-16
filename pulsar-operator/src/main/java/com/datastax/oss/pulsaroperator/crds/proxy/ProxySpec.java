@@ -152,12 +152,19 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         }
         applyServiceDefaults();
 
+        applyWebSocketDefaults();
+    }
+
+    private void applyWebSocketDefaults() {
         if (webSocket == null) {
             webSocket = DEFAULT_WEB_SOCKET_CONFIG.get();
         }
         webSocket.setEnabled(ObjectUtils.getFirstNonNull(
                 () -> webSocket.getEnabled(),
                 () -> DEFAULT_WEB_SOCKET_CONFIG.get().getEnabled()));
+        webSocket.setResources(ObjectUtils.getFirstNonNull(
+                () -> webSocket.getResources(),
+                () -> DEFAULT_WEB_SOCKET_CONFIG.get().getResources()));
     }
 
 

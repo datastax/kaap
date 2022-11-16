@@ -297,14 +297,14 @@ public abstract class BaseK8sEnvTest {
         client.resources(PulsarCluster.class)
                 .inNamespace(namespace)
                 .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
-                .create();
+                .createOrReplace();
     }
 
     protected void applyPulsarCluster(Path path) {
         client.resources(PulsarCluster.class)
                 .inNamespace(namespace)
                 .load(path.toFile())
-                .create();
+                .createOrReplace();
     }
 
     protected void deleteManifest(String manifest) {

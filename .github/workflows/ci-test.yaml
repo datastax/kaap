@@ -40,4 +40,4 @@ jobs:
         run: mvn -B -ntp -nsu test -pl pulsar-operator
 
       - name: Integration tests
-        run: mvn -B -ntp -nsu test -pl tests
+        run: mvn -B -ntp -nsu test -Dpulsaroperator.tests.container.reuse=false -pl tests

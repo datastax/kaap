@@ -298,6 +298,9 @@ spec:
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.
                         type: string
+                      proxyBaseName:
+                        description: Proxy base name. Default value is 'proxy'.
+                        type: string
                     type: object
                   tls:
                     description: TLS configuration for the cluster.

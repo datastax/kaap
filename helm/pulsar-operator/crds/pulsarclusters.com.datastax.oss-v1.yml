@@ -354,16 +354,12 @@ spec:
                       periodMs:
                         minimum: 1000.0
                         type: integer
+                      max:
+                        type: integer
                       higherCpuThreshold:
                         maximum: 1.0
                         minimum: 0.0
-                        type: object
-                      max:
-                        type: integer
-                      lowerCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: object
+                        type: number
                       enabled:
                         type: boolean
                       min:
@@ -375,6 +371,10 @@ spec:
                       stabilizationWindowMs:
                         minimum: 1.0
                         type: integer
+                      lowerCpuThreshold:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: number
                       scaleDownBy:
                         minimum: 1.0
                         type: integer
@@ -677,6 +677,170 @@ spec:
                     description: Configuration entries directly passed to this component.
                     type: object
                 type: object
+              proxy:
+                properties:
+                  service:
+                    description: Configurations for the Service resources associated
+                      to the Broker pod.
+                    properties:
+                      additionalPorts:
+                        description: Additional ports for the Broker Service resources.
+                        items:
+                          properties:
+                            targetPort:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            port:
+                              type: integer
+                            nodePort:
+                              type: integer
+                            name:
+                              type: string
+                            appProtocol:
+                              type: string
+                            protocol:
+                              type: string
+                          type: object
+                        type: array
+                      loadBalancerIP:
+                        description: Assign a load balancer IP.
+                        type: string
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Additional annotations to add to the Broker Service
+                          resources.
+                        type: object
+                      type:
+                        description: Service type. Default value is 'ClusterIP'
+                        type: string
+                      enablePlainTextWithTLS:
+                        description: Enable plain text connections even if TLS is
+                          enabled.
+                        type: boolean
+                    type: object
+                  gracePeriod:
+                    description: Termination grace period in seconds for the Broker
+                      pod. Default value is 60.
+                    minimum: 0.0
+                    type: integer
+                  initContainer:
+                    description: Additional init container.
+                    properties:
+                      args:
+                        description: The command args used for the container.
+                        items:
+                          type: string
+                        type: array
+                      command:
+                        description: The command used for the container.
+                        items:
+                          type: string
+                        type: array
+                      image:
+                        description: The image used to run the container.
+                        type: string
+                      emptyDirPath:
+                        description: The container path where the emptyDir volume
+                          is mounted.
+                        type: string
+                      imagePullPolicy:
+                        description: The image pull policy used for the container.
+                        type: string
+                    type: object
+                  updateStrategy:
+                    description: 'Update strategy for the Broker pod/s. '
+                    properties:
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          maxSurge:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
+                      type:
+                        type: string
+                    type: object
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each Broker resource.
+                    type: object
+                  resources:
+                    description: Resource requirements for the Broker pod.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  probe:
+                    description: Liveness and readiness probe values.
+                    properties:
+                      period:
+                        description: Indicates the period (in seconds) for the probe.
+                        type: integer
+                      timeout:
+                        description: Indicates the timeout (in seconds) for the probe.
+                        type: integer
+                      initial:
+                        description: Indicates the initial delay (in seconds) for
+                          the probe.
+                        type: integer
+                      enabled:
+                        description: Indicates whether the probe is enabled or not.
+                        type: boolean
+                    type: object
+                  replicas:
+                    description: Replicas of this component.
+                    type: integer
+                  pdb:
+                    description: Pod disruption budget configuration for this component.
+                    properties:
+                      maxUnavailable:
+                        description: Indicates the maxUnavailable property for the
+                          Pdb.
+                        type: integer
+                      enabled:
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
+                        type: boolean
+                    type: object
+                  image:
+                    description: Pulsar image to use for this component.
+                    type: string
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: Additional node selectors for this component.
+                    type: object
+                  imagePullPolicy:
+                    description: Pulsar image pull policy to use for this component.
+                    type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
+                type: object
               global:
                 properties:
                   storage:
@@ -730,6 +894,9 @@ spec:
                         type: string
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.
+                        type: string
+                      proxyBaseName:
+                        description: Proxy base name. Default value is 'proxy'.
                         type: string
                     type: object
                   tls:

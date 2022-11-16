@@ -93,8 +93,8 @@ public class BrokerAutoscaler implements Runnable {
 
         Boolean scaleUpOrDown = null;
 
-        float cpuLowerThreshold = autoscalerSpec.getLowerCpuThreshold();
-        float cpuHigherThreshold = autoscalerSpec.getHigherCpuThreshold();
+        float cpuLowerThreshold = autoscalerSpec.getLowerCpuThreshold().floatValue();
+        float cpuHigherThreshold = autoscalerSpec.getHigherCpuThreshold().floatValue();
 
         class BrokerStat {
             float usedCpu;

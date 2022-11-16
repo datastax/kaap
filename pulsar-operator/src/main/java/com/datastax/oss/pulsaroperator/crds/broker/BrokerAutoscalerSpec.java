@@ -25,12 +25,12 @@ public class BrokerAutoscalerSpec {
     @Max(1)
     @javax.validation.constraints.Min(0)
     @javax.validation.constraints.Max(1)
-    Float lowerCpuThreshold;
+    Double lowerCpuThreshold;
     @Min(0)
     @Max(1)
     @javax.validation.constraints.Min(0)
     @javax.validation.constraints.Max(1)
-    Float higherCpuThreshold;
+    Double higherCpuThreshold;
     @Min(1)
     @javax.validation.constraints.Min(1)
     Integer scaleUpBy;

@@ -12,6 +12,8 @@ Resource Types:
 
 - [Broker](#broker)
 
+- [Proxy](#proxy)
+
 - [PulsarCluster](#pulsarcluster)
 
 - [ZooKeeper](#zookeeper)
@@ -880,6 +882,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>proxyBaseName</b></td>
+        <td>string</td>
+        <td>
+          Proxy base name. Default value is 'proxy'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>zookeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -1521,7 +1530,7 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b>higherCpuThreshold</b></td>
-        <td>object</td>
+        <td>number</td>
         <td>
           <br/>
           <br/>
@@ -1531,7 +1540,7 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b>lowerCpuThreshold</b></td>
-        <td>object</td>
+        <td>number</td>
         <td>
           <br/>
           <br/>
@@ -2172,6 +2181,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>proxyBaseName</b></td>
+        <td>string</td>
+        <td>
+          Proxy base name. Default value is 'proxy'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>zookeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -2545,6 +2561,1069 @@ TLS configurations related to the ZooKeeper component.
       </tr></tbody>
 </table>
 
+## Proxy
+<sup><sup>[↩ Parent](#comdatastaxossv1alpha1 )</sup></sup>
+
+
+
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+      <td><b>apiVersion</b></td>
+      <td>string</td>
+      <td>com.datastax.oss/v1alpha1</td>
+      <td>true</td>
+      </tr>
+      <tr>
+      <td><b>kind</b></td>
+      <td>string</td>
+      <td>Proxy</td>
+      <td>true</td>
+      </tr>
+      <tr>
+      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta">metadata</a></b></td>
+      <td>object</td>
+      <td>Refer to the Kubernetes API documentation for the fields of the `metadata` field.</td>
+      <td>true</td>
+      </tr><tr>
+        <td><b><a href="#proxyspec">spec</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxystatus">status</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec
+<sup><sup>[↩ Parent](#proxy)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#proxyspecglobal">global</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global
+<sup><sup>[↩ Parent](#proxyspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Pulsar cluster base name.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalcomponents">components</a></b></td>
+        <td>object</td>
+        <td>
+          Pulsar cluster components names.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobaldnsconfig">dnsConfig</a></b></td>
+        <td>object</td>
+        <td>
+          Additional DNS config for each pod created by the operator.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Default Pulsar image to use. Any components can be configured to use a different image.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Default Pulsar image pull policy to use. Any components can be configured to use a different image pull policy. Default value is 'IfNotPresent'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>kubernetesClusterDomain</b></td>
+        <td>string</td>
+        <td>
+          The domain name for your kubernetes cluster.
+This domain is documented here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#a-aaaa-records-1 .
+It's used to fully qualify service names when configuring Pulsar.
+The default value is 'cluster.local'.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelectors</b></td>
+        <td>map[string]string</td>
+        <td>
+          Global node selector. If set, this will apply to all components.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>persistence</b></td>
+        <td>boolean</td>
+        <td>
+          If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalstorage">storage</a></b></td>
+        <td>object</td>
+        <td>
+          Storage configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobaltls">tls</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.components
+<sup><sup>[↩ Parent](#proxyspecglobal)</sup></sup>
+
+
+
+Pulsar cluster components names.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>bookkeeperBaseName</b></td>
+        <td>string</td>
+        <td>
+          BookKeeper base name. Default value is 'bookkeeper'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>brokerBaseName</b></td>
+        <td>string</td>
+        <td>
+          Broker base name. Default value is 'broker'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyBaseName</b></td>
+        <td>string</td>
+        <td>
+          Proxy base name. Default value is 'proxy'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>zookeeperBaseName</b></td>
+        <td>string</td>
+        <td>
+          Zookeeper base name. Default value is 'zookeeper'.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.dnsConfig
+<sup><sup>[↩ Parent](#proxyspecglobal)</sup></sup>
+
+
+
+Additional DNS config for each pod created by the operator.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>nameservers</b></td>
+        <td>[]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobaldnsconfigoptionsindex">options</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>searches</b></td>
+        <td>[]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.dnsConfig.options[index]
+<sup><sup>[↩ Parent](#proxyspecglobaldnsconfig)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.storage
+<sup><sup>[↩ Parent](#proxyspecglobal)</sup></sup>
+
+
+
+Storage configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>existingStorageClassName</b></td>
+        <td>string</td>
+        <td>
+          Indicates if an already existing storage class should be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalstoragestorageclass">storageClass</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if a StorageClass is used. The operator will create the StorageClass if needed.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.storage.storageClass
+<sup><sup>[↩ Parent](#proxyspecglobalstorage)</sup></sup>
+
+
+
+Indicates if a StorageClass is used. The operator will create the StorageClass if needed.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>extraParams</b></td>
+        <td>map[string]string</td>
+        <td>
+          Adds extra parameters for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          Indicates the 'fsType' parameter for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>provisioner</b></td>
+        <td>string</td>
+        <td>
+          Indicates the provisioner property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reclaimPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Indicates the 'type' parameter for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.tls
+<sup><sup>[↩ Parent](#proxyspecglobal)</sup></sup>
+
+
+
+TLS configuration for the cluster.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#proxyspecglobaltlsbookkeeper">bookkeeper</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the BookKeeper component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobaltlsbroker">broker</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the broker component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>defaultSecretName</b></td>
+        <td>string</td>
+        <td>
+          Default secret name.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Global switch to turn on or off the TLS configurations.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobaltlszookeeper">zookeeper</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the ZooKeeper component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.tls.bookkeeper
+<sup><sup>[↩ Parent](#proxyspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the BookKeeper component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.tls.broker
+<sup><sup>[↩ Parent](#proxyspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.tls.zookeeper
+<sup><sup>[↩ Parent](#proxyspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the ZooKeeper component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy
+<sup><sup>[↩ Parent](#proxyspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to each Broker resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>config</b></td>
+        <td>map[string]string</td>
+        <td>
+          Configuration entries directly passed to this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gracePeriod</b></td>
+        <td>integer</td>
+        <td>
+          Termination grace period in seconds for the Broker pod. Default value is 60.<br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image pull policy to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxyinitcontainer">initContainer</a></b></td>
+        <td>object</td>
+        <td>
+          Additional init container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelectors</b></td>
+        <td>map[string]string</td>
+        <td>
+          Additional node selectors for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxypdb">pdb</a></b></td>
+        <td>object</td>
+        <td>
+          Pod disruption budget configuration for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxyprobe">probe</a></b></td>
+        <td>object</td>
+        <td>
+          Liveness and readiness probe values.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>replicas</b></td>
+        <td>integer</td>
+        <td>
+          Replicas of this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxyresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the Broker pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxyservice">service</a></b></td>
+        <td>object</td>
+        <td>
+          Configurations for the Service resources associated to the Broker pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxyupdatestrategy">updateStrategy</a></b></td>
+        <td>object</td>
+        <td>
+          Update strategy for the Broker pod/s. <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.initContainer
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+Additional init container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>args</b></td>
+        <td>[]string</td>
+        <td>
+          The command args used for the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>command</b></td>
+        <td>[]string</td>
+        <td>
+          The command used for the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>emptyDirPath</b></td>
+        <td>string</td>
+        <td>
+          The container path where the emptyDir volume is mounted.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          The image used to run the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          The image pull policy used for the container.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.pdb
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+Pod disruption budget configuration for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the maxUnavailable property for the Pdb.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.probe
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+Liveness and readiness probe values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates whether the probe is enabled or not.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initial</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the initial delay (in seconds) for the probe.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>period</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the period (in seconds) for the probe.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>timeout</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the timeout (in seconds) for the probe.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.resources
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+Resource requirements for the Broker pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.service
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+Configurations for the Service resources associated to the Broker pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#proxyspecproxyserviceadditionalportsindex">additionalPorts</a></b></td>
+        <td>[]object</td>
+        <td>
+          Additional ports for the Broker Service resources.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Additional annotations to add to the Broker Service resources.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enablePlainTextWithTLS</b></td>
+        <td>boolean</td>
+        <td>
+          Enable plain text connections even if TLS is enabled.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>loadBalancerIP</b></td>
+        <td>string</td>
+        <td>
+          Assign a load balancer IP.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Service type. Default value is 'ClusterIP'<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.service.additionalPorts[index]
+<sup><sup>[↩ Parent](#proxyspecproxyservice)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>appProtocol</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodePort</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>port</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>protocol</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>targetPort</b></td>
+        <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.updateStrategy
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+Update strategy for the Broker pod/s. 
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#proxyspecproxyupdatestrategyrollingupdate">rollingUpdate</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.updateStrategy.rollingUpdate
+<sup><sup>[↩ Parent](#proxyspecproxyupdatestrategy)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>maxSurge</b></td>
+        <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.status
+<sup><sup>[↩ Parent](#proxy)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>message</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>ready</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reason</b></td>
+        <td>enum</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
 ## PulsarCluster
 <sup><sup>[↩ Parent](#comdatastaxossv1alpha1 )</sup></sup>
 
@@ -2631,6 +3710,13 @@ TLS configurations related to the ZooKeeper component.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobal">global</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxy">proxy</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -3474,7 +4560,7 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b>higherCpuThreshold</b></td>
-        <td>object</td>
+        <td>number</td>
         <td>
           <br/>
           <br/>
@@ -3484,7 +4570,7 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b>lowerCpuThreshold</b></td>
-        <td>object</td>
+        <td>number</td>
         <td>
           <br/>
           <br/>
@@ -4125,6 +5211,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>proxyBaseName</b></td>
+        <td>string</td>
+        <td>
+          Proxy base name. Default value is 'proxy'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>zookeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -4450,6 +5543,475 @@ TLS configurations related to the ZooKeeper component.
         <td>string</td>
         <td>
           Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy
+<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to each Broker resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>config</b></td>
+        <td>map[string]string</td>
+        <td>
+          Configuration entries directly passed to this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gracePeriod</b></td>
+        <td>integer</td>
+        <td>
+          Termination grace period in seconds for the Broker pod. Default value is 60.<br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image pull policy to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainer">initContainer</a></b></td>
+        <td>object</td>
+        <td>
+          Additional init container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelectors</b></td>
+        <td>map[string]string</td>
+        <td>
+          Additional node selectors for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxypdb">pdb</a></b></td>
+        <td>object</td>
+        <td>
+          Pod disruption budget configuration for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyprobe">probe</a></b></td>
+        <td>object</td>
+        <td>
+          Liveness and readiness probe values.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>replicas</b></td>
+        <td>integer</td>
+        <td>
+          Replicas of this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the Broker pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyservice">service</a></b></td>
+        <td>object</td>
+        <td>
+          Configurations for the Service resources associated to the Broker pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyupdatestrategy">updateStrategy</a></b></td>
+        <td>object</td>
+        <td>
+          Update strategy for the Broker pod/s. <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.initContainer
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+Additional init container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>args</b></td>
+        <td>[]string</td>
+        <td>
+          The command args used for the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>command</b></td>
+        <td>[]string</td>
+        <td>
+          The command used for the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>emptyDirPath</b></td>
+        <td>string</td>
+        <td>
+          The container path where the emptyDir volume is mounted.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          The image used to run the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          The image pull policy used for the container.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.pdb
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+Pod disruption budget configuration for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the maxUnavailable property for the Pdb.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.probe
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+Liveness and readiness probe values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates whether the probe is enabled or not.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initial</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the initial delay (in seconds) for the probe.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>period</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the period (in seconds) for the probe.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>timeout</b></td>
+        <td>integer</td>
+        <td>
+          Indicates the timeout (in seconds) for the probe.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.resources
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+Resource requirements for the Broker pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.service
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+Configurations for the Service resources associated to the Broker pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyserviceadditionalportsindex">additionalPorts</a></b></td>
+        <td>[]object</td>
+        <td>
+          Additional ports for the Broker Service resources.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Additional annotations to add to the Broker Service resources.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enablePlainTextWithTLS</b></td>
+        <td>boolean</td>
+        <td>
+          Enable plain text connections even if TLS is enabled.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>loadBalancerIP</b></td>
+        <td>string</td>
+        <td>
+          Assign a load balancer IP.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Service type. Default value is 'ClusterIP'<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.service.additionalPorts[index]
+<sup><sup>[↩ Parent](#pulsarclusterspecproxyservice)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>appProtocol</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodePort</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>port</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>protocol</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>targetPort</b></td>
+        <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.updateStrategy
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+Update strategy for the Broker pod/s. 
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyupdatestrategyrollingupdate">rollingUpdate</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.updateStrategy.rollingUpdate
+<sup><sup>[↩ Parent](#pulsarclusterspecproxyupdatestrategy)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>maxSurge</b></td>
+        <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -5287,6 +6849,13 @@ Pulsar cluster components names.
         <td>string</td>
         <td>
           Broker base name. Default value is 'broker'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyBaseName</b></td>
+        <td>string</td>
+        <td>
+          Proxy base name. Default value is 'proxy'.<br/>
         </td>
         <td>false</td>
       </tr><tr>

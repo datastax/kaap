@@ -38,6 +38,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         private String bookkeeperBaseName;
         @JsonPropertyDescription("Broker base name. Default value is 'broker'.")
         private String brokerBaseName;
+        @JsonPropertyDescription("Proxy base name. Default value is 'proxy'.")
+        private String proxyBaseName;
     }
 
     @Data
@@ -160,6 +162,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setZookeeperBaseName(ObjectUtils.firstNonNull(components.getZookeeperBaseName(), "zookeeper"));
         components.setBookkeeperBaseName(ObjectUtils.firstNonNull(components.getBookkeeperBaseName(), "bookkeeper"));
         components.setBrokerBaseName(ObjectUtils.firstNonNull(components.getBrokerBaseName(), "broker"));
+        components.setProxyBaseName(ObjectUtils.firstNonNull(components.getProxyBaseName(), "proxy"));
     }
 
     @Override

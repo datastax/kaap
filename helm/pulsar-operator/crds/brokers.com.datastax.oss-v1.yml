@@ -129,16 +129,12 @@ spec:
                       periodMs:
                         minimum: 1000.0
                         type: integer
+                      max:
+                        type: integer
                       higherCpuThreshold:
                         maximum: 1.0
                         minimum: 0.0
-                        type: object
-                      max:
-                        type: integer
-                      lowerCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: object
+                        type: number
                       enabled:
                         type: boolean
                       min:
@@ -150,6 +146,10 @@ spec:
                       stabilizationWindowMs:
                         minimum: 1.0
                         type: integer
+                      lowerCpuThreshold:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: number
                       scaleDownBy:
                         minimum: 1.0
                         type: integer
@@ -304,6 +304,9 @@ spec:
                         type: string
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.
+                        type: string
+                      proxyBaseName:
+                        description: Proxy base name. Default value is 'proxy'.
                         type: string
                     type: object
                   tls:

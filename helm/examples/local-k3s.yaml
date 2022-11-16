@@ -36,3 +36,8 @@ spec:
     resources:
       requests:
         cpu: "0.4"
+  proxy:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "0.3"

@@ -58,6 +58,22 @@ In this terminal you can now monitor the cluster with the most common tools such
 
 Note: since k3s doesn't support sharing the docker registry of the host, a Pulsar image is copied into the k3s environment.
 
+
+### Integration tests
+Integration tests under `tests` spin up a K3s cluster in docker.
+In order to troubleshoot a failure test, sometimes it's useful to reuse a k8s environment.
+You can do that by running:
+```
+mvn test -Dpulsar.operator.tests.env.existing=true \
+    -Dpulsaroperator.tests.existingenv.kubeconfig.context=default \
+    -pl tests \
+    -Dtest='PulsarClusterTest#testBaseInstall'
+```
+If you're using a public cluster (e.g. GCP, EKS) you have to deploy the operator image to a Docker registry.
+When running the test you can set the operator image with the `pulsaroperator.tests.operator.image` system property.
+You can also use a specific StorageClass for the test by setting ´pulsaroperator.tests.existingenv.storageclass`. 
+
+
 ## Links and resources
 * [Quarkus Kubernetes](https://quarkus.io/guides/deploying-to-kubernetes)
 * [Quarkus JIB](https://quarkus.io/guides/container-image#container-image-options) for docker image lifecycle

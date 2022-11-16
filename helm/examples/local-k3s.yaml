@@ -41,3 +41,7 @@ spec:
     resources:
       requests:
         cpu: "0.3"
+    webSocket:
+      resources:
+        requests:
+          cpu: "0.3"

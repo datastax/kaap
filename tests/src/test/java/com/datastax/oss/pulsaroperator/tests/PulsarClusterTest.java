@@ -211,23 +211,26 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     public void testInstallWithHelm() throws Exception {
         try {
             helmInstall();
-            Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-                final int zk = client.pods().inNamespace(namespace).list().getItems().size();
-                Assert.assertEquals(zk, 1);
-            });
+            awaitOperatorRunning();
             applyManifestFromFile(getHelmExampleFilePath("local-k3s.yaml"));
             awaitInstalled();
+        } catch(Throwable t) {
+            t.printStackTrace();
+            Assert.fail("Error during the test", t);
         } finally {
-            helmUninstall();
-            client.resources(PulsarCluster.class).inNamespace(namespace)
-                    .withName("pulsar-cluster")
-                    .delete();
-            awaitUninstalled();
+            try {
+                helmUninstall();
+                client.resources(PulsarCluster.class).inNamespace(namespace)
+                        .withName("pulsar-cluster")
+                        .delete();
+                awaitUninstalled();
+            } catch (Throwable tt) {
+                Assert.fail("Error during test cleanup", tt);
+            }
         }
     }
 
     private void awaitInstalled() {
-        awaitOperatorRunning();
         awaitZooKeeperRunning();
         awaitBookKeeperRunning();
         awaitBrokerRunning();

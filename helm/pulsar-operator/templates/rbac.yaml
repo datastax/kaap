@@ -79,6 +79,8 @@ rules:
         - bookkeepers/status
         - brokers
         - brokers/status
+        - proxies
+        - proxies/status
     verbs:
         - "*"
 ---

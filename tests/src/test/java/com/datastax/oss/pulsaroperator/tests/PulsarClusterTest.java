@@ -214,7 +214,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             awaitOperatorRunning();
             applyManifestFromFile(getHelmExampleFilePath("local-k3s.yaml"));
             awaitInstalled();
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             t.printStackTrace();
             Assert.fail("Error during the test", t);
         } finally {

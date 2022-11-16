@@ -282,14 +282,14 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void applyManifest(String manifest) {
-        log.info("Applying {}", manifest);
         applyManifest(manifest.getBytes(StandardCharsets.UTF_8));
     }
 
     protected void applyManifest(byte[] manifest) {
-        final List<HasMetadata> resources =
-                client.load(new ByteArrayInputStream(manifest)).get();
-        client.resourceList(resources).inNamespace(namespace).createOrReplace();
+        log.info("Applying {}", new String(manifest, StandardCharsets.UTF_8));
+        client.load(new ByteArrayInputStream(manifest))
+                .inNamespace(namespace)
+                .createOrReplace();
     }
 
     protected void deleteManifest(String manifest) {

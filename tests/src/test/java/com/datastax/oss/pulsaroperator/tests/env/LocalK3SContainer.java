@@ -30,10 +30,10 @@ import org.testcontainers.containers.output.OutputFrame;
 public class LocalK3SContainer implements K8sEnv {
 
     private static final boolean DEBUG_LOG_CONTAINER = Boolean
-            .getBoolean("pulsar.operator.tests.container.log.debug");
+            .getBoolean("pulsaroperator.tests.container.log.debug");
 
     private static final boolean CONTAINER_REUSE = Boolean
-            .parseBoolean(System.getProperty("pulsar.operator.tests.container.reuse", "true"));
+            .parseBoolean(System.getProperty("pulsaroperator.tests.container.reuse", "true"));
 
     private static final DockerClient hostDockerClient = DockerClientFactory.lazyClient();
 

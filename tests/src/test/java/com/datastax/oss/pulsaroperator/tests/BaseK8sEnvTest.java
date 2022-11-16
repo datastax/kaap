@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.dajudge.kindcontainer.helm.Helm3Container;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
@@ -290,6 +291,20 @@ public abstract class BaseK8sEnvTest {
         client.load(new ByteArrayInputStream(manifest))
                 .inNamespace(namespace)
                 .createOrReplace();
+    }
+
+    protected void applyPulsarCluster(String content) {
+        client.resources(PulsarCluster.class)
+                .inNamespace(namespace)
+                .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
+                .create();
+    }
+
+    protected void applyPulsarCluster(Path path) {
+        client.resources(PulsarCluster.class)
+                .inNamespace(namespace)
+                .load(path.toFile())
+                .create();
     }
 
     protected void deleteManifest(String manifest) {

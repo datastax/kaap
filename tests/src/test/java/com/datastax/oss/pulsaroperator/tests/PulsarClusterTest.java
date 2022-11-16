@@ -68,7 +68,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         applyOperatorManifests();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-        applyManifest(specsToYaml(specs));
+        applyPulsarCluster(specsToYaml(specs));
         awaitInstalled();
 
         client.apps().statefulSets()
@@ -78,7 +78,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                         && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
         specs.getBookkeeper().setReplicas(3);
-        applyManifest(specsToYaml(specs));
+        applyPulsarCluster(specsToYaml(specs));
 
         client.apps().statefulSets()
                 .inNamespace(namespace)
@@ -87,7 +87,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                         && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
         specs.getBroker().setReplicas(3);
-        applyManifest(specsToYaml(specs));
+        applyPulsarCluster(specsToYaml(specs));
 
         client.apps().statefulSets()
                 .inNamespace(namespace)
@@ -212,7 +212,8 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         try {
             helmInstall();
             awaitOperatorRunning();
-            applyManifestFromFile(getHelmExampleFilePath("local-k3s.yaml"));
+
+            applyPulsarCluster(getHelmExampleFilePath("local-k3s.yaml"));
             awaitInstalled();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -300,7 +301,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "broker").list().getItems().size(), 1);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget()
                     .inNamespace(namespace)
-                            .withLabel("component", "broker").list().getItems().size(), 1);
+                    .withLabel("component", "broker").list().getItems().size(), 1);
             Assert.assertEquals(client.configMaps()
                     .inNamespace(namespace)
                     .withLabel("component", "broker").list().getItems().size(), 1);

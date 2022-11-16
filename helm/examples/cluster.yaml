@@ -14,5 +14,15 @@ spec:
     replicas: 3
   broker:
     replicas: 3
+    autoscaler:
+      enabled: false
+      periodMs: 20000
+      min: 3
+      max: 10
+      lowerCpuThreshold: 0.1
+      higherCpuThreshold: 0.4
+      scaleUpBy: 1
+      scaleDownBy: 1
+      stabilizationWindowMs: 300000
   proxy:
-    replicas: 3
+    replicas: 1

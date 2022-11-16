@@ -18,11 +18,9 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -100,14 +98,16 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         awaitUninstalled();
     }
 
-    private void assertProduceConsume() throws InterruptedException, ExecutionException, IOException {
+    private void assertProduceConsume() {
         // use two different brokers to ensure broker's intra communication
         execInPod("pulsar-broker-2", "bin/pulsar-client produce -m test test-topic");
         execInPod("pulsar-broker-1", "bin/pulsar-client consume -s sub -p Earliest test-topic");
         final String proxyPod =
                 client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
-        execInPod(proxyPod, "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
-        execInPod(proxyPod, "bin/pulsar-client consume -m test test-topic-proxy");
+
+        execInPod(proxyPod, "pulsar-proxy-ws",
+                "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
+        execInPod(proxyPod, "pulsar-proxy", "bin/pulsar-client consume -m test test-topic-proxy");
     }
 
     @SneakyThrows

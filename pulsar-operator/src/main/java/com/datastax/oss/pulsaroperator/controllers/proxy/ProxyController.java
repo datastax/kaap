@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.controllers.proxy.broker;
+package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
@@ -27,10 +27,11 @@ public class ProxyController extends AbstractController<Proxy> {
                 controller = new ProxyResourcesFactory(
                 client, namespace, spec.getProxy(), spec.getGlobal(), getOwnerReference(resource));
 
-        controller.createPodDisruptionBudgetIfEnabled();
-        controller.createConfigMap();
-        controller.createService();
-        controller.createDeployment();
+        controller.patchPodDisruptionBudget();
+        controller.patchConfigMap();
+        controller.patchConfigMapWsConfig();
+        controller.patchService();
+        controller.patchDeployment();
     }
 }
 

@@ -74,6 +74,13 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                 .delete();
     }
 
+    protected void deleteDeployment() {
+        client.apps().deployments()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .delete();
+    }
+
     protected Map<String, String> getLabels() {
         return Map.of(
                 CRDConstants.LABEL_APP, global.getName(),

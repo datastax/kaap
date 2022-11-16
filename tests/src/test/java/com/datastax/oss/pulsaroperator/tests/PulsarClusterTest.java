@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.tests;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
@@ -14,14 +15,13 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -31,7 +31,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
-public class PulsarClusterTest extends BaseK8sEnvironment {
+public class PulsarClusterTest extends BaseK8sEnvTest {
 
     public static final Quantity SINGLE_POD_CPU = Quantity.parse("100m");
     public static final Quantity SINGLE_POD_MEM = Quantity.parse("512Mi");
@@ -66,51 +66,67 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
     public void testBaseInstall() throws Exception {
         applyRBACManifests();
         applyOperatorManifests();
+
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-        kubectlApply(specsToYaml(specs));
+        applyPulsarCluster(specsToYaml(specs));
         awaitInstalled();
 
         client.apps().statefulSets()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-zookeeper")
                 .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
                         && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
         specs.getBookkeeper().setReplicas(3);
-        kubectlApply(specsToYaml(specs));
+        applyPulsarCluster(specsToYaml(specs));
 
         client.apps().statefulSets()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-bookkeeper")
                 .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
                         && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
         specs.getBroker().setReplicas(3);
-        kubectlApply(specsToYaml(specs));
+        applyPulsarCluster(specsToYaml(specs));
 
         client.apps().statefulSets()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-broker")
                 .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
                         && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
         assertProduceConsume();
-        container.kubectl().delete.namespace(NAMESPACE).run("PulsarCluster", "pulsar-cluster");
+        client.resources(PulsarCluster.class).inNamespace(namespace)
+                .withName("pulsar-cluster")
+                .delete();
         awaitUninstalled();
     }
 
-    private void assertProduceConsume() throws InterruptedException, ExecutionException, IOException {
+    private void assertProduceConsume() {
         // use two different brokers to ensure broker's intra communication
         execInPod("pulsar-broker-2", "bin/pulsar-client produce -m test test-topic");
         execInPod("pulsar-broker-1", "bin/pulsar-client consume -s sub -p Earliest test-topic");
+        final String proxyPod =
+                client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
+
+        execInPod(proxyPod, "pulsar-proxy-ws",
+                "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
+        execInPod(proxyPod, "pulsar-proxy", "bin/pulsar-client consume -s sub-proxy -p Earliest test-topic-proxy");
     }
 
     @SneakyThrows
     private void execInPod(String podName, String cmd) {
+        execInPod(podName, null, cmd);
+    }
+
+    @SneakyThrows
+    private void execInPod(String podName, String containerName, String cmd) {
+        log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
         try (final ExecWatch exec = client
                 .pods()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName(podName)
+                .inContainer(containerName)
                 .writingOutput(System.out)
                 .writingError(System.err)
                 .withTTY()
@@ -144,15 +160,16 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
                 .image(PULSAR_IMAGE)
                 .imagePullPolicy("Never")
                 .storage(GlobalSpec.GlobalStorageConfig.builder()
-                        .existingStorageClassName("local-path")
+                        .existingStorageClassName(env.getStorageClass())
                         .build())
                 .build());
 
+        final ResourceRequirements resources = new ResourceRequirementsBuilder()
+                .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
+                .build();
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(3)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                        .build())
+                .resources(resources)
                 .dataVolume(VolumeConfig.builder()
                         .size("100M")
                         .build()
@@ -161,9 +178,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                        .build())
+                .resources(resources)
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
                                 VolumeConfig.builder()
@@ -179,14 +194,13 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                        .build())
+                .resources(resources)
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
                 .replicas(1)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
+                .resources(resources)
+                .webSocket(ProxySpec.WebSocketConfig.builder()
+                        .resources(resources)
                         .build())
                 .build());
         return defaultSpecs;
@@ -197,62 +211,84 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
     public void testInstallWithHelm() throws Exception {
         try {
             helmInstall();
-            Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-                final int zk = client.pods().inNamespace(NAMESPACE).list().getItems().size();
-                Assert.assertEquals(zk, 1);
-            });
-            kubectlApply(getHelmExampleFilePath("local-k3s.yaml"));
+            awaitOperatorRunning();
+
+            applyPulsarCluster(getHelmExampleFilePath("local-k3s.yaml"));
             awaitInstalled();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assert.fail("Error during the test", t);
         } finally {
-            container.kubectl().delete.namespace(NAMESPACE).ignoreNotFound()
-                    .run("PulsarCluster", "pulsar-cluster");
-            awaitUninstalled();
+            try {
+                helmUninstall();
+                client.resources(PulsarCluster.class).inNamespace(namespace)
+                        .withName("pulsar-cluster")
+                        .delete();
+                awaitUninstalled();
+            } catch (Throwable tt) {
+                Assert.fail("Error during test cleanup", tt);
+            }
         }
     }
 
     private void awaitInstalled() {
-        awaitOperatorRunning();
         awaitZooKeeperRunning();
         awaitBookKeeperRunning();
         awaitBrokerRunning();
+        awaitProxyRunning();
     }
 
     private void awaitZooKeeperRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            Assert.assertTrue(client.pods().withLabel("component", "zookeeper").list().getItems().size() >= 1);
-            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
-                    withLabel("component", "zookeeper").list().getItems().size(), 1);
-            Assert.assertEquals(client.configMaps().withLabel("component", "zookeeper").list().getItems().size(), 1);
-            Assert.assertEquals(client.services().withLabel("component", "zookeeper").list().getItems().size(), 2);
+        Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            Assert.assertTrue(client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("component", "zookeeper").list().getItems().size() >= 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget()
+                    .inNamespace(namespace)
+                    .withLabel("component", "zookeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("component", "zookeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.services()
+                    .inNamespace(namespace)
+                    .withLabel("component", "zookeeper").list().getItems().size(), 2);
             Assert.assertEquals(client.apps().statefulSets()
+                    .inNamespace(namespace)
                     .withLabel("component", "zookeeper").list().getItems().size(), 1);
         });
 
         client.pods()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-zookeeper-0")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
-        final Pod jobPod = client.pods().inNamespace(NAMESPACE).withLabel("job-name", "pulsar-zookeeper")
+        final Pod jobPod = client.pods().inNamespace(namespace).withLabel("job-name", "pulsar-zookeeper")
                 .list().getItems().get(0);
-        client.pods().inNamespace(NAMESPACE).withName(jobPod.getMetadata().getName())
+        client.pods().inNamespace(namespace).withName(jobPod.getMetadata().getName())
                 .waitUntilCondition(pod -> pod.getStatus().getPhase().equals("Succeeded"), 2, TimeUnit.MINUTES);
     }
 
     private void awaitBookKeeperRunning() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            Assert.assertEquals(client.pods().withLabel("component", "bookkeeper").list().getItems().size(), 1);
-            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
-                    withLabel("component", "bookkeeper").list().getItems().size(), 1);
-            Assert.assertEquals(client.configMaps().withLabel("component", "bookkeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("component", "bookkeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget()
+                    .inNamespace(namespace)
+                    .withLabel("component", "bookkeeper").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("component", "bookkeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.apps().statefulSets()
+                    .inNamespace(namespace)
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
             Assert.assertEquals(client.services()
+                    .inNamespace(namespace)
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
         });
 
         client.pods()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-bookkeeper-0")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
@@ -260,18 +296,25 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
     private void awaitBrokerRunning() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            Assert.assertEquals(client.pods().withLabel("component", "broker").list().getItems().size(), 1);
-            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
-                    withLabel("component", "broker").list().getItems().size(), 1);
-            Assert.assertEquals(client.configMaps().withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget()
+                    .inNamespace(namespace)
+                    .withLabel("component", "broker").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("component", "broker").list().getItems().size(), 1);
             Assert.assertEquals(client.apps().statefulSets()
+                    .inNamespace(namespace)
                     .withLabel("component", "broker").list().getItems().size(), 1);
             Assert.assertEquals(client.services()
+                    .inNamespace(namespace)
                     .withLabel("component", "broker").list().getItems().size(), 1);
         });
 
         client.pods()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-broker-0")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
@@ -279,18 +322,25 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
     private void awaitProxyRunning() {
         Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            Assert.assertEquals(client.pods().withLabel("component", "proxy").list().getItems().size(), 1);
-            Assert.assertEquals(client.policy().v1().podDisruptionBudget().
-                    withLabel("component", "proxy").list().getItems().size(), 1);
-            Assert.assertEquals(client.configMaps().withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget()
+                    .inNamespace(namespace)
+                    .withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("component", "proxy").list().getItems().size(), 2);
             Assert.assertEquals(client.apps().deployments()
+                    .inNamespace(namespace)
                     .withLabel("component", "proxy").list().getItems().size(), 1);
             Assert.assertEquals(client.services()
+                    .inNamespace(namespace)
                     .withLabel("component", "proxy").list().getItems().size(), 1);
         });
 
         client.apps().deployments()
-                .inNamespace(NAMESPACE)
+                .inNamespace(namespace)
                 .withName("pulsar-proxy")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
@@ -298,16 +348,26 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
     private void awaitUninstalled() {
         Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            final List<Pod> pods = client.pods().withLabel("app", "pulsar").list().getItems();
+            final List<Pod> pods = client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("app", "pulsar").list().getItems();
             log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
-                    Collectors.joining()));
+                    Collectors.toList()));
             Assert.assertEquals(pods.size(), 0);
             Assert.assertEquals(
-                    client.policy().v1().podDisruptionBudget().withLabel("app", "pulsar").list().getItems().size(), 0);
-            Assert.assertEquals(client.configMaps().withLabel("app", "pulsar").list().getItems().size(), 0);
-            Assert.assertEquals(client.services().withLabel("app", "pulsar").list().getItems().size(), 0);
-            Assert.assertEquals(client.apps().statefulSets().withLabel("app", "pulsar").list().getItems().size(), 0);
-            Assert.assertEquals(client.batch().v1().jobs().withLabel("app", "pulsar").list().getItems().size(), 0);
+                    client.policy().v1().podDisruptionBudget()
+                            .inNamespace(namespace)
+                            .withLabel("app", "pulsar").list().getItems().size(), 0);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("app", "pulsar").list().getItems().size(), 0);
+            Assert.assertEquals(client.services()
+                    .inNamespace(namespace)
+                    .withLabel("app", "pulsar").list().getItems().size(), 0);
+            Assert.assertEquals(client.apps().statefulSets()
+                    .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
+            Assert.assertEquals(client.batch().v1().jobs()
+                    .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
         });
     }
 }

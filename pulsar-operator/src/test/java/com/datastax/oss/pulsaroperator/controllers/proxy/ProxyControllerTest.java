@@ -2,7 +2,6 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.controllers.proxy.broker.ProxyController;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
@@ -43,9 +42,8 @@ public class ProxyControllerTest {
 
         final MockKubernetesClient client = invokeController(spec);
 
-        final String configMap = client
-                .getCreatedResource(ConfigMap.class).getResourceYaml();
-        Assert.assertEquals(configMap,
+        Assert.assertEquals(client
+                        .getCreatedResource(ConfigMap.class).getResourceYaml(),
                 """
                         ---
                         apiVersion: v1
@@ -73,8 +71,45 @@ public class ProxyControllerTest {
                           brokerServiceURLTLS: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
                           brokerWebServiceURL: http://pulsarname-broker.ns.svc.cluster.local:8080/
                           brokerWebServiceURLTLS: https://pulsarname-broker.ns.svc.cluster.local:8443/
+                          clusterName: pulsarname
                           configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                           numHttpServerThreads: 10
+                          zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                        """);
+
+        Assert.assertEquals(client
+                        .getCreatedResources(ConfigMap.class).get(1).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: v1
+                        kind: ConfigMap
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: proxy
+                          name: pulsarname-proxy-ws
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: Proxy
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        data:
+                          PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                          PULSAR_GC: -XX:+UseG1GC
+                          PULSAR_LOG_LEVEL: info
+                          PULSAR_LOG_ROOT_LEVEL: info
+                          PULSAR_MEM: -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
+                          brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                          brokerServiceUrlTls: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
+                          clusterName: pulsarname
+                          configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          numHttpServerThreads: 10
+                          serviceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                          serviceUrlTls: https://pulsarname-broker.ns.svc.cluster.local:8443/
+                          webServicePort: 8000
                           zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
@@ -186,6 +221,24 @@ public class ProxyControllerTest {
                           requests:
                             cpu: 1
                             memory: 1Gi
+                      - args:
+                        - "bin/apply-config-from-env.py conf/websocket.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar websocket"
+                        command:
+                        - sh
+                        - -c
+                        envFrom:
+                        - configMapRef:
+                            name: pulsarname-proxy-ws
+                        image: apachepulsar/pulsar:2.10.2
+                        imagePullPolicy: IfNotPresent
+                        name: pulsarname-proxy-ws
+                        ports:
+                        - containerPort: 8080
+                          name: http
+                        resources:
+                          requests:
+                            cpu: 1
+                            memory: 1Gi
                       initContainers:
                       - args:
                         - |
@@ -231,6 +284,7 @@ public class ProxyControllerTest {
                             """);
 
     }
+
     @Test
     public void testConfig() throws Exception {
         String spec = """
@@ -256,6 +310,7 @@ public class ProxyControllerTest {
         expectedData.put("brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
         expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
 
         expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
@@ -264,6 +319,47 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("numHttpServerThreads", "10");
         expectedData.put("customConfig", "customValue");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+    }
+
+    @Test
+    public void testConfigWebSocket() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    config:
+                        PULSAR_LOG_LEVEL: debug
+                        customConfig: customValue
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResources(ConfigMap.class).get(1);
+
+        Map<String, String> expectedData = new HashMap<>();
+
+        expectedData.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
+        expectedData.put("webServicePort", "8000");
+
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "debug");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("numHttpServerThreads", "10");
+        expectedData.put("customConfig", "customValue");
+        expectedData.put("webServicePort", "8000");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -459,6 +555,14 @@ public class ProxyControllerTest {
                         limits:
                           memory: 2Gi
                           cpu: 1
+                    webSocket:
+                        resources:
+                            requests:
+                              memory: 1.3Gi
+                              cpu: 0.3
+                            limits:
+                              memory: 1.5Gi
+                              cpu: 0.5
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -474,6 +578,15 @@ public class ProxyControllerTest {
 
         Assert.assertEquals(resources.getLimits().get("memory"), Quantity.parse("2Gi"));
         Assert.assertEquals(resources.getLimits().get("cpu"), Quantity.parse("1"));
+
+        final ResourceRequirements wsResources = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getContainers().get(1).getResources();
+
+        Assert.assertEquals(wsResources.getRequests().get("memory"), Quantity.parse("1.3Gi"));
+        Assert.assertEquals(wsResources.getRequests().get("cpu"), Quantity.parse("0.3"));
+
+        Assert.assertEquals(wsResources.getLimits().get("memory"), Quantity.parse("1.5Gi"));
+        Assert.assertEquals(wsResources.getLimits().get("cpu"), Quantity.parse("0.5"));
 
     }
 

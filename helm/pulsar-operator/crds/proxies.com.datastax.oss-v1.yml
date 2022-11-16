@@ -22,11 +22,11 @@ spec:
               proxy:
                 properties:
                   service:
-                    description: Configurations for the Service resources associated
-                      to the Broker pod.
+                    description: Configurations for the Service resource associated
+                      to the Proxy pod.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the Broker Service resources.
+                        description: Additional ports for the Service resources.
                         items:
                           properties:
                             targetPort:
@@ -52,7 +52,7 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the Broker Service
+                        description: Additional annotations to add to the Service
                           resources.
                         type: object
                       type:
@@ -64,10 +64,15 @@ spec:
                         type: boolean
                     type: object
                   gracePeriod:
-                    description: Termination grace period in seconds for the Broker
+                    description: Termination grace period in seconds for the Proxy
                       pod. Default value is 60.
                     minimum: 0.0
                     type: integer
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each Proxy resource.
+                    type: object
                   initContainer:
                     description: Additional init container.
                     properties:
@@ -92,8 +97,34 @@ spec:
                         description: The image pull policy used for the container.
                         type: string
                     type: object
+                  webSocket:
+                    description: WebSocket proxy configuration.
+                    properties:
+                      resources:
+                        description: Resource requirements for the pod.
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                        type: object
+                      enabled:
+                        description: Enable WebSocket standalone as container in the
+                          proxy pod.
+                        type: boolean
+                    type: object
                   updateStrategy:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Strategy for the proxy deployment.
                     properties:
                       rollingUpdate:
                         properties:
@@ -111,13 +142,8 @@ spec:
                       type:
                         type: string
                     type: object
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Annotations to add to each Broker resource.
-                    type: object
                   resources:
-                    description: Resource requirements for the Broker pod.
+                    description: Resource requirements for the Proxy container.
                     properties:
                       limits:
                         additionalProperties:

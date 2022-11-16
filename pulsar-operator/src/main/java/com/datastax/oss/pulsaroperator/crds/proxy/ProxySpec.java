@@ -44,9 +44,10 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
             .timeout(5)
             .build();
 
-    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
-            .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("1")))
-            .build();
+    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS =
+            () -> new ResourceRequirementsBuilder()
+                    .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("1")))
+                    .build();
 
     public static final Supplier<PodDisruptionBudgetConfig> DEFAULT_PDB = () -> PodDisruptionBudgetConfig.builder()
             .enabled(true)
@@ -58,14 +59,23 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
             .type("LoadBalancer")
             .build();
 
+    private static final Supplier<WebSocketConfig> DEFAULT_WEB_SOCKET_CONFIG = () -> WebSocketConfig.builder()
+            .enabled(true)
+            .resources(
+                    new ResourceRequirementsBuilder()
+                            .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("1")))
+                            .build()
+            )
+            .build();
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class ServiceConfig {
-        @JsonPropertyDescription("Additional annotations to add to the Broker Service resources.")
+        @JsonPropertyDescription("Additional annotations to add to the Service resources.")
         private Map<String, String> annotations;
-        @JsonPropertyDescription("Additional ports for the Broker Service resources.")
+        @JsonPropertyDescription("Additional ports for the Service resources.")
         private List<ServicePort> additionalPorts;
         @JsonPropertyDescription("Assign a load balancer IP.")
         private String loadBalancerIP;
@@ -94,20 +104,34 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     }
 
 
-    @JsonPropertyDescription("Update strategy for the Broker pod/s. ")
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class WebSocketConfig {
+        @JsonPropertyDescription("Enable WebSocket standalone as container in the proxy pod.")
+        private Boolean enabled;
+        @JsonPropertyDescription("Resource requirements for the pod.")
+        private ResourceRequirements resources;
+    }
+
+
+    @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
-    @JsonPropertyDescription("Annotations to add to each Broker resource.")
+    @JsonPropertyDescription("Annotations to add to each Proxy resource.")
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the Broker pod. Default value is 60.")
+    @JsonPropertyDescription("Termination grace period in seconds for the Proxy pod. Default value is 60.")
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the Broker pod.")
+    @JsonPropertyDescription("Resource requirements for the Proxy container.")
     private ResourceRequirements resources;
-    @JsonPropertyDescription("Configurations for the Service resources associated to the Broker pod.")
+    @JsonPropertyDescription("Configurations for the Service resource associated to the Proxy pod.")
     private ServiceConfig service;
     @JsonPropertyDescription("Additional init container.")
     private InitContainerConfig initContainer;
+    @JsonPropertyDescription("WebSocket proxy configuration.")
+    private WebSocketConfig webSocket;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -127,6 +151,20 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
         applyServiceDefaults();
+
+        applyWebSocketDefaults();
+    }
+
+    private void applyWebSocketDefaults() {
+        if (webSocket == null) {
+            webSocket = DEFAULT_WEB_SOCKET_CONFIG.get();
+        }
+        webSocket.setEnabled(ObjectUtils.getFirstNonNull(
+                () -> webSocket.getEnabled(),
+                () -> DEFAULT_WEB_SOCKET_CONFIG.get().getEnabled()));
+        webSocket.setResources(ObjectUtils.getFirstNonNull(
+                () -> webSocket.getResources(),
+                () -> DEFAULT_WEB_SOCKET_CONFIG.get().getResources()));
     }
 
 

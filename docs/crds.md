@@ -3133,7 +3133,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Broker resource.<br/>
+          Annotations to add to each Proxy resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3147,7 +3147,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Broker pod. Default value is 60.<br/>
+          Termination grace period in seconds for the Proxy pod. Default value is 60.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -3205,21 +3205,28 @@ TLS configurations related to the ZooKeeper component.
         <td><b><a href="#proxyspecproxyresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Broker pod.<br/>
+          Resource requirements for the Proxy container.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#proxyspecproxyservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resources associated to the Broker pod.<br/>
+          Configurations for the Service resource associated to the Proxy pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#proxyspecproxyupdatestrategy">updateStrategy</a></b></td>
         <td>object</td>
         <td>
-          Update strategy for the Broker pod/s. <br/>
+          Strategy for the proxy deployment.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxywebsocket">webSocket</a></b></td>
+        <td>object</td>
+        <td>
+          WebSocket proxy configuration.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3368,7 +3375,7 @@ Liveness and readiness probe values.
 
 
 
-Resource requirements for the Broker pod.
+Resource requirements for the Proxy container.
 
 <table>
     <thead>
@@ -3402,7 +3409,7 @@ Resource requirements for the Broker pod.
 
 
 
-Configurations for the Service resources associated to the Broker pod.
+Configurations for the Service resource associated to the Proxy pod.
 
 <table>
     <thead>
@@ -3417,14 +3424,14 @@ Configurations for the Service resources associated to the Broker pod.
         <td><b><a href="#proxyspecproxyserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the Broker Service resources.<br/>
+          Additional ports for the Service resources.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the Broker Service resources.<br/>
+          Additional annotations to add to the Service resources.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3519,7 +3526,7 @@ Configurations for the Service resources associated to the Broker pod.
 
 
 
-Update strategy for the Broker pod/s. 
+Strategy for the proxy deployment.
 
 <table>
     <thead>
@@ -3574,6 +3581,74 @@ Update strategy for the Broker pod/s.
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.webSocket
+<sup><sup>[↩ Parent](#proxyspecproxy)</sup></sup>
+
+
+
+WebSocket proxy configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable WebSocket standalone as container in the proxy pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecproxywebsocketresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.proxy.webSocket.resources
+<sup><sup>[↩ Parent](#proxyspecproxywebsocket)</sup></sup>
+
+
+
+Resource requirements for the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
         <td>
           <br/>
         </td>
@@ -5569,7 +5644,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Broker resource.<br/>
+          Annotations to add to each Proxy resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5583,7 +5658,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Broker pod. Default value is 60.<br/>
+          Termination grace period in seconds for the Proxy pod. Default value is 60.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -5641,21 +5716,28 @@ TLS configurations related to the ZooKeeper component.
         <td><b><a href="#pulsarclusterspecproxyresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Broker pod.<br/>
+          Resource requirements for the Proxy container.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resources associated to the Broker pod.<br/>
+          Configurations for the Service resource associated to the Proxy pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyupdatestrategy">updateStrategy</a></b></td>
         <td>object</td>
         <td>
-          Update strategy for the Broker pod/s. <br/>
+          Strategy for the proxy deployment.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxywebsocket">webSocket</a></b></td>
+        <td>object</td>
+        <td>
+          WebSocket proxy configuration.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -5804,7 +5886,7 @@ Liveness and readiness probe values.
 
 
 
-Resource requirements for the Broker pod.
+Resource requirements for the Proxy container.
 
 <table>
     <thead>
@@ -5838,7 +5920,7 @@ Resource requirements for the Broker pod.
 
 
 
-Configurations for the Service resources associated to the Broker pod.
+Configurations for the Service resource associated to the Proxy pod.
 
 <table>
     <thead>
@@ -5853,14 +5935,14 @@ Configurations for the Service resources associated to the Broker pod.
         <td><b><a href="#pulsarclusterspecproxyserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the Broker Service resources.<br/>
+          Additional ports for the Service resources.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the Broker Service resources.<br/>
+          Additional annotations to add to the Service resources.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5955,7 +6037,7 @@ Configurations for the Service resources associated to the Broker pod.
 
 
 
-Update strategy for the Broker pod/s. 
+Strategy for the proxy deployment.
 
 <table>
     <thead>
@@ -6010,6 +6092,74 @@ Update strategy for the Broker pod/s.
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.webSocket
+<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
+
+
+
+WebSocket proxy configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable WebSocket standalone as container in the proxy pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxywebsocketresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.webSocket.resources
+<sup><sup>[↩ Parent](#pulsarclusterspecproxywebsocket)</sup></sup>
+
+
+
+Resource requirements for the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
         <td>
           <br/>
         </td>

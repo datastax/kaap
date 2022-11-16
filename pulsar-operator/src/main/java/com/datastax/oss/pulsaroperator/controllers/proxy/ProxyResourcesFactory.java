@@ -185,6 +185,12 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
 
     public void patchDeployment() {
+        final int replicas = spec.getReplicas();
+        if (replicas == 0) {
+            log.warn("Got replicas=0, deleting deployments");
+            deleteDeployment();
+            return;
+        }
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = new HashMap<>();
         allAnnotations.put("prometheus.io/scrape", "true");

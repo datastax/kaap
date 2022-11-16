@@ -14,6 +14,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
@@ -148,11 +149,12 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
                         .build())
                 .build());
 
+        final ResourceRequirements resources = new ResourceRequirementsBuilder()
+                .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
+                .build();
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(3)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                        .build())
+                .resources(resources)
                 .dataVolume(VolumeConfig.builder()
                         .size("100M")
                         .build()
@@ -161,9 +163,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                        .build())
+                .resources(resources)
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
                                 VolumeConfig.builder()
@@ -179,14 +179,13 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
 
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                        .build())
+                .resources(resources)
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
                 .replicas(1)
-                .resources(new ResourceRequirementsBuilder()
-                        .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
+                .resources(resources)
+                .webSocket(ProxySpec.WebSocketConfig.builder()
+                        .resources(resources)
                         .build())
                 .build());
         return defaultSpecs;
@@ -283,7 +282,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
             Assert.assertEquals(client.pods().withLabel("component", "proxy").list().getItems().size(), 1);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget().
                     withLabel("component", "proxy").list().getItems().size(), 1);
-            Assert.assertEquals(client.configMaps().withLabel("component", "proxy").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps().withLabel("component", "proxy").list().getItems().size(), 2);
             Assert.assertEquals(client.apps().deployments()
                     .withLabel("component", "proxy").list().getItems().size(), 1);
             Assert.assertEquals(client.services()

@@ -104,10 +104,15 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         // use two different brokers to ensure broker's intra communication
         execInPod("pulsar-broker-2", "bin/pulsar-client produce -m test test-topic");
         execInPod("pulsar-broker-1", "bin/pulsar-client consume -s sub -p Earliest test-topic");
+        final String proxyPod =
+                client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
+        execInPod(proxyPod, "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
+        execInPod(proxyPod, "bin/pulsar-client consume -m test test-topic-proxy");
     }
 
     @SneakyThrows
     private void execInPod(String podName, String cmd) {
+        log.info("Executing in pod %s: %s", podName, cmd);
         try (final ExecWatch exec = client
                 .pods()
                 .inNamespace(NAMESPACE)

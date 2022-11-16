@@ -27,11 +27,11 @@ public class ProxyController extends AbstractController<Proxy> {
                 controller = new ProxyResourcesFactory(
                 client, namespace, spec.getProxy(), spec.getGlobal(), getOwnerReference(resource));
 
-        controller.createPodDisruptionBudgetIfEnabled();
-        controller.createConfigMap();
-        controller.createConfigMapWsConfig();
-        controller.createService();
-        controller.createDeployment();
+        controller.patchPodDisruptionBudget();
+        controller.patchConfigMap();
+        controller.patchConfigMapWsConfig();
+        controller.patchService();
+        controller.patchDeployment();
     }
 }
 

@@ -67,7 +67,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         return getResourceName(global);
     }
 
-    public void createService() {
+    public void patchService() {
 
         final ProxySpec.ServiceConfig serviceSpec = spec.getService();
 
@@ -121,7 +121,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     }
 
 
-    public void createConfigMap() {
+    public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         final String zkServers = getZkServers();
         data.put("brokerServiceURL", getBrokerServiceUrlPlain());
@@ -148,7 +148,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         patchResource(configMap);
     }
 
-    public void createConfigMapWsConfig() {
+    public void patchConfigMapWsConfig() {
         final ProxySpec.WebSocketConfig webSocketConfig = spec.getWebSocket();
         if (!webSocketConfig.getEnabled()) {
             return;
@@ -184,7 +184,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     }
 
 
-    public void createDeployment() {
+    public void patchDeployment() {
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = new HashMap<>();
         allAnnotations.put("prometheus.io/scrape", "true");
@@ -350,7 +350,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .build();
     }
 
-    public void createPodDisruptionBudgetIfEnabled() {
+    public void patchPodDisruptionBudget() {
         createPodDisruptionBudgetIfEnabled(spec.getPdb());
     }
 

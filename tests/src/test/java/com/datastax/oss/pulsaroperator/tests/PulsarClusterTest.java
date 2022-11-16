@@ -110,7 +110,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         try (final ExecWatch exec = client
                 .pods()
                 .inNamespace(NAMESPACE)
-                .withName("pulsar-broker-2")
+                .withName(podName)
                 .writingOutput(System.out)
                 .writingError(System.err)
                 .withTTY()

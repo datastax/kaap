@@ -215,6 +215,7 @@ public class PulsarClusterTest extends BaseK8sEnvironment {
         awaitZooKeeperRunning();
         awaitBookKeeperRunning();
         awaitBrokerRunning();
+        awaitProxyRunning();
     }
 
     private void awaitZooKeeperRunning() {

@@ -1,4 +1,4 @@
-package com.datastax.oss.pulsaroperator.controllers.proxy.broker;
+package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -33,6 +33,15 @@ import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
 public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
+
+    private static final Map<String, String> DEFAULT_CONFIG_MAP =
+            Map.of("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g",
+                    "PULSAR_GC", "-XX:+UseG1GC",
+                    "PULSAR_LOG_LEVEL", "info",
+                    "PULSAR_LOG_ROOT_LEVEL", "info",
+                    "PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info",
+                    "numHttpServerThreads", "10"
+            );
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getProxyBaseName();
@@ -121,13 +130,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         data.put("brokerWebServiceURLTLS", getBrokerWebServiceUrlTls());
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
+        data.put("clusterName", global.getName());
 
-        data.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        data.put("PULSAR_GC", "-XX:+UseG1GC");
-        data.put("PULSAR_LOG_LEVEL", "info");
-        data.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        data.put("numHttpServerThreads", "10");
+        data.putAll(DEFAULT_CONFIG_MAP);
 
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
@@ -136,6 +141,41 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()
                 .withName(resourceName)
+                .withNamespace(namespace)
+                .withLabels(getLabels()).endMetadata()
+                .withData(data)
+                .build();
+        patchResource(configMap);
+    }
+
+    public void createConfigMapWsConfig() {
+        final ProxySpec.WebSocketConfig webSocketConfig = spec.getWebSocket();
+        if (!webSocketConfig.getEnabled()) {
+            return;
+        }
+
+        Map<String, String> data = new HashMap<>();
+        final String zkServers = getZkServers();
+        data.put("brokerServiceUrl", getBrokerServiceUrlPlain());
+        data.put("brokerServiceUrlTls", getBrokerServiceUrlTls());
+        data.put("serviceUrl", getBrokerWebServiceUrlPlain());
+        data.put("serviceUrlTls", getBrokerWebServiceUrlTls());
+        data.put("zookeeperServers", zkServers);
+        data.put("configurationStoreServers", zkServers);
+        data.put("clusterName", global.getName());
+
+        data.putAll(DEFAULT_CONFIG_MAP);
+
+        if (spec.getConfig() != null) {
+            data.putAll(spec.getConfig());
+        }
+        if (!data.containsKey("webServicePort")) {
+            data.put("webServicePort", "8000");
+        }
+
+        final ConfigMap configMap = new ConfigMapBuilder()
+                .withNewMetadata()
+                .withName("%s-ws".formatted(resourceName))
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
                 .withData(data)
@@ -205,7 +245,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withContainerPort(8001)
                 .build()
         );
-        List<Container> containers = List.of(
+        List<Container> containers = new ArrayList<>();
+        containers.add(
                 new ContainerBuilder()
                         .withName(resourceName)
                         .withImage(spec.getImage())
@@ -224,6 +265,43 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
+        final ProxySpec.WebSocketConfig webSocket = spec.getWebSocket();
+        if (webSocket.getEnabled()) {
+
+            String wsArg = "";
+            if (isTlsEnabledGlobally()) {
+                wsArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
+                        + "-out /pulsar/tls-pk8.key -nocrypt && "
+                        + ". /pulsar/tools/certconverter.sh && ";
+            }
+            wsArg += "bin/apply-config-from-env.py conf/websocket.conf && ";
+            wsArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar websocket";
+
+
+            final String wsResourceName = "%s-ws".formatted(resourceName);
+            containers.add(
+                    new ContainerBuilder()
+                            .withName(wsResourceName)
+                            .withImage(spec.getImage())
+                            .withImagePullPolicy(spec.getImagePullPolicy())
+                            .withResources(webSocket.getResources())
+                            .withCommand("sh", "-c")
+                            .withArgs(wsArg)
+                            .withPorts(List.of(
+                                    new ContainerPortBuilder()
+                                            .withName("http")
+                                            .withContainerPort(8080)
+                                            .build()
+                            ))
+                            .withEnvFrom(new EnvFromSourceBuilder()
+                                    .withNewConfigMapRef()
+                                    .withName(wsResourceName)
+                                    .endConfigMapRef()
+                                    .build())
+                            .withVolumeMounts(volumeMounts)
+                            .build()
+            );
+        }
 
         Deployment deployment = new DeploymentBuilder()
                 .withNewMetadata()

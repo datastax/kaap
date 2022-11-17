@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.client.VersionInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.pulsar.shade.org.apache.commons.codec.digest.DigestUtils;
 
 public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
 

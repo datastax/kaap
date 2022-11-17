@@ -174,6 +174,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
         }
+        if (!data.containsKey("webServicePort")) {
+            data.put("webServicePort", "8000");
+        }
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()

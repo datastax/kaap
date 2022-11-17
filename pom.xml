@@ -30,6 +30,7 @@
         <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
         <spotbugs.version>4.7.2</spotbugs.version>
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
+        <commons-codec.version>1.15</commons-codec.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -39,6 +40,11 @@
                 <version>${quarkus-sdk.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.testng</groupId>

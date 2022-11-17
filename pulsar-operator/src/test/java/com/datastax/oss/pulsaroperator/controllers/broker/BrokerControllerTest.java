@@ -866,6 +866,51 @@ public class BrokerControllerTest {
         Assert.assertEquals((int) pdb.getResource().getSpec().getMaxUnavailable().getIntVal(), 3);
     }
 
+    @Test
+    public void testRestartOnConfigMapChange() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    restartOnConfigMapChange: true
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+        System.out.println(sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations());
+        final String checksum1 = sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-broker");
+        Assert.assertNotNull(checksum1);
+
+        client = invokeController(spec);
+        sts = client.getCreatedResource(StatefulSet.class).getResource();
+        Assert.assertEquals(sts.getSpec().getTemplate()
+                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-broker"),
+                checksum1);
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    restartOnConfigMapChange: true
+                broker:
+                    config:
+                        PULSAR_ROOT_LOG_LEVEL: debug
+                """;
+
+        client = invokeController(spec);
+        sts = client.getCreatedResource(StatefulSet.class).getResource();
+        final String checksum2 = sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-broker");
+        Assert.assertNotNull(checksum2);
+        Assert.assertNotEquals(checksum1, checksum2);
+    }
+
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
                 "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));

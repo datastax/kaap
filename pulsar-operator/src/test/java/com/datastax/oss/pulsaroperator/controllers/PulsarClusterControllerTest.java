@@ -56,6 +56,7 @@ public class PulsarClusterControllerTest {
                       enabled: false
                       defaultSecretName: pulsar-tls
                     persistence: true
+                    restartOnConfigMapChange: false
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     storage:
@@ -90,6 +91,7 @@ public class PulsarClusterControllerTest {
                       enabled: false
                       defaultSecretName: pulsar-tls
                     persistence: true
+                    restartOnConfigMapChange: false
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     storage:
@@ -124,6 +126,7 @@ public class PulsarClusterControllerTest {
                     enabled: false
                     defaultSecretName: pulsar-tls
                   persistence: true
+                  restartOnConfigMapChange: false
                   image: apachepulsar/pulsar:2.10.2
                   imagePullPolicy: IfNotPresent
                   storage:
@@ -159,6 +162,7 @@ public class PulsarClusterControllerTest {
                       enabled: false
                       defaultSecretName: pulsar-tls
                     persistence: true
+                    restartOnConfigMapChange: false
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     storage:

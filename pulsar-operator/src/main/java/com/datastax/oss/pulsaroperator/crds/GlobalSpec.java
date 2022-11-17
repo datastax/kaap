@@ -105,6 +105,10 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
             """)
     private Boolean persistence;
+    @JsonPropertyDescription("""
+            By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+            """)
+    private Boolean restartOnConfigMapChange;
 
     // overridable parameters
     @JsonPropertyDescription("Default Pulsar image to use. Any components can be configured to use a different image.")
@@ -127,6 +131,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         }
         if (persistence == null) {
             persistence = true;
+        }
+        if (restartOnConfigMapChange == null) {
+            restartOnConfigMapChange = false;
         }
         if (storage == null) {
             storage = new GlobalStorageConfig();

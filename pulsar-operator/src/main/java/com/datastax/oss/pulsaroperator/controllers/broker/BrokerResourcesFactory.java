@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
@@ -43,6 +44,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     public static String getResourceName(GlobalSpec globalSpec) {
         return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
     }
+
+    private ConfigMap configMap;
 
     public BrokerResourcesFactory(KubernetesClient client, String namespace,
                                   BrokerSpec spec, GlobalSpec global,
@@ -159,10 +162,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withData(data)
                 .build();
         patchResource(configMap);
+        this.configMap = configMap;
     }
-
-
-
 
     public void patchStatefulSet() {
         final int replicas = spec.getReplicas();
@@ -182,9 +183,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         }
 
         Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = new HashMap<>();
-        allAnnotations.put("prometheus.io/scrape", "true");
-        allAnnotations.put("prometheus.io/port", "8080");
+        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
+        addConfigMapChecksumAnnotation(configMap, allAnnotations);
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }

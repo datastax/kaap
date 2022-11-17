@@ -33,11 +33,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
 
 @JBossLog
 public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperSpec> {
+
+    private ConfigMap configMap;
 
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
                                       BookKeeperSpec spec, GlobalSpec global,
@@ -124,6 +127,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withData(data)
                 .build();
         patchResource(configMap);
+        this.configMap = configMap;
     }
 
 
@@ -136,9 +140,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
 
         Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = new HashMap<>();
-        allAnnotations.put("prometheus.io/scrape", "true");
-        allAnnotations.put("prometheus.io/port", "8080");
+        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
+        addConfigMapChecksumAnnotation(configMap, allAnnotations);
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }

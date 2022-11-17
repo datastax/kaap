@@ -185,7 +185,8 @@ public class ZooKeeperControllerTest {
                                   storage: 5Gi
                         """);
 
-        final MockKubernetesClient.ResourceInteraction<Service> serviceInt = client.getCreatedResources(Service.class).get(0);
+        final MockKubernetesClient.ResourceInteraction<Service> serviceInt =
+                client.getCreatedResources(Service.class).get(0);
         final String service = serviceInt.getResourceYaml();
         Assert.assertEquals(service,
                 """
@@ -457,8 +458,9 @@ public class ZooKeeperControllerTest {
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log"
-                + ".root.level=info");
+        expectedData.put("PULSAR_EXTRA_OPTS",
+                "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log"
+                        + ".root.level=info");
         expectedData.put("serverCnxnFactory", "my.class.MyClass");
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -834,7 +836,7 @@ public class ZooKeeperControllerTest {
 
     @DataProvider(name = "dataVolumePersistenceExistingStorageClass")
     public static Object[][] dataVolumePersistenceExistingStorageClass() {
-        return new Object[][] { {"""
+        return new Object[][]{{"""
                 global:
                     name: pul
                     persistence: true
@@ -844,7 +846,7 @@ public class ZooKeeperControllerTest {
                         name: myvol
                         size: 1Gi
                         existingStorageClassName: mystorage-class
-                """ },
+                """},
                 {"""
                 global:
                     name: pul
@@ -856,7 +858,7 @@ public class ZooKeeperControllerTest {
                     dataVolume:
                         name: myvol
                         size: 1Gi
-                """ }};
+                """}};
     }
 
     @Test(dataProvider = "dataVolumePersistenceExistingStorageClass")
@@ -889,7 +891,7 @@ public class ZooKeeperControllerTest {
 
     @DataProvider(name = "dataVolumePersistenceStorageClass")
     public static Object[][] dataVolumePersistenceStorageClass() {
-        return new Object[][] { {"""
+        return new Object[][]{{"""
                 global:
                     name: pul
                     persistence: true
@@ -905,7 +907,7 @@ public class ZooKeeperControllerTest {
                             fsType: ext4
                             extraParams:
                                 iopsPerGB: "10"
-                """ },
+                """},
                 {"""
                 global:
                     name: pul
@@ -923,7 +925,7 @@ public class ZooKeeperControllerTest {
                     dataVolume:
                         name: myvol
                         size: 1Gi
-                """ }};
+                """}};
     }
 
     @Test(dataProvider = "dataVolumePersistenceStorageClass")
@@ -1078,6 +1080,52 @@ public class ZooKeeperControllerTest {
                 client.getCreatedResource(PodDisruptionBudget.class);
 
         Assert.assertEquals((int) pdb.getResource().getSpec().getMaxUnavailable().getIntVal(), 3);
+    }
+
+
+    @Test
+    public void testRestartOnConfigMapChange() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    restartOnConfigMapChange: true
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+        System.out.println(sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations());
+        final String checksum1 = sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper");
+        Assert.assertNotNull(checksum1);
+
+        client = invokeController(spec);
+        sts = client.getCreatedResource(StatefulSet.class).getResource();
+        Assert.assertEquals(sts.getSpec().getTemplate()
+                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper"),
+                checksum1);
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    restartOnConfigMapChange: true
+                zookeeper:
+                    config:
+                        PULSAR_ROOT_LOG_LEVEL: debug
+                """;
+
+        client = invokeController(spec);
+        sts = client.getCreatedResource(StatefulSet.class).getResource();
+        final String checksum2 = sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper");
+        Assert.assertNotNull(checksum2);
+        Assert.assertNotEquals(checksum1, checksum2);
     }
 
     @SneakyThrows

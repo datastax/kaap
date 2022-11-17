@@ -1,7 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
-import com.datastax.oss.pulsaroperator.crds.CRDUtil;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
@@ -78,7 +78,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 ownerReference
         );
 
-        PulsarClusterSpec pulsarClusterSpecWithDefaults = CRDUtil.deepCloneObject(clusterSpec);
+        PulsarClusterSpec pulsarClusterSpecWithDefaults = SerializationUtil.deepCloneObject(clusterSpec);
         pulsarClusterSpecWithDefaults.applyDefaults(clusterSpec.getGlobalSpec());
 
         if (pulsarClusterSpecWithDefaults.getBroker() != null

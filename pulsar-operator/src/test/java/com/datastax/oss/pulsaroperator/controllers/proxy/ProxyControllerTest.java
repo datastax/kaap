@@ -813,6 +813,63 @@ public class ProxyControllerTest {
         Assert.assertEquals((int) pdb.getResource().getSpec().getMaxUnavailable().getIntVal(), 3);
     }
 
+    @Test
+    public void testRestartOnConfigMapChange() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    restartOnConfigMapChange: true
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Deployment depl = client.getCreatedResource(Deployment.class).getResource();
+        System.out.println(depl.getSpec().getTemplate()
+                .getMetadata().getAnnotations());
+        final String checksum1 = depl.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-proxy");
+        Assert.assertNotNull(checksum1);
+
+        final String checksum1ws = depl.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-proxy-ws");
+        Assert.assertNotNull(checksum1);
+
+        client = invokeController(spec);
+        depl = client.getCreatedResource(Deployment.class).getResource();
+        Assert.assertEquals(depl.getSpec().getTemplate()
+                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-proxy"),
+                checksum1);
+        Assert.assertEquals(depl.getSpec().getTemplate()
+                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-proxy-ws"),
+                checksum1ws);
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    restartOnConfigMapChange: true
+                proxy:
+                    config:
+                        PULSAR_ROOT_LOG_LEVEL: debug
+                """;
+
+        client = invokeController(spec);
+        depl = client.getCreatedResource(Deployment.class).getResource();
+        final String checksum2 = depl.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-proxy");
+        Assert.assertNotNull(checksum2);
+        Assert.assertNotEquals(checksum1, checksum2);
+
+        final String checksum2ws = depl.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-proxy-ws");
+        Assert.assertNotNull(checksum2ws);
+        Assert.assertNotEquals(checksum1ws, checksum2ws);
+    }
+
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
                 "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));

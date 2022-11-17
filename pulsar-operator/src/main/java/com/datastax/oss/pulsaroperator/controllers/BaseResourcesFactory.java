@@ -3,9 +3,11 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -23,6 +25,7 @@ import io.fabric8.kubernetes.client.VersionInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
 public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
@@ -332,5 +335,24 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
                         done;
                         """.formatted(bkHostname))
                 .build();
+    }
+
+    protected Map<String, String> getDefaultAnnotations() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("prometheus.io/scrape", "true");
+        annotations.put("prometheus.io/port", "8080");
+        return annotations;
+    }
+
+    protected void addConfigMapChecksumAnnotation(ConfigMap configMap,
+                                                  Map<String, String> annotations) {
+        if (!global.getRestartOnConfigMapChange()) {
+            return;
+        }
+        String checksum = DigestUtils.sha256Hex(SerializationUtil.writeAsJsonBytes(configMap.getData()));
+        annotations.put(
+                "%s/configmap-%s".formatted(CRDConstants.GROUP, configMap.getMetadata().getName()),
+                checksum
+        );
     }
 }

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
@@ -252,6 +253,15 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .build()
         );
         List<Container> containers = new ArrayList<>();
+        if (spec.getService().getAdditionalPorts() != null) {
+            spec.getService().getAdditionalPorts()
+                    .stream()
+                    .map(s -> new ContainerPortBuilder()
+                            .withName(s.getName())
+                            .withContainerPort(s.getPort())
+                            .build())
+                    .forEachOrdered(p -> containerPorts.add(p));
+        }
         containers.add(
                 new ContainerBuilder()
                         .withName(resourceName)

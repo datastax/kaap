@@ -771,6 +771,26 @@ public class ProxyControllerTest {
         Assert.assertNull(service.getResource().getSpec().getClusterIP());
         Assert.assertEquals(service.getResource().getSpec().getType(), "ClusterIP");
         Assert.assertEquals(service.getResource().getSpec().getLoadBalancerIP(), "10.11.11.11");
+
+        final MockKubernetesClient.ResourceInteraction<Deployment> deployment =
+                client.getCreatedResource(Deployment.class);
+
+        Assert.assertEquals(
+                deployment.getResource()
+                        .getSpec()
+                        .getTemplate()
+                        .getSpec()
+                        .getContainers()
+                        .get(0)
+                        .getPorts()
+                        .stream()
+                        .filter(p -> p.getName().equals("myport1"))
+                        .findFirst()
+                        .get()
+                        .getContainerPort()
+                        .intValue(),
+                3333
+        );
     }
 
     @Test

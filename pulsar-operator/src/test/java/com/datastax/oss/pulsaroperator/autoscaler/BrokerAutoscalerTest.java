@@ -6,6 +6,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -23,6 +24,7 @@ import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsListBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.fabric8.mockwebserver.utils.BodyProvider;
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -66,6 +68,7 @@ public class BrokerAutoscalerTest {
             Object value;
         }
 
+        @SneakyThrows
         void start() {
             pulsarClusterSpec.getGlobal().applyDefaults(null);
             pulsarClusterSpec.getBroker().applyDefaults(pulsarClusterSpec.getGlobalSpec());
@@ -86,6 +89,10 @@ public class BrokerAutoscalerTest {
             final BrokerResourcesFactory brokerResourcesFactory =
                     new BrokerResourcesFactory(null, NAMESPACE, pulsarClusterSpec.getBroker(),
                             pulsarClusterSpec.getGlobal(), null);
+
+            final Field field = brokerResourcesFactory.getClass().getDeclaredField("configMap");
+            field.setAccessible(true);
+            field.set(brokerResourcesFactory, new ConfigMapBuilder().build());
             final StatefulSet sts = brokerResourcesFactory.generateStatefulSet();
             sts.setStatus(new StatefulSetStatusBuilder()
                     .withReadyReplicas(replicas)

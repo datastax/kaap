@@ -38,11 +38,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
 public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpec> {
+
+    private ConfigMap configMap;
 
     public ZooKeeperResourcesFactory(KubernetesClient client, String namespace,
                                      ZooKeeperSpec spec, GlobalSpec global,
@@ -168,6 +171,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withData(data)
                 .build();
         patchResource(configMap);
+        this.configMap = configMap;
     }
 
     public void patchStorageClass() {
@@ -189,9 +193,9 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         Map<String, String> labels = getLabels();
         Map<String, String> matchLabels = getMatchLabels();
-        Map<String, String> allAnnotations = new HashMap<>();
-        allAnnotations.put("prometheus.io/scrape", "true");
-        allAnnotations.put("prometheus.io/port", "8080");
+        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
+        addConfigMapChecksumAnnotation(configMap, allAnnotations);
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
@@ -51,6 +51,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     public static String getResourceName(GlobalSpec globalSpec) {
         return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
     }
+
+    private ConfigMap configMap;
+    private ConfigMap wsConfigMap;
 
     public ProxyResourcesFactory(KubernetesClient client, String namespace,
                                  ProxySpec spec, GlobalSpec global,
@@ -147,6 +150,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withData(data)
                 .build();
         patchResource(configMap);
+        this.configMap = configMap;
     }
 
     public void patchConfigMapWsConfig() {
@@ -170,9 +174,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
         }
-        if (!data.containsKey("webServicePort")) {
-            data.put("webServicePort", "8000");
-        }
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()
@@ -182,6 +183,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withData(data)
                 .build();
         patchResource(configMap);
+        this.wsConfigMap = configMap;
     }
 
 
@@ -193,9 +195,13 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             return;
         }
         Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = new HashMap<>();
-        allAnnotations.put("prometheus.io/scrape", "true");
-        allAnnotations.put("prometheus.io/port", "8080");
+        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
+        addConfigMapChecksumAnnotation(configMap, allAnnotations);
+        if (spec.getWebSocket().getEnabled()) {
+            Objects.requireNonNull(wsConfigMap, "WsConfigMap should have been created at this point");
+            addConfigMapChecksumAnnotation(wsConfigMap, allAnnotations);
+        }
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }

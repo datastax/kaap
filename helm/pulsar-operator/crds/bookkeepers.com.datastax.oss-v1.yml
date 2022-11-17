@@ -365,6 +365,10 @@ spec:
                           type: object
                         type: array
                     type: object
+                  restartOnConfigMapChange:
+                    description: |
+                      By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+                    type: boolean
                   image:
                     description: Default Pulsar image to use. Any components can be
                       configured to use a different image.

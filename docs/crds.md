@@ -834,6 +834,14 @@ The default value is 'cluster.local'.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>restartOnConfigMapChange</b></td>
+        <td>boolean</td>
+        <td>
+          By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#bookkeeperspecglobalstorage">storage</a></b></td>
         <td>object</td>
         <td>
@@ -2133,6 +2141,14 @@ The default value is 'cluster.local'.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>restartOnConfigMapChange</b></td>
+        <td>boolean</td>
+        <td>
+          By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#brokerspecglobalstorage">storage</a></b></td>
         <td>object</td>
         <td>
@@ -2723,6 +2739,14 @@ The default value is 'cluster.local'.
         <td>boolean</td>
         <td>
           If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartOnConfigMapChange</b></td>
+        <td>boolean</td>
+        <td>
+          By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
 <br/>
         </td>
         <td>false</td>
@@ -5238,6 +5262,14 @@ The default value is 'cluster.local'.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>restartOnConfigMapChange</b></td>
+        <td>boolean</td>
+        <td>
+          By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobalstorage">storage</a></b></td>
         <td>object</td>
         <td>
@@ -6950,6 +6982,14 @@ The default value is 'cluster.local'.
         <td>boolean</td>
         <td>
           If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartOnConfigMapChange</b></td>
+        <td>boolean</td>
+        <td>
+          By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
 <br/>
         </td>
         <td>false</td>

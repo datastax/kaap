@@ -139,10 +139,10 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 ownerReference
         );
 
-        if (clusterSpec.getBastion() == null ||
-                clusterSpec.getBastion().getTargetProxy() == null) {
-            boolean isProxyEnabled = clusterSpec.getProxy() != null &&
-                    clusterSpec.getProxy().getReplicas() > 0;
+        if (clusterSpec.getBastion() == null
+                || clusterSpec.getBastion().getTargetProxy() == null) {
+            boolean isProxyEnabled = clusterSpec.getProxy() != null
+                    && clusterSpec.getProxy().getReplicas() > 0;
             if (clusterSpec.getBastion() == null) {
                 clusterSpec.setBastion(BastionSpec.builder()
                         .targetProxy(isProxyEnabled)

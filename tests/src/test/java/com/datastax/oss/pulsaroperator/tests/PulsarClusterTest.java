@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.tests;
 
+import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
@@ -80,14 +81,16 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                         && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
         specs.getBookkeeper().setReplicas(3);
-        specs.getBroker().getConfig()
-                .putAll(
+        specs.getBroker().setConfig(
+                BaseComponentSpec.mergeMaps(
+                        specs.getBroker().getConfig(),
                         Map.of(
                                 "managedLedgerDefaultAckQuorum", "2",
                                 "managedLedgerDefaultEnsembleSize", "2",
                                 "managedLedgerDefaultWriteQuorum", "2"
                         )
-                );
+                )
+        );
         applyPulsarCluster(specsToYaml(specs));
 
         client.apps().statefulSets()

@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.crds.cluster;
 
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
@@ -41,6 +42,10 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     @Valid
     private ProxySpec proxy;
 
+    @ValidSpec
+    @Valid
+    private AutorecoverySpec autorecovery;
+
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
     }
@@ -56,6 +61,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
                 && zookeeper.isValid(value.getZookeeper(), context)
                 && bookkeeper.isValid(value.getBookkeeper(), context)
                 && broker.isValid(value.getBroker(), context)
-                && proxy.isValid(value.getProxy(), context);
+                && proxy.isValid(value.getProxy(), context)
+                && autorecovery.isValid(value.getAutorecovery(), context);
     }
 }

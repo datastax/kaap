@@ -46,7 +46,14 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.sundr</groupId>
+                    <artifactId>builder-annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-validator</artifactId>

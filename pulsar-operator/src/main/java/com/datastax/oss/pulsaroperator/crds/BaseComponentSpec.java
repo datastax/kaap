@@ -81,7 +81,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         }
     }
 
-    private Map<String, String> mergeMaps(Map<String, String> parent, Map<String, String> child) {
+    public static Map<String, String> mergeMaps(Map<String, String> parent, Map<String, String> child) {
         if (parent == null) {
             return child;
         }

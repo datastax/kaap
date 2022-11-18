@@ -40,6 +40,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         private String brokerBaseName;
         @JsonPropertyDescription("Proxy base name. Default value is 'proxy'.")
         private String proxyBaseName;
+        @JsonPropertyDescription("Autorecovery base name. Default value is 'autorecovery'.")
+        private String autorecoveryBaseName;
     }
 
     @Data
@@ -170,6 +172,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setBookkeeperBaseName(ObjectUtils.firstNonNull(components.getBookkeeperBaseName(), "bookkeeper"));
         components.setBrokerBaseName(ObjectUtils.firstNonNull(components.getBrokerBaseName(), "broker"));
         components.setProxyBaseName(ObjectUtils.firstNonNull(components.getProxyBaseName(), "proxy"));
+        components.setAutorecoveryBaseName(ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
     }
 
     @Override

@@ -45,3 +45,8 @@ spec:
       resources:
         requests:
           cpu: "0.3"
+  autorecovery:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "0.2"

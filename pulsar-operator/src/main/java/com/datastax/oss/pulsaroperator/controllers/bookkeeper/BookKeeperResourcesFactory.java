@@ -150,19 +150,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
         List<Container> initContainers = new ArrayList<>();
 
-        initContainers.add(new ContainerBuilder()
-                .withName("wait-zookeeper-ready")
-                .withImage(spec.getImage())
-                .withImagePullPolicy(spec.getImagePullPolicy())
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until bin/pulsar zookeeper-shell -server %s-%s ls /admin/clusters | grep "^\\[.*%s.*\\]"; do
-                            sleep 3;
-                        done;
-                        """.formatted(global.getName(),
-                        global.getComponents().getZookeeperBaseName(), global.getName()))
-                .build()
-        );
+        initContainers.add(createWaitZooKeeperReadyContainer(spec.getImage(), spec.getImagePullPolicy()));
         initContainers.add(new ContainerBuilder()
                 .withName("pulsar-bookkeeper-metaformat")
                 .withImage(spec.getImage())

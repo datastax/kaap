@@ -19,7 +19,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
     }
 
     @Override
-    protected void patchResources(ZooKeeper resource, Context context) throws Exception {
+    protected void patchResources(ZooKeeper resource, Context<ZooKeeper> context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final ZooKeeperFullSpec spec = resource.getSpec();
         final ZooKeeperResourcesFactory controller = new ZooKeeperResourcesFactory(

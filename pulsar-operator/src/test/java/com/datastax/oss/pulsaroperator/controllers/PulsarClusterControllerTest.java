@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -51,6 +52,7 @@ public class PulsarClusterControllerTest {
                       bookkeeperBaseName: bookkeeper
                       brokerBaseName: broker
                       proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -86,6 +88,7 @@ public class PulsarClusterControllerTest {
                       bookkeeperBaseName: bookkeeper
                       brokerBaseName: broker
                       proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -121,6 +124,7 @@ public class PulsarClusterControllerTest {
                     bookkeeperBaseName: bookkeeper
                     brokerBaseName: broker
                     proxyBaseName: proxy
+                    autorecoveryBaseName: autorecovery
                   kubernetesClusterDomain: cluster.local
                   tls:
                     enabled: false
@@ -157,6 +161,7 @@ public class PulsarClusterControllerTest {
                       bookkeeperBaseName: bookkeeper
                       brokerBaseName: broker
                       proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -171,6 +176,42 @@ public class PulsarClusterControllerTest {
                   ready: false
                 """);
 
+
+        Assert.assertEquals(client.getCreatedResource(Autorecovery.class).getResourceYaml(), """
+                ---
+                apiVersion: com.datastax.oss/v1alpha1
+                kind: Autorecovery
+                metadata:
+                  name: pulsarname-autorecovery
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: PulsarCluster
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsar-cluster
+                spec:
+                  global:
+                    name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
+                      proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
+                    kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
+                    persistence: true
+                    restartOnConfigMapChange: false
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    storage:
+                      existingStorageClassName: default
+                status:
+                  ready: false
+                """);
     }
 
     @SneakyThrows

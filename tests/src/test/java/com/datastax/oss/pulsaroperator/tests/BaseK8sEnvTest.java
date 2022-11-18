@@ -182,6 +182,8 @@ public abstract class BaseK8sEnvTest {
                         - brokers/status
                         - proxies
                         - proxies/status
+                        - autorecoveries
+                        - autorecoveries/status
                     verbs:
                         - "*"
                 ---

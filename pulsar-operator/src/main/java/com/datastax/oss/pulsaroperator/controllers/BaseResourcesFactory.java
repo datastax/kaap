@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
-import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
@@ -28,7 +27,7 @@ import java.util.Map;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
-public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
+public abstract class BaseResourcesFactory<T> {
 
     protected final KubernetesClient client;
     protected final String namespace;
@@ -320,14 +319,29 @@ public abstract class BaseResourcesFactory<T extends BaseComponentSpec<T>> {
         patchResource(pdbResource);
     }
 
-    protected Container createWaitBKReadyContainer() {
+    protected Container createWaitZooKeeperReadyContainer(String image, String imagePullPolicy) {
+        return new ContainerBuilder()
+                .withName("wait-zookeeper-ready")
+                .withImage(image)
+                .withImagePullPolicy(imagePullPolicy)
+                .withCommand("sh", "-c")
+                .withArgs("""
+                        until bin/pulsar zookeeper-shell -server %s-%s ls /admin/clusters | grep "^\\[.*%s.*\\]"; do
+                            sleep 3;
+                        done;
+                        """.formatted(global.getName(),
+                        global.getComponents().getZookeeperBaseName(), global.getName()))
+                .build();
+    }
+
+    protected Container createWaitBKReadyContainer(String image, String imagePullPolicy) {
         final String bkBaseName = global.getComponents().getBookkeeperBaseName();
         final String bkHostname = "%s-%s-%d.%s-%s.%s"
                 .formatted(global.getName(), bkBaseName, 0, global.getName(), bkBaseName, namespace);
         return new ContainerBuilder()
                 .withName("wait-bookkeeper-ready")
-                .withImage(spec.getImage())
-                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withImage(image)
+                .withImagePullPolicy(imagePullPolicy)
                 .withCommand("sh", "-c")
                 .withArgs("""
                         until nslookup %s; do

@@ -81,13 +81,13 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
         specs.getBookkeeper().setReplicas(3);
         specs.getBroker().getConfig()
-                        .putAll(
-                                Map.of(
-                                        "managedLedgerDefaultAckQuorum","2",
-                                        "managedLedgerDefaultEnsembleSize","2",
-                                        "managedLedgerDefaultWriteQuorum","2"
-                                )
-                        );
+                .putAll(
+                        Map.of(
+                                "managedLedgerDefaultAckQuorum", "2",
+                                "managedLedgerDefaultEnsembleSize", "2",
+                                "managedLedgerDefaultWriteQuorum", "2"
+                        )
+                );
         applyPulsarCluster(specsToYaml(specs));
 
         client.apps().statefulSets()

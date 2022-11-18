@@ -17,9 +17,14 @@ mvn package -DskipTests -Dquarkus.container-image.push=true -pl pulsar-operator
 ```
 
 ### Helm deployment
-Install the operator and the CRDs
+### Note: tested with K8s 1.25
+Install the operator and the CRDs with monitoring
 ```
-helm install pos helm/pulsar-operator -n mypulsar
+helm dependency build helm/pulsar-operator
+helm install -n mypulsar --create-namespace pos helm/pulsar-operator \
+    --set kube-prometheus-stack.enabled=true \
+    --set grafanaDashboards.enabled=true \
+    --set kube-prometheus-stack.grafana.adminPassword=grafana
 ```
 
 Install a Pulsar cluster Custom Resource

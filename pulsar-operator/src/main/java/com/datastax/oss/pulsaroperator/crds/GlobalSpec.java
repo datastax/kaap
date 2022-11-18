@@ -42,6 +42,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         private String proxyBaseName;
         @JsonPropertyDescription("Autorecovery base name. Default value is 'autorecovery'.")
         private String autorecoveryBaseName;
+        @JsonPropertyDescription("Bastion base name. Default value is 'bastion'.")
+        private String bastionBaseName;
     }
 
     @Data
@@ -59,6 +61,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         TlsEntryConfig bookkeeper;
         @JsonPropertyDescription("TLS configurations related to the broker component.")
         TlsEntryConfig broker;
+        @JsonPropertyDescription("TLS configurations related to the proxy component.")
+        TlsEntryConfig proxy;
     }
 
     @Data
@@ -173,6 +177,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setBrokerBaseName(ObjectUtils.firstNonNull(components.getBrokerBaseName(), "broker"));
         components.setProxyBaseName(ObjectUtils.firstNonNull(components.getProxyBaseName(), "proxy"));
         components.setAutorecoveryBaseName(ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
+        components.setBastionBaseName(ObjectUtils.firstNonNull(components.getBastionBaseName(), "bastion"));
     }
 
     @Override

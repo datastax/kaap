@@ -132,8 +132,15 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected boolean isTlsEnabledOnBroker() {
-        // TODO: update when implementing brokers
-        return isTlsEnabledGlobally();
+        return isTlsEnabledGlobally()
+                && global.getTls().getBroker() != null
+                && global.getTls().getBroker().isEnabled();
+    }
+
+    protected boolean isTlsEnabledOnProxy() {
+        return isTlsEnabledGlobally()
+                && global.getTls().getProxy() != null
+                && global.getTls().getProxy().isEnabled();
     }
 
     protected String getServiceDnsSuffix() {
@@ -189,6 +196,48 @@ public abstract class BaseResourcesFactory<T> {
         return getBrokerServiceUrl(false);
     }
 
+
+    private String getProxyServiceUrl(boolean tls) {
+        return "%s://%s-%s.%s:%d/".formatted(
+                tls ? "pulsar+ssl" : "pulsar",
+                global.getName(),
+                global.getComponents().getProxyBaseName(),
+                getServiceDnsSuffix(), tls ? 6651 : 6650);
+    }
+
+    protected String getProxyServiceUrl() {
+        final boolean tls = isTlsEnabledOnProxy();
+        return getProxyServiceUrl(tls);
+    }
+
+    protected String getProxyServiceUrlTls() {
+        return getProxyServiceUrl(true);
+    }
+
+    protected String getProxyServiceUrlPlain() {
+        return getProxyServiceUrl(false);
+    }
+
+    private String getProxyWebServiceUrl(boolean tls) {
+        return "%s://%s-%s.%s:%d/".formatted(
+                tls ? "https" : "http",
+                global.getName(),
+                global.getComponents().getProxyBaseName(),
+                getServiceDnsSuffix(), tls ? 8443 : 8080);
+    }
+
+    protected String getProxyWebServiceUrl() {
+        final boolean tls = isTlsEnabledOnProxy();
+        return getProxyWebServiceUrl(tls);
+    }
+
+    protected String getProxyWebServiceUrlTls() {
+        return getProxyWebServiceUrl(true);
+    }
+
+    protected String getProxyWebServiceUrlPlain() {
+        return getProxyWebServiceUrl(false);
+    }
 
     protected String getTlsSecretNameForZookeeper() {
         final String name = global.getTls().getZookeeper() == null

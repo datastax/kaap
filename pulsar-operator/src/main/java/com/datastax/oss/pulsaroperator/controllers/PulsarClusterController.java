@@ -4,6 +4,9 @@ import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
+import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
+import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
+import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
@@ -41,6 +44,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     public static final String CUSTOM_RESOURCE_ZOOKEEPER = "zookeeper";
     public static final String CUSTOM_RESOURCE_PROXY = "proxy";
     public static final String CUSTOM_RESOURCE_AUTORECOVERY = "autorecovery";
+    public static final String CUSTOM_RESOURCE_BASTION = "bastion";
 
     private final AutoscalerDaemon autoscaler;
 
@@ -129,6 +133,28 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 ProxyFullSpec.builder()
                         .global(clusterSpec.getGlobal())
                         .proxy(clusterSpec.getProxy())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+
+        if (clusterSpec.getBastion() == null ||
+                clusterSpec.getBastion().getTargetProxy() == null) {
+            boolean isProxyEnabled = clusterSpec.getProxy() != null &&
+                    clusterSpec.getProxy().getReplicas() > 0;
+            if (clusterSpec.getBastion() == null) {
+                clusterSpec.setBastion(BastionSpec.builder()
+                        .targetProxy(isProxyEnabled)
+                        .build()
+                );
+            }
+        }
+        patchCustomResource(CUSTOM_RESOURCE_BASTION,
+                Bastion.class,
+                BastionFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .bastion(clusterSpec.getBastion())
                         .build(),
                 currentNamespace,
                 clusterSpec,

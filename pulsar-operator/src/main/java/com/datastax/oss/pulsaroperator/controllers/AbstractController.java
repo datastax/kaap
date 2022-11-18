@@ -4,6 +4,7 @@ import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
+import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
@@ -60,7 +61,8 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 BookKeeperSpec.class,
                 BrokerSpec.class,
                 ProxySpec.class,
-                AutorecoverySpec.class
+                AutorecoverySpec.class,
+                BastionSpec.class
         ));
         return configuration.buildValidatorFactory().getValidator();
     }

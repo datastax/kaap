@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.tests;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
+import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -62,6 +63,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         Assert.assertTrue(crds.contains("brokers.com.datastax.oss"));
         Assert.assertTrue(crds.contains("proxies.com.datastax.oss"));
         Assert.assertTrue(crds.contains("autorecoveries.com.datastax.oss"));
+        Assert.assertTrue(crds.contains("bastions.com.datastax.oss"));
         Assert.assertTrue(crds.contains("pulsarclusters.com.datastax.oss"));
     }
 
@@ -220,6 +222,10 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .replicas(1)
                 .resources(resources)
                 .build());
+        defaultSpecs.setBastion(BastionSpec.builder()
+                .replicas(1)
+                .resources(resources)
+                .build());
         return defaultSpecs;
     }
 
@@ -253,6 +259,8 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         awaitBookKeeperRunning();
         awaitBrokerRunning();
         awaitProxyRunning();
+        awaitAutorecoveryRunning();
+        awaitBastionRunning();
     }
 
     private void awaitZooKeeperRunning() {
@@ -380,6 +388,27 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         client.apps().deployments()
                 .inNamespace(namespace)
                 .withName("pulsar-autorecovery")
+                .waitUntilReady(90, TimeUnit.SECONDS);
+
+    }
+
+
+    private void awaitBastionRunning() {
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            Assert.assertEquals(client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("component", "bastion").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("component", "bastion").list().getItems().size(), 1);
+            Assert.assertEquals(client.apps().deployments()
+                    .inNamespace(namespace)
+                    .withLabel("component", "bastion").list().getItems().size(), 1);
+        });
+
+        client.apps().deployments()
+                .inNamespace(namespace)
+                .withName("pulsar-bastion")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
     }

@@ -253,6 +253,8 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
+                  bastion:
+                    targetProxy: false
                 status:
                   ready: false
                 """);

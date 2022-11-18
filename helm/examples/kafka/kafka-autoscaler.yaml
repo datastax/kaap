@@ -1,0 +1,56 @@
+apiVersion: com.datastax.oss/v1alpha1
+kind: PulsarCluster
+metadata:
+  name: pulsar-cluster
+spec:
+  global:
+    name: pulsar
+    image: datastax/lunastreaming-all:2.10_2.4
+    storage:
+      existingStorageClassName: default
+  zookeeper:
+    replicas: 3
+  bookkeeper:
+    replicas: 3
+  broker:
+    replicas: 3
+    autoscaler:
+      enabled: true
+      periodMs: 20000
+      min: 3
+      max: 10
+      lowerCpuThreshold: 0.1
+      higherCpuThreshold: 0.4
+      scaleUpBy: 1
+      scaleDownBy: 1
+      stabilizationWindowMs: 300000
+    config:
+        PULSAR_PREFIX_brokerEntryMetadataInterceptors: "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common.intercept.AppendBrokerTimestampMetadataInterceptor"
+        PULSAR_PREFIX_protocolHandlerDirectory: "./protocols"
+        PULSAR_PREFIX_messagingProtocols: "kafka"
+        PULSAR_PREFIX_brokerDeleteInactiveTopicsEnabled: "false"
+        PULSAR_PREFIX_kopSchemaRegistryEnable: "true"
+        PULSAR_PREFIX_allowAutoTopicCreationType: "partitioned"
+        PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled: "true"
+        PULSAR_PREFIX_kafkaNamespace: "kafka"
+        PULSAR_PREFIX_kafkaListeners: "PLAINTEXT://0.0.0.0:9092"
+        PULSAR_PREFIX_kafkaAdvertisedListeners: "PLAINTEXT://advertisedAddress:9092"
+        PULSAR_PREFIX_kopSchemaRegistryEnableTls: "false"
+  proxy:
+    replicas: 1
+    config  :
+      PULSAR_PREFIX_kopSchemaRegistryEnable: "true"
+      PULSAR_PREFIX_kopSchemaRegistryProxyPort: "8081"
+      PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled: "true"
+      PULSAR_PREFIX_kafkaNamespace: "kafka"
+      PULSAR_PREFIX_kopSchemaRegistryProxyEnableTls: "false"
+      PULSAR_PREFIX_kafkaListeners: "PLAINTEXT://0.0.0.0:9092"
+      PULSAR_PREFIX_kafkaAdvertisedListeners: "PLAINTEXT://pulsar-proxy:9092"
+      PULSAR_PREFIX_proxyExtensions: "kafka"
+    service:
+        type: ClusterIP
+        additionalPorts:
+        - name: kafkaplaintext
+          port: 9092
+          protocol: TCP
+          targetPort: kafkaplaintext

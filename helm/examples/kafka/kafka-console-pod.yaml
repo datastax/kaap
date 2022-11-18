@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kakfa-client
+  labels:
+    role: kafka-client
+spec:
+  containers:
+    - name: kclient
+      image: confluentinc/cp-kafka
+      command: ["/bin/sh"]
+      args: ["-c", "while true; do echo hello; sleep 1000;done"]

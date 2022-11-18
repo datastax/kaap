@@ -867,6 +867,56 @@ spec:
                     description: Configuration entries directly passed to this component.
                     type: object
                 type: object
+              autorecovery:
+                properties:
+                  gracePeriod:
+                    description: Termination grace period in seconds for the Autorecovery
+                      pod. Default value is 60.
+                    minimum: 0.0
+                    type: integer
+                  replicas:
+                    description: Replicas of this component.
+                    type: integer
+                  image:
+                    description: Pulsar image to use for this component.
+                    type: string
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: Additional node selectors for this component.
+                    type: object
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each Autorecovery resource.
+                    type: object
+                  resources:
+                    description: Resource requirements for the Autorecovery container.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  imagePullPolicy:
+                    description: Pulsar image pull policy to use for this component.
+                    type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
+                type: object
               global:
                 properties:
                   storage:
@@ -917,6 +967,9 @@ spec:
                         type: string
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
+                        type: string
+                      autorecoveryBaseName:
+                        description: Autorecovery base name. Default value is 'autorecovery'.
                         type: string
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.

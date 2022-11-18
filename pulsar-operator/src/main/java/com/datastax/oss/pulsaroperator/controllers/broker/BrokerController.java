@@ -19,7 +19,7 @@ public class BrokerController extends AbstractController<Broker> {
     }
 
     @Override
-    protected void patchResources(Broker resource, Context context) throws Exception {
+    protected void patchResources(Broker resource, Context<Broker> context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final BrokerFullSpec spec = resource.getSpec();
 

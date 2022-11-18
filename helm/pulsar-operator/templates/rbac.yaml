@@ -87,6 +87,8 @@ rules:
         - brokers/status
         - proxies
         - proxies/status
+        - autorecoveries
+        - autorecoveries/status
     verbs:
         - "*"
 ---

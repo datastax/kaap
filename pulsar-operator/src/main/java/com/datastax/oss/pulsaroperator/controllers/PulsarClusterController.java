@@ -2,6 +2,8 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
+import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
@@ -38,6 +40,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     public static final String CUSTOM_RESOURCE_BOOKKEEPER = "bookkeeper";
     public static final String CUSTOM_RESOURCE_ZOOKEEPER = "zookeeper";
     public static final String CUSTOM_RESOURCE_PROXY = "proxy";
+    public static final String CUSTOM_RESOURCE_AUTORECOVERY = "autorecovery";
 
     private final AutoscalerDaemon autoscaler;
 
@@ -72,6 +75,17 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 BookKeeperFullSpec.builder()
                         .global(clusterSpec.getGlobal())
                         .bookkeeper(clusterSpec.getBookkeeper())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+
+        patchCustomResource(CUSTOM_RESOURCE_AUTORECOVERY,
+                Autorecovery.class,
+                AutorecoveryFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .autorecovery(clusterSpec.getAutorecovery())
                         .build(),
                 currentNamespace,
                 clusterSpec,

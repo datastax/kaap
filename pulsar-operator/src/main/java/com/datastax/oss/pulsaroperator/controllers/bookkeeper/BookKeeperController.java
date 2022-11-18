@@ -19,7 +19,7 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
     }
 
     @Override
-    protected void patchResources(BookKeeper resource, Context context) throws Exception {
+    protected void patchResources(BookKeeper resource, Context<BookKeeper> context) throws Exception {
         final String namespace = resource.getMetadata().getNamespace();
         final BookKeeperFullSpec spec = resource.getSpec();
 

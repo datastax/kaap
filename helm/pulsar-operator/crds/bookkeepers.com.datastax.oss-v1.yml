@@ -295,6 +295,9 @@ spec:
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
                         type: string
+                      autorecoveryBaseName:
+                        description: Autorecovery base name. Default value is 'autorecovery'.
+                        type: string
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.
                         type: string

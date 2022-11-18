@@ -1,4 +1,10 @@
 ---
 apiVersion: v1
 name: pulsar-operator
+description: Operator for managing Apache Pulsar on Kubernetes
 version: 0.0.1-SNAPSHOT
+dependencies:
+  - name: kube-prometheus-stack
+    version: 41.x.x
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled

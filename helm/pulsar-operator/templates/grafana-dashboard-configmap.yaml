@@ -1,0 +1,15 @@
+{{- if .Values.grafanaDashboards.enabled -}}
+{{ range $path, $_ :=  .Files.Glob "grafana-dashboards/**.json" }}
+  {{- $name := (base $path) | replace (ext $path) "" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ (printf "dashboard-%s" $name) | quote }}
+  labels:
+    grafana_dashboard: "1"
+    grafana_dashboard_folder: "pulsar"
+data:
+{{ ($.Files.Glob $path).AsConfig | indent 2 }}
+---
+{{ end }}
+{{ end }}

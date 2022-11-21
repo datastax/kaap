@@ -244,6 +244,60 @@ spec:
                     description: Configuration entries directly passed to this component.
                     type: object
                 type: object
+              bastion:
+                properties:
+                  gracePeriod:
+                    description: Termination grace period in seconds for the Autorecovery
+                      pod. Default value is 60.
+                    minimum: 0.0
+                    type: integer
+                  replicas:
+                    description: Replicas of this component.
+                    type: integer
+                  image:
+                    description: Pulsar image to use for this component.
+                    type: string
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: Additional node selectors for this component.
+                    type: object
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each Autorecovery resource.
+                    type: object
+                  resources:
+                    description: Resource requirements for the Autorecovery container.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  targetProxy:
+                    description: Indicates to connect to proxy or the broker. The
+                      default value depends whether Proxy is deployed or not.
+                    type: boolean
+                  imagePullPolicy:
+                    description: Pulsar image pull policy to use for this component.
+                    type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
+                type: object
               broker:
                 properties:
                   service:
@@ -974,6 +1028,9 @@ spec:
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.
                         type: string
+                      bastionBaseName:
+                        description: Bastion base name. Default value is 'bastion'.
+                        type: string
                       proxyBaseName:
                         description: Proxy base name. Default value is 'proxy'.
                         type: string
@@ -986,6 +1043,16 @@ spec:
                         type: string
                       broker:
                         description: TLS configurations related to the broker component.
+                        properties:
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                          tlsSecretName:
+                            description: Enable certificates for this component.
+                            type: string
+                        type: object
+                      proxy:
+                        description: TLS configurations related to the proxy component.
                         properties:
                           enabled:
                             description: Enable tls for this component.

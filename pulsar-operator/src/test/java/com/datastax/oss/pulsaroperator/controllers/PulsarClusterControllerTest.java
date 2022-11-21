@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
+import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -53,6 +54,7 @@ public class PulsarClusterControllerTest {
                       brokerBaseName: broker
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -63,6 +65,32 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
+                  zookeeper:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 3
+                    probe:
+                      enabled: true
+                      timeout: 30
+                      initial: 20
+                      period: 30
+                    pdb:
+                      enabled: true
+                      maxUnavailable: 1
+                    podManagementPolicy: Parallel
+                    updateStrategy:
+                      type: RollingUpdate
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 0.3
+                        memory: 1Gi
+                    dataVolume:
+                      name: data
+                      size: 5Gi
+                      existingStorageClassName: default
+                    metadataInitializationJob:
+                      timeout: 60
                 status:
                   ready: false
                 """);
@@ -89,6 +117,7 @@ public class PulsarClusterControllerTest {
                       brokerBaseName: broker
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -99,44 +128,107 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
+                  bookkeeper:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 3
+                    probe:
+                      enabled: true
+                      timeout: 5
+                      initial: 10
+                      period: 30
+                    pdb:
+                      enabled: true
+                      maxUnavailable: 1
+                    updateStrategy:
+                      type: RollingUpdate
+                    podManagementPolicy: Parallel
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 1
+                        memory: 2Gi
+                    volumes:
+                      journal:
+                        name: journal
+                        size: 20Gi
+                        existingStorageClassName: default
+                      ledgers:
+                        name: ledgers
+                        size: 50Gi
+                        existingStorageClassName: default
                 status:
                   ready: false
                 """);
 
         Assert.assertEquals(client.getCreatedResource(Broker.class).getResourceYaml(), """
-              ---
-              apiVersion: com.datastax.oss/v1alpha1
-              kind: Broker
-              metadata:
-                name: pulsarname-broker
-                namespace: ns
-                ownerReferences:
-                - apiVersion: com.datastax.oss/v1alpha1
-                  kind: PulsarCluster
-                  blockOwnerDeletion: true
-                  controller: true
-                  name: pulsar-cluster
-              spec:
-                global:
-                  name: pulsarname
-                  components:
-                    zookeeperBaseName: zookeeper
-                    bookkeeperBaseName: bookkeeper
-                    brokerBaseName: broker
-                    proxyBaseName: proxy
-                    autorecoveryBaseName: autorecovery
-                  kubernetesClusterDomain: cluster.local
-                  tls:
-                    enabled: false
-                    defaultSecretName: pulsar-tls
-                  persistence: true
-                  restartOnConfigMapChange: false
-                  image: apachepulsar/pulsar:2.10.2
-                  imagePullPolicy: IfNotPresent
-                  storage:
-                    existingStorageClassName: default
-              status:
-                ready: false
+                ---
+                apiVersion: com.datastax.oss/v1alpha1
+                kind: Broker
+                metadata:
+                  name: pulsarname-broker
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: PulsarCluster
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsar-cluster
+                spec:
+                  global:
+                    name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
+                      proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
+                    kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
+                    persistence: true
+                    restartOnConfigMapChange: false
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    storage:
+                      existingStorageClassName: default
+                  broker:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 3
+                    probe:
+                      enabled: true
+                      timeout: 5
+                      initial: 10
+                      period: 30
+                    pdb:
+                      enabled: true
+                      maxUnavailable: 1
+                    functionsWorkerEnabled: false
+                    webSocketServiceEnabled: false
+                    transactions:
+                      enabled: false
+                      partitions: 16
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 1
+                        memory: 2Gi
+                    service:
+                      type: ClusterIP
+                    autoscaler:
+                      enabled: false
+                      periodMs: 10000
+                      min: 1
+                      lowerCpuThreshold: 0.3
+                      higherCpuThreshold: 0.8
+                      scaleUpBy: 1
+                      scaleDownBy: 1
+                      stabilizationWindowMs: 300000
+                status:
+                  ready: false
                 """);
 
 
@@ -162,6 +254,7 @@ public class PulsarClusterControllerTest {
                       brokerBaseName: broker
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -172,10 +265,40 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
+                  proxy:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 3
+                    probe:
+                      enabled: true
+                      timeout: 5
+                      initial: 10
+                      period: 30
+                    pdb:
+                      enabled: true
+                      maxUnavailable: 1
+                    updateStrategy:
+                      rollingUpdate:
+                        maxSurge: 1
+                        maxUnavailable: 0
+                      type: RollingUpdate
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 1
+                        memory: 1Gi
+                    service:
+                      type: LoadBalancer
+                      enablePlainTextWithTLS: false
+                    webSocket:
+                      enabled: true
+                      resources:
+                        requests:
+                          cpu: 1
+                          memory: 1Gi
                 status:
                   ready: false
                 """);
-
 
         Assert.assertEquals(client.getCreatedResource(Autorecovery.class).getResourceYaml(), """
                 ---
@@ -199,6 +322,7 @@ public class PulsarClusterControllerTest {
                       brokerBaseName: broker
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -209,6 +333,63 @@ public class PulsarClusterControllerTest {
                     imagePullPolicy: IfNotPresent
                     storage:
                       existingStorageClassName: default
+                  autorecovery:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 1
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 0.3
+                        memory: 512Mi
+                status:
+                  ready: false
+                """);
+
+
+        Assert.assertEquals(client.getCreatedResource(Bastion.class).getResourceYaml(), """
+                ---
+                apiVersion: com.datastax.oss/v1alpha1
+                kind: Bastion
+                metadata:
+                  name: pulsarname-bastion
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: PulsarCluster
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsar-cluster
+                spec:
+                  global:
+                    name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
+                      proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
+                    kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
+                    persistence: true
+                    restartOnConfigMapChange: false
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    storage:
+                      existingStorageClassName: default
+                  bastion:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 1
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 0.25
+                        memory: 256Mi
+                    targetProxy: true
                 status:
                   ready: false
                 """);

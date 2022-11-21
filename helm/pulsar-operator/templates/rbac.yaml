@@ -89,6 +89,8 @@ rules:
         - proxies/status
         - autorecoveries
         - autorecoveries/status
+        - bastions
+        - bastions/status
     verbs:
         - "*"
 ---

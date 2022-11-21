@@ -10,6 +10,8 @@ Resource Types:
 
 - [Autorecovery](#autorecovery)
 
+- [Bastion](#bastion)
+
 - [BookKeeper](#bookkeeper)
 
 - [Broker](#broker)
@@ -350,6 +352,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>bookkeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -590,6 +599,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#autorecoveryspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#autorecoveryspecglobaltlszookeeper">zookeeper</a></b></td>
         <td>object</td>
         <td>
@@ -668,6 +684,40 @@ TLS configurations related to the broker component.
 </table>
 
 
+### Autorecovery.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#autorecoveryspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### Autorecovery.spec.global.tls.zookeeper
 <sup><sup>[↩ Parent](#autorecoveryspecglobaltls)</sup></sup>
 
@@ -704,6 +754,782 @@ TLS configurations related to the ZooKeeper component.
 
 ### Autorecovery.status
 <sup><sup>[↩ Parent](#autorecovery)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>message</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>ready</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reason</b></td>
+        <td>enum</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+## Bastion
+<sup><sup>[↩ Parent](#comdatastaxossv1alpha1 )</sup></sup>
+
+
+
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+      <td><b>apiVersion</b></td>
+      <td>string</td>
+      <td>com.datastax.oss/v1alpha1</td>
+      <td>true</td>
+      </tr>
+      <tr>
+      <td><b>kind</b></td>
+      <td>string</td>
+      <td>Bastion</td>
+      <td>true</td>
+      </tr>
+      <tr>
+      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta">metadata</a></b></td>
+      <td>object</td>
+      <td>Refer to the Kubernetes API documentation for the fields of the `metadata` field.</td>
+      <td>true</td>
+      </tr><tr>
+        <td><b><a href="#bastionspec">spec</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionstatus">status</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec
+<sup><sup>[↩ Parent](#bastion)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#bastionspecbastion">bastion</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobal">global</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.bastion
+<sup><sup>[↩ Parent](#bastionspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to each Autorecovery resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>config</b></td>
+        <td>map[string]string</td>
+        <td>
+          Configuration entries directly passed to this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gracePeriod</b></td>
+        <td>integer</td>
+        <td>
+          Termination grace period in seconds for the Autorecovery pod. Default value is 60.<br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image pull policy to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelectors</b></td>
+        <td>map[string]string</td>
+        <td>
+          Additional node selectors for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>replicas</b></td>
+        <td>integer</td>
+        <td>
+          Replicas of this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecbastionresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the Autorecovery container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>targetProxy</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates to connect to proxy or the broker. The default value depends whether Proxy is deployed or not.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.bastion.resources
+<sup><sup>[↩ Parent](#bastionspecbastion)</sup></sup>
+
+
+
+Resource requirements for the Autorecovery container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global
+<sup><sup>[↩ Parent](#bastionspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Pulsar cluster base name.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalcomponents">components</a></b></td>
+        <td>object</td>
+        <td>
+          Pulsar cluster components names.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobaldnsconfig">dnsConfig</a></b></td>
+        <td>object</td>
+        <td>
+          Additional DNS config for each pod created by the operator.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Default Pulsar image to use. Any components can be configured to use a different image.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Default Pulsar image pull policy to use. Any components can be configured to use a different image pull policy. Default value is 'IfNotPresent'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>kubernetesClusterDomain</b></td>
+        <td>string</td>
+        <td>
+          The domain name for your kubernetes cluster.
+This domain is documented here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#a-aaaa-records-1 .
+It's used to fully qualify service names when configuring Pulsar.
+The default value is 'cluster.local'.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelectors</b></td>
+        <td>map[string]string</td>
+        <td>
+          Global node selector. If set, this will apply to all components.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>persistence</b></td>
+        <td>boolean</td>
+        <td>
+          If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartOnConfigMapChange</b></td>
+        <td>boolean</td>
+        <td>
+          By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalstorage">storage</a></b></td>
+        <td>object</td>
+        <td>
+          Storage configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobaltls">tls</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.components
+<sup><sup>[↩ Parent](#bastionspecglobal)</sup></sup>
+
+
+
+Pulsar cluster components names.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>autorecoveryBaseName</b></td>
+        <td>string</td>
+        <td>
+          Autorecovery base name. Default value is 'autorecovery'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>bookkeeperBaseName</b></td>
+        <td>string</td>
+        <td>
+          BookKeeper base name. Default value is 'bookkeeper'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>brokerBaseName</b></td>
+        <td>string</td>
+        <td>
+          Broker base name. Default value is 'broker'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyBaseName</b></td>
+        <td>string</td>
+        <td>
+          Proxy base name. Default value is 'proxy'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>zookeeperBaseName</b></td>
+        <td>string</td>
+        <td>
+          Zookeeper base name. Default value is 'zookeeper'.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.dnsConfig
+<sup><sup>[↩ Parent](#bastionspecglobal)</sup></sup>
+
+
+
+Additional DNS config for each pod created by the operator.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>nameservers</b></td>
+        <td>[]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobaldnsconfigoptionsindex">options</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>searches</b></td>
+        <td>[]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.dnsConfig.options[index]
+<sup><sup>[↩ Parent](#bastionspecglobaldnsconfig)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.storage
+<sup><sup>[↩ Parent](#bastionspecglobal)</sup></sup>
+
+
+
+Storage configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>existingStorageClassName</b></td>
+        <td>string</td>
+        <td>
+          Indicates if an already existing storage class should be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalstoragestorageclass">storageClass</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if a StorageClass is used. The operator will create the StorageClass if needed.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.storage.storageClass
+<sup><sup>[↩ Parent](#bastionspecglobalstorage)</sup></sup>
+
+
+
+Indicates if a StorageClass is used. The operator will create the StorageClass if needed.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>extraParams</b></td>
+        <td>map[string]string</td>
+        <td>
+          Adds extra parameters for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          Indicates the 'fsType' parameter for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>provisioner</b></td>
+        <td>string</td>
+        <td>
+          Indicates the provisioner property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reclaimPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Indicates the 'type' parameter for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.tls
+<sup><sup>[↩ Parent](#bastionspecglobal)</sup></sup>
+
+
+
+TLS configuration for the cluster.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#bastionspecglobaltlsbookkeeper">bookkeeper</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the BookKeeper component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobaltlsbroker">broker</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the broker component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>defaultSecretName</b></td>
+        <td>string</td>
+        <td>
+          Default secret name.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Global switch to turn on or off the TLS configurations.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobaltlszookeeper">zookeeper</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the ZooKeeper component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.tls.bookkeeper
+<sup><sup>[↩ Parent](#bastionspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the BookKeeper component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.tls.broker
+<sup><sup>[↩ Parent](#bastionspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#bastionspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.tls.zookeeper
+<sup><sup>[↩ Parent](#bastionspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the ZooKeeper component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.status
+<sup><sup>[↩ Parent](#bastion)</sup></sup>
 
 
 
@@ -1606,6 +2432,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>bookkeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -1846,6 +2679,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#bookkeeperspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#bookkeeperspecglobaltlszookeeper">zookeeper</a></b></td>
         <td>object</td>
         <td>
@@ -1896,6 +2736,40 @@ TLS configurations related to the BookKeeper component.
 
 
 TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#bookkeeperspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
 
 <table>
     <thead>
@@ -2920,6 +3794,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>bookkeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -3160,6 +4041,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#brokerspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#brokerspecglobaltlszookeeper">zookeeper</a></b></td>
         <td>object</td>
         <td>
@@ -3210,6 +4098,40 @@ TLS configurations related to the BookKeeper component.
 
 
 TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#brokerspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
 
 <table>
     <thead>
@@ -3529,6 +4451,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>bookkeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -3769,6 +4698,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#proxyspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#proxyspecglobaltlszookeeper">zookeeper</a></b></td>
         <td>object</td>
         <td>
@@ -3819,6 +4755,40 @@ TLS configurations related to the BookKeeper component.
 
 
 TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#proxyspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
 
 <table>
     <thead>
@@ -4545,6 +5515,13 @@ Resource requirements for the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastion">bastion</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeper">bookkeeper</a></b></td>
         <td>object</td>
         <td>
@@ -4663,6 +5640,125 @@ Resource requirements for the pod.
 
 ### PulsarCluster.spec.autorecovery.resources
 <sup><sup>[↩ Parent](#pulsarclusterspecautorecovery)</sup></sup>
+
+
+
+Resource requirements for the Autorecovery container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion
+<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to each Autorecovery resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>config</b></td>
+        <td>map[string]string</td>
+        <td>
+          Configuration entries directly passed to this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gracePeriod</b></td>
+        <td>integer</td>
+        <td>
+          Termination grace period in seconds for the Autorecovery pod. Default value is 60.<br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Pulsar image pull policy to use for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelectors</b></td>
+        <td>map[string]string</td>
+        <td>
+          Additional node selectors for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>replicas</b></td>
+        <td>integer</td>
+        <td>
+          Replicas of this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the Autorecovery container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>targetProxy</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates to connect to proxy or the broker. The default value depends whether Proxy is deployed or not.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.resources
+<sup><sup>[↩ Parent](#pulsarclusterspecbastion)</sup></sup>
 
 
 
@@ -6174,6 +7270,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>bookkeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -6414,6 +7517,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlszookeeper">zookeeper</a></b></td>
         <td>object</td>
         <td>
@@ -6464,6 +7574,40 @@ TLS configurations related to the BookKeeper component.
 
 
 TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#pulsarclusterspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
 
 <table>
     <thead>
@@ -7905,6 +9049,13 @@ Pulsar cluster components names.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>bastionBaseName</b></td>
+        <td>string</td>
+        <td>
+          Bastion base name. Default value is 'bastion'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>bookkeeperBaseName</b></td>
         <td>string</td>
         <td>
@@ -8145,6 +9296,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#zookeeperspecglobaltlsproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#zookeeperspecglobaltlszookeeper">zookeeper</a></b></td>
         <td>object</td>
         <td>
@@ -8195,6 +9353,40 @@ TLS configurations related to the BookKeeper component.
 
 
 TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tlsSecretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.spec.global.tls.proxy
+<sup><sup>[↩ Parent](#zookeeperspecglobaltls)</sup></sup>
+
+
+
+TLS configurations related to the proxy component.
 
 <table>
     <thead>

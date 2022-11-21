@@ -308,6 +308,9 @@ spec:
                       bookkeeperBaseName:
                         description: BookKeeper base name. Default value is 'bookkeeper'.
                         type: string
+                      bastionBaseName:
+                        description: Bastion base name. Default value is 'bastion'.
+                        type: string
                       proxyBaseName:
                         description: Proxy base name. Default value is 'proxy'.
                         type: string
@@ -320,6 +323,16 @@ spec:
                         type: string
                       broker:
                         description: TLS configurations related to the broker component.
+                        properties:
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                          tlsSecretName:
+                            description: Enable certificates for this component.
+                            type: string
+                        type: object
+                      proxy:
+                        description: TLS configurations related to the proxy component.
                         properties:
                           enabled:
                             description: Enable tls for this component.

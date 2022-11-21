@@ -148,6 +148,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                         .targetProxy(isProxyEnabled)
                         .build()
                 );
+            } else {
+                clusterSpec.getBastion().setTargetProxy(isProxyEnabled);
             }
         }
         patchCustomResource(CUSTOM_RESOURCE_BASTION,

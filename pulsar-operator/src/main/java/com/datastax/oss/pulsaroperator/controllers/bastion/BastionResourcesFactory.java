@@ -44,8 +44,9 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
     public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
-        final String brokerServiceUrl = spec.getTargetProxy() ? getProxyServiceUrl() : getBrokerServiceUrl();
-        final String webServiceUrl = spec.getTargetProxy() ? getProxyWebServiceUrl() : getBrokerWebServiceUrl();
+        boolean targetProxy = spec.getTargetProxy() != null && spec.getTargetProxy();
+        final String brokerServiceUrl = targetProxy ? getProxyServiceUrl() : getBrokerServiceUrl();
+        final String webServiceUrl = targetProxy ? getProxyWebServiceUrl() : getBrokerWebServiceUrl();
         data.put("brokerServiceUrl", brokerServiceUrl);
         data.put("webServiceUrl", webServiceUrl);
         data.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");

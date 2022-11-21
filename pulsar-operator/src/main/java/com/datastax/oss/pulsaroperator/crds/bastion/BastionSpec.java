@@ -68,9 +68,6 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
-        if (targetProxy == null) {
-            targetProxy = false;
-        }
     }
 
     @Override

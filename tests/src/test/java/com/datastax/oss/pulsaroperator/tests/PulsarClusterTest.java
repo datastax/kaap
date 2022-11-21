@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 @Slf4j
 public class PulsarClusterTest extends BaseK8sEnvTest {
 
-    public static final Quantity SINGLE_POD_CPU = Quantity.parse("50m");
+    public static final Quantity SINGLE_POD_CPU = Quantity.parse("25m");
     public static final Quantity SINGLE_POD_MEM = Quantity.parse("512Mi");
     private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
             .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)

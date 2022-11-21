@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-client-consumer
+  labels:
+    role: kafka-client-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: kafka-client-consumer
+  template:
+    metadata:
+      labels:
+        role: kafka-client-consumer
+    spec:
+      containers:
+        - name: kclient
+          image: confluentinc/cp-kafka
+          command: ["/bin/sh"]
+          args: ["-c", "kafka-consumer-perf-test  --topic test --bootstrap-server pulsar-proxy:9092 --print-metrics --from-latest --messages 1000000000 --show-detailed-stats --reporting-interval 1000"]

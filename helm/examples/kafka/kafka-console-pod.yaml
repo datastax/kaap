@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kakfa-client
+  name: kafka-client
   labels:
     role: kafka-client
 spec:

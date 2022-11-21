@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-client-producer
+  labels:
+    role: kafka-client-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: kafka-client-producer
+  template:
+    metadata:
+      labels:
+        role: kafka-client-producer
+    spec:
+      containers:
+        - name: kclient
+          image: confluentinc/cp-kafka
+          command: ["/bin/sh"]
+          args: ["-c", "kafka-producer-perf-test  --topic test --num-records 10000000 --throughput 10000 --record-size 10240  --producer-props bootstrap.servers=pulsar-proxy:9092"]

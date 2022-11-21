@@ -112,7 +112,7 @@ public class BrokerAutoscaler implements Runnable {
                     .getUsage().get("cpu");
 
             if (cpuUsageQuantity == null) {
-                log.infof("Broker pod %s didn't exposed CPU usage", podName);
+                log.infof("Broker pod %s doesn't exposed CPU usage", podName);
                 continue;
             } else {
                 cpuUsage = quantityToBytes(cpuUsageQuantity);
@@ -136,7 +136,7 @@ public class BrokerAutoscaler implements Runnable {
             }
             float percentage = cpuUsage / requestedCpu;
 
-            log.infof("Broker pod %s CPU used/requested: %f/%f, percentage %f",
+            log.infof("Broker pod %s CPU used/requested: %f/%f, rate %f",
                     podName,
                     new BigDecimal(cpuUsage).setScale(2, RoundingMode.HALF_EVEN),
                     new BigDecimal(requestedCpu).setScale(2, RoundingMode.HALF_EVEN),
@@ -177,7 +177,7 @@ public class BrokerAutoscaler implements Runnable {
 
             final Integer min = autoscalerSpec.getMin();
             if (scaleTo <= 0 || (min != null && scaleTo < min)) {
-                log.infof("Can't scale down, "
+                log.debugf("Can't scale down, "
                                 + "replicas is already the min. Current %d, min %d, scaleDownBy %d",
                         currentExpectedReplicas,
                         min,
@@ -187,7 +187,7 @@ public class BrokerAutoscaler implements Runnable {
             }
             final Integer max = autoscalerSpec.getMax();
             if (max != null && scaleTo > max) {
-                log.infof("Can't scale down, "
+                log.debugf("Can't scale down, "
                                 + "replicas is already the max. Current %d, max %d, scaleUpBy %d",
                         currentExpectedReplicas,
                         max,
@@ -243,7 +243,8 @@ public class BrokerAutoscaler implements Runnable {
             return false;
         }
         final Instant now = Instant.now();
-        Instant maxStartTime = now.minusMillis(clusterSpec.getBroker().getAutoscaler().getStabilizationWindowMs());
+        Long stabilizationWindowMs = clusterSpec.getBroker().getAutoscaler().getStabilizationWindowMs();
+        Instant maxStartTime = now.minusMillis(stabilizationWindowMs);
         for (Pod pod : allBrokerPods.getItems()) {
             final ContainerStatus containerStatus = pod.getStatus().getContainerStatuses().get(0);
             final Boolean ready = containerStatus.getReady();
@@ -254,8 +255,10 @@ public class BrokerAutoscaler implements Runnable {
 
             final Instant podStartTime = Instant.parse(pod.getStatus().getStartTime());
             if (podStartTime.isAfter(maxStartTime)) {
-                log.infof("Broker pod %s age is too little (%d seconds)", pod.getMetadata().getName(),
-                        Duration.between(podStartTime, now).getSeconds());
+                log.infof("Broker pod %s age is %d seconds, waiting at least %d s (stabilizationWindowMs)",
+                        pod.getMetadata().getName(),
+                        Duration.between(podStartTime, now).getSeconds(),
+                        stabilizationWindowMs / 1000);
                 return false;
             }
         }

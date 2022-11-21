@@ -38,6 +38,9 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
     public static final Quantity SINGLE_POD_CPU = Quantity.parse("25m");
     public static final Quantity SINGLE_POD_MEM = Quantity.parse("512Mi");
+    public static final ResourceRequirements RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
+            .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
+            .build();
     private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
             .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
             .disable(YAMLGenerator.Feature.SPLIT_LINES)
@@ -179,12 +182,9 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                         .build())
                 .build());
 
-        final ResourceRequirements resources = new ResourceRequirementsBuilder()
-                .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
-                .build();
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(3)
-                .resources(resources)
+                .resources(RESOURCE_REQUIREMENTS)
                 .dataVolume(VolumeConfig.builder()
                         .size("100M")
                         .build()
@@ -193,7 +193,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
-                .resources(resources)
+                .resources(RESOURCE_REQUIREMENTS)
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
                                 VolumeConfig.builder()
@@ -209,22 +209,22 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
-                .resources(resources)
+                .resources(RESOURCE_REQUIREMENTS)
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
                 .replicas(1)
-                .resources(resources)
+                .resources(RESOURCE_REQUIREMENTS)
                 .webSocket(ProxySpec.WebSocketConfig.builder()
-                        .resources(resources)
+                        .resources(RESOURCE_REQUIREMENTS)
                         .build())
                 .build());
         defaultSpecs.setAutorecovery(AutorecoverySpec.builder()
                 .replicas(1)
-                .resources(resources)
+                .resources(RESOURCE_REQUIREMENTS)
                 .build());
         defaultSpecs.setBastion(BastionSpec.builder()
                 .replicas(1)
-                .resources(resources)
+                .resources(RESOURCE_REQUIREMENTS)
                 .build());
         return defaultSpecs;
     }
@@ -236,7 +236,8 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             helmInstall();
             awaitOperatorRunning();
 
-            applyPulsarCluster(getHelmExampleFilePath("local-k3s.yaml"));
+            final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+            applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
         } catch (Throwable t) {
             t.printStackTrace();

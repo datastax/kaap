@@ -851,7 +851,7 @@ public class FunctionsWorkerControllerTest {
                           - ns1.svc.cluster-domain.example
                           - my.dns.search.suffix
                 functionsWorker:
-                    replicas: 1        
+                    replicas: 1      
                 """;
 
         MockKubernetesClient client = invokeController(spec);

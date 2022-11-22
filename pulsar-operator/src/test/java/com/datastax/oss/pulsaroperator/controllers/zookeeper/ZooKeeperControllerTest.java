@@ -328,7 +328,7 @@ public class ZooKeeperControllerTest {
                               initContainers:
                               - args:
                                 - |
-                                  until [ "$(echo ruok | nc pulsarname-zookeeper-2.pulsarname-zookeeper.ns 2181)" = "imok" ]; do
+                                  until [ "$(echo ruok | nc -w 5 pulsarname-zookeeper-2.pulsarname-zookeeper.ns 2181)" = "imok" ]; do
                                     echo Zookeeper not yet ready. Will try again after 3 seconds.
                                     sleep 3;
                                   done;

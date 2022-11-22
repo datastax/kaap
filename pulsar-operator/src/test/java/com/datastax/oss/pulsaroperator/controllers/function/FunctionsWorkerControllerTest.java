@@ -409,7 +409,8 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                         subjects:
                         - kind: ServiceAccount
-                          name: ns
+                          name: pulsarname-function
+                          namespace: ns
                         """);
     }
 
@@ -1449,7 +1450,8 @@ public class FunctionsWorkerControllerTest {
                           name: pul-function
                         subjects:
                         - kind: ServiceAccount
-                          name: ns
+                          name: pul-function
+                          namespace: ns
                           """);
     }
 

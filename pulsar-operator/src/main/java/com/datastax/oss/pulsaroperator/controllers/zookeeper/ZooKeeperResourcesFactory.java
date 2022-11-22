@@ -356,7 +356,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withCommand("sh", "-c")
                 .withArgs("""
-                        until [ "$(echo ruok | nc %s 2181)" = "imok" ]; do
+                        until [ "$(echo ruok | nc -w 5 %s 2181)" = "imok" ]; do
                           echo Zookeeper not yet ready. Will try again after 3 seconds.
                           sleep 3;
                         done;

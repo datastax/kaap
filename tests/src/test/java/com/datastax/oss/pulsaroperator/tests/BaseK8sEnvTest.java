@@ -149,6 +149,7 @@ public abstract class BaseK8sEnvTest {
                       - pods
                       - configmaps
                       - services
+                      - serviceaccounts
                     verbs:
                       - '*'
                   - apiGroups:
@@ -170,6 +171,13 @@ public abstract class BaseK8sEnvTest {
                     verbs:
                         - '*'
                   - apiGroups:
+                      - "rbac.authorization.k8s.io"
+                    resources:
+                        - roles
+                        - rolebindings
+                    verbs:
+                        - '*'
+                  - apiGroups:
                       - com.datastax.oss
                     resources:
                         - pulsarclusters
@@ -186,6 +194,8 @@ public abstract class BaseK8sEnvTest {
                         - autorecoveries/status
                         - bastions
                         - bastions/status
+                        - functionsworkers
+                        - functionsworkers/status
                     verbs:
                         - "*"
                 ---
@@ -268,13 +278,23 @@ public abstract class BaseK8sEnvTest {
     }
 
     private void printOperatorPodLogs() {
-        if (operatorPodName != null) {
+        printPodLogs(operatorPodName);
+    }
+
+    protected void printAllPodsLogs() {
+        client.pods().inNamespace(namespace).list().getItems()
+                .forEach(pod -> printPodLogs(pod.getMetadata().getName()));
+    }
+
+    protected void printPodLogs(String podName) {
+        if (podName != null) {
             try {
                 final String podLog = client.pods().inNamespace(namespace)
-                        .withName(operatorPodName)
-                        .tailingLines(60)
+                        .withName(podName)
+                        .tailingLines(300)
                         .getLog();
-                log.info("operator pod logs:\n{}", podLog);
+                final String sep = "-".repeat(100);
+                log.info("{}\n{} pod logs:\n{}\n{}", sep, podName, podLog, sep);
             } catch (Throwable t) {
                 log.error("failed to get operator pod logs: {}", t.getMessage(), t);
             }

@@ -558,7 +558,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                     .withSubjects(new SubjectBuilder()
                             .withKind("ServiceAccount")
                             .withName(resourceName)
-                            .withName(namespace)
+                            .withNamespace(namespace)
                             .build()
                     )
                     .build();
@@ -582,7 +582,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                     .withSubjects(new SubjectBuilder()
                             .withKind("ServiceAccount")
                             .withName(resourceName)
-                            .withName(namespace)
+                            .withNamespace(namespace)
                             .build()
                     )
                     .build();

@@ -48,6 +48,7 @@ rules:
       - pods
       - configmaps
       - services
+      - serviceaccounts
     verbs:
       - '*'
   - apiGroups:
@@ -68,6 +69,13 @@ rules:
         - customresourcedefinitions
     verbs:
         - '*'
+  - apiGroups:
+      - "rbac.authorization.k8s.io"
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - '*'
   - apiGroups:
       - "metrics.k8s.io"
     resources:

@@ -109,7 +109,7 @@ public class LocalK3SContainer implements K8sEnv {
         }
         container.start();
         printDebugInfo();
-        final ExecutorService executorService = Executors.newFixedThreadPool(3);
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
         try {
             CompletableFuture.allOf(
                     CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE), executorService),

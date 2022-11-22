@@ -9,7 +9,9 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -33,7 +35,7 @@ import org.testng.annotations.Test;
 public class PulsarClusterTest extends BaseK8sEnvTest {
 
     public static final Quantity SINGLE_POD_CPU = Quantity.parse("25m");
-    public static final Quantity SINGLE_POD_MEM = Quantity.parse("512Mi");
+    public static final Quantity SINGLE_POD_MEM = Quantity.parse("128Mi");
     public static final ResourceRequirements RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
             .build();
@@ -60,53 +62,56 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     @Test
-    public void testBaseInstall() throws Exception {
+    public void testScaling() throws Exception {
         applyRBACManifests();
         applyOperatorManifests();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-        applyPulsarCluster(specsToYaml(specs));
-        awaitInstalled();
+        try {
+            applyPulsarCluster(specsToYaml(specs));
+            awaitInstalled();
 
-        client.apps().statefulSets()
-                .inNamespace(namespace)
-                .withName("pulsar-zookeeper")
-                .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                        && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
+            client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withName("pulsar-zookeeper")
+                    .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
+                            && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
-        specs.getBookkeeper().setReplicas(3);
-        specs.getBroker().setConfig(
-                BaseComponentSpec.mergeMaps(
-                        specs.getBroker().getConfig(),
-                        Map.of(
-                                "managedLedgerDefaultAckQuorum", "2",
-                                "managedLedgerDefaultEnsembleSize", "2",
-                                "managedLedgerDefaultWriteQuorum", "2"
-                        )
-                )
-        );
-        applyPulsarCluster(specsToYaml(specs));
+            specs.getBookkeeper().setReplicas(3);
+            specs.getBroker().setConfig(
+                    BaseComponentSpec.mergeMaps(
+                            specs.getBroker().getConfig(),
+                            Map.of(
+                                    "managedLedgerDefaultAckQuorum", "2",
+                                    "managedLedgerDefaultEnsembleSize", "2",
+                                    "managedLedgerDefaultWriteQuorum", "2"
+                            )
+                    )
+            );
+            applyPulsarCluster(specsToYaml(specs));
 
-        client.apps().statefulSets()
-                .inNamespace(namespace)
-                .withName("pulsar-bookkeeper")
-                .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                        && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
+            client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withName("pulsar-bookkeeper")
+                    .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
+                            && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
-        specs.getBroker().setReplicas(3);
-        applyPulsarCluster(specsToYaml(specs));
+            specs.getBroker().setReplicas(3);
+            applyPulsarCluster(specsToYaml(specs));
 
-        client.apps().statefulSets()
-                .inNamespace(namespace)
-                .withName("pulsar-broker")
-                .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                        && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
+            client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withName("pulsar-broker")
+                    .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
+                            && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
-        assertProduceConsume();
-        client.resources(PulsarCluster.class).inNamespace(namespace)
-                .withName("pulsar-cluster")
-                .delete();
-        awaitUninstalled();
+            assertProduceConsume();
+        } finally {
+            client.resources(PulsarCluster.class).inNamespace(namespace)
+                    .withName("pulsar-cluster")
+                    .delete();
+            awaitUninstalled();
+        }
     }
 
     private void assertProduceConsume() {
@@ -139,7 +144,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .withTTY()
                 .exec("bash", "-c", cmd);) {
             if (exec.exitCode().get().intValue() != 0) {
-                log.error("Produce failed:\n{}", new String(exec.getOutput().readAllBytes(), StandardCharsets.UTF_8));
+                log.error("Cmd failed:\n{}", new String(exec.getOutput().readAllBytes(), StandardCharsets.UTF_8));
                 Assert.fail();
             }
         }
@@ -171,11 +176,19 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                         .build())
                 .build());
 
+        // speed up readiness
+        final ProbeConfig probe = ProbeConfig.builder()
+                .initial(5)
+                .period(5)
+                .timeout(60)
+                .build();
+
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(3)
                 .resources(RESOURCE_REQUIREMENTS)
+                .probe(probe)
                 .dataVolume(VolumeConfig.builder()
-                        .size("100M")
+                        .size("2Gi")
                         .build()
                 )
                 .build());
@@ -183,14 +196,15 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
+                .probe(probe)
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
                                 VolumeConfig.builder()
-                                        .size("100M")
+                                        .size("2Gi")
                                         .build()
                         ).ledgers(
                                 VolumeConfig.builder()
-                                        .size("100M")
+                                        .size("2Gi")
                                         .build())
                         .build()
                 )
@@ -199,10 +213,12 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
+                .probe(probe)
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
+                .probe(probe)
                 .webSocket(ProxySpec.WebSocketConfig.builder()
                         .resources(RESOURCE_REQUIREMENTS)
                         .build())
@@ -216,6 +232,80 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .resources(RESOURCE_REQUIREMENTS)
                 .build());
         return defaultSpecs;
+    }
+
+    @Test
+    public void testFunctions() throws Exception {
+        applyRBACManifests();
+        applyOperatorManifests();
+
+        final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+        specs.getZookeeper().setReplicas(1);
+        specs.getBroker().setConfig(
+                BaseComponentSpec.mergeMaps(specs.getBroker().getConfig(),
+                        Map.of(
+                                "managedLedgerDefaultAckQuorum", "1",
+                                "managedLedgerDefaultEnsembleSize", "1",
+                                "managedLedgerDefaultWriteQuorum", "1"
+
+                        ))
+        );
+        specs.setFunctionsWorker(FunctionsWorkerSpec.builder()
+                .replicas(1)
+                .resources(RESOURCE_REQUIREMENTS)
+                .runtime("kubernetes")
+                .config(Map.of(
+                        "numFunctionPackageReplicas", "1"
+                ))
+                .functionConfig(Map.of(
+                        "numFunctionPackageReplicas", "1"
+                ))
+                .runtimeResources(FunctionsWorkerSpec.FunctionRuntimeResourcesConfig.builder()
+                        .cpu(SINGLE_POD_CPU)
+                        .ram(SINGLE_POD_MEM)
+                        .disk(Quantity.parse("300Mi"))
+                        .build()
+                )
+                .build()
+        );
+        try {
+            applyPulsarCluster(specsToYaml(specs));
+            awaitInstalled();
+            awaitFunctionsWorkerRunning();
+            final String proxyPod =
+                    client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
+            client.pods()
+                    .inNamespace(namespace)
+                    .withName("pulsar-function-0")
+                            .waitUntilReady(30, TimeUnit.SECONDS);
+
+            Awaitility.await().pollInterval(1, TimeUnit.SECONDS).until(() -> {
+                try {
+                    execInPod(proxyPod, "pulsar-proxy",
+                            "bin/pulsar-admin sources create --name generator --tenant public --namespace default --destinationTopicName generator_test --source-type data-generator --parallelism 2");
+                    return true;
+                } catch (Throwable t) {
+                    log.error("Cmd failed", t);
+                }
+                return false;
+            });
+
+            Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+                Assert.assertTrue(
+                        client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());
+                Assert.assertTrue(
+                        client.pods().inNamespace(namespace).withName("pf-public-default-generator-1").isReady());
+            });
+        } catch(Throwable t) {
+            log.error("test failed with {}", t.getMessage(), t);
+            throw new RuntimeException(t);
+        } finally {
+            printAllPodsLogs();
+            client.resources(PulsarCluster.class).inNamespace(namespace)
+                    .withName("pulsar-cluster")
+                    .delete();
+            awaitUninstalled();
+        }
     }
 
 
@@ -399,6 +489,34 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         client.apps().deployments()
                 .inNamespace(namespace)
                 .withName("pulsar-bastion")
+                .waitUntilReady(90, TimeUnit.SECONDS);
+
+    }
+
+    private void awaitFunctionsWorkerRunning() {
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            Assert.assertEquals(client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("component", "function").list().getItems().size(), 1);
+            Assert.assertEquals(client.policy().v1().podDisruptionBudget()
+                    .inNamespace(namespace)
+                    .withLabel("component", "function").list().getItems().size(), 1);
+            Assert.assertEquals(client.configMaps()
+                    .inNamespace(namespace)
+                    .withLabel("component", "function").list().getItems().size(), 2);
+            Assert.assertEquals(client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withLabel("component", "function").list().getItems().size(), 1);
+            Assert.assertEquals(client.services()
+                    .inNamespace(namespace)
+                    .withLabel("component", "function").list().getItems().size(), 2);
+        });
+
+        printAllPodsLogs();
+
+        client.apps().statefulSets()
+                .inNamespace(namespace)
+                .withName("pulsar-function")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
     }

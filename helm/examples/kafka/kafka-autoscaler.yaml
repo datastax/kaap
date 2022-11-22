@@ -5,7 +5,7 @@ metadata:
 spec:
   global:
     name: pulsar
-    image: datastax/lunastreaming-all:2.10_2.4
+    image: datastax/lunastreaming-all:2.10_2.5
     storage:
       existingStorageClassName: default
   zookeeper:

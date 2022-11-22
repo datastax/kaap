@@ -14,11 +14,9 @@ import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -61,6 +59,11 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     @Override
     protected String getResourceName() {
         return "%s-%s".formatted(global.getName(), getComponentBaseName());
+    }
+
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
     }
 
     public void patchService() {
@@ -184,8 +187,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
 
     public void patchStatefulSet() {
-        final int replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
@@ -279,27 +281,9 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                             .build()
             );
         } else {
-            String storageClassName = null;
             final VolumeConfig dataVolume = spec.getDataVolume();
-            if (dataVolume.getExistingStorageClassName() != null) {
-                if (!dataVolume.getExistingStorageClassName().equals("default")) {
-                    storageClassName = dataVolume.getExistingStorageClassName();
-                }
-            } else if (dataVolume.getStorageClass() != null) {
-                storageClassName = dataStorageVolumeName;
-            }
-
             persistentVolumeClaims.add(
-                    new PersistentVolumeClaimBuilder()
-                            .withNewMetadata().withName(dataStorageVolumeName).endMetadata()
-                            .withNewSpec()
-                            .withAccessModes(List.of("ReadWriteOnce"))
-                            .withNewResources()
-                            .withRequests(Map.of("storage", Quantity.parse(dataVolume.getSize())))
-                            .endResources()
-                            .withStorageClassName(storageClassName)
-                            .endSpec()
-                            .build()
+                    createPersistentVolumeClaim(dataStorageVolumeName, dataVolume)
             );
         }
 
@@ -311,7 +295,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
-                .withReplicas(replicas)
+                .withReplicas(spec.getReplicas())
                 .withNewSelector()
                 .withMatchLabels(matchLabels)
                 .endSelector()

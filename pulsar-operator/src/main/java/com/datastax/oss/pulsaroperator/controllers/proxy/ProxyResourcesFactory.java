@@ -52,6 +52,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
     }
 
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
+    }
+
     private ConfigMap configMap;
     private ConfigMap wsConfigMap;
 
@@ -135,6 +140,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
         data.put("clusterName", global.getName());
+        boolean isStandaloneFunctionsWorker = spec.getStandaloneFunctionsWorker() != null
+                && spec.getStandaloneFunctionsWorker();
+        if (isStandaloneFunctionsWorker) {
+            data.put("functionWorkerWebServiceURL", getFunctionsWorkerServiceUrl());
+        }
 
         data.putAll(DEFAULT_CONFIG_MAP);
 
@@ -191,8 +201,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
 
     public void patchDeployment() {
-        final int replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting deployments");
             deleteDeployment();
             return;

@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalK8sEnvironment extends LocalK3SContainer {
 
     // not needed if you use quarkus dev mode
-    private static final boolean HELM_MODE = true;
+    private static final boolean HELM_MODE = false;
 
     private static final List<String> PROMETHEUS_OPERATOR_IMAGES = List.of("quay.io/prometheus/prometheus:v2.39.1",
             "quay.io/kiwigrid/k8s-sidecar:1.19.2");

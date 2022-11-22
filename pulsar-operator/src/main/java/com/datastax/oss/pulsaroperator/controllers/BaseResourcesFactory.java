@@ -11,6 +11,9 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -24,9 +27,11 @@ import io.fabric8.kubernetes.client.VersionInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
+@JBossLog
 public abstract class BaseResourcesFactory<T> {
 
     protected final KubernetesClient client;
@@ -51,6 +56,8 @@ public abstract class BaseResourcesFactory<T> {
 
     protected abstract String getComponentBaseName();
 
+    protected abstract boolean isComponentEnabled();
+
     protected <R extends HasMetadata> void patchResource(R resource) {
         resource.getMetadata().setOwnerReferences(List.of(ownerReference));
         final R current = (R) client.resources(resource.getClass())
@@ -58,9 +65,14 @@ public abstract class BaseResourcesFactory<T> {
                 .withName(resource.getMetadata().getName())
                 .get();
         if (current == null) {
-            client.resource(resource)
-                    .inNamespace(namespace)
-                    .create();
+            if (isComponentEnabled()) {
+                client.resource(resource)
+                        .inNamespace(namespace)
+                        .create();
+            } else {
+                log.infof("Skipping creating resource %s since component is disabled",
+                        resource.getFullResourceName());
+            }
         } else {
             client
                     .resource(current)
@@ -237,6 +249,14 @@ public abstract class BaseResourcesFactory<T> {
 
     protected String getProxyWebServiceUrlPlain() {
         return getProxyWebServiceUrl(false);
+    }
+
+    protected String getFunctionsWorkerServiceUrl() {
+        return "http://%s-%s-ca.%s:6750".formatted(
+                global.getName(),
+                global.getComponents().getFunctionsWorkerBaseName(),
+                getServiceDnsSuffix()
+        );
     }
 
     protected String getTlsSecretNameForZookeeper() {
@@ -417,5 +437,29 @@ public abstract class BaseResourcesFactory<T> {
                 "%s/configmap-%s".formatted(CRDConstants.GROUP, configMap.getMetadata().getName()),
                 checksum
         );
+    }
+
+
+    protected PersistentVolumeClaim createPersistentVolumeClaim(String name,
+                                                              VolumeConfig volumeConfig) {
+        String storageClassName = null;
+        if (volumeConfig.getExistingStorageClassName() != null) {
+            if (!volumeConfig.getExistingStorageClassName().equals("default")) {
+                storageClassName = volumeConfig.getExistingStorageClassName();
+            }
+        } else if (volumeConfig.getStorageClass() != null) {
+            storageClassName = name;
+        }
+
+        return new PersistentVolumeClaimBuilder()
+                .withNewMetadata().withName(name).endMetadata()
+                .withNewSpec()
+                .withAccessModes(List.of("ReadWriteOnce"))
+                .withNewResources()
+                .withRequests(Map.of("storage", Quantity.parse(volumeConfig.getSize())))
+                .endResources()
+                .withStorageClassName(storageClassName)
+                .endSpec()
+                .build();
     }
 }

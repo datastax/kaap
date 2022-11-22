@@ -7,6 +7,7 @@ import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
@@ -54,6 +55,10 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     @Valid
     private BastionSpec bastion;
 
+    @ValidSpec
+    @Valid
+    private FunctionsWorkerSpec functionsWorker;
+
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         initDefaultsForComponent(GlobalSpec.class, "global", globalSpec);
@@ -63,6 +68,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
         initDefaultsForComponent(ProxySpec.class, "proxy", globalSpec);
         initDefaultsForComponent(AutorecoverySpec.class, "autorecovery", globalSpec);
         initDefaultsForComponent(BastionSpec.class, "bastion", globalSpec);
+        initDefaultsForComponent(FunctionsWorkerSpec.class, "functionsWorker", globalSpec);
     }
 
     @SneakyThrows

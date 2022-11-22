@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
@@ -11,11 +12,6 @@ import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -41,13 +37,6 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     public static final ResourceRequirements RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
             .build();
-    private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
-            .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
-            .disable(YAMLGenerator.Feature.SPLIT_LINES)
-            .build()
-    )
-            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 
     @Test
@@ -158,7 +147,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
     @SneakyThrows
     private String specsToYaml(PulsarClusterSpec spec) {
-        final Map map = yamlMapper.readValue(
+        final Map map = SerializationUtil.readYaml(
                 """
                         apiVersion: com.datastax.oss/v1alpha1
                         kind: PulsarCluster
@@ -167,7 +156,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                         """, Map.class);
 
         map.put("spec", spec);
-        return yamlMapper.writeValueAsString(map);
+        return SerializationUtil.writeAsYaml(map);
     }
 
     private PulsarClusterSpec getDefaultPulsarClusterSpecs() {

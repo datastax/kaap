@@ -52,6 +52,11 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         return getResourceName(global);
     }
 
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
+    }
+
     public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         final String zkServers = getZkServers();
@@ -80,8 +85,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
 
 
     public void patchDeployment() {
-        final int replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting deployments");
             deleteDeployment();
             return;

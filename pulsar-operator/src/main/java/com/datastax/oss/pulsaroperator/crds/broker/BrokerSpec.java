@@ -77,8 +77,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         private Map<String, String> annotations;
         @JsonPropertyDescription("Additional ports for the Broker Service resources.")
         private List<ServicePort> additionalPorts;
-        @JsonPropertyDescription("Do not assign an IP to the Service.")
-        private Boolean headless;
         @JsonPropertyDescription("Service type. Default value is 'ClusterIP'")
         private String type;
 

@@ -4,7 +4,6 @@ import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -14,10 +13,8 @@ import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
@@ -56,6 +53,11 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     @Override
     protected String getResourceName() {
         return "%s-%s".formatted(global.getName(), getComponentBaseName());
+    }
+
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
     }
 
     public void patchService() {
@@ -132,8 +134,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
 
     public void patchStatefulSet() {
-        final int replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
@@ -254,7 +255,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
-                .withReplicas(replicas)
+                .withReplicas(spec.getReplicas())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels())
                 .endSelector()
@@ -281,28 +282,6 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         patchResource(statefulSet);
     }
 
-    private PersistentVolumeClaim createPersistentVolumeClaim(String name,
-                                                              VolumeConfig volumeConfig) {
-        String storageClassName = null;
-        if (volumeConfig.getExistingStorageClassName() != null) {
-            if (!volumeConfig.getExistingStorageClassName().equals("default")) {
-                storageClassName = volumeConfig.getExistingStorageClassName();
-            }
-        } else if (volumeConfig.getStorageClass() != null) {
-            storageClassName = name;
-        }
-
-        return new PersistentVolumeClaimBuilder()
-                .withNewMetadata().withName(name).endMetadata()
-                .withNewSpec()
-                .withAccessModes(List.of("ReadWriteOnce"))
-                .withNewResources()
-                .withRequests(Map.of("storage", Quantity.parse(volumeConfig.getSize())))
-                .endResources()
-                .withStorageClassName(storageClassName)
-                .endSpec()
-                .build();
-    }
 
 
     private Probe createProbe() {

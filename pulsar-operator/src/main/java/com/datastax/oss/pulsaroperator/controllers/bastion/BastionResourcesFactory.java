@@ -42,6 +42,11 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         return "%s-%s".formatted(global.getName(), getComponentBaseName());
     }
 
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
+    }
+
     public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         boolean targetProxy = spec.getTargetProxy() != null && spec.getTargetProxy();
@@ -72,8 +77,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
 
     public void patchDeployment() {
-        final int replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting deployments");
             deleteDeployment();
             return;

@@ -63,6 +63,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         return getResourceName(global);
     }
 
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
+    }
+
     public void patchService() {
 
         final BrokerSpec.ServiceConfig serviceSpec = spec.getService();
@@ -166,8 +171,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
     public void patchStatefulSet() {
-        final int replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
@@ -177,8 +181,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
     public StatefulSet generateStatefulSet() {
-        final Integer replicas = spec.getReplicas();
-        if (replicas == 0) {
+        if (!isComponentEnabled()) {
             return null;
         }
 
@@ -292,7 +295,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
-                .withReplicas(replicas)
+                .withReplicas(spec.getReplicas())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels())
                 .endSelector()

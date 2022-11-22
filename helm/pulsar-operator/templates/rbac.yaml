@@ -91,6 +91,8 @@ rules:
         - autorecoveries/status
         - bastions
         - bastions/status
+        - functionsworkers
+        - functionsworkers/status
     verbs:
         - "*"
 ---

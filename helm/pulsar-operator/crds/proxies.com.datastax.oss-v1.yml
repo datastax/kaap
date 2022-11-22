@@ -68,6 +68,10 @@ spec:
                       pod. Default value is 60.
                     minimum: 0.0
                     type: integer
+                  standaloneFunctionsWorker:
+                    description: Whether or not the functions worker is in standalone
+                      mode.
+                    type: boolean
                   annotations:
                     additionalProperties:
                       type: string
@@ -259,6 +263,10 @@ spec:
                         type: string
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
+                        type: string
+                      functionsWorkerBaseName:
+                        description: Functions Worker base name. Default value is
+                          'function'.
                         type: string
                       autorecoveryBaseName:
                         description: Autorecovery base name. Default value is 'autorecovery'.

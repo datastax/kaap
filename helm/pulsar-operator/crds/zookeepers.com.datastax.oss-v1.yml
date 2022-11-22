@@ -271,6 +271,10 @@ spec:
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
                         type: string
+                      functionsWorkerBaseName:
+                        description: Functions Worker base name. Default value is
+                          'function'.
+                        type: string
                       autorecoveryBaseName:
                         description: Autorecovery base name. Default value is 'autorecovery'.
                         type: string

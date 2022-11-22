@@ -25,9 +25,6 @@ spec:
                     description: Configurations for the Service resources associated
                       to the Broker pod.
                     properties:
-                      headless:
-                        description: Do not assign an IP to the Service.
-                        type: boolean
                       additionalPorts:
                         description: Additional ports for the Broker Service resources.
                         items:
@@ -301,6 +298,10 @@ spec:
                         type: string
                       zookeeperBaseName:
                         description: Zookeeper base name. Default value is 'zookeeper'.
+                        type: string
+                      functionsWorkerBaseName:
+                        description: Functions Worker base name. Default value is
+                          'function'.
                         type: string
                       autorecoveryBaseName:
                         description: Autorecovery base name. Default value is 'autorecovery'.

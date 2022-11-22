@@ -277,12 +277,14 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             client.pods()
                     .inNamespace(namespace)
                     .withName("pulsar-function-0")
-                            .waitUntilReady(30, TimeUnit.SECONDS);
+                    .waitUntilReady(30, TimeUnit.SECONDS);
 
             Awaitility.await().pollInterval(1, TimeUnit.SECONDS).until(() -> {
                 try {
                     execInPod(proxyPod, "pulsar-proxy",
-                            "bin/pulsar-admin sources create --name generator --tenant public --namespace default --destinationTopicName generator_test --source-type data-generator --parallelism 2");
+                            "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
+                                    + "--destinationTopicName generator_test --source-type data-generator "
+                                    + "--parallelism 2");
                     return true;
                 } catch (Throwable t) {
                     log.error("Cmd failed", t);
@@ -296,7 +298,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 Assert.assertTrue(
                         client.pods().inNamespace(namespace).withName("pf-public-default-generator-1").isReady());
             });
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             throw new RuntimeException(t);
         } finally {

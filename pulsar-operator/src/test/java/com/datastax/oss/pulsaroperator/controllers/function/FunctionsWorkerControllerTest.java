@@ -544,6 +544,11 @@ public class FunctionsWorkerControllerTest {
                 client.getCreatedResources(ConfigMap.class).get(0);
 
         Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("zooKeeperSessionTimeoutMillis", 30000);

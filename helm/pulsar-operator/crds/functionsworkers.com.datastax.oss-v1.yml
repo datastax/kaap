@@ -337,11 +337,6 @@ spec:
                           should be used.
                         type: string
                     type: object
-                  functionConfig:
-                    additionalProperties:
-                      type: string
-                    description: Configuration for the function pod.
-                    type: object
                   podManagementPolicy:
                     description: Pod management policy for the Broker pod.
                     type: string

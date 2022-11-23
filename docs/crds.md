@@ -4378,13 +4378,6 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>functionConfig</b></td>
-        <td>map[string]string</td>
-        <td>
-          Configuration for the function pod.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
@@ -8581,13 +8574,6 @@ Update strategy for the Broker pod/s.
         <td>map[string]string</td>
         <td>
           Configuration entries directly passed to this component.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>functionConfig</b></td>
-        <td>map[string]string</td>
-        <td>
-          Configuration for the function pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>

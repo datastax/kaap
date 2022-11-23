@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 @Slf4j
 public class PulsarClusterTest extends BaseK8sEnvTest {
 
-    public static final Quantity SINGLE_POD_CPU = Quantity.parse("25m");
+    public static final Quantity SINGLE_POD_CPU = Quantity.parse("10m");
     public static final Quantity SINGLE_POD_MEM = Quantity.parse("128Mi");
     public static final ResourceRequirements RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))

@@ -83,6 +83,8 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         private int timeout;
     }
 
+    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    protected Map<String, String> config;
     @JsonPropertyDescription("Pod management policy for the ZooKeeper pod. Default value is 'Parallel'.")
     private String podManagementPolicy;
     @JsonPropertyDescription("Update strategy for the ZooKeeper pod. Default value is rolling update.")

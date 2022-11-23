@@ -54,11 +54,11 @@ spec:
     replicas: 1
     runtime: kubernetes
     config:
-      numFunctionPackageReplicas: "1"
-    runtimeResources:
-      disk: "1Gi"
-      ram: "0.5Gi"
-      cpu: "0.3"
+      numFunctionPackageReplicas: 1
+      functionInstanceMaxResources:
+        disk: 10000000000
+        ram: 500000000
+        cpu: 0.3
     resources:
       requests:
         cpu: "0.3"

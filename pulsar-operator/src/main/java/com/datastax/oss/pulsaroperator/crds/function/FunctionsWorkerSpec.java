@@ -60,33 +60,11 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
             .build();
 
 
-    private static final Supplier<FunctionRuntimeResourcesConfig> DEFAULT_FUNCTION_RUNTIME_RESOURCES_CONFIG = () ->
-            FunctionRuntimeResourcesConfig.builder()
-                    .cpu(Quantity.parse("0.1"))
-                    .ram(Quantity.parse("300Mi"))
-                    .disk(Quantity.parse("10Gi"))
-                    .build();
-
     private static final Supplier<RbacConfig> DEFAULT_RBAC_CONFIG = () ->
             RbacConfig.builder()
                     .create(true)
                     .namespaced(true)
                     .build();
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class FunctionRuntimeResourcesConfig {
-        @JsonPropertyDescription("Requested CPU for a single function pod.")
-        private Quantity cpu;
-        @JsonPropertyDescription("Requested memory for a single function pod.")
-        private Quantity ram;
-        @JsonPropertyDescription("Requested disk size for a single function pod.")
-        private Quantity disk;
-    }
-
-
 
     @Data
     @NoArgsConstructor
@@ -129,6 +107,8 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
         private String emptyDirPath;
     }
 
+    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    protected Map<String, Object> config;
     @JsonPropertyDescription("Update strategy for the Broker pod/s. ")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy for the Broker pod.")
@@ -151,8 +131,6 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     private VolumeConfig logsVolume;
     @JsonPropertyDescription("Runtime mode for functions.")
     private String runtime;
-    @JsonPropertyDescription("Function runtime resources.")
-    private FunctionRuntimeResourcesConfig runtimeResources;
     @JsonPropertyDescription("Function runtime resources.")
     private RbacConfig rbac;
 
@@ -185,33 +163,8 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
         if (runtime == null) {
             runtime = "process";
         }
-        applyRuntimeResourcesDefaults();
         applyServiceDefaults();
         applyRbacDefaults();
-    }
-
-    private void applyRuntimeResourcesDefaults() {
-        if (runtimeResources == null) {
-            runtimeResources = DEFAULT_FUNCTION_RUNTIME_RESOURCES_CONFIG.get();
-        }
-        runtimeResources.setCpu(
-                ObjectUtils.getFirstNonNull(
-                        () -> runtimeResources.getCpu(),
-                        () -> DEFAULT_FUNCTION_RUNTIME_RESOURCES_CONFIG.get().getCpu()
-                )
-        );
-        runtimeResources.setRam(
-                ObjectUtils.getFirstNonNull(
-                        () -> runtimeResources.getRam(),
-                        () -> DEFAULT_FUNCTION_RUNTIME_RESOURCES_CONFIG.get().getRam()
-                )
-        );
-        runtimeResources.setDisk(
-                ObjectUtils.getFirstNonNull(
-                        () -> runtimeResources.getDisk(),
-                        () -> DEFAULT_FUNCTION_RUNTIME_RESOURCES_CONFIG.get().getDisk()
-                )
-        );
     }
 
     private void applyRbacDefaults() {

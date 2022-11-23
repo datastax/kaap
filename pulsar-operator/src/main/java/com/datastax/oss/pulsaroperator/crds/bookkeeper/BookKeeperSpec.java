@@ -86,6 +86,8 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     }
 
 
+    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    protected Map<String, String> config;
     @JsonPropertyDescription("Update strategy for the BookKeeper pod/s. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy for the BookKeeper pod. Default value is 'Parallel'.")

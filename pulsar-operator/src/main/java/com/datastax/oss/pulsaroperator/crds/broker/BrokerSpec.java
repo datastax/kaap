@@ -123,6 +123,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     }
 
 
+    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    protected Map<String, String> config;
     @JsonPropertyDescription("Enable functions worker embedded in the broker.")
     private Boolean functionsWorkerEnabled;
     @JsonPropertyDescription("Enable websocket service in the broker.")

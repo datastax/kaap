@@ -463,10 +463,6 @@ public class PulsarClusterControllerTest {
                       size: 5Gi
                       existingStorageClassName: default
                     runtime: process
-                    runtimeResources:
-                      cpu: 0.1
-                      ram: 300Mi
-                      disk: 10Gi
                     rbac:
                       create: true
                       namespaced: true

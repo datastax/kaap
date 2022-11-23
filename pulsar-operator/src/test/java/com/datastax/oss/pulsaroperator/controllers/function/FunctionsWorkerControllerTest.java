@@ -533,10 +533,11 @@ public class FunctionsWorkerControllerTest {
                 functionsWorker:
                     replicas: 1
                     runtime: kubernetes
-                    runtimeResources:
-                        cpu: 0.5
-                        ram: 1Gi
-                        disk: 5Gi
+                    config:
+                        functionInstanceMinResources:
+                            cpu: 0.5
+                            ram: 100000000
+                            disk: 500000000
                 """;
         MockKubernetesClient client = invokeController(spec);
 

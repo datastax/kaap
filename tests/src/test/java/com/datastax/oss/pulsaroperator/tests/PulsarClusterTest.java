@@ -254,14 +254,13 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .resources(RESOURCE_REQUIREMENTS)
                 .runtime("kubernetes")
                 .config(Map.of(
-                        "numFunctionPackageReplicas", "1"
+                        "numFunctionPackageReplicas", 1,
+                        "functionInstanceMaxResources", Map.of(
+                                "disk", 1000000000,
+                                "ram", 12800000,
+                                "cpu", 0.001d
+                        )
                 ))
-                .runtimeResources(FunctionsWorkerSpec.FunctionRuntimeResourcesConfig.builder()
-                        .cpu(SINGLE_POD_CPU)
-                        .ram(SINGLE_POD_MEM)
-                        .disk(Quantity.parse("300Mi"))
-                        .build()
-                )
                 .build()
         );
         try {

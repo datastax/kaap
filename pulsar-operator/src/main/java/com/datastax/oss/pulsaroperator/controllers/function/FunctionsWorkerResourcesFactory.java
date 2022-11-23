@@ -204,12 +204,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                                         .formatted(resourceName, getServiceDnsSuffix()),
                                 "percentMemoryPadding", 10)
                 );
-                data.put("functionInstanceMinResources", Map.of(
-                                "cpu", spec.getRuntimeResources().getCpu().getNumericalAmount().floatValue(),
-                                "ram", spec.getRuntimeResources().getRam().getNumericalAmount().longValue(),
-                                "disk", spec.getRuntimeResources().getRam().getNumericalAmount().longValue()
-                        )
-                );
                 break;
             case "process":
                 data.put("functionRuntimeFactoryClassName",

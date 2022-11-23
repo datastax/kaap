@@ -26,8 +26,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private String imagePullPolicy;
     @JsonPropertyDescription("Additional node selectors for this component.")
     protected Map<String, String> nodeSelectors;
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
-    protected Map<String, String> config;
     @JsonPropertyDescription("Replicas of this component.")
     protected Integer replicas;
     @JsonPropertyDescription("Liveness and readiness probe values.")

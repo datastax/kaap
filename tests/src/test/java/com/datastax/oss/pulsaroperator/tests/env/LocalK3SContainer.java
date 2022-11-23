@@ -32,9 +32,6 @@ public class LocalK3SContainer implements K8sEnv {
     private static final boolean DEBUG_LOG_CONTAINER = Boolean
             .getBoolean("pulsaroperator.tests.container.log.debug");
 
-    private static final boolean CONTAINER_REUSE = Boolean
-            .parseBoolean(System.getProperty("pulsaroperator.tests.container.reuse", "false"));
-
     private static final DockerClient hostDockerClient = DockerClientFactory.lazyClient();
 
     public static class ReusableK3sContainer<T extends ReusableK3sContainer<T>> extends K3sContainer<T> {
@@ -112,8 +109,10 @@ public class LocalK3SContainer implements K8sEnv {
         final ExecutorService executorService = Executors.newFixedThreadPool(2);
         try {
             CompletableFuture.allOf(
-                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE), executorService),
-                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE), executorService)
+                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
+                            executorService),
+                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE),
+                            executorService)
             ).exceptionally(throwable -> {
                 throw new RuntimeException(throwable);
             }).join();
@@ -145,9 +144,7 @@ public class LocalK3SContainer implements K8sEnv {
 
     @Override
     public void cleanup() {
-        if (!CONTAINER_REUSE) {
-            close();
-        }
+        close();
     }
 
     @Override
@@ -236,7 +233,7 @@ public class LocalK3SContainer implements K8sEnv {
         return tmpKubeConfig.getAbsolutePath();
     }
 
-    protected void printDebugInfo(){
+    protected void printDebugInfo() {
         log.info("export KUBECONFIG={}", getTmpKubeConfig(container));
     }
 

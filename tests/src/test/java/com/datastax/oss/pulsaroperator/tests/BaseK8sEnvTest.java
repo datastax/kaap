@@ -48,6 +48,9 @@ public abstract class BaseK8sEnvTest {
 
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("pulsaroperator.tests.env.existing");
 
+    private static final boolean REUSE_ENV = Boolean
+            .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "false"));
+
     protected String namespace;
     protected K8sEnv env;
     protected KubernetesClient client;
@@ -265,7 +268,6 @@ public abstract class BaseK8sEnvTest {
 
             }
         }
-        awaitOperatorRunning();
     }
 
 
@@ -290,11 +292,12 @@ public abstract class BaseK8sEnvTest {
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
         printOperatorPodLogs();
-        if (env != null && client != null) {
-            deleteRBACManifests();
-            deleteOperatorDeploymentAndCRDs();
-            // deleteNamespaceSync();
-            deleteCRDsSync();
+        if (REUSE_ENV && env != null) {
+            if (client != null) {
+                deleteRBACManifests();
+                deleteOperatorDeploymentAndCRDs();
+                deleteCRDsSync();
+            }
             env.cleanup();
         }
         if (eventsWatch != null) {
@@ -304,15 +307,9 @@ public abstract class BaseK8sEnvTest {
             client.close();
             client = null;
         }
-    }
-
-    private void deleteNamespaceSync() {
-        client.namespaces().withName(namespace).delete();
-        // await for actual deletion to not pollute k8s resources
-        Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            printRunningPods();
-            Assert.assertNull(client.namespaces().withName(namespace).get());
-        });
+        if (!REUSE_ENV && env != null) {
+            env.close();
+        }
     }
 
     private void deleteCRDsSync() {

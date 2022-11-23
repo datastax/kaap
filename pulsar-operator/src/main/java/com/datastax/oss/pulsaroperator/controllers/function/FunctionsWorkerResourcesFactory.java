@@ -11,7 +11,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -52,7 +51,6 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
 
-    private ConfigMap extraConfigMap;
     private ConfigMap configMap;
 
     public FunctionsWorkerResourcesFactory(KubernetesClient client, String namespace,
@@ -150,6 +148,12 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     public void patchConfigMap() {
 
         Map<String, Object> data = new HashMap<>();
+        data.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
+        data.put("PULSAR_GC", "-XX:+UseG1GC");
+        data.put("PULSAR_LOG_LEVEL", "info");
+        data.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         final String zkServers = getZkServers();
         data.put("configurationStoreServers", zkServers);
         data.put("zookeeperServers", zkServers);
@@ -216,8 +220,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 throw new IllegalArgumentException("runtime not supported '" + spec.getRuntime() + "', "
                         + "only process and kubernetes");
         }
-        if (spec.getFunctionConfig() != null) {
-            data.putAll(spec.getFunctionConfig());
+        if (spec.getConfig() != null) {
+            data.putAll(spec.getConfig());
         }
 
         if (!data.containsKey("numFunctionPackageReplicas")) {
@@ -234,30 +238,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         patchResource(configMap);
         this.configMap = configMap;
 
-    }
-
-    public void patchExtraConfigMap() {
-        Map<String, String> data = new HashMap<>();
-        data.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
-        data.put("PULSAR_GC", "-XX:+UseG1GC");
-        data.put("PULSAR_LOG_LEVEL", "info");
-        data.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-
-        if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
-        }
-
-        final ConfigMap configMap = new ConfigMapBuilder()
-                .withNewMetadata()
-                .withName("%s-extra".formatted(resourceName))
-                .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
-                .withData(data)
-                .build();
-        patchResource(configMap);
-        this.extraConfigMap = configMap;
     }
 
     public void patchStatefulSet() {
@@ -277,8 +257,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = getDefaultAnnotations();
-        Objects.requireNonNull(extraConfigMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(extraConfigMap, allAnnotations);
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
         addConfigMapChecksumAnnotation(configMap, allAnnotations);
         if (spec.getAnnotations() != null) {
@@ -392,11 +370,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
                         .withPorts(containerPorts)
-                        .withEnvFrom(new EnvFromSourceBuilder()
-                                .withNewConfigMapRef()
-                                .withName("%s-extra".formatted(resourceName))
-                                .endConfigMapRef()
-                                .build())
                         .withEnv(env)
                         .withVolumeMounts(volumeMounts)
                         .build()

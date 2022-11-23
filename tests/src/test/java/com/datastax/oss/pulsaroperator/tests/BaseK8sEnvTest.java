@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.dajudge.kindcontainer.helm.Helm3Container;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
@@ -8,6 +9,7 @@ import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -216,7 +218,7 @@ public abstract class BaseK8sEnvTest {
     }
 
     @SneakyThrows
-    protected void applyOperatorManifests() {
+    protected void applyOperatorDeploymentAndCRDs() {
         for (Path yamlManifest : getYamlManifests()) {
 
             if (yamlManifest.getFileName().equals("kubernetes.yml")) {
@@ -242,6 +244,31 @@ public abstract class BaseK8sEnvTest {
         awaitOperatorRunning();
     }
 
+
+    @SneakyThrows
+    protected void deleteOperatorDeploymentAndCRDs() {
+        for (Path yamlManifest : getYamlManifests()) {
+
+            if (yamlManifest.getFileName().equals("kubernetes.yml")) {
+                client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get()
+                        .stream()
+                        .filter(hasMetadata -> hasMetadata instanceof Deployment)
+                        .forEach(d -> {
+                            Deployment deployment = (Deployment) d;
+                            client.resource(deployment).inNamespace(namespace)
+                                    .delete();
+                            log.info("Deleted operator deployment");
+                        });
+            } else {
+                deleteManifestFromFile(yamlManifest);
+                log.info("Deleted {}", yamlManifest);
+
+            }
+        }
+        awaitOperatorRunning();
+    }
+
+
     protected void applyRBACManifests() {
         applyManifest(rbacManifest);
     }
@@ -263,18 +290,49 @@ public abstract class BaseK8sEnvTest {
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
         printOperatorPodLogs();
-        if (env != null) {
+        if (env != null && client != null) {
             deleteRBACManifests();
+            deleteOperatorDeploymentAndCRDs();
+            // deleteNamespaceSync();
+            deleteCRDsSync();
             env.cleanup();
         }
         if (eventsWatch != null) {
             eventsWatch.close();
         }
         if (client != null) {
-            client.namespaces().withName(namespace).delete();
             client.close();
             client = null;
         }
+    }
+
+    private void deleteNamespaceSync() {
+        client.namespaces().withName(namespace).delete();
+        // await for actual deletion to not pollute k8s resources
+        Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            printRunningPods();
+            Assert.assertNull(client.namespaces().withName(namespace).get());
+        });
+    }
+
+    private void deleteCRDsSync() {
+        client.resources(CustomResourceDefinition.class).list()
+                .getItems()
+                .stream()
+                .filter(crd -> crd.getSpec().getGroup().equals(CRDConstants.GROUP))
+                .forEach(crd -> client.resources(CustomResourceDefinition.class)
+                        .withName(crd.getMetadata().getName())
+                        .delete()
+                );
+
+        // await for actual deletion to not pollute k8s resources
+        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() ->
+                Assert.assertEquals(client.resources(CustomResourceDefinition.class).list()
+                        .getItems()
+                        .stream()
+                        .filter(crd -> crd.getSpec().getGroup().equals(CRDConstants.GROUP))
+                        .count(), 0L)
+        );
     }
 
     private void printOperatorPodLogs() {
@@ -284,6 +342,14 @@ public abstract class BaseK8sEnvTest {
     protected void printAllPodsLogs() {
         client.pods().inNamespace(namespace).list().getItems()
                 .forEach(pod -> printPodLogs(pod.getMetadata().getName()));
+    }
+
+    protected void printRunningPods() {
+        final List<Pod> pods = client.pods()
+                .inNamespace(namespace)
+                .withLabel("app", "pulsar").list().getItems();
+        log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
+                Collectors.toList()));
     }
 
     protected void printPodLogs(String podName) {
@@ -311,7 +377,6 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void applyManifest(byte[] manifest) {
-        log.info("Applying {}", new String(manifest, StandardCharsets.UTF_8));
         client.load(new ByteArrayInputStream(manifest))
                 .inNamespace(namespace)
                 .createOrReplace();
@@ -324,16 +389,18 @@ public abstract class BaseK8sEnvTest {
                 .createOrReplace();
     }
 
-    protected void applyPulsarCluster(Path path) {
-        client.resources(PulsarCluster.class)
-                .inNamespace(namespace)
-                .load(path.toFile())
-                .createOrReplace();
+    @SneakyThrows
+    protected void deleteManifestFromFile(Path path) {
+        deleteManifest(Files.readAllBytes(path));
     }
 
     protected void deleteManifest(String manifest) {
+        deleteManifest(manifest.getBytes(StandardCharsets.UTF_8));
+    }
+
+    protected void deleteManifest(byte[] manifest) {
         final List<HasMetadata> resources =
-                client.load(new ByteArrayInputStream(manifest.getBytes(StandardCharsets.UTF_8))).get();
+                client.load(new ByteArrayInputStream(manifest)).get();
         client.resourceList(resources).inNamespace(namespace).delete();
     }
 

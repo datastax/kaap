@@ -149,8 +149,6 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     private InitContainerConfig initContainer;
     @JsonPropertyDescription("Volume configuration for export function logs.")
     private VolumeConfig logsVolume;
-    @JsonPropertyDescription("Configuration for the function pod.")
-    protected Map<String, String> functionConfig;
     @JsonPropertyDescription("Runtime mode for functions.")
     private String runtime;
     @JsonPropertyDescription("Function runtime resources.")

@@ -33,7 +33,7 @@ public class LocalK3SContainer implements K8sEnv {
             .getBoolean("pulsaroperator.tests.container.log.debug");
 
     private static final boolean CONTAINER_REUSE = Boolean
-            .parseBoolean(System.getProperty("pulsaroperator.tests.container.reuse", "true"));
+            .parseBoolean(System.getProperty("pulsaroperator.tests.container.reuse", "false"));
 
     private static final DockerClient hostDockerClient = DockerClientFactory.lazyClient();
 

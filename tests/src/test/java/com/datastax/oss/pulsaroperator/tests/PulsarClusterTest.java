@@ -44,7 +44,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     @Test
     public void testCRDs() throws Exception {
         applyRBACManifests();
-        applyOperatorManifests();
+        applyOperatorDeploymentAndCRDs();
         final CustomResourceDefinitionList list = client.apiextensions().v1()
                 .customResourceDefinitions()
                 .list();
@@ -64,7 +64,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     @Test
     public void testScaling() throws Exception {
         applyRBACManifests();
-        applyOperatorManifests();
+        applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
         try {
@@ -106,11 +106,10 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                             && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
 
             assertProduceConsume();
-        } finally {
-            client.resources(PulsarCluster.class).inNamespace(namespace)
-                    .withName("pulsar-cluster")
-                    .delete();
-            awaitUninstalled();
+        } catch (Throwable t) {
+            log.error("test failed with {}", t.getMessage(), t);
+            printAllPodsLogs();
+            throw new RuntimeException(t);
         }
     }
 
@@ -237,7 +236,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     @Test
     public void testFunctions() throws Exception {
         applyRBACManifests();
-        applyOperatorManifests();
+        applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
         specs.getZookeeper().setReplicas(1);
@@ -255,9 +254,6 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .resources(RESOURCE_REQUIREMENTS)
                 .runtime("kubernetes")
                 .config(Map.of(
-                        "numFunctionPackageReplicas", "1"
-                ))
-                .functionConfig(Map.of(
                         "numFunctionPackageReplicas", "1"
                 ))
                 .runtimeResources(FunctionsWorkerSpec.FunctionRuntimeResourcesConfig.builder()
@@ -293,6 +289,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             });
 
             Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+                printRunningPods();
                 Assert.assertTrue(
                         client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());
                 Assert.assertTrue(
@@ -300,13 +297,8 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             });
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            throw new RuntimeException(t);
-        } finally {
             printAllPodsLogs();
-            client.resources(PulsarCluster.class).inNamespace(namespace)
-                    .withName("pulsar-cluster")
-                    .delete();
-            awaitUninstalled();
+            throw new RuntimeException(t);
         }
     }
 
@@ -320,19 +312,15 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
+            helmUninstall();
+            client.resources(PulsarCluster.class).inNamespace(namespace)
+                    .withName("pulsar-cluster")
+                    .delete();
+            awaitUninstalled();
         } catch (Throwable t) {
-            t.printStackTrace();
-            Assert.fail("Error during the test", t);
-        } finally {
-            try {
-                helmUninstall();
-                client.resources(PulsarCluster.class).inNamespace(namespace)
-                        .withName("pulsar-cluster")
-                        .delete();
-                awaitUninstalled();
-            } catch (Throwable tt) {
-                Assert.fail("Error during test cleanup", tt);
-            }
+            log.error("test failed with {}", t.getMessage(), t);
+            printAllPodsLogs();
+            throw new RuntimeException(t);
         }
     }
 
@@ -505,7 +493,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "function").list().getItems().size(), 1);
             Assert.assertEquals(client.configMaps()
                     .inNamespace(namespace)
-                    .withLabel("component", "function").list().getItems().size(), 2);
+                    .withLabel("component", "function").list().getItems().size(), 1);
             Assert.assertEquals(client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withLabel("component", "function").list().getItems().size(), 1);

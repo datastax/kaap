@@ -4372,7 +4372,7 @@ TLS configurations related to the ZooKeeper component.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]object</td>
+        <td>JSON</td>
         <td>
           Configuration entries directly passed to this component.<br/>
         </td>
@@ -8523,7 +8523,7 @@ Update strategy for the Broker pod/s.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]object</td>
+        <td>JSON</td>
         <td>
           Configuration entries directly passed to this component.<br/>
         </td>

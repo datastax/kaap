@@ -4372,7 +4372,7 @@ TLS configurations related to the ZooKeeper component.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>map[string]object</td>
         <td>
           Configuration entries directly passed to this component.<br/>
         </td>
@@ -4475,13 +4475,6 @@ TLS configurations related to the ZooKeeper component.
         <td>string</td>
         <td>
           Runtime mode for functions.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#functionsworkerspecfunctionsworkerruntimeresources">runtimeResources</a></b></td>
-        <td>object</td>
-        <td>
-          Function runtime resources.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -4831,47 +4824,6 @@ Resource requirements for the Broker pod.
         <td>map[string]int or string</td>
         <td>
           <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### FunctionsWorker.spec.functionsWorker.runtimeResources
-<sup><sup>[↩ Parent](#functionsworkerspecfunctionsworker)</sup></sup>
-
-
-
-Function runtime resources.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>cpu</b></td>
-        <td>int or string</td>
-        <td>
-          Requested CPU for a single function pod.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>disk</b></td>
-        <td>int or string</td>
-        <td>
-          Requested disk size for a single function pod.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>ram</b></td>
-        <td>int or string</td>
-        <td>
-          Requested memory for a single function pod.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -8571,7 +8523,7 @@ Update strategy for the Broker pod/s.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>map[string]object</td>
         <td>
           Configuration entries directly passed to this component.<br/>
         </td>
@@ -8674,13 +8626,6 @@ Update strategy for the Broker pod/s.
         <td>string</td>
         <td>
           Runtime mode for functions.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecfunctionsworkerruntimeresources">runtimeResources</a></b></td>
-        <td>object</td>
-        <td>
-          Function runtime resources.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -9030,47 +8975,6 @@ Resource requirements for the Broker pod.
         <td>map[string]int or string</td>
         <td>
           <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.functionsWorker.runtimeResources
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
-
-
-
-Function runtime resources.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>cpu</b></td>
-        <td>int or string</td>
-        <td>
-          Requested CPU for a single function pod.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>disk</b></td>
-        <td>int or string</td>
-        <td>
-          Requested disk size for a single function pod.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>ram</b></td>
-        <td>int or string</td>
-        <td>
-          Requested memory for a single function pod.<br/>
         </td>
         <td>false</td>
       </tr></tbody>

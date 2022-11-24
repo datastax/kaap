@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +144,12 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .withTTY()
                 .exec("bash", "-c", cmd);) {
             if (exec.exitCode().get().intValue() != 0) {
-                log.error("Cmd failed:\n{}", new String(exec.getOutput().readAllBytes(), StandardCharsets.UTF_8));
+                final InputStream out = exec.getOutput();
+                String output = "";
+                if (out != null) {
+                    output = new String(out.readAllBytes(), StandardCharsets.UTF_8);
+                }
+                log.error("Cmd failed:\n{}", output);
                 Assert.fail();
             }
         }

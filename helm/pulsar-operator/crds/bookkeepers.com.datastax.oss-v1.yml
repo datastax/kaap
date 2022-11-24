@@ -195,6 +195,11 @@ spec:
                   pvcPrefix:
                     description: Prefix for each PVC created.
                     type: string
+                  config:
+                    additionalProperties:
+                      type: string
+                    description: Configuration entries directly passed to this component.
+                    type: object
                   probe:
                     description: Liveness and readiness probe values.
                     properties:
@@ -238,11 +243,6 @@ spec:
                   imagePullPolicy:
                     description: Pulsar image pull policy to use for this component.
                     type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration entries directly passed to this component.
-                    type: object
                 type: object
               global:
                 properties:

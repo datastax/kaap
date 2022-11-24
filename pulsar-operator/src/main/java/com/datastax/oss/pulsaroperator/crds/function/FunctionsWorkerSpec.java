@@ -6,6 +6,8 @@ import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -108,6 +110,7 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     }
 
     @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
     @JsonPropertyDescription("Update strategy for the Broker pod/s. ")
     private StatefulSetUpdateStrategy updateStrategy;

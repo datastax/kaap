@@ -352,12 +352,20 @@ public abstract class BaseK8sEnvTest {
     protected void printPodLogs(String podName) {
         if (podName != null) {
             try {
-                final String podLog = client.pods().inNamespace(namespace)
+                client.pods().inNamespace(namespace)
                         .withName(podName)
-                        .tailingLines(300)
-                        .getLog();
-                final String sep = "-".repeat(100);
-                log.info("{}\n{} pod logs:\n{}\n{}", sep, podName, podLog, sep);
+                        .get().getSpec().getContainers().forEach(container -> {
+                            final String sep = "-".repeat(100);
+                            final String containerLog = client.pods().inNamespace(namespace)
+                                    .withName(podName)
+                                    .inContainer(container.getName())
+                                    .tailingLines(300)
+                                    .getLog();
+                            log.info("{}\n{}/{} pod logs:\n{}\n{}", sep, podName, container.getName(),
+                                    containerLog, sep);
+                        });
+
+
             } catch (Throwable t) {
                 log.error("failed to get operator pod logs: {}", t.getMessage(), t);
             }

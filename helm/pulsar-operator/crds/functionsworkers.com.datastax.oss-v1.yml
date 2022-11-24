@@ -193,28 +193,6 @@ spec:
                 type: object
               functionsWorker:
                 properties:
-                  runtimeResources:
-                    description: Function runtime resources.
-                    properties:
-                      cpu:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: Requested CPU for a single function pod.
-                        x-kubernetes-int-or-string: true
-                      ram:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: Requested memory for a single function pod.
-                        x-kubernetes-int-or-string: true
-                      disk:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        description: Requested disk size for a single function pod.
-                        x-kubernetes-int-or-string: true
-                    type: object
                   updateStrategy:
                     description: 'Update strategy for the Broker pod/s. '
                     properties:
@@ -231,6 +209,9 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  config:
+                    description: Configuration entries directly passed to this component.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds for the Broker
                       pod. Default value is 60.
@@ -428,11 +409,6 @@ spec:
                   imagePullPolicy:
                     description: Pulsar image pull policy to use for this component.
                     type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration entries directly passed to this component.
-                    type: object
                 type: object
             type: object
           status:

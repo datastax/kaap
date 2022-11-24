@@ -180,6 +180,7 @@ public class LocalK3SContainer implements K8sEnv {
             imageFilename = getMountedImageFilename(hostDockerClient, image);
         }
 
+        Paths.get("target").toFile().mkdir();
         final Path imageBinPath = Paths.get("target", imageFilename);
         if (imageBinPath.toFile().exists()) {
             log.info("Local image {} digest already exists, reusing it", image);

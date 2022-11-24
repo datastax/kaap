@@ -139,18 +139,19 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .inNamespace(namespace)
                 .withName(podName)
                 .inContainer(containerName)
-                .writingOutput(System.out)
-                .writingError(System.err)
-                .withTTY()
                 .exec("bash", "-c", cmd);) {
             if (exec.exitCode().get().intValue() != 0) {
                 final InputStream out = exec.getOutput();
+                final InputStream err = exec.getError();
                 String output = "";
                 if (out != null) {
-                    output = new String(out.readAllBytes(), StandardCharsets.UTF_8);
+                    output += "\nOut: " + new String(out.readAllBytes(), StandardCharsets.UTF_8);
                 }
-                log.error("Cmd failed:\n{}", output);
-                Assert.fail();
+                if (err != null) {
+                    output += "\nErr: " + new String(err.readAllBytes(), StandardCharsets.UTF_8);
+                }
+                log.error("Cmd failed: {}", output);
+                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, output));
             }
         }
     }
@@ -267,6 +268,10 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                                 "cpu", 0.001d
                         )
                 ))
+                .probe(ProbeConfig.builder()
+                        .initial(5)
+                        .period(5)
+                        .build())
                 .build()
         );
         try {
@@ -285,6 +290,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                     execInPod(proxyPod, "pulsar-proxy",
                             "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
                                     + "--destinationTopicName generator_test --source-type data-generator "
+                                    + "--ram 12800000 --cpu 0.001 --disk 1000000000 "
                                     + "--parallelism 2");
                     return true;
                 } catch (Throwable t) {
@@ -506,8 +512,6 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                     .inNamespace(namespace)
                     .withLabel("component", "function").list().getItems().size(), 2);
         });
-
-        printAllPodsLogs();
 
         client.apps().statefulSets()
                 .inNamespace(namespace)

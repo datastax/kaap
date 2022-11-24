@@ -8,6 +8,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -55,6 +56,7 @@ public class PulsarClusterControllerTest {
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
                       bastionBaseName: bastion
+                      functionsWorkerBaseName: function
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -118,6 +120,7 @@ public class PulsarClusterControllerTest {
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
                       bastionBaseName: bastion
+                      functionsWorkerBaseName: function
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -184,6 +187,7 @@ public class PulsarClusterControllerTest {
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
                       bastionBaseName: bastion
+                      functionsWorkerBaseName: function
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -255,6 +259,7 @@ public class PulsarClusterControllerTest {
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
                       bastionBaseName: bastion
+                      functionsWorkerBaseName: function
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -323,6 +328,7 @@ public class PulsarClusterControllerTest {
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
                       bastionBaseName: bastion
+                      functionsWorkerBaseName: function
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -370,6 +376,7 @@ public class PulsarClusterControllerTest {
                       proxyBaseName: proxy
                       autorecoveryBaseName: autorecovery
                       bastionBaseName: bastion
+                      functionsWorkerBaseName: function
                     kubernetesClusterDomain: cluster.local
                     tls:
                       enabled: false
@@ -390,6 +397,75 @@ public class PulsarClusterControllerTest {
                         cpu: 0.25
                         memory: 256Mi
                     targetProxy: true
+                status:
+                  ready: false
+                """);
+
+
+        Assert.assertEquals(client.getCreatedResource(FunctionsWorker.class).getResourceYaml(), """
+                ---
+                apiVersion: com.datastax.oss/v1alpha1
+                kind: FunctionsWorker
+                metadata:
+                  name: pulsarname-functionsworker
+                  namespace: ns
+                  ownerReferences:
+                  - apiVersion: com.datastax.oss/v1alpha1
+                    kind: PulsarCluster
+                    blockOwnerDeletion: true
+                    controller: true
+                    name: pulsar-cluster
+                spec:
+                  global:
+                    name: pulsarname
+                    components:
+                      zookeeperBaseName: zookeeper
+                      bookkeeperBaseName: bookkeeper
+                      brokerBaseName: broker
+                      proxyBaseName: proxy
+                      autorecoveryBaseName: autorecovery
+                      bastionBaseName: bastion
+                      functionsWorkerBaseName: function
+                    kubernetesClusterDomain: cluster.local
+                    tls:
+                      enabled: false
+                      defaultSecretName: pulsar-tls
+                    persistence: true
+                    restartOnConfigMapChange: false
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    storage:
+                      existingStorageClassName: default
+                  functionsWorker:
+                    image: apachepulsar/pulsar:2.10.2
+                    imagePullPolicy: IfNotPresent
+                    replicas: 0
+                    probe:
+                      enabled: true
+                      timeout: 5
+                      initial: 10
+                      period: 30
+                    pdb:
+                      enabled: true
+                      maxUnavailable: 1
+                    updateStrategy:
+                      type: RollingUpdate
+                    podManagementPolicy: Parallel
+                    gracePeriod: 60
+                    resources:
+                      requests:
+                        cpu: 1
+                        memory: 4Gi
+                    service:
+                      type: ClusterIP
+                    logsVolume:
+                      name: logs
+                      size: 5Gi
+                      existingStorageClassName: default
+                    runtime: process
+                    rbac:
+                      create: true
+                      namespaced: true
                 status:
                   ready: false
                 """);

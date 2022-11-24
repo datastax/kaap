@@ -1,10 +1,11 @@
-package com.datastax.oss.pulsaroperator.controllers.zookeeper;
+package com.datastax.oss.pulsaroperator.controllers.function;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
-import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
-import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -15,17 +16,22 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -35,7 +41,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @JBossLog
-public class ZooKeeperControllerTest {
+public class FunctionsWorkerControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
@@ -46,15 +52,13 @@ public class ZooKeeperControllerTest {
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:2.10.2
+                functionsWorker:
+                    replicas: 2
                 """;
 
         final MockKubernetesClient client = invokeController(spec);
 
-        final MockKubernetesClient.ResourceInteraction<ConfigMap> configMapInt = client
-                .getCreatedResource(ConfigMap.class);
-        final String configMap = configMapInt.getResourceYaml();
-        log.info(configMap);
-        Assert.assertEquals(configMap,
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(0).getResourceYaml(),
                 """
                         ---
                         apiVersion: v1
@@ -63,28 +67,113 @@ public class ZooKeeperControllerTest {
                           labels:
                             app: pulsarname
                             cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper
+                            component: function
+                          name: pulsarname-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
+                            kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
                             name: pulsarname-cr
                         data:
-                          PULSAR_EXTRA_OPTS: -Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
-                          PULSAR_LOG_LEVEL: info
-                          PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760
+                          functions_worker.yml: |
+                            ---
+                            PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                            PULSAR_GC: -XX:+UseG1GC
+                            PULSAR_LOG_LEVEL: info
+                            PULSAR_LOG_ROOT_LEVEL: info
+                            PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError
+                            assignmentWriteMaxRetries: 60
+                            clusterCoordinationTopicName: coordinate
+                            configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                            connectorsDirectory: ./connectors
+                            downloadDirectory: /tmp/pulsar_functions
+                            failureCheckFreqMs: 30000
+                            functionAssignmentTopicName: assignments
+                            functionMetadataTopicName: metadata
+                            functionRuntimeFactoryClassName: org.apache.pulsar.functions.runtime.process.ProcessRuntimeFactory
+                            functionRuntimeFactoryConfigs: {}
+                            includeStandardPrometheusMetrics: "true"
+                            initialBrokerReconnectMaxRetries: 60
+                            instanceLivenessCheckFreqMs: 30000
+                            numFunctionPackageReplicas: 2
+                            numHttpServerThreads: 16
+                            pulsarFunctionsCluster: pulsarname
+                            pulsarFunctionsNamespace: public/functions
+                            pulsarServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                            pulsarWebServiceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                            rescheduleTimeoutMs: 60000
+                            schedulerClassName: org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler
+                            topicCompactionFrequencySec: 1800
+                            workerHostname: pulsarname-function
+                            workerId: pulsarname-function
+                            workerPort: 6750
+                            zooKeeperSessionTimeoutMillis: 30000
+                            zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                                                """);
+
+        Assert.assertEquals(client.getCreatedResources(Service.class).get(0).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: v1
+                        kind: Service
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: function
+                          name: pulsarname-function-ca
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        spec:
+                          ports:
+                          - name: http
+                            port: 6750
+                          - name: https
+                            port: 6751
+                          selector:
+                            app: pulsarname
+                            component: function
                         """);
 
+        Assert.assertEquals(client.getCreatedResources(Service.class).get(1).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: v1
+                        kind: Service
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: function
+                          name: pulsarname-function
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        spec:
+                          clusterIP: None
+                          ports:
+                          - name: http
+                            port: 6750
+                          - name: https
+                            port: 6751
+                          selector:
+                            app: pulsarname
+                            component: function
+                          type: ClusterIP
+                        """);
 
-        final MockKubernetesClient.ResourceInteraction<StatefulSet> statefulSetInt = client
-                .getCreatedResource(StatefulSet.class);
-        final String statefulSet = statefulSetInt.getResourceYaml();
-        Assert.assertEquals(statefulSet,
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class).getResourceYaml(),
                 """
                         ---
                         apiVersion: apps/v1
@@ -93,23 +182,23 @@ public class ZooKeeperControllerTest {
                           labels:
                             app: pulsarname
                             cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper
+                            component: function
+                          name: pulsarname-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
+                            kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
                             name: pulsarname-cr
                         spec:
                           podManagementPolicy: Parallel
-                          replicas: 3
+                          replicas: 2
                           selector:
                             matchLabels:
                               app: pulsarname
-                              component: zookeeper
-                          serviceName: pulsarname-zookeeper
+                              component: function
+                          serviceName: pulsarname-function
                           template:
                             metadata:
                               annotations:
@@ -118,65 +207,71 @@ public class ZooKeeperControllerTest {
                               labels:
                                 app: pulsarname
                                 cluster: pulsarname
-                                component: zookeeper
+                                component: function
                             spec:
                               containers:
                               - args:
-                                - "bin/apply-config-from-env.py conf/zookeeper.conf && bin/generate-zookeeper-config.sh conf/zookeeper.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar zookeeper"
+                                - "bin/apply-config-from-env.py conf/broker.conf && cp -f funcconf/functions_worker.yml conf/functions_worker.yml && export PF_workerHostname=\\"${workerHostname}.pulsarname-function\\" && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar functions-worker"
                                 command:
                                 - sh
                                 - -c
                                 env:
-                                - name: ZOOKEEPER_SERVERS
-                                  value: "pulsarname-zookeeper-0,pulsarname-zookeeper-1,pulsarname-zookeeper-2"
-                                envFrom:
-                                - configMapRef:
-                                    name: pulsarname-zookeeper
+                                - name: workerHostname
+                                  valueFrom:
+                                    fieldRef:
+                                      fieldPath: metadata.name
+                                - name: PF_workerId
+                                  valueFrom:
+                                    fieldRef:
+                                      fieldPath: metadata.name
                                 image: apachepulsar/pulsar:2.10.2
                                 imagePullPolicy: IfNotPresent
                                 livenessProbe:
                                   exec:
                                     command:
-                                    - timeout
-                                    - 30
-                                    - bin/pulsar-zookeeper-ruok.sh
-                                  initialDelaySeconds: 20
+                                    - sh
+                                    - -c
+                                    - curl -s --max-time 5 --fail http://localhost:6750/metrics/ > /dev/null
+                                  initialDelaySeconds: 10
                                   periodSeconds: 30
-                                  timeoutSeconds: 30
-                                name: pulsarname-zookeeper
+                                  timeoutSeconds: 5
+                                name: pulsarname-function
                                 ports:
-                                - containerPort: 2181
-                                  name: client
-                                - containerPort: 2888
-                                  name: server
-                                - containerPort: 3888
-                                  name: leader-election
+                                - containerPort: 6750
+                                  name: http
+                                - containerPort: 6751
+                                  name: https
                                 readinessProbe:
-                                  exec:
-                                    command:
-                                    - timeout
-                                    - 30
-                                    - bin/pulsar-zookeeper-ruok.sh
-                                  initialDelaySeconds: 20
+                                  initialDelaySeconds: 10
                                   periodSeconds: 30
-                                  timeoutSeconds: 30
+                                  tcpSocket:
+                                    port: 6750
+                                  timeoutSeconds: 5
                                 resources:
                                   requests:
-                                    cpu: 0.3
-                                    memory: 1Gi
+                                    cpu: 1
+                                    memory: 4Gi
                                 volumeMounts:
-                                - mountPath: /pulsar/data
-                                  name: pulsarname-zookeeper-data
+                                - mountPath: /pulsar/funcconf/functions_worker.yml
+                                  name: config-volume
+                                  subPath: functions_worker.yml
+                                - mountPath: /pulsar/logs
+                                  name: pulsarname-function-logs
                               securityContext:
                                 fsGroup: 0
+                              serviceAccountName: pulsarname-function
                               terminationGracePeriodSeconds: 60
+                              volumes:
+                              - configMap:
+                                  name: pulsarname-function
+                                name: config-volume
                           updateStrategy:
                             type: RollingUpdate
                           volumeClaimTemplates:
                           - apiVersion: v1
                             kind: PersistentVolumeClaim
                             metadata:
-                              name: pulsarname-zookeeper-data
+                              name: pulsarname-function-logs
                             spec:
                               accessModes:
                               - ReadWriteOnce
@@ -185,82 +280,7 @@ public class ZooKeeperControllerTest {
                                   storage: 5Gi
                         """);
 
-        final MockKubernetesClient.ResourceInteraction<Service> serviceInt =
-                client.getCreatedResources(Service.class).get(0);
-        final String service = serviceInt.getResourceYaml();
-        Assert.assertEquals(service,
-                """
-                        ---
-                        apiVersion: v1
-                        kind: Service
-                        metadata:
-                          annotations:
-                            service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-                          labels:
-                            app: pulsarname
-                            cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper
-                          namespace: ns
-                          ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
-                            blockOwnerDeletion: true
-                            controller: true
-                            name: pulsarname-cr
-                        spec:
-                          clusterIP: None
-                          ports:
-                          - name: server
-                            port: 2888
-                          - name: leader-election
-                            port: 3888
-                          - name: client
-                            port: 2181
-                          publishNotReadyAddresses: true
-                          selector:
-                            app: pulsarname
-                            component: zookeeper
-                        """);
-
-        final MockKubernetesClient.ResourceInteraction<Service> serviceIntCa = client
-                .getCreatedResources(Service.class).get(1);
-        final String serviceCa = serviceIntCa.getResourceYaml();
-        Assert.assertEquals(serviceCa,
-                """
-                        ---
-                        apiVersion: v1
-                        kind: Service
-                        metadata:
-                          labels:
-                            app: pulsarname
-                            cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper-ca
-                          namespace: ns
-                          ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
-                            blockOwnerDeletion: true
-                            controller: true
-                            name: pulsarname-cr
-                        spec:
-                          ports:
-                          - name: server
-                            port: 2888
-                          - name: leader-election
-                            port: 3888
-                          - name: client
-                            port: 2181
-                          selector:
-                            app: pulsarname
-                            component: zookeeper
-                            """);
-
-        final MockKubernetesClient.ResourceInteraction<PodDisruptionBudget> pdbInt = client
-                .getCreatedResource(PodDisruptionBudget.class);
-        final String pdb = pdbInt.getResourceYaml();
-        Assert.assertEquals(pdb,
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class).getResourceYaml(),
                 """
                         ---
                         apiVersion: policy/v1
@@ -269,12 +289,12 @@ public class ZooKeeperControllerTest {
                           labels:
                             app: pulsarname
                             cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper
+                            component: function
+                          name: pulsarname-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
+                            kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
                             name: pulsarname-cr
@@ -283,64 +303,90 @@ public class ZooKeeperControllerTest {
                           selector:
                             matchLabels:
                               app: pulsarname
-                              component: zookeeper
-                            """);
+                              component: function
+                        """);
 
-        final String job = client
-                .getCreatedResource(Job.class).getResourceYaml();
-        Assert.assertEquals(job,
+        Assert.assertEquals(client.getCreatedResource(ServiceAccount.class).getResourceYaml(),
                 """
                         ---
-                        apiVersion: batch/v1
-                        kind: Job
+                        apiVersion: v1
+                        kind: ServiceAccount
                         metadata:
-                          labels:
-                            app: pulsarname
-                            cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper
+                          name: pulsarname-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
+                            kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
                             name: pulsarname-cr
-                        spec:
-                          template:
-                            spec:
-                              containers:
-                              - args:
-                                - |
-                                  bin/pulsar initialize-cluster-metadata --cluster pulsarname \\
-                                      --zookeeper pulsarname-zookeeper-ca.ns.svc.cluster.local:2181 \\
-                                      --configuration-store pulsarname-zookeeper-ca.ns.svc.cluster.local:2181 \\
-                                      --web-service-url http://pulsarname-broker.ns.svc.cluster.local:8080/ \\
-                                      --broker-service-url pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                                command:
-                                - timeout
-                                - 60
-                                - sh
-                                - -c
-                                image: apachepulsar/pulsar:2.10.2
-                                imagePullPolicy: IfNotPresent
-                                name: pulsarname-zookeeper
-                              initContainers:
-                              - args:
-                                - |
-                                  until [ "$(echo ruok | nc -w 5 pulsarname-zookeeper-2.pulsarname-zookeeper.ns 2181)" = "imok" ]; do
-                                    echo Zookeeper not yet ready. Will try again after 3 seconds.
-                                    sleep 3;
-                                  done;
-                                  echo Zookeeper is ready.
-                                command:
-                                - sh
-                                - -c
-                                image: apachepulsar/pulsar:2.10.2
-                                imagePullPolicy: IfNotPresent
-                                name: wait-zookeeper-ready
-                              restartPolicy: OnFailure
-                            """);
+                        """);
+        Assert.assertEquals(client.getCreatedResource(Role.class).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: rbac.authorization.k8s.io/v1
+                        kind: Role
+                        metadata:
+                          name: pulsarname-function
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        rules:
+                        - apiGroups:
+                          - ""
+                          resources:
+                          - pods
+                          verbs:
+                          - list
+                        - apiGroups:
+                          - ""
+                          resources:
+                          - secrets
+                          verbs:
+                          - '*'
+                        - apiGroups:
+                          - ""
+                          resources:
+                          - services
+                          verbs:
+                          - get
+                          - create
+                          - delete
+                        - apiGroups:
+                          - apps
+                          resources:
+                          - statefulsets
+                          verbs:
+                          - get
+                          - create
+                          - delete
+                        """);
+        Assert.assertEquals(client.getCreatedResource(RoleBinding.class).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: rbac.authorization.k8s.io/v1
+                        kind: RoleBinding
+                        metadata:
+                          name: pulsarname-function
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        roleRef:
+                          kind: Role
+                          name: pulsarname-function
+                        subjects:
+                        - kind: ServiceAccount
+                          name: pulsarname-function
+                          namespace: ns
+                        """);
     }
 
     @Test
@@ -351,9 +397,8 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
-                zookeeper:
-                    dataVolume:
-                        name: volume-name
+                functionsWorker:
+                    replicas: 1
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -376,8 +421,9 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
-                zookeeper:
-                    image: apachepulsar/pulsar:zk
+                functionsWorker:
+                    replicas: 1
+                    image: apachepulsar/pulsar:fn
                     imagePullPolicy: Always
                 """;
         client = invokeController(spec);
@@ -388,23 +434,12 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(createdResource.getResource().getSpec()
                 .getTemplate()
                 .getSpec().getContainers().get(0)
-                .getImage(), "apachepulsar/pulsar:zk");
+                .getImage(), "apachepulsar/pulsar:fn");
         Assert.assertEquals(createdResource.getResource().getSpec()
                 .getTemplate()
                 .getSpec().getContainers().get(0)
                 .getImagePullPolicy(), "Always");
 
-    }
-
-    @Test
-    public void testValidateName() throws Exception {
-        String spec = """
-                global:
-                    image: apachepulsar/pulsar:global
-                zookeeper: {}
-                """;
-        invokeControllerAndAssertError(spec, "invalid configuration property "
-                + "\"global.name\" for value \"null\": must not be null");
     }
 
     @Test
@@ -414,7 +449,7 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
                     replicas: 5
                 """;
         MockKubernetesClient client = invokeController(spec);
@@ -424,18 +459,8 @@ public class ZooKeeperControllerTest {
 
 
         Assert.assertEquals((int) createdResource.getResource().getSpec().getReplicas(), 5);
-        Assert.assertEquals(createdResource.getResource().getSpec()
-                .getTemplate()
-                .getSpec()
-                .getContainers()
-                .get(0)
-                .getEnv()
-                .stream()
-                .filter(e -> e.getName().equals("ZOOKEEPER_SERVERS"))
-                .findFirst()
-                .get()
-                .getValue(), "pul-zookeeper-0,pul-zookeeper-1,pul-zookeeper-2,pul-zookeeper-3,pul-zookeeper-4");
     }
+
 
     @Test
     public void testConfig() throws Exception {
@@ -444,26 +469,132 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 2
                     config:
-                        serverCnxnFactory: my.class.MyClass
+                        numFunctionPackageReplicas: 5
+                        myconfig: myvalue
                 """;
         MockKubernetesClient client = invokeController(spec);
 
         MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
-                client.getCreatedResource(ConfigMap.class);
+                client.getCreatedResources(ConfigMap.class).get(0);
 
-        Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS",
-                "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log"
-                        + ".root.level=info");
-        expectedData.put("serverCnxnFactory", "my.class.MyClass");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zooKeeperSessionTimeoutMillis", 30000);
+        expectedData.put("pulsarFunctionsCluster", "pul");
+        expectedData.put("workerId", "pul-function");
+        expectedData.put("workerHostname", "pul-function");
+        expectedData.put("workerPort", 6750);
 
-        final Map<String, String> data = createdResource.getResource().getData();
+        expectedData.put("pulsarServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("pulsarWebServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("downloadDirectory", "/tmp/pulsar_functions");
+        expectedData.put("pulsarFunctionsNamespace", "public/functions");
+        expectedData.put("functionMetadataTopicName", "metadata");
+        expectedData.put("clusterCoordinationTopicName", "coordinate");
+        expectedData.put("numHttpServerThreads", 16);
+        expectedData.put("schedulerClassName", "org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler");
+        expectedData.put("functionAssignmentTopicName", "assignments");
+        expectedData.put("failureCheckFreqMs", 30000);
+        expectedData.put("rescheduleTimeoutMs", 60000);
+        expectedData.put("initialBrokerReconnectMaxRetries", 60);
+        expectedData.put("assignmentWriteMaxRetries", 60);
+        expectedData.put("instanceLivenessCheckFreqMs", 30000);
+        expectedData.put("topicCompactionFrequencySec", 1800);
+        expectedData.put("includeStandardPrometheusMetrics", "true");
+        expectedData.put("connectorsDirectory", "./connectors");
+        expectedData.put("numFunctionPackageReplicas", 5);
+        expectedData.put("myconfig", "myvalue");
+        expectedData.put("functionRuntimeFactoryClassName",
+                "org.apache.pulsar.functions.runtime.process.ProcessRuntimeFactory");
+        expectedData.put("functionRuntimeFactoryConfigs", Map.of());
+
+        final Map<String, Object> data = (Map<String, Object>) SerializationUtil
+                .readYaml(createdResource.getResource().getData().get("functions_worker.yml"), Map.class);
+        Assert.assertEquals(data, expectedData);
+    }
+
+
+    @Test
+    public void testRuntimeK8s() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 1
+                    runtime: kubernetes
+                    config:
+                        functionInstanceMinResources:
+                            cpu: 0.5
+                            ram: 100000000
+                            disk: 500000000
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResources(ConfigMap.class).get(0);
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zooKeeperSessionTimeoutMillis", 30000);
+        expectedData.put("pulsarFunctionsCluster", "pul");
+        expectedData.put("workerId", "pul-function");
+        expectedData.put("workerHostname", "pul-function");
+        expectedData.put("workerPort", 6750);
+
+        expectedData.put("pulsarServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("pulsarWebServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("downloadDirectory", "/tmp/pulsar_functions");
+        expectedData.put("pulsarFunctionsNamespace", "public/functions");
+        expectedData.put("functionMetadataTopicName", "metadata");
+        expectedData.put("clusterCoordinationTopicName", "coordinate");
+        expectedData.put("numHttpServerThreads", 16);
+        expectedData.put("schedulerClassName", "org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler");
+        expectedData.put("functionAssignmentTopicName", "assignments");
+        expectedData.put("failureCheckFreqMs", 30000);
+        expectedData.put("rescheduleTimeoutMs", 60000);
+        expectedData.put("initialBrokerReconnectMaxRetries", 60);
+        expectedData.put("assignmentWriteMaxRetries", 60);
+        expectedData.put("instanceLivenessCheckFreqMs", 30000);
+        expectedData.put("topicCompactionFrequencySec", 1800);
+        expectedData.put("includeStandardPrometheusMetrics", "true");
+        expectedData.put("connectorsDirectory", "./connectors");
+        expectedData.put("numFunctionPackageReplicas", 2);
+        expectedData.put("functionRuntimeFactoryClassName",
+                "org.apache.pulsar.functions.runtime.kubernetes.KubernetesRuntimeFactory");
+        LinkedHashMap<String, Object> functionRuntimeFactoryConfigs = new LinkedHashMap<>();
+        functionRuntimeFactoryConfigs.put("jobNamespace", "ns");
+        functionRuntimeFactoryConfigs.put("percentMemoryPadding", 10);
+        functionRuntimeFactoryConfigs.put("pulsarAdminUrl", "https://pul-function.ns.svc.cluster.local:6750/");
+        functionRuntimeFactoryConfigs.put("pulsarDockerImageName", "apachepulsar/pulsar:global");
+        functionRuntimeFactoryConfigs.put("pulsarRootDir", "/pulsar");
+        functionRuntimeFactoryConfigs.put("pulsarServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        functionRuntimeFactoryConfigs.put("submittingInsidePod", true);
+        expectedData.put("functionRuntimeFactoryConfigs", functionRuntimeFactoryConfigs);
+        LinkedHashMap<String, Object> functionInstanceMinResources = new LinkedHashMap<>();
+        functionInstanceMinResources.put("cpu", 0.5d);
+        functionInstanceMinResources.put("disk", 500000000);
+        functionInstanceMinResources.put("ram", 100000000);
+        expectedData.put("functionInstanceMinResources", functionInstanceMinResources);
+
+        final Map<String, Object> data = (Map<String, Object>) SerializationUtil
+                .readYaml(createdResource.getResource().getData().get("functions_worker.yml"), Map.class);
         Assert.assertEquals(data, expectedData);
     }
 
@@ -474,7 +605,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     updateStrategy:
                         type: RollingUpdate
                         rollingUpdate:
@@ -504,7 +636,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     podManagementPolicy: OrderedReady
                 """;
         MockKubernetesClient client = invokeController(spec);
@@ -525,7 +658,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     annotations:
                         annotation-1: ann1-value
                 """;
@@ -550,10 +684,11 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     gracePeriod: -1
                 """;
-        invokeControllerAndAssertError(spec, "invalid configuration property \"zookeeper.gracePeriod\" for value "
+        invokeControllerAndAssertError(spec, "invalid configuration property \"functionsWorker.gracePeriod\" for value "
                 + "\"-1\": must be greater than or equal to 0");
 
         spec = """
@@ -561,7 +696,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     gracePeriod: 0
                 """;
 
@@ -579,7 +715,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     gracePeriod: 120
                 """;
 
@@ -600,7 +737,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     resources:
                         requests:
                           memory: 1.5Gi
@@ -636,7 +774,8 @@ public class ZooKeeperControllerTest {
                     nodeSelectors:
                         globallabel: global
                         overridelabel: to-be-overridden
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     nodeSelectors:
                         overridelabel: overridden
                 """;
@@ -667,6 +806,8 @@ public class ZooKeeperControllerTest {
                         searches:
                           - ns1.svc.cluster-domain.example
                           - my.dns.search.suffix
+                functionsWorker:
+                    replicas: 1
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -688,7 +829,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     probe:
                         enabled: false
                 """;
@@ -711,7 +853,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     probe:
                         enabled: true
                 """;
@@ -725,8 +868,8 @@ public class ZooKeeperControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 30, 20, 30);
-        assertProbe(container.getReadinessProbe(), 30, 20, 30);
+        assertLivenessProbe(container.getLivenessProbe(), 5, 10, 30);
+        assertReadinessProbe(container.getReadinessProbe(), 5, 10, 30);
 
 
         spec = """
@@ -734,7 +877,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     probe:
                         enabled: true
                         period: 50
@@ -749,14 +893,23 @@ public class ZooKeeperControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 30, 20, 50);
-        assertProbe(container.getReadinessProbe(), 30, 20, 50);
+        assertLivenessProbe(container.getLivenessProbe(), 5, 10, 50);
+        assertReadinessProbe(container.getReadinessProbe(), 5, 10, 50);
 
     }
 
-    private void assertProbe(Probe probe, int timeout, int initial, int period) {
+    private void assertLivenessProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(),
-                List.of("timeout", timeout + "", "bin/pulsar-zookeeper-ruok.sh"));
+                List.of("sh", "-c",
+                        "curl -s --max-time %d --fail http://localhost:6750/metrics/ > /dev/null".formatted(timeout)));
+
+        Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
+        Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);
+        Assert.assertEquals((int) probe.getPeriodSeconds(), period);
+    }
+
+    private void assertReadinessProbe(Probe probe, int timeout, int initial, int period) {
+        Assert.assertEquals(probe.getTcpSocket().getPort().getIntVal().intValue(), 6750);
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);
@@ -765,15 +918,16 @@ public class ZooKeeperControllerTest {
 
 
     @Test
-    public void testDataVolumeNoPersistence() throws Exception {
+    public void testLogsVolumeNoPersistence() throws Exception {
         String spec = """
                 global:
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
-                    dataVolume:
-                        name: myvol
+                functionsWorker:
+                    replicas: 1
+                    logsVolume:
+                        name: fnlogs
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -786,9 +940,9 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
-                "/pulsar/data");
-        Assert.assertNotNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol").getEmptyDir());
+        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-fnlogs").getMountPath(),
+                "/pulsar/logs");
+        Assert.assertNotNull(getVolumeByName(podSpec.getVolumes(), "pul-function-fnlogs").getEmptyDir());
         Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
@@ -800,9 +954,9 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: true
                     image: apachepulsar/pulsar:global
-                zookeeper:
-                    dataVolume:
-                        name: myvol
+                functionsWorker:
+                    replicas: 1
+                    logsVolume:
                         size: 1Gi
                         existingStorageClassName: default
                 """;
@@ -817,13 +971,13 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
-                "/pulsar/data");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
+        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+                "/pulsar/logs");
+        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-logs"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
-        Assert.assertEquals(persistentVolumeClaim.getMetadata().getName(), "pul-zookeeper-myvol");
+        Assert.assertEquals(persistentVolumeClaim.getMetadata().getName(), "pul-function-logs");
 
         Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
         Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
@@ -841,9 +995,9 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: true
                     image: apachepulsar/pulsar:global
-                zookeeper:
-                    dataVolume:
-                        name: myvol
+                functionsWorker:
+                    replicas: 1
+                    logsVolume:
                         size: 1Gi
                         existingStorageClassName: mystorage-class
                 """},
@@ -854,9 +1008,9 @@ public class ZooKeeperControllerTest {
                     image: apachepulsar/pulsar:global
                     storage:
                         existingStorageClassName: mystorage-class
-                zookeeper:
-                    dataVolume:
-                        name: myvol
+                functionsWorker:
+                    replicas: 1
+                    logsVolume:
                         size: 1Gi
                 """}};
     }
@@ -873,13 +1027,13 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
-                "/pulsar/data");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
+        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+                "/pulsar/logs");
+        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
-        Assert.assertEquals(persistentVolumeClaim.getMetadata().getName(), "pul-zookeeper-myvol");
+        Assert.assertEquals(persistentVolumeClaim.getMetadata().getName(), "pul-function-logs");
 
         Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
         Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
@@ -896,9 +1050,9 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: true
                     image: apachepulsar/pulsar:global
-                zookeeper:
-                    dataVolume:
-                        name: myvol
+                functionsWorker:
+                    replicas: 1
+                    logsVolume:
                         size: 1Gi
                         storageClass:
                             reclaimPolicy: Retain
@@ -921,9 +1075,9 @@ public class ZooKeeperControllerTest {
                             fsType: ext4
                             extraParams:
                                 iopsPerGB: "10"
-                zookeeper:
-                    dataVolume:
-                        name: myvol
+                functionsWorker:
+                    replicas: 1
+                    logsVolume:
                         size: 1Gi
                 """}};
     }
@@ -939,27 +1093,27 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
-                "/pulsar/data");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
+        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+                "/pulsar/logs");
+        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
-        Assert.assertEquals(persistentVolumeClaim.getMetadata().getName(), "pul-zookeeper-myvol");
+        Assert.assertEquals(persistentVolumeClaim.getMetadata().getName(), "pul-function-logs");
 
         Assert.assertEquals(persistentVolumeClaim.getSpec().getAccessModes(), List.of("ReadWriteOnce"));
         Assert.assertEquals(persistentVolumeClaim.getSpec().getResources().getRequests().get("storage"),
                 Quantity.parse("1Gi"));
-        Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "pul-zookeeper-myvol");
+        Assert.assertEquals(persistentVolumeClaim.getSpec().getStorageClassName(), "pul-function-logs");
 
 
         final MockKubernetesClient.ResourceInteraction<StorageClass> createdStorageClass =
                 client.getCreatedResource(StorageClass.class);
 
         final StorageClass storageClass = createdStorageClass.getResource();
-        Assert.assertEquals(storageClass.getMetadata().getName(), "pul-zookeeper-myvol");
+        Assert.assertEquals(storageClass.getMetadata().getName(), "pul-function-logs");
         Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
-        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "ZooKeeper");
+        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "FunctionsWorker");
 
         Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
         Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
@@ -996,7 +1150,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     service:
                         annotations:
                             myann: myann-value
@@ -1015,25 +1170,22 @@ public class ZooKeeperControllerTest {
         for (MockKubernetesClient.ResourceInteraction<Service> service : services) {
             final ObjectMeta metadata = service.getResource().getMetadata();
             boolean isCaService = false;
-            if (metadata.getName().equals("pul-zookeeper-ca")) {
+            if (metadata.getName().equals("pul-function-ca")) {
                 isCaService = true;
-            } else if (!metadata.getName().equals("pul-zookeeper")) {
+            } else if (!metadata.getName().equals("pul-function")) {
                 Assert.fail("unexpected service " + metadata.getName());
             }
             Assert.assertEquals(metadata.getNamespace(), NAMESPACE);
 
             final List<ServicePort> ports = service.getResource().getSpec().getPorts();
-            Assert.assertEquals(ports.size(), 4);
+            Assert.assertEquals(ports.size(), 3);
             for (ServicePort port : ports) {
                 switch (port.getName()) {
-                    case "server":
-                        Assert.assertEquals((int) port.getPort(), 2888);
+                    case "http":
+                        Assert.assertEquals((int) port.getPort(), 6750);
                         break;
-                    case "leader-election":
-                        Assert.assertEquals((int) port.getPort(), 3888);
-                        break;
-                    case "client":
-                        Assert.assertEquals((int) port.getPort(), 2181);
+                    case "https":
+                        Assert.assertEquals((int) port.getPort(), 6751);
                         break;
                     case "myport1":
                         Assert.assertEquals((int) port.getPort(), 3333);
@@ -1049,14 +1201,12 @@ public class ZooKeeperControllerTest {
                 Assert.assertEquals(annotations.get("myann"), "myann-value");
 
                 Assert.assertNull(service.getResource().getSpec().getClusterIP());
-                Assert.assertNull(service.getResource().getSpec().getPublishNotReadyAddresses());
+                Assert.assertNull(service.getResource().getSpec().getType());
             } else {
-                Assert.assertEquals(annotations.size(), 2);
-                Assert.assertEquals(annotations.get("service.alpha.kubernetes.io/tolerate-unready-endpoints"), "true");
-                Assert.assertEquals(annotations.get("myann"), "myann-value");
+                Assert.assertEquals(annotations.size(), 0);
 
                 Assert.assertEquals(service.getResource().getSpec().getClusterIP(), "None");
-                Assert.assertEquals((boolean) service.getResource().getSpec().getPublishNotReadyAddresses(), true);
+                Assert.assertEquals(service.getResource().getSpec().getType(), "ClusterIP");
 
             }
         }
@@ -1069,7 +1219,8 @@ public class ZooKeeperControllerTest {
                     name: pul
                     persistence: false
                     image: apachepulsar/pulsar:global
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     pdb:
                         maxUnavailable: 3
                 """;
@@ -1091,6 +1242,8 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     restartOnConfigMapChange: true
+                functionsWorker:
+                    replicas: 1
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1100,13 +1253,13 @@ public class ZooKeeperControllerTest {
         System.out.println(sts.getSpec().getTemplate()
                 .getMetadata().getAnnotations());
         final String checksum1 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper");
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         Assert.assertEquals(sts.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper"),
+                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function"),
                 checksum1);
 
         spec = """
@@ -1115,7 +1268,8 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     restartOnConfigMapChange: true
-                zookeeper:
+                functionsWorker:
+                    replicas: 1
                     config:
                         PULSAR_ROOT_LOG_LEVEL: debug
                 """;
@@ -1123,15 +1277,131 @@ public class ZooKeeperControllerTest {
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         final String checksum2 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper");
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
     }
 
+    @Test
+    public void testRbac() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    rbac:
+                        create: false
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+        Assert.assertNull(client.getCreatedResource(Role.class));
+        Assert.assertNull(client.getCreatedResource(RoleBinding.class));
+        Assert.assertNull(client.getCreatedResource(ServiceAccount.class));
+        Assert.assertNull(client.getCreatedResource(ClusterRole.class));
+        Assert.assertNull(client.getCreatedResource(ClusterRoleBinding.class));
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 1
+                    rbac:
+                        namespaced: false
+                """;
+
+        client = invokeController(spec);
+        Assert.assertNull(client.getCreatedResource(Role.class));
+        Assert.assertNull(client.getCreatedResource(RoleBinding.class));
+
+        Assert.assertEquals(client.getCreatedResource(ServiceAccount.class).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: v1
+                        kind: ServiceAccount
+                        metadata:
+                          name: pul-function
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        """);
+        Assert.assertEquals(client.getCreatedResource(ClusterRole.class).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: rbac.authorization.k8s.io/v1
+                        kind: ClusterRole
+                        metadata:
+                          name: pul-function
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        rules:
+                        - apiGroups:
+                          - ""
+                          resources:
+                          - pods
+                          verbs:
+                          - list
+                        - apiGroups:
+                          - ""
+                          resources:
+                          - secrets
+                          verbs:
+                          - '*'
+                        - apiGroups:
+                          - ""
+                          resources:
+                          - services
+                          verbs:
+                          - get
+                          - create
+                          - delete
+                        - apiGroups:
+                          - apps
+                          resources:
+                          - statefulsets
+                          verbs:
+                          - get
+                          - create
+                          - delete
+                        """);
+        Assert.assertEquals(client.getCreatedResource(ClusterRoleBinding.class).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: rbac.authorization.k8s.io/v1
+                        kind: ClusterRoleBinding
+                        metadata:
+                          name: pul-function
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        roleRef:
+                          kind: ClusterRole
+                          name: pul-function
+                        subjects:
+                        - kind: ServiceAccount
+                          name: pul-function
+                          namespace: ns
+                          """);
+    }
+
+
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<ZooKeeper> result = invokeController(mockKubernetesClient, spec);
+        final UpdateControl<FunctionsWorker> result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
         Assert.assertEquals(result.getResource().getStatus().getMessage(),
                 expectedErrorMessage);
@@ -1142,26 +1412,26 @@ public class ZooKeeperControllerTest {
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<ZooKeeper>
+        final UpdateControl<FunctionsWorker>
                 result = invokeController(mockKubernetesClient, spec);
         Assert.assertTrue(result.isUpdateStatus());
         return mockKubernetesClient;
     }
 
-    private UpdateControl<ZooKeeper> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
+    private UpdateControl<FunctionsWorker> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
             throws Exception {
-        final ZooKeeperController controller = new ZooKeeperController(mockKubernetesClient.getClient());
+        final FunctionsWorkerController controller = new FunctionsWorkerController(mockKubernetesClient.getClient());
 
-        final ZooKeeper zooKeeper = new ZooKeeper();
+        final FunctionsWorker fn = new FunctionsWorker();
         ObjectMeta meta = new ObjectMeta();
         meta.setName(CLUSTER_NAME + "-cr");
         meta.setNamespace(NAMESPACE);
-        zooKeeper.setMetadata(meta);
+        fn.setMetadata(meta);
 
-        final ZooKeeperFullSpec zooKeeperFullSpec = MockKubernetesClient.readYaml(spec, ZooKeeperFullSpec.class);
-        zooKeeper.setSpec(zooKeeperFullSpec);
+        final FunctionsWorkerFullSpec fullSpec = MockKubernetesClient.readYaml(spec, FunctionsWorkerFullSpec.class);
+        fn.setSpec(fullSpec);
 
-        final UpdateControl<ZooKeeper> result = controller.reconcile(zooKeeper, mock(Context.class));
+        final UpdateControl<FunctionsWorker> result = controller.reconcile(fn, mock(Context.class));
         return result;
     }
 }

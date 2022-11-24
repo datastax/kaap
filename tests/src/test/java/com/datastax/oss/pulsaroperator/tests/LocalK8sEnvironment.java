@@ -17,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalK8sEnvironment extends LocalK3SContainer {
 
     // not needed if you use quarkus dev mode
-    private static final boolean HELM_MODE = true;
+    private static final boolean DEPLOY_OPERATOR_IMAGE = true;
+    // not needed if you use quarkus dev mode
+    private static final boolean HELM_MODE = false;
 
     private static final List<String> PROMETHEUS_OPERATOR_IMAGES = List.of("quay.io/prometheus/prometheus:v2.39.1",
             "quay.io/kiwigrid/k8s-sidecar:1.19.2");
@@ -35,15 +37,20 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
             container.kubectl().create.namespace.run("ns");
             log.info("To see k3s logs: docker logs {}", container.getContainerName());
             log.info("You can now access the K8s cluster, namespace 'ns'.");
+            final String tmpKubeConfig = getTmpKubeConfig(container);
             log.info(
                     "Now paste this in a new terminal:\nexport KUBECONFIG={} && kubectl config set-context --current "
                             + "--namespace=ns "
-                            + "&& mvn quarkus:dev -pl pulsar-operator", getTmpKubeConfig(container));
+                            + "&& mvn quarkus:dev -pl pulsar-operator", tmpKubeConfig);
 
             log.info(
                     "To install a sample cluster open another terminal and paste:\nexport KUBECONFIG={} && kubectl "
                             + "config set-context --current --namespace=ns "
-                            + "&& kubectl apply -f helm/examples/local-k3s.yaml", getTmpKubeConfig(container));
+                            + "&& kubectl apply -f helm/examples/local-k3s.yaml", tmpKubeConfig);
+            log.info("You can even run the integration test using this cluster:\n"
+                    + "export KUBECONFIG={} && mvn test -pl tests -Dpulsaroperator.tests.env.existing -Dpulsaroperator.tests.existingenv"
+                    + ".kubeconfig.context=default -Dpulsaroperator.tests.existingenv.storageclass=local-path "
+                    + "-Dtest='PulsarClusterTest'\n", tmpKubeConfig);
 
 
             restoreImages(executorService, container);
@@ -56,8 +63,11 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
         all.add(CompletableFuture.runAsync(() -> createAndMountImageDigest(PULSAR_IMAGE, container), executorService));
+        if (DEPLOY_OPERATOR_IMAGE) {
+            all.add(CompletableFuture.runAsync(() -> createAndMountImageDigest(OPERATOR_IMAGE, container),
+                    executorService));
+        }
         if (HELM_MODE) {
-            all.add(CompletableFuture.runAsync(() -> createAndMountImageDigest(OPERATOR_IMAGE, container), executorService));
             PROMETHEUS_OPERATOR_IMAGES.forEach(i -> {
                 all.add(CompletableFuture.runAsync(() -> createAndMountImageDigest(i, container), executorService));
             });
@@ -73,8 +83,11 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
         all.add(CompletableFuture.runAsync(() -> restoreDockerImageInK3s(PULSAR_IMAGE, container), executorService));
+        if (DEPLOY_OPERATOR_IMAGE) {
+            all.add(CompletableFuture.runAsync(() -> restoreDockerImageInK3s(OPERATOR_IMAGE, container),
+                    executorService));
+        }
         if (HELM_MODE) {
-            all.add(CompletableFuture.runAsync(() -> restoreDockerImageInK3s(OPERATOR_IMAGE, container), executorService));
             PROMETHEUS_OPERATOR_IMAGES.forEach(i -> {
                 all.add(CompletableFuture.runAsync(() -> restoreDockerImageInK3s(i, container), executorService));
             });

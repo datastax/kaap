@@ -13,6 +13,8 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
@@ -45,6 +47,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     public static final String CUSTOM_RESOURCE_PROXY = "proxy";
     public static final String CUSTOM_RESOURCE_AUTORECOVERY = "autorecovery";
     public static final String CUSTOM_RESOURCE_BASTION = "bastion";
+    public static final String CUSTOM_RESOURCE_FUNCTIONS_WORKER = "functionsworker";
 
     private final AutoscalerDaemon autoscaler;
 
@@ -128,6 +131,13 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         );
         autoscaler.onSpecChange(pulsarClusterSpecWithDefaults, currentNamespace);
 
+        boolean isFunctionsWorkerStandaloneMode =  clusterSpec.getFunctionsWorker() != null
+                && clusterSpec.getFunctionsWorker().getReplicas() > 0;
+
+        if (clusterSpec.getProxy() != null
+                && isFunctionsWorkerStandaloneMode) {
+            clusterSpec.getProxy().setStandaloneFunctionsWorker(true);
+        }
         patchCustomResource(CUSTOM_RESOURCE_PROXY,
                 Proxy.class,
                 ProxyFullSpec.builder()
@@ -157,6 +167,17 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 BastionFullSpec.builder()
                         .global(clusterSpec.getGlobal())
                         .bastion(clusterSpec.getBastion())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+
+        patchCustomResource(CUSTOM_RESOURCE_FUNCTIONS_WORKER,
+                FunctionsWorker.class,
+                FunctionsWorkerFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .functionsWorker(clusterSpec.getFunctionsWorker())
                         .build(),
                 currentNamespace,
                 clusterSpec,

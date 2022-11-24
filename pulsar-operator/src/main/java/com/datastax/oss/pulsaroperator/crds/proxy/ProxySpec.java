@@ -115,7 +115,8 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         private ResourceRequirements resources;
     }
 
-
+    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    protected Map<String, String> config;
     @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
     @JsonPropertyDescription("Annotations to add to each Proxy resource.")
@@ -132,6 +133,8 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     private InitContainerConfig initContainer;
     @JsonPropertyDescription("WebSocket proxy configuration.")
     private WebSocketConfig webSocket;
+    @JsonPropertyDescription("Whether or not the functions worker is in standalone mode.")
+    private Boolean standaloneFunctionsWorker;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -151,7 +154,6 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
         applyServiceDefaults();
-
         applyWebSocketDefaults();
     }
 

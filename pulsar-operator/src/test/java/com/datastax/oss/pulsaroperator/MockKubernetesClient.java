@@ -4,11 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
@@ -30,14 +26,6 @@ import lombok.extern.jbosslog.JBossLog;
 @Getter
 public class MockKubernetesClient {
 
-    private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
-                .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
-                .disable(YAMLGenerator.Feature.SPLIT_LINES)
-                .build()
-    )
-            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
     @Data
     @AllArgsConstructor
     public static class ResourceInteraction<T extends HasMetadata> {
@@ -45,7 +33,7 @@ public class MockKubernetesClient {
 
         @SneakyThrows
         public String getResourceYaml() {
-            return yamlMapper.writeValueAsString(resource);
+            return SerializationUtil.writeAsYaml(resource);
         }
     }
 
@@ -117,6 +105,6 @@ public class MockKubernetesClient {
 
     @SneakyThrows
     public static <T> T readYaml(String yaml, Class<T> toClass) {
-        return yamlMapper.readValue(yaml, toClass);
+        return SerializationUtil.readYaml(yaml, toClass);
     }
 }

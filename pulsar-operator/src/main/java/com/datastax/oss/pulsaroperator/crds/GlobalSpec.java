@@ -44,6 +44,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         private String autorecoveryBaseName;
         @JsonPropertyDescription("Bastion base name. Default value is 'bastion'.")
         private String bastionBaseName;
+        @JsonPropertyDescription("Functions Worker base name. Default value is 'function'.")
+        private String functionsWorkerBaseName;
     }
 
     @Data
@@ -178,6 +180,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setProxyBaseName(ObjectUtils.firstNonNull(components.getProxyBaseName(), "proxy"));
         components.setAutorecoveryBaseName(ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
         components.setBastionBaseName(ObjectUtils.firstNonNull(components.getBastionBaseName(), "bastion"));
+        components.setFunctionsWorkerBaseName(ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
     }
 
     @Override

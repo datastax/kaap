@@ -5,13 +5,19 @@ metadata:
 spec:
   global:
     name: pulsar
-    image: datastax/lunastreaming-core:2.10_2.3
+    image: datastax/lunastreaming-all:2.10_2.5
     storage:
       existingStorageClassName: default
   zookeeper:
     replicas: 3
+    resources:
+      requests:
+        cpu: "0.5"
   bookkeeper:
     replicas: 3
+    resources:
+      requests:
+        cpu: "0.5"
   broker:
     replicas: 3
     autoscaler:
@@ -25,4 +31,17 @@ spec:
       scaleDownBy: 1
       stabilizationWindowMs: 300000
   proxy:
-    replicas: 1
+    replicas: 2
+    resources:
+      requests:
+        cpu: "0.5"
+  functionsWorker:
+    replicas: 2
+    runtime: kubernetes
+    resources:
+      requests:
+        cpu: "0.5"
+    config:
+      numFunctionPackageReplicas: "2"
+
+

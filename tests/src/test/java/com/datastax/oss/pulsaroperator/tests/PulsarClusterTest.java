@@ -19,11 +19,12 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
+import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -134,25 +135,49 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     @SneakyThrows
     private void execInPod(String podName, String containerName, String cmd) {
         log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        CompletableFuture<String> future = new CompletableFuture<>();
         try (final ExecWatch exec = client
                 .pods()
                 .inNamespace(namespace)
                 .withName(podName)
                 .inContainer(containerName)
+                .writingOutput(baos)
+                .writingError(baos)
+                .usingListener(new SimpleListener(future, baos))
                 .exec("bash", "-c", cmd);) {
+            final String outputCmd = future.get(10, TimeUnit.SECONDS);
+            log.info("Output cmd: {}", outputCmd);
             if (exec.exitCode().get().intValue() != 0) {
-                final InputStream out = exec.getOutput();
-                final InputStream err = exec.getError();
-                String output = "";
-                if (out != null) {
-                    output += "\nOut: " + new String(out.readAllBytes(), StandardCharsets.UTF_8);
-                }
-                if (err != null) {
-                    output += "\nErr: " + new String(err.readAllBytes(), StandardCharsets.UTF_8);
-                }
-                log.error("Cmd failed: {}", output);
-                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, output));
+                log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
+                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
             }
+        }
+    }
+
+    static class SimpleListener implements ExecListener {
+
+        private CompletableFuture<String> data;
+        private ByteArrayOutputStream baos;
+
+        public SimpleListener(CompletableFuture<String> data, ByteArrayOutputStream baos) {
+            this.data = data;
+            this.baos = baos;
+        }
+
+        @Override
+        public void onOpen() {
+        }
+
+        @Override
+        public void onFailure(Throwable t, Response failureResponse) {
+            System.err.println(t.getMessage());
+            data.completeExceptionally(t);
+        }
+
+        @Override
+        public void onClose(int code, String reason) {
+            data.complete(baos.toString());
         }
     }
 
@@ -299,7 +324,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 return false;
             });
 
-            Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
                 printRunningPods();
                 Assert.assertTrue(
                         client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());

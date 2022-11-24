@@ -588,9 +588,9 @@ public class FunctionsWorkerControllerTest {
         functionRuntimeFactoryConfigs.put("submittingInsidePod", true);
         expectedData.put("functionRuntimeFactoryConfigs", functionRuntimeFactoryConfigs);
         LinkedHashMap<String, Object> functionInstanceMinResources = new LinkedHashMap<>();
-        functionInstanceMinResources.put("cpu", 0.5);
-        functionInstanceMinResources.put("disk", 1073741824);
-        functionInstanceMinResources.put("ram", 1073741824);
+        functionInstanceMinResources.put("cpu", 0.5d);
+        functionInstanceMinResources.put("disk", 500000000);
+        functionInstanceMinResources.put("ram", 100000000);
         expectedData.put("functionInstanceMinResources", functionInstanceMinResources);
 
         final Map<String, Object> data = (Map<String, Object>) SerializationUtil

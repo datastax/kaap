@@ -58,10 +58,8 @@ public abstract class BaseResourcesFactory<T> {
 
     protected abstract String getComponentBaseName();
 
-<<<<<<<HEAD
 
     protected abstract boolean isComponentEnabled();
-=======
 
     private static boolean isImmutableResource(Class<? extends HasMetadata> resourceClass) {
         if (resourceClass.isAssignableFrom(Job.class)) {
@@ -69,9 +67,6 @@ public abstract class BaseResourcesFactory<T> {
         }
         return false;
     }
->>>>>>>2d77
-
-    a41(Jobs:recreate if still running after config change)
 
     protected <R extends HasMetadata> void patchResource(R resource) {
         System.out.println("patch resource");
@@ -488,8 +483,6 @@ public abstract class BaseResourcesFactory<T> {
                 checksum
         );
     }
-
-<<<<<<<HEAD
 
     protected PersistentVolumeClaim createPersistentVolumeClaim(String name,
                                                                 VolumeConfig volumeConfig) {

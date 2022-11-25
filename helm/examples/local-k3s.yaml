@@ -37,7 +37,7 @@ spec:
       requests:
         cpu: "0.4"
   proxy:
-    replicas: 0
+    replicas: 1
     resources:
       requests:
         cpu: "0.3"
@@ -46,12 +46,12 @@ spec:
         requests:
           cpu: "0.3"
   autorecovery:
-    replicas: 0
+    replicas: 1
     resources:
       requests:
         cpu: "0.2"
   bastion:
-    replicas: 0
+    replicas: 1
   functionsWorker:
     replicas: 1
     runtime: kubernetes

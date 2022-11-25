@@ -26,11 +26,11 @@
         <testng.version>7.4.0</testng.version>
         <mockito-core.version>4.8.0</mockito-core.version>
         <lombok.version>1.18.22</lombok.version>
-        <pulsar.version>2.10.2</pulsar.version>
         <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
         <spotbugs.version>4.7.2</spotbugs.version>
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
         <commons-codec.version>1.15</commons-codec.version>
+        <commons-lang3.version>3.11</commons-lang3.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -62,11 +62,6 @@
                 <version>${lombok.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.pulsar</groupId>
-                <artifactId>pulsar-client-admin</artifactId>
-                <version>${pulsar.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.awaitility</groupId>
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility.version}</version>
@@ -77,6 +72,11 @@
                 <version>${spotbugs.version}</version>
                 <scope>provided</scope>
                 <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -340,24 +340,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
         }
 
-        String brokerCurlTarget = "";
-
-        if (isTlsEnabledOnBroker()) {
-            brokerCurlTarget = "--cacert /pulsar/certs/ca.crt ";
-        }
-        brokerCurlTarget += getBrokerWebServiceUrl();
-
-        final Container initContainer = new ContainerBuilder()
-                .withName("wait-broker-ready")
-                .withImage(spec.getImage())
-                .withImagePullPolicy(spec.getImagePullPolicy())
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until curl %s; do
-                            sleep 3;
-                        done;
-                        """.formatted(brokerCurlTarget))
-                .build();
+        final Container initContainer = createWaitBrokerContainer(spec.getImage(), spec.getImagePullPolicy());
 
         String mainArgs = "";
         if (tlsEnabled) {

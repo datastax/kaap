@@ -420,6 +420,30 @@ public abstract class BaseResourcesFactory<T> {
                 .build();
     }
 
+
+    protected Container createWaitBrokerContainer(String image, String imagePullPolicy) {
+        String brokerCurlTarget = "";
+
+        if (isTlsEnabledOnBroker()) {
+            brokerCurlTarget = "--cacert /pulsar/certs/ca.crt ";
+        }
+        brokerCurlTarget += getBrokerWebServiceUrl() + "metrics/";
+
+        final Container initContainer = new ContainerBuilder()
+                .withName("wait-broker-ready")
+                .withImage(image)
+                .withImagePullPolicy(imagePullPolicy)
+                .withCommand("sh", "-c")
+                .withArgs("""
+                        until curl -s --connect-timeout 5 --fail %s > /dev/null; do
+                            echo "Broker not ready, sleeping"
+                            sleep 3;
+                        done;
+                        """.formatted(brokerCurlTarget))
+                .build();
+        return initContainer;
+    }
+
     protected Map<String, String> getDefaultAnnotations() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("prometheus.io/scrape", "true");

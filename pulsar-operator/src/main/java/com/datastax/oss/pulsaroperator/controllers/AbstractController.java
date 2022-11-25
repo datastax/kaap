@@ -85,6 +85,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
     @Override
     public UpdateControl<T> reconcile(T resource, Context<T> context) throws Exception {
         log.infof("%s controller reconciliation started", resource.getFullResourceName());
+        long start = System.nanoTime();
 
         final GlobalSpec globalSpec = resource.getSpec().getGlobalSpec();
         globalSpec.applyDefaults(null);
@@ -107,6 +108,8 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             resource.setStatus(BaseComponentStatus.createErrorStatus(BaseComponentStatus
                     .Reason.ErrorUpgrading, throwable.getMessage()));
         }
+        long time = (System.nanoTime() - start) / 1_000_000;
+        log.infof("%s controller reconciliation finished in %d ms", resource.getFullResourceName(), time);
         return UpdateControl.updateStatus(resource);
     }
 

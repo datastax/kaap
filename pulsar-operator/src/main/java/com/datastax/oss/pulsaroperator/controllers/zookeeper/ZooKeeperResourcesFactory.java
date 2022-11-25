@@ -322,19 +322,8 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
 
-    private boolean metadataInitializationJobExists() {
-        return client
-                .batch()
-                .v1()
-                .jobs()
-                .inNamespace(namespace)
-                .withName(resourceName)
-                .get() != null;
-    }
-
-
     public void createMetadataInitializationJobIfNeeded() {
-        if (metadataInitializationJobExists()) {
+        if (isJobCompleted(resourceName)) {
             return;
         }
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =

@@ -30,6 +30,7 @@ public class FunctionsWorkerController extends AbstractController<FunctionsWorke
         controller.patchRBAC();
         controller.patchPodDisruptionBudget();
         controller.patchConfigMap();
+        controller.patchExtraConfigMap();
         controller.patchStorageClass();
         controller.patchCaService();
         controller.patchService();

@@ -322,10 +322,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
     public void createTransactionsInitJobIfNeeded() {
-        if (client.batch().v1().jobs()
-                .inNamespace(namespace)
-                .withName(resourceName)
-                .get() != null) {
+        if (isJobCompleted(resourceName)) {
             return;
         }
         final BrokerSpec.TransactionCoordinatorConfig transactions = spec.getTransactions();

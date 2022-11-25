@@ -9,6 +9,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -18,6 +19,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
@@ -56,15 +58,39 @@ public abstract class BaseResourcesFactory<T> {
 
     protected abstract String getComponentBaseName();
 
+<<<<<<<HEAD
+
     protected abstract boolean isComponentEnabled();
+=======
+
+    private static boolean isImmutableResource(Class<? extends HasMetadata> resourceClass) {
+        if (resourceClass.isAssignableFrom(Job.class)) {
+            return true;
+        }
+        return false;
+    }
+>>>>>>>2d77
+
+    a41(Jobs:recreate if still running after config change)
 
     protected <R extends HasMetadata> void patchResource(R resource) {
-        resource.getMetadata().setOwnerReferences(List.of(ownerReference));
+        System.out.println("patch resource");
+        if (ownerReference != null) {
+            resource.getMetadata().setOwnerReferences(List.of(ownerReference));
+        }
         final R current = (R) client.resources(resource.getClass())
                 .inNamespace(namespace)
                 .withName(resource.getMetadata().getName())
                 .get();
-        if (current == null) {
+        final boolean isImmutableResource = isImmutableResource(resource.getClass());
+        if (current == null || isImmutableResource) {
+            if (current != null && isImmutableResource) {
+                client
+                        .resource(current)
+                        .inNamespace(namespace)
+                        .withPropagationPolicy(DeletionPropagation.BACKGROUND)
+                        .delete();
+            }
             if (isComponentEnabled()) {
                 client.resource(resource)
                         .inNamespace(namespace)
@@ -463,9 +489,10 @@ public abstract class BaseResourcesFactory<T> {
         );
     }
 
+<<<<<<<HEAD
 
     protected PersistentVolumeClaim createPersistentVolumeClaim(String name,
-                                                              VolumeConfig volumeConfig) {
+                                                                VolumeConfig volumeConfig) {
         String storageClassName = null;
         if (volumeConfig.getExistingStorageClassName() != null) {
             if (!volumeConfig.getExistingStorageClassName().equals("default")) {
@@ -485,5 +512,20 @@ public abstract class BaseResourcesFactory<T> {
                 .withStorageClassName(storageClassName)
                 .endSpec()
                 .build();
+    }
+
+    protected boolean isJobCompleted(String name) {
+        final Job job = client
+                .batch()
+                .v1()
+                .jobs()
+                .inNamespace(namespace)
+                .withName(name)
+                .get();
+        if (job == null) {
+            return false;
+        }
+        final Integer succeeded = job.getStatus().getSucceeded();
+        return succeeded != null && succeeded > 0;
     }
 }

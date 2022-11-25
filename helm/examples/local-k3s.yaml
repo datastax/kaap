@@ -5,7 +5,7 @@ metadata:
 spec:
   global:
     name: pulsar
-    image: datastax/lunastreaming-all:2.10_2.5
+    image: datastax/lunastreaming-all:2.10_2.4
     storage:
       # K3S storage class name https://docs.k3s.io/storage
       existingStorageClassName:  local-path
@@ -50,6 +50,8 @@ spec:
     resources:
       requests:
         cpu: "0.2"
+  bastion:
+    replicas: 1
   functionsWorker:
     replicas: 1
     runtime: kubernetes

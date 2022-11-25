@@ -529,7 +529,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "function").list().getItems().size(), 1);
             Assert.assertEquals(client.configMaps()
                     .inNamespace(namespace)
-                    .withLabel("component", "function").list().getItems().size(), 1);
+                    .withLabel("component", "function").list().getItems().size(), 2);
             Assert.assertEquals(client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withLabel("component", "function").list().getItems().size(), 1);

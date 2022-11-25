@@ -79,11 +79,6 @@ public class FunctionsWorkerControllerTest {
                         data:
                           functions_worker.yml: |
                             ---
-                            PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                            PULSAR_GC: -XX:+UseG1GC
-                            PULSAR_LOG_LEVEL: info
-                            PULSAR_LOG_ROOT_LEVEL: info
-                            PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError
                             assignmentWriteMaxRetries: 60
                             clusterCoordinationTopicName: coordinate
                             configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
@@ -111,6 +106,32 @@ public class FunctionsWorkerControllerTest {
                             workerPort: 6750
                             zooKeeperSessionTimeoutMillis: 30000
                             zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                                                """);
+
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: v1
+                        kind: ConfigMap
+                        metadata:
+                          labels:
+                            app: pulsarname
+                            cluster: pulsarname
+                            component: function
+                          name: pulsarname-function-extra
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: com.datastax.oss/v1alpha1
+                            kind: FunctionsWorker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        data:
+                          PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                          PULSAR_GC: -XX:+UseG1GC
+                          PULSAR_LOG_LEVEL: info
+                          PULSAR_LOG_ROOT_LEVEL: info
+                          PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError
                                                 """);
 
         Assert.assertEquals(client.getCreatedResources(Service.class).get(0).getResourceYaml(),
@@ -224,6 +245,9 @@ public class FunctionsWorkerControllerTest {
                                   valueFrom:
                                     fieldRef:
                                       fieldPath: metadata.name
+                                envFrom:
+                                - configMapRef:
+                                    name: pulsarname-function-extra
                                 image: apachepulsar/pulsar:2.10.2
                                 imagePullPolicy: IfNotPresent
                                 livenessProbe:
@@ -481,11 +505,6 @@ public class FunctionsWorkerControllerTest {
                 client.getCreatedResources(ConfigMap.class).get(0);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "info");
-        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("zooKeeperSessionTimeoutMillis", 30000);
@@ -522,6 +541,36 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals(data, expectedData);
     }
 
+    @Test
+    public void testExtraConfigMap() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 2
+                    config:
+                        PULSAR_LOG_ROOT_LEVEL: debug
+                        PULSAR_EXTRA_CLASSPATH: "/pulsar/custom-classpath"
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResources(ConfigMap.class).get(1);
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "debug");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_EXTRA_CLASSPATH", "/pulsar/custom-classpath");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+    }
+
 
     @Test
     public void testRuntimeK8s() throws Exception {
@@ -545,11 +594,6 @@ public class FunctionsWorkerControllerTest {
                 client.getCreatedResources(ConfigMap.class).get(0);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "info");
-        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("zooKeeperSessionTimeoutMillis", 30000);
@@ -1233,7 +1277,6 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals((int) pdb.getResource().getSpec().getMaxUnavailable().getIntVal(), 3);
     }
 
-
     @Test
     public void testRestartOnConfigMapChange() throws Exception {
         String spec = """
@@ -1250,10 +1293,12 @@ public class FunctionsWorkerControllerTest {
 
 
         StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
-        System.out.println(sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations());
         final String checksum1 = sts.getSpec().getTemplate()
                 .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function");
+        Assert.assertNotNull(checksum1);
+
+        final String checksum1extra = sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function-extra");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
@@ -1261,6 +1306,9 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals(sts.getSpec().getTemplate()
                         .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function"),
                 checksum1);
+        Assert.assertEquals(sts.getSpec().getTemplate()
+                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function-extra"),
+                checksum1extra);
 
         spec = """
                 global:
@@ -1272,6 +1320,7 @@ public class FunctionsWorkerControllerTest {
                     replicas: 1
                     config:
                         PULSAR_ROOT_LOG_LEVEL: debug
+                        numHttpServerThreads: 8
                 """;
 
         client = invokeController(spec);
@@ -1280,6 +1329,11 @@ public class FunctionsWorkerControllerTest {
                 .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
+
+        final String checksum2extra = sts.getSpec().getTemplate()
+                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function-extra");
+        Assert.assertNotNull(checksum2extra);
+        Assert.assertNotEquals(checksum1extra, checksum2extra);
     }
 
     @Test

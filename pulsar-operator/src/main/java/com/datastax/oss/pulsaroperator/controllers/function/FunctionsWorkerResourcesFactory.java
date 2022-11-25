@@ -11,6 +11,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -52,6 +53,7 @@ import lombok.extern.jbosslog.JBossLog;
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
 
     private ConfigMap configMap;
+    private ConfigMap extraConfigMap;
 
     public FunctionsWorkerResourcesFactory(KubernetesClient client, String namespace,
                                            FunctionsWorkerSpec spec, GlobalSpec global,
@@ -145,15 +147,40 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         patchResource(service);
     }
 
-    public void patchConfigMap() {
+    public void patchExtraConfigMap() {
 
-        Map<String, Object> data = new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         data.put("PULSAR_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
         data.put("PULSAR_GC", "-XX:+UseG1GC");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+
+        if (spec.getConfig() != null) {
+            spec.getConfig().forEach((k, v) -> {
+                // only keep properties passed to the bin/pulsar command
+                // all the functions worker props will go in the main ConfigMap
+                if (k.startsWith("PULSAR_") && v instanceof CharSequence) {
+                    data.put(k, v.toString());
+                }
+            });
+        }
+        final ConfigMap configMap = new ConfigMapBuilder()
+                .withNewMetadata()
+                .withName("%s-extra".formatted(resourceName))
+                .withNamespace(namespace)
+                .withLabels(getLabels()).endMetadata()
+                .withData(data)
+                .build();
+        patchResource(configMap);
+        this.extraConfigMap = configMap;
+
+    }
+
+    public void patchConfigMap() {
+
+        Map<String, Object> data = new HashMap<>();
         final String zkServers = getZkServers();
         data.put("configurationStoreServers", zkServers);
         data.put("zookeeperServers", zkServers);
@@ -253,6 +280,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         Map<String, String> allAnnotations = getDefaultAnnotations();
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
         addConfigMapChecksumAnnotation(configMap, allAnnotations);
+        Objects.requireNonNull(extraConfigMap, "ConfigMap (extra) should have been created at this point");
+        addConfigMapChecksumAnnotation(extraConfigMap, allAnnotations);
         if (spec.getAnnotations() != null) {
             allAnnotations.putAll(spec.getAnnotations());
         }
@@ -365,6 +394,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         .withArgs(mainArg)
                         .withPorts(containerPorts)
                         .withEnv(env)
+                        .withEnvFrom(new EnvFromSourceBuilder()
+                                .withNewConfigMapRef()
+                                .withName("%s-extra".formatted(resourceName))
+                                .endConfigMapRef()
+                                .build())
                         .withVolumeMounts(volumeMounts)
                         .build()
         );

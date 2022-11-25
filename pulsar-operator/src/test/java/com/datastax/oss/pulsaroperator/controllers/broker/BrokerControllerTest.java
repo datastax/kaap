@@ -349,7 +349,7 @@ public class BrokerControllerTest {
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
 
-        Assert.assertEquals("""
+        Assert.assertEquals(client.getCreatedResource(Job.class).getResourceYaml(), """
                 ---
                 apiVersion: batch/v1
                 kind: Job
@@ -384,7 +384,8 @@ public class BrokerControllerTest {
                       initContainers:
                       - args:
                         - |
-                          until curl http://pul-broker.ns.svc.cluster.local:8080/; do
+                          until curl -s --connect-timeout 5 --fail http://pul-broker.ns.svc.cluster.local:8080/metrics/ > /dev/null; do
+                              echo "Broker not ready, sleeping"
                               sleep 3;
                           done;
                         command:
@@ -394,7 +395,7 @@ public class BrokerControllerTest {
                         imagePullPolicy: IfNotPresent
                         name: wait-broker-ready
                       restartPolicy: OnFailure
-                """, client.getCreatedResource(Job.class).getResourceYaml());
+                """);
     }
 
 

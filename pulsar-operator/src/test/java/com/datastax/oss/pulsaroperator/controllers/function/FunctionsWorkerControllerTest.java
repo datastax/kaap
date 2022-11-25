@@ -281,6 +281,19 @@ public class FunctionsWorkerControllerTest {
                                   subPath: functions_worker.yml
                                 - mountPath: /pulsar/logs
                                   name: pulsarname-function-logs
+                              initContainers:
+                              - args:
+                                - |
+                                  until curl -s --connect-timeout 5 --fail http://pulsarname-broker.ns.svc.cluster.local:8080/metrics/ > /dev/null; do
+                                      echo "Broker not ready, sleeping"
+                                      sleep 3;
+                                  done;
+                                command:
+                                - sh
+                                - -c
+                                image: apachepulsar/pulsar:2.10.2
+                                imagePullPolicy: IfNotPresent
+                                name: wait-broker-ready
                               securityContext:
                                 fsGroup: 0
                               serviceAccountName: pulsarname-function

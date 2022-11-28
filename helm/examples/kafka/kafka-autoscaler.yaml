@@ -13,13 +13,13 @@ spec:
   bookkeeper:
     replicas: 3
   broker:
-    replicas: 3
+    replicas: 2
     autoscaler:
       enabled: true
       periodMs: 20000
-      min: 3
+      min: 2
       max: 10
-      lowerCpuThreshold: 0.1
+      lowerCpuThreshold: 0.2
       higherCpuThreshold: 0.4
       scaleUpBy: 1
       scaleDownBy: 1

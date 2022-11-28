@@ -68,9 +68,15 @@ public abstract class BaseResourcesFactory<T> {
         return false;
     }
 
+    private static boolean isNonNamespacedResource(Class<? extends HasMetadata> resourceClass) {
+        if (resourceClass.isAssignableFrom(StorageClass.class)) {
+            return true;
+        }
+        return false;
+    }
+
     protected <R extends HasMetadata> void patchResource(R resource) {
-        System.out.println("patch resource");
-        if (ownerReference != null) {
+        if (ownerReference != null && !isNonNamespacedResource(resource.getClass())) {
             resource.getMetadata().setOwnerReferences(List.of(ownerReference));
         }
         final R current = (R) client.resources(resource.getClass())

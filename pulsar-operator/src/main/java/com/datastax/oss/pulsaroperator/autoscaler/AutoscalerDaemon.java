@@ -2,7 +2,6 @@ package com.datastax.oss.pulsaroperator.autoscaler;
 
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,9 +37,7 @@ public class AutoscalerDaemon implements AutoCloseable {
 
     public AutoscalerDaemon(KubernetesClient client) {
         this.client = client;
-        this.executorService = Executors.newSingleThreadScheduledExecutor(
-                new ThreadFactoryBuilder().setNameFormat("pulsar-autoscaler-%d")
-                        .build());
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
     }
 
     public void onSpecChange(PulsarClusterSpec clusterSpec, String namespace) {

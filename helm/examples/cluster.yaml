@@ -10,11 +10,18 @@ spec:
       existingStorageClassName: default
   zookeeper:
     replicas: 3
+    dataVolume:
+      size: 5Gi
     resources:
       requests:
         cpu: "0.5"
   bookkeeper:
     replicas: 3
+    volumes:
+      journal:
+        size: 20Gi
+      ledgers:
+        size: 20Gi
     resources:
       requests:
         cpu: "0.5"

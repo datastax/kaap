@@ -169,6 +169,12 @@
                 <skipTests>true</skipTests>
             </properties>
         </profile>
+        <profile>
+            <id>skip-docker</id>
+            <properties>
+                <quarkus.container-image.build>false</quarkus.container-image.build>
+            </properties>
+        </profile>
     </profiles>
 
 </project>

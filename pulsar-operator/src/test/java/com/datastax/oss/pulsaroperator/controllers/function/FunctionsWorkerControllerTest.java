@@ -1,8 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.function;
 
-import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
@@ -27,7 +26,6 @@ import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.Collection;
 import java.util.HashMap;
@@ -281,19 +279,6 @@ public class FunctionsWorkerControllerTest {
                                   subPath: functions_worker.yml
                                 - mountPath: /pulsar/logs
                                   name: pulsarname-function-logs
-                              initContainers:
-                              - args:
-                                - |
-                                  until curl -s --connect-timeout 5 --fail http://pulsarname-broker.ns.svc.cluster.local:8080/metrics/ > /dev/null; do
-                                      echo "Broker not ready, sleeping"
-                                      sleep 3;
-                                  done;
-                                command:
-                                - sh
-                                - -c
-                                image: apachepulsar/pulsar:2.10.2
-                                imagePullPolicy: IfNotPresent
-                                name: wait-broker-ready
                               securityContext:
                                 fsGroup: 0
                               serviceAccountName: pulsarname-function
@@ -1170,7 +1155,7 @@ public class FunctionsWorkerControllerTest {
         final StorageClass storageClass = createdStorageClass.getResource();
         Assert.assertEquals(storageClass.getMetadata().getName(), "pul-function-logs");
         Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
-        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "FunctionsWorker");
+        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().size(), 0);
 
         Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
         Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
@@ -1464,41 +1449,32 @@ public class FunctionsWorkerControllerTest {
                           """);
     }
 
-
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<FunctionsWorker> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertEquals(result.getResource().getStatus().getMessage(),
-                expectedErrorMessage);
-        Assert.assertEquals(result.getResource().getStatus().getReason(),
-                BaseComponentStatus.Reason.ErrorConfig);
+        new ControllerTestUtil<FunctionsWorkerFullSpec, FunctionsWorker>(NAMESPACE, CLUSTER_NAME)
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        FunctionsWorker.class,
+                        FunctionsWorkerFullSpec.class,
+                        FunctionsWorkerController.class);
     }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<FunctionsWorker>
-                result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        return mockKubernetesClient;
+        return new ControllerTestUtil<FunctionsWorkerFullSpec, FunctionsWorker>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(spec,
+                        FunctionsWorker.class,
+                        FunctionsWorkerFullSpec.class,
+                        FunctionsWorkerController.class);
     }
 
-    private UpdateControl<FunctionsWorker> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
-            throws Exception {
-        final FunctionsWorkerController controller = new FunctionsWorkerController(mockKubernetesClient.getClient());
-
-        final FunctionsWorker fn = new FunctionsWorker();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        fn.setMetadata(meta);
-
-        final FunctionsWorkerFullSpec fullSpec = MockKubernetesClient.readYaml(spec, FunctionsWorkerFullSpec.class);
-        fn.setSpec(fullSpec);
-
-        final UpdateControl<FunctionsWorker> result = controller.reconcile(fn, mock(Context.class));
-        return result;
+    @SneakyThrows
+    private UpdateControl<FunctionsWorker> invokeController(MockKubernetesClient client, String spec) {
+        return new ControllerTestUtil<FunctionsWorkerFullSpec, FunctionsWorker>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(client, spec,
+                        FunctionsWorker.class,
+                        FunctionsWorkerFullSpec.class,
+                        FunctionsWorkerController.class);
     }
+
 }

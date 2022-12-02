@@ -30,6 +30,12 @@ helm install -n mypulsar --create-namespace pos helm/pulsar-operator \
 Install a Pulsar cluster Custom Resource
 ```
 kubectl -n mypulsar apply -f helm/examples/cluster.yaml
+
+```
+
+Wait for the cluster to be up and running
+```
+kubectl wait pulsar -n ns pulsar-cluster --for condition=Ready=True --timeout=240s
 ```
 
 Uninstall the cluster

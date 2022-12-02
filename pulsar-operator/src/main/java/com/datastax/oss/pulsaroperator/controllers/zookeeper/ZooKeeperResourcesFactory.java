@@ -323,7 +323,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
 
     public void createMetadataInitializationJobIfNeeded() {
-        if (isJobCompleted(resourceName)) {
+        if (isJobCompleted()) {
             return;
         }
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
@@ -405,7 +405,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withDnsConfig(global.getDnsConfig())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withVolumes(volumes)
-                .withInitContainers(List.of(initContainer))
+                // .withInitContainers(List.of(initContainer))
                 .withContainers(List.of(container))
                 .withRestartPolicy("OnFailure")
                 .endSpec()

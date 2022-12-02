@@ -1,8 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.broker;
 
-import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -17,8 +16,6 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -186,18 +183,6 @@ public class BrokerControllerTest {
                           requests:
                             cpu: 1
                             memory: 2Gi
-                      initContainers:
-                      - args:
-                        - |
-                          until nslookup pulsarname-bookkeeper-0.pulsarname-bookkeeper.ns; do
-                              sleep 3;
-                          done;
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:2.10.2
-                        imagePullPolicy: IfNotPresent
-                        name: wait-bookkeeper-ready
                       terminationGracePeriodSeconds: 60
                 """);
 
@@ -348,54 +333,6 @@ public class BrokerControllerTest {
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
-
-        Assert.assertEquals(client.getCreatedResource(Job.class).getResourceYaml(), """
-                ---
-                apiVersion: batch/v1
-                kind: Job
-                metadata:
-                  labels:
-                    app: pul
-                    cluster: pul
-                    component: broker
-                  name: pul-broker
-                  namespace: ns
-                  ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
-                    kind: Broker
-                    blockOwnerDeletion: true
-                    controller: true
-                    name: pulsarname-cr
-                spec:
-                  template:
-                    spec:
-                      containers:
-                      - args:
-                        - |
-                          bin/pulsar initialize-transaction-coordinator-metadata --cluster pul \\
-                              --configuration-store pul-zookeeper-ca.ns.svc.cluster.local:2181 \\
-                              --initial-num-transaction-coordinators 16
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:global
-                        imagePullPolicy: IfNotPresent
-                        name: pul-broker
-                      initContainers:
-                      - args:
-                        - |
-                          until curl -s --connect-timeout 5 --fail http://pul-broker.ns.svc.cluster.local:8080/metrics/ > /dev/null; do
-                              echo "Broker not ready, sleeping"
-                              sleep 3;
-                          done;
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:global
-                        imagePullPolicy: IfNotPresent
-                        name: wait-broker-ready
-                      restartPolicy: OnFailure
-                """);
     }
 
 
@@ -924,42 +861,20 @@ public class BrokerControllerTest {
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Broker> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertFalse(result.getResource().getStatus().isReady());
-        Assert.assertEquals(result.getResource().getStatus().getMessage(),
-                expectedErrorMessage);
-        Assert.assertEquals(result.getResource().getStatus().getReason(),
-                BaseComponentStatus.Reason.ErrorConfig);
+        new ControllerTestUtil<BrokerFullSpec, Broker>(NAMESPACE, CLUSTER_NAME)
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        Broker.class,
+                        BrokerFullSpec.class,
+                        BrokerController.class);
     }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Broker>
-                result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertTrue(result.getResource().getStatus().isReady());
-        Assert.assertNull(result.getResource().getStatus().getMessage());
-        Assert.assertNull(result.getResource().getStatus().getReason());
-        return mockKubernetesClient;
-    }
-
-    private UpdateControl<Broker> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
-            throws Exception {
-        final BrokerController controller = new BrokerController(mockKubernetesClient.getClient());
-
-        final Broker broker = new Broker();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        broker.setMetadata(meta);
-
-        final BrokerFullSpec brokerFullSpec = MockKubernetesClient.readYaml(spec, BrokerFullSpec.class);
-        broker.setSpec(brokerFullSpec);
-
-        final UpdateControl<Broker> result = controller.reconcile(broker, mock(Context.class));
-        return result;
+        return new ControllerTestUtil<BrokerFullSpec, Broker>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(spec,
+                        Broker.class,
+                        BrokerFullSpec.class,
+                        BrokerController.class);
     }
 }

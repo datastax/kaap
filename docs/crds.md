@@ -778,6 +778,47 @@ TLS configurations related to the ZooKeeper component.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#autorecoverystatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Autorecovery.status.conditions[index]
+<sup><sup>[↩ Parent](#autorecoverystatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -785,19 +826,31 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1561,6 +1614,47 @@ TLS configurations related to the ZooKeeper component.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#bastionstatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.status.conditions[index]
+<sup><sup>[↩ Parent](#bastionstatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -1568,19 +1662,31 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2872,6 +2978,47 @@ TLS configurations related to the ZooKeeper component.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#bookkeeperstatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.status.conditions[index]
+<sup><sup>[↩ Parent](#bookkeeperstatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -2879,19 +3026,31 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -4234,6 +4393,47 @@ TLS configurations related to the ZooKeeper component.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#brokerstatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.status.conditions[index]
+<sup><sup>[↩ Parent](#brokerstatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -4241,19 +4441,31 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -5552,6 +5764,47 @@ TLS configurations related to the ZooKeeper component.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#functionsworkerstatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FunctionsWorker.status.conditions[index]
+<sup><sup>[↩ Parent](#functionsworkerstatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -5559,19 +5812,31 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -6767,6 +7032,47 @@ Resource requirements for the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#proxystatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.status.conditions[index]
+<sup><sup>[↩ Parent](#proxystatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -6774,19 +7080,31 @@ Resource requirements for the pod.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -10832,6 +11150,47 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterstatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.status.conditions[index]
+<sup><sup>[↩ Parent](#pulsarclusterstatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -10839,19 +11198,31 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -12074,6 +12445,47 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#zookeeperstatusconditionsindex">conditions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lastApplied</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.status.conditions[index]
+<sup><sup>[↩ Parent](#zookeeperstatus)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>lastTransitionTime</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>message</b></td>
         <td>string</td>
         <td>
@@ -12081,19 +12493,31 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>ready</b></td>
-        <td>boolean</td>
+        <td><b>observedGeneration</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>reason</b></td>
-        <td>enum</td>
+        <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
           <br/>
-            <i>Enum</i>: ErrorUpgrading, ErrorConfig<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>

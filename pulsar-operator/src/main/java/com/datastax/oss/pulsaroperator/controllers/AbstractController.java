@@ -1,8 +1,11 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
@@ -12,6 +15,8 @@ import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
+import io.fabric8.kubernetes.api.model.Condition;
+import io.fabric8.kubernetes.api.model.ConditionBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -19,15 +24,18 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import lombok.SneakyThrows;
+import lombok.Value;
 import lombok.extern.jbosslog.JBossLog;
 import org.hibernate.validator.HibernateValidatorConfiguration;
 import org.hibernate.validator.cfg.ConstraintMapping;
@@ -91,29 +99,70 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         globalSpec.applyDefaults(null);
         resource.getSpec().applyDefaults(globalSpec);
 
+        String lastApplied = resource.getStatus().getLastApplied();
+
         final String validationErrorMessage = validate(resource);
         if (validationErrorMessage != null) {
-            resource.setStatus(BaseComponentStatus.createErrorStatus(BaseComponentStatus
-                    .Reason.ErrorConfig, validationErrorMessage));
+            final List<Condition> conditions =
+                    mergeConditions(resource.getStatus().getConditions(), List.of(createNotReadyCondition(
+                            resource, CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC, validationErrorMessage
+                    )), Instant.now());
+            resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
             return UpdateControl.updateStatus(resource);
         }
+
+
+        boolean reschedule;
+        List<Condition> conditions;
+
         try {
-            patchResources(resource, context);
-            resource.setStatus(BaseComponentStatus.createReadyStatus());
+            ReconciliationResult reconciliationResult = patchResources(resource, context);
+            conditions = mergeConditions(resource.getStatus().getConditions(), reconciliationResult.getConditions(),
+                    Instant.now());
+            reschedule = reconciliationResult.isReschedule();
+            lastApplied = SerializationUtil.writeAsJson(resource.getSpec());
         } catch (Throwable throwable) {
             log.errorf(throwable, "Error during reconciliation for resource %s with name %s: %s",
                     resource.getFullResourceName(),
                     resource.getMetadata().getName(),
                     throwable.getMessage());
-            resource.setStatus(BaseComponentStatus.createErrorStatus(BaseComponentStatus
-                    .Reason.ErrorUpgrading, throwable.getMessage()));
+            conditions = mergeConditions(resource.getStatus().getConditions(), List.of(createNotReadyCondition(
+                    resource, CRDConstants.CONDITIONS_TYPE_READY_REASON_GENERIC_ERROR, throwable.getMessage()
+            )), Instant.now());
+            reschedule = true;
         }
         long time = (System.nanoTime() - start) / 1_000_000;
-        log.infof("%s controller reconciliation finished in %d ms", resource.getFullResourceName(), time);
-        return UpdateControl.updateStatus(resource);
+
+        final String conditionsStr = conditions.stream().map(c -> {
+            String str = "%s: %s";
+            return str.formatted(
+                    c.getType(),
+                    c.getStatus()
+                            + (c.getReason() != null ? "/" + c.getReason() : "")
+                            + (c.getMessage() != null ? "/" + c.getMessage() : "")
+            );
+        }).collect(Collectors.joining());
+
+        log.infof("%s controller reconciliation finished in %d ms, rescheduling: %s, conditions: %s",
+                resource.getFullResourceName(),
+                time, reschedule + "", conditionsStr);
+
+        resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
+        final UpdateControl<T> update = UpdateControl.updateStatus(resource);
+        if (reschedule) {
+            update.rescheduleAfter(5, TimeUnit.SECONDS);
+        }
+        return update;
     }
 
-    protected abstract void patchResources(T resource, Context<T> context) throws Exception;
+    @Value
+    protected static class ReconciliationResult {
+        boolean reschedule;
+        List<Condition> conditions;
+    }
+
+
+    protected abstract ReconciliationResult patchResources(T resource, Context<T> context) throws Exception;
 
     protected String validate(T resource) {
         final Set<ConstraintViolation<Object>> violations = validator.validate(resource.getSpec());
@@ -140,6 +189,103 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 .withUid(cr.getMetadata().getUid())
                 .withBlockOwnerDeletion(true)
                 .withController(true)
+                .build();
+    }
+
+    protected boolean areSpecChanged(T cr) {
+        final String lastApplied = cr.getStatus().getLastApplied();
+        if (lastApplied == null) {
+            return true;
+        }
+        final FullSpecWithDefaults fromStatus = SerializationUtil.readJson(lastApplied, cr.getSpec().getClass());
+        return !SpecDiffer.specsAreEquals(cr.getSpec(), fromStatus);
+    }
+
+    public static Condition createReadyCondition(CustomResource resource) {
+        return createReadyCondition(resource.getMetadata().getGeneration());
+    }
+
+    public static Condition createReadyCondition(Long generation) {
+        return new ConditionBuilder()
+                .withType(CRDConstants.CONDITIONS_TYPE_READY)
+                .withStatus(CRDConstants.CONDITIONS_STATUS_TRUE)
+                .withObservedGeneration(generation)
+                .build();
+    }
+
+    public static Condition createNotReadyCondition(CustomResource resource, String reason, String message) {
+        return createNotReadyCondition(resource.getMetadata().getGeneration(), reason, message);
+    }
+
+    public static Condition createNotReadyCondition(Long generation, String reason, String message) {
+        return new ConditionBuilder()
+                .withType(CRDConstants.CONDITIONS_TYPE_READY)
+                .withStatus(CRDConstants.CONDITIONS_STATUS_FALSE)
+                .withObservedGeneration(generation)
+                .withReason(reason)
+                .withMessage(message)
+                .build();
+    }
+
+    public static Condition createNotReadyInitializingCondition(CustomResource resource) {
+        return createNotReadyInitializingCondition(resource.getMetadata().getGeneration());
+    }
+
+    public static Condition createNotReadyInitializingCondition(Long generation) {
+        return createNotReadyCondition(generation, CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING, null);
+    }
+
+    private List<Condition> mergeConditions(List<Condition> previousConditions,
+                                            List<Condition> newConditions,
+                                            Instant now) {
+
+        List<Condition> result = new ArrayList<>();
+
+        if (previousConditions == null || previousConditions.isEmpty()) {
+            for (Condition newCondition : newConditions) {
+                result.add(copyConditionWithLastTransitionTime(now, newCondition));
+            }
+            return result;
+        }
+
+        for (Condition condition : previousConditions) {
+            final Condition updated =
+                    newConditions.stream().filter(c -> c.getType().equals(condition.getType())).findFirst()
+                            .orElse(null);
+
+            if (updated == null) {
+                continue;
+            }
+
+            if (updated.getStatus().equals(condition.getStatus())) {
+                result.add(updated);
+            } else {
+                result.add(copyConditionWithLastTransitionTime(now, updated));
+            }
+        }
+
+        for (Condition condition : newConditions) {
+            final Condition prev =
+                    previousConditions.stream().filter(c -> c.getType().equals(condition.getType())).findFirst()
+                            .orElse(null);
+
+            if (prev != null) {
+                continue;
+            }
+            result.add(copyConditionWithLastTransitionTime(now, condition));
+        }
+        return result;
+    }
+
+    private Condition copyConditionWithLastTransitionTime(Instant now, Condition updated) {
+        return new ConditionBuilder()
+                .withType(updated.getType())
+                .withObservedGeneration(updated.getObservedGeneration())
+                .withStatus(updated.getStatus())
+                .withMessage(updated.getMessage())
+                .withReason(updated.getReason())
+                .withAdditionalProperties(updated.getAdditionalProperties())
+                .withLastTransitionTime(now.toString())
                 .build();
     }
 }

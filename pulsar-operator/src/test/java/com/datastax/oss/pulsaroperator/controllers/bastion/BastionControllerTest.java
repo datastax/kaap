@@ -1,18 +1,14 @@
 package com.datastax.oss.pulsaroperator.controllers.bastion;
 
-import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -458,44 +454,23 @@ public class BastionControllerTest {
     }
 
 
+
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Bastion> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertFalse(result.getResource().getStatus().isReady());
-        Assert.assertEquals(result.getResource().getStatus().getMessage(),
-                expectedErrorMessage);
-        Assert.assertEquals(result.getResource().getStatus().getReason(),
-                BaseComponentStatus.Reason.ErrorConfig);
+        new ControllerTestUtil<BastionFullSpec, Bastion>(NAMESPACE, CLUSTER_NAME)
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        Bastion.class,
+                        BastionFullSpec.class,
+                        BastionController.class);
     }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Bastion>
-                result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertTrue(result.getResource().getStatus().isReady());
-        Assert.assertNull(result.getResource().getStatus().getMessage());
-        Assert.assertNull(result.getResource().getStatus().getReason());
-        return mockKubernetesClient;
-    }
-
-    private UpdateControl<Bastion> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
-            throws Exception {
-        final BastionController controller = new BastionController(mockKubernetesClient.getClient());
-
-        final Bastion bas = new Bastion();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        bas.setMetadata(meta);
-
-        final BastionFullSpec fs = MockKubernetesClient.readYaml(spec, BastionFullSpec.class);
-        bas.setSpec(fs);
-
-        final UpdateControl<Bastion> result = controller.reconcile(bas, mock(Context.class));
-        return result;
+        return new ControllerTestUtil<BastionFullSpec, Bastion>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(spec,
+                        Bastion.class,
+                        BastionFullSpec.class,
+                        BastionController.class);
     }
 }

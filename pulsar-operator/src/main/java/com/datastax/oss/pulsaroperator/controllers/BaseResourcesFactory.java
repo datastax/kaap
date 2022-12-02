@@ -7,8 +7,6 @@ import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -19,6 +17,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
@@ -415,62 +415,6 @@ public abstract class BaseResourcesFactory<T> {
         patchResource(pdbResource);
     }
 
-    protected Container createWaitZooKeeperReadyContainer(String image, String imagePullPolicy) {
-        return new ContainerBuilder()
-                .withName("wait-zookeeper-ready")
-                .withImage(image)
-                .withImagePullPolicy(imagePullPolicy)
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until bin/pulsar zookeeper-shell -server %s-%s ls /admin/clusters | grep "^\\[.*%s.*\\]"; do
-                            sleep 3;
-                        done;
-                        """.formatted(global.getName(),
-                        global.getComponents().getZookeeperBaseName(), global.getName()))
-                .build();
-    }
-
-    protected Container createWaitBKReadyContainer(String image, String imagePullPolicy) {
-        final String bkBaseName = global.getComponents().getBookkeeperBaseName();
-        final String bkHostname = "%s-%s-%d.%s-%s.%s"
-                .formatted(global.getName(), bkBaseName, 0, global.getName(), bkBaseName, namespace);
-        return new ContainerBuilder()
-                .withName("wait-bookkeeper-ready")
-                .withImage(image)
-                .withImagePullPolicy(imagePullPolicy)
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until nslookup %s; do
-                            sleep 3;
-                        done;
-                        """.formatted(bkHostname))
-                .build();
-    }
-
-
-    protected Container createWaitBrokerContainer(String image, String imagePullPolicy) {
-        String brokerCurlTarget = "";
-
-        if (isTlsEnabledOnBroker()) {
-            brokerCurlTarget = "--cacert /pulsar/certs/ca.crt ";
-        }
-        brokerCurlTarget += getBrokerWebServiceUrl() + "metrics/";
-
-        final Container initContainer = new ContainerBuilder()
-                .withName("wait-broker-ready")
-                .withImage(image)
-                .withImagePullPolicy(imagePullPolicy)
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until curl -s --connect-timeout 5 --fail %s > /dev/null; do
-                            echo "Broker not ready, sleeping"
-                            sleep 3;
-                        done;
-                        """.formatted(brokerCurlTarget))
-                .build();
-        return initContainer;
-    }
-
     protected Map<String, String> getDefaultAnnotations() {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("prometheus.io/scrape", "true");
@@ -513,14 +457,43 @@ public abstract class BaseResourcesFactory<T> {
                 .build();
     }
 
-    protected boolean isJobCompleted(String name) {
-        final Job job = client
+    public StatefulSet getStatefulSet() {
+        return client.apps().statefulSets()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .get();
+    }
+
+    public Deployment getDeployment() {
+        return client.apps().deployments()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .get();
+    }
+
+    public Job getJob(String name) {
+        return client
                 .batch()
                 .v1()
                 .jobs()
                 .inNamespace(namespace)
                 .withName(name)
                 .get();
+    }
+
+    public Job getJob() {
+        return getJob(resourceName);
+    }
+
+    public boolean isJobCompleted(String name) {
+        return isJobCompleted(getJob(name));
+    }
+
+    public boolean isJobCompleted() {
+        return isJobCompleted(getJob(resourceName));
+    }
+
+    public static boolean isJobCompleted(Job job) {
         if (job == null) {
             return false;
         }

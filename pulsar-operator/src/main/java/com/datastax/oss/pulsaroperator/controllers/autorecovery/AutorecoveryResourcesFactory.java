@@ -101,8 +101,6 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
-        List<Container> initContainers = new ArrayList<>();
-        initContainers.add(createWaitZooKeeperReadyContainer(spec.getImage(), spec.getImagePullPolicy()));
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
         if (isTlsEnabledOnBookKeeper()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
@@ -157,7 +155,6 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withDnsConfig(global.getDnsConfig())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
-                .withInitContainers(initContainers)
                 .withContainers(containers)
                 .withVolumes(volumes)
                 .endSpec()

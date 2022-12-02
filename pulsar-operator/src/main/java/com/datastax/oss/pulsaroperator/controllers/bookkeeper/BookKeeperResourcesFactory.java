@@ -150,8 +150,6 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
 
         List<Container> initContainers = new ArrayList<>();
-
-        initContainers.add(createWaitZooKeeperReadyContainer(spec.getImage(), spec.getImagePullPolicy()));
         initContainers.add(new ContainerBuilder()
                 .withName("pulsar-bookkeeper-metaformat")
                 .withImage(spec.getImage())

@@ -313,7 +313,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         );
 
         List<Container> initContainers = new ArrayList<>();
-        initContainers.add(createWaitBrokerContainer(spec.getImage(), spec.getImagePullPolicy()));
         if (spec.getInitContainer() != null) {
             volumes.add(
                     new VolumeBuilder()

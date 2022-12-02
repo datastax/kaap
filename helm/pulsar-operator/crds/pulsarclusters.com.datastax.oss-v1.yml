@@ -1364,15 +1364,25 @@ spec:
             type: object
           status:
             properties:
-              message:
+              lastApplied:
                 type: string
-              ready:
-                type: boolean
-              reason:
-                enum:
-                - ErrorUpgrading
-                - ErrorConfig
-                type: string
+              conditions:
+                items:
+                  properties:
+                    status:
+                      type: string
+                    reason:
+                      type: string
+                    lastTransitionTime:
+                      type: string
+                    observedGeneration:
+                      type: integer
+                    type:
+                      type: string
+                    message:
+                      type: string
+                  type: object
+                type: array
             type: object
         type: object
     served: true

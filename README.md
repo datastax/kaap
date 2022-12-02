@@ -30,6 +30,12 @@ helm install -n mypulsar --create-namespace pos helm/pulsar-operator \
 Install a Pulsar cluster Custom Resource
 ```
 kubectl -n mypulsar apply -f helm/examples/cluster.yaml
+
+```
+
+Wait for the cluster to be up and running
+```
+kubectl wait pulsar -n ns pulsar-cluster --for condition=Ready=True --timeout=240s
 ```
 
 Uninstall the cluster
@@ -72,7 +78,7 @@ You can do that by running:
 mvn test -Dpulsar.operator.tests.env.existing=true \
     -Dpulsaroperator.tests.existingenv.kubeconfig.context=default \
     -pl tests \
-    -Dtest='PulsarClusterTest#testBaseInstall'
+    -Dtest='PulsarClusterTest#testScaling'
 ```
 If you're using a public cluster (e.g. GCP, EKS) you have to deploy the operator image to a Docker registry.
 When running the test you can set the operator image with the `pulsaroperator.tests.operator.image` system property.

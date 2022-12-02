@@ -323,7 +323,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
 
     public void createMetadataInitializationJobIfNeeded() {
-        if (isJobCompleted(resourceName)) {
+        if (isJobCompleted()) {
             return;
         }
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
@@ -335,23 +335,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         if (tlsEnabled) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
         }
-
-        final String waitZKHostname =
-                String.format("%s-%d.%s.%s", resourceName, spec.getReplicas() - 1, resourceName, namespace);
-
-        final Container initContainer = new ContainerBuilder()
-                .withName("wait-zookeeper-ready")
-                .withImage(spec.getImage())
-                .withImagePullPolicy(spec.getImagePullPolicy())
-                .withCommand("sh", "-c")
-                .withArgs("""
-                        until [ "$(echo ruok | nc -w 5 %s 2181)" = "imok" ]; do
-                          echo Zookeeper not yet ready. Will try again after 3 seconds.
-                          sleep 3;
-                        done;
-                        echo Zookeeper is ready.
-                        """.formatted(waitZKHostname))
-                .build();
 
         String mainArgs = "";
         if (tlsEnabled) {
@@ -405,7 +388,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withDnsConfig(global.getDnsConfig())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withVolumes(volumes)
-                .withInitContainers(List.of(initContainer))
                 .withContainers(List.of(container))
                 .withRestartPolicy("OnFailure")
                 .endSpec()

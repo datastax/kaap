@@ -1,18 +1,14 @@
 package com.datastax.oss.pulsaroperator.controllers.autorecovery;
 
-import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,18 +116,6 @@ public class AutorecoveryControllerTest {
                           requests:
                             cpu: 0.3
                             memory: 512Mi
-                      initContainers:
-                      - args:
-                        - |
-                          until bin/pulsar zookeeper-shell -server pulsarname-zookeeper ls /admin/clusters | grep "^\\[.*pulsarname.*\\]"; do
-                              sleep 3;
-                          done;
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:2.10.2
-                        imagePullPolicy: IfNotPresent
-                        name: wait-zookeeper-ready
                       terminationGracePeriodSeconds: 60
                 """);
 
@@ -155,7 +139,8 @@ public class AutorecoveryControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_PREFIX_reppDnsResolverClass", "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
+        expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
+                "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
         expectedData.put("zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("BOOKIE_MEM", "-Xms512m -Xmx512m -XX:+ExitOnOutOfMemoryError");
         expectedData.put("BOOKIE_GC", "-XX:+UseG1GC");
@@ -444,42 +429,20 @@ public class AutorecoveryControllerTest {
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Autorecovery> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertFalse(result.getResource().getStatus().isReady());
-        Assert.assertEquals(result.getResource().getStatus().getMessage(),
-                expectedErrorMessage);
-        Assert.assertEquals(result.getResource().getStatus().getReason(),
-                BaseComponentStatus.Reason.ErrorConfig);
+        new ControllerTestUtil<AutorecoveryFullSpec, Autorecovery>(NAMESPACE, CLUSTER_NAME)
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        Autorecovery.class,
+                        AutorecoveryFullSpec.class,
+                        AutorecoveryController.class);
     }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<Autorecovery>
-                result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertTrue(result.getResource().getStatus().isReady());
-        Assert.assertNull(result.getResource().getStatus().getMessage());
-        Assert.assertNull(result.getResource().getStatus().getReason());
-        return mockKubernetesClient;
-    }
-
-    private UpdateControl<Autorecovery> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
-            throws Exception {
-        final AutorecoveryController controller = new AutorecoveryController(mockKubernetesClient.getClient());
-
-        final Autorecovery ar = new Autorecovery();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        ar.setMetadata(meta);
-
-        final AutorecoveryFullSpec arFullSpec = MockKubernetesClient.readYaml(spec, AutorecoveryFullSpec.class);
-        ar.setSpec(arFullSpec);
-
-        final UpdateControl<Autorecovery> result = controller.reconcile(ar, mock(Context.class));
-        return result;
+        return new ControllerTestUtil<AutorecoveryFullSpec, Autorecovery>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(spec,
+                        Autorecovery.class,
+                        AutorecoveryFullSpec.class,
+                        AutorecoveryController.class);
     }
 }

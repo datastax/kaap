@@ -37,6 +37,11 @@ public class SerializationUtil {
     }
 
     @SneakyThrows
+    public static <T> T readJson(String string, Class<T> objectClass) {
+        return mapper.readValue(string, objectClass);
+    }
+
+    @SneakyThrows
     public static byte[] writeAsJsonBytes(Object object) {
         return mapper.writeValueAsBytes(object);
     }

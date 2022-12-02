@@ -1,8 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
-import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -21,8 +20,6 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -191,17 +188,6 @@ public class BookKeeperControllerTest {
                         - mountPath: /pulsar/data/bookkeeper/ledgers
                           name: pulsarname-bookkeeper-ledgers
                       initContainers:
-                      - args:
-                        - |
-                          until bin/pulsar zookeeper-shell -server pulsarname-zookeeper ls /admin/clusters | grep "^\\[.*pulsarname.*\\]"; do
-                              sleep 3;
-                          done;
-                        command:
-                        - sh
-                        - -c
-                        image: apachepulsar/pulsar:2.10.2
-                        imagePullPolicy: IfNotPresent
-                        name: wait-zookeeper-ready
                       - args:
                         - |
                           bin/apply-config-from-env.py conf/bookkeeper.conf && bin/bookkeeper shell metaformat --nonInteractive || true;
@@ -815,7 +801,7 @@ public class BookKeeperControllerTest {
                 Assert.fail("unexpected storageClass " + storageClass.getMetadata().getName());
             }
             Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
-            Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "BookKeeper");
+            Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().size(), 0);
 
             Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
             Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
@@ -1076,42 +1062,20 @@ public class BookKeeperControllerTest {
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<BookKeeper> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertFalse(result.getResource().getStatus().isReady());
-        Assert.assertEquals(result.getResource().getStatus().getMessage(),
-                expectedErrorMessage);
-        Assert.assertEquals(result.getResource().getStatus().getReason(),
-                BaseComponentStatus.Reason.ErrorConfig);
+        new ControllerTestUtil<BookKeeperFullSpec, BookKeeper>(NAMESPACE, CLUSTER_NAME)
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        BookKeeper.class,
+                        BookKeeperFullSpec.class,
+                        BookKeeperController.class);
     }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<BookKeeper>
-                result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertTrue(result.getResource().getStatus().isReady());
-        Assert.assertNull(result.getResource().getStatus().getMessage());
-        Assert.assertNull(result.getResource().getStatus().getReason());
-        return mockKubernetesClient;
-    }
-
-    private UpdateControl<BookKeeper> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
-            throws Exception {
-        final BookKeeperController controller = new BookKeeperController(mockKubernetesClient.getClient());
-
-        final BookKeeper bookKeeper = new BookKeeper();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        bookKeeper.setMetadata(meta);
-
-        final BookKeeperFullSpec bookKeeperFullSpec = MockKubernetesClient.readYaml(spec, BookKeeperFullSpec.class);
-        bookKeeper.setSpec(bookKeeperFullSpec);
-
-        final UpdateControl<BookKeeper> result = controller.reconcile(bookKeeper, mock(Context.class));
-        return result;
+        return new ControllerTestUtil<BookKeeperFullSpec, BookKeeper>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(spec,
+                        BookKeeper.class,
+                        BookKeeperFullSpec.class,
+                        BookKeeperController.class);
     }
 }

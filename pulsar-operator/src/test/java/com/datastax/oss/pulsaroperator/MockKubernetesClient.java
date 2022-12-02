@@ -8,10 +8,12 @@ import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
+import io.fabric8.kubernetes.client.dsl.AppsAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.BatchAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import io.fabric8.kubernetes.client.dsl.V1BatchAPIGroupDSL;
 import java.util.ArrayList;
@@ -44,7 +46,6 @@ public class MockKubernetesClient {
         client = mock(KubernetesClient.class);
 
         final BatchAPIGroupDSL batch = mock(BatchAPIGroupDSL.class);
-
         final V1BatchAPIGroupDSL v1BatchAPIGroupDSL = mock(V1BatchAPIGroupDSL.class);
         final MixedOperation jobs = mock(MixedOperation.class);
 
@@ -53,6 +54,17 @@ public class MockKubernetesClient {
         when(client.batch()).thenReturn(batch);
         when(jobs.inNamespace(eq(namespace))).thenReturn(jobs);
         when(jobs.withName(any())).thenReturn(mock(ScalableResource.class));
+
+
+        final AppsAPIGroupDSL apps = mock(AppsAPIGroupDSL.class);
+        final MixedOperation statefulset = mock(MixedOperation.class);
+
+        when(apps.statefulSets()).thenReturn(statefulset);
+        when(client.apps()).thenReturn(apps);
+        when(statefulset.inNamespace(eq(namespace))).thenReturn(statefulset);
+        when(statefulset.withName(any())).thenReturn(mock(RollableScalableResource.class));
+
+
 
         when(client.resource(any(HasMetadata.class))).thenAnswer((ic) -> {
             final NamespaceableResource interaction =
@@ -76,6 +88,11 @@ public class MockKubernetesClient {
                     createdResources.add(new ResourceInteraction(ic2.getArgument(0)));
                     return null;
                 });
+
+                when(mockedResource.createOrReplace()).thenAnswer((ic3) -> {
+                    createdResources.add(new ResourceInteraction(ic2.getArgument(0)));
+                    return null;
+                });
                 return mockedResource;
             });
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
@@ -88,6 +105,9 @@ public class MockKubernetesClient {
 
     }
 
+    public int countCreatedResources() {
+        return createdResources.size();
+    }
     public <T extends HasMetadata> ResourceInteraction<T> getCreatedResource(Class<T> castTo) {
         final List<ResourceInteraction<T>> res = getCreatedResources(castTo);
         return res.isEmpty() ? null : res.get(0);

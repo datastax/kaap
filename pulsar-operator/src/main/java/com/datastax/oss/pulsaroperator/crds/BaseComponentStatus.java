@@ -1,5 +1,8 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import io.fabric8.kubernetes.api.model.Condition;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,22 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class BaseComponentStatus {
 
-    public static BaseComponentStatus createReadyStatus() {
-        return new BaseComponentStatus(true, null, null);
-    }
+    List<Condition> conditions = new ArrayList<>();
 
-    public static BaseComponentStatus createErrorStatus(Reason reason, String message) {
-        return new BaseComponentStatus(false, reason, message);
-    }
-
-    public enum Reason {
-        ErrorConfig,
-        ErrorUpgrading
-    }
-    boolean ready;
-
-    Reason reason;
-
-    String message;
-
+    String lastApplied;
 }

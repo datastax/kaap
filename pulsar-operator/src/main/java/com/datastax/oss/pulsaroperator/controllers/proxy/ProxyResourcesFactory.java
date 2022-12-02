@@ -224,9 +224,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
         List<Container> initContainers = new ArrayList<>();
 
-
-        initContainers.add(createWaitBKReadyContainer(spec.getImage(), spec.getImagePullPolicy()));
-
         if (spec.getInitContainer() != null) {
             volumes.add(
                     new VolumeBuilder()

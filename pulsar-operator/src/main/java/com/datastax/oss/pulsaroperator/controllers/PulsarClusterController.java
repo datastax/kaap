@@ -1,7 +1,9 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
@@ -19,6 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
+import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -30,6 +33,7 @@ import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.quarkus.runtime.ShutdownEvent;
+import java.util.ArrayList;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -57,7 +61,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     }
 
     @Override
-    protected void patchResources(PulsarCluster resource, Context<PulsarCluster> context)
+    protected ReconciliationResult patchResources(PulsarCluster resource, Context<PulsarCluster> context)
             throws Exception {
 
         final String currentNamespace = resource.getMetadata().getNamespace();
@@ -65,90 +69,80 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
 
-        patchCustomResource(
-                CUSTOM_RESOURCE_ZOOKEEPER,
-                ZooKeeper.class,
-                ZooKeeperFullSpec.builder()
-                        .global(clusterSpec.getGlobal())
-                        .zookeeper(clusterSpec.getZookeeper())
-                        .build(),
-                currentNamespace,
-                clusterSpec,
-                ownerReference
-        );
+        if (!checkReadyOrPatchZooKeeper(currentNamespace, clusterSpec, ownerReference)) {
+            log.info("waiting for zookeeper to become ready");
+            return new ReconciliationResult(
+                    true,
+                    List.of(createNotReadyInitializingCondition(resource))
+            );
+        }
 
-        patchCustomResource(CUSTOM_RESOURCE_BOOKKEEPER,
-                BookKeeper.class,
-                BookKeeperFullSpec.builder()
-                        .global(clusterSpec.getGlobal())
-                        .bookkeeper(clusterSpec.getBookkeeper())
-                        .build(),
-                currentNamespace,
-                clusterSpec,
-                ownerReference
-        );
+        if (!checkReadyOrPatchBookKeeper(currentNamespace, clusterSpec, ownerReference)) {
+            log.info("waiting for bookkeeper to become ready");
+            return new ReconciliationResult(
+                    true,
+                    List.of(createNotReadyInitializingCondition(resource))
+            );
+        }
 
-        patchCustomResource(CUSTOM_RESOURCE_AUTORECOVERY,
-                Autorecovery.class,
-                AutorecoveryFullSpec.builder()
-                        .global(clusterSpec.getGlobal())
-                        .autorecovery(clusterSpec.getAutorecovery())
-                        .build(),
-                currentNamespace,
-                clusterSpec,
-                ownerReference
-        );
+        adjustBrokerReplicas(currentNamespace, clusterSpec);
+        final boolean brokerReady = checkReadyOrPatchBroker(currentNamespace, clusterSpec, ownerReference);
+        autoscaler.onSpecChange(clusterSpec, currentNamespace);
 
-        PulsarClusterSpec pulsarClusterSpecWithDefaults = SerializationUtil.deepCloneObject(clusterSpec);
-        pulsarClusterSpecWithDefaults.applyDefaults(clusterSpec.getGlobalSpec());
+        adjustProxyFunctionsWorkerDeployment(clusterSpec);
+        final boolean proxyReady = checkReadyOrPatchProxy(currentNamespace, clusterSpec, ownerReference);
 
-        if (pulsarClusterSpecWithDefaults.getBroker() != null
-                && pulsarClusterSpecWithDefaults.getBroker().getAutoscaler() != null
-                && pulsarClusterSpecWithDefaults.getBroker().getAutoscaler().getEnabled()) {
+        adjustBastionTarget(clusterSpec);
+        final boolean bastionReady = checkReadyOrPatchBastion(currentNamespace, clusterSpec, ownerReference);
+        boolean functionsWorkerReady = false;
+        if (brokerReady) {
+            functionsWorkerReady =
+                    checkReadyOrPatchFunctionsWorker(currentNamespace, clusterSpec, ownerReference);
+        }
+        final boolean autorecoveryReady = checkReadyOrPatchAutorecovery(currentNamespace, clusterSpec, ownerReference);
 
-            final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BROKER);
-            final Broker current = client.resources(Broker.class)
-                    .inNamespace(currentNamespace)
-                    .withName(crFullName)
-                    .get();
-            if (current != null) {
-                final Integer currentReplicas = current.getSpec().getBroker().getReplicas();
-                // do not update replicas if patching, leave whatever the autoscaler have set
-                clusterSpec.getBroker().setReplicas(currentReplicas);
-                pulsarClusterSpecWithDefaults.getBroker().setReplicas(currentReplicas);
+        boolean allReady = autorecoveryReady
+                && brokerReady
+                && proxyReady
+                && bastionReady
+                && functionsWorkerReady;
+
+
+        if (allReady) {
+            log.info("all resources ready, setting cluster to ready state");
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyCondition(resource))
+            );
+        } else {
+            List<String> notReady = new ArrayList<>();
+            if (!autorecoveryReady) {
+                notReady.add("autorecovery");
             }
+            if (!brokerReady) {
+                notReady.add("broker");
+            }
+            if (!proxyReady) {
+                notReady.add("proxy");
+            }
+            if (!bastionReady) {
+                notReady.add("bastion");
+            }
+            if (!functionsWorkerReady) {
+                notReady.add("functionsworker");
+            }
+
+            log.infof("waiting for %s to become ready", notReady);
+
+            return new ReconciliationResult(
+                    true,
+                    List.of(createNotReadyInitializingCondition(resource))
+            );
         }
-        patchCustomResource(
-                CUSTOM_RESOURCE_BROKER,
-                Broker.class,
-                BrokerFullSpec.builder()
-                        .global(clusterSpec.getGlobal())
-                        .broker(clusterSpec.getBroker())
-                        .build(),
-                currentNamespace,
-                clusterSpec,
-                ownerReference
-        );
-        autoscaler.onSpecChange(pulsarClusterSpecWithDefaults, currentNamespace);
 
-        boolean isFunctionsWorkerStandaloneMode =  clusterSpec.getFunctionsWorker() != null
-                && clusterSpec.getFunctionsWorker().getReplicas() > 0;
+    }
 
-        if (clusterSpec.getProxy() != null
-                && isFunctionsWorkerStandaloneMode) {
-            clusterSpec.getProxy().setStandaloneFunctionsWorker(true);
-        }
-        patchCustomResource(CUSTOM_RESOURCE_PROXY,
-                Proxy.class,
-                ProxyFullSpec.builder()
-                        .global(clusterSpec.getGlobal())
-                        .proxy(clusterSpec.getProxy())
-                        .build(),
-                currentNamespace,
-                clusterSpec,
-                ownerReference
-        );
-
+    private void adjustBastionTarget(PulsarClusterSpec clusterSpec) {
         if (clusterSpec.getBastion() == null
                 || clusterSpec.getBastion().getTargetProxy() == null) {
             boolean isProxyEnabled = clusterSpec.getProxy() != null
@@ -162,7 +156,111 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 clusterSpec.getBastion().setTargetProxy(isProxyEnabled);
             }
         }
-        patchCustomResource(CUSTOM_RESOURCE_BASTION,
+    }
+
+    private void adjustProxyFunctionsWorkerDeployment(PulsarClusterSpec clusterSpec) {
+        boolean isFunctionsWorkerStandaloneMode = clusterSpec.getFunctionsWorker() != null
+                && clusterSpec.getFunctionsWorker().getReplicas() > 0;
+
+        if (clusterSpec.getProxy() != null
+                && isFunctionsWorkerStandaloneMode) {
+            clusterSpec.getProxy().setStandaloneFunctionsWorker(true);
+        }
+    }
+
+    private void adjustBrokerReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
+        if (clusterSpec.getBroker() != null
+                && clusterSpec.getBroker().getAutoscaler() != null
+                && clusterSpec.getBroker().getAutoscaler().getEnabled()) {
+
+            final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BROKER);
+            final Broker current = client.resources(Broker.class)
+                    .inNamespace(currentNamespace)
+                    .withName(crFullName)
+                    .get();
+            if (current != null) {
+                final Integer currentReplicas = current.getSpec().getBroker().getReplicas();
+                // do not update replicas if patching, leave whatever the autoscaler have set
+                clusterSpec.getBroker().setReplicas(currentReplicas);
+            }
+        }
+    }
+
+    private boolean checkReadyOrPatchZooKeeper(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                               List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(
+                CUSTOM_RESOURCE_ZOOKEEPER,
+                ZooKeeper.class,
+                ZooKeeperFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .zookeeper(clusterSpec.getZookeeper())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+    }
+
+    private boolean checkReadyOrPatchBookKeeper(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                                List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(CUSTOM_RESOURCE_BOOKKEEPER,
+                BookKeeper.class,
+                BookKeeperFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .bookkeeper(clusterSpec.getBookkeeper())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+    }
+
+    private boolean checkReadyOrPatchAutorecovery(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                                  List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(CUSTOM_RESOURCE_AUTORECOVERY,
+                Autorecovery.class,
+                AutorecoveryFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .autorecovery(clusterSpec.getAutorecovery())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+    }
+
+    private boolean checkReadyOrPatchBroker(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                            List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(
+                CUSTOM_RESOURCE_BROKER,
+                Broker.class,
+                BrokerFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .broker(clusterSpec.getBroker())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+    }
+
+    private boolean checkReadyOrPatchProxy(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                           List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(CUSTOM_RESOURCE_PROXY,
+                Proxy.class,
+                ProxyFullSpec.builder()
+                        .global(clusterSpec.getGlobal())
+                        .proxy(clusterSpec.getProxy())
+                        .build(),
+                currentNamespace,
+                clusterSpec,
+                ownerReference
+        );
+    }
+
+    private boolean checkReadyOrPatchBastion(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                             List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(CUSTOM_RESOURCE_BASTION,
                 Bastion.class,
                 BastionFullSpec.builder()
                         .global(clusterSpec.getGlobal())
@@ -172,8 +270,11 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 clusterSpec,
                 ownerReference
         );
+    }
 
-        patchCustomResource(CUSTOM_RESOURCE_FUNCTIONS_WORKER,
+    private boolean checkReadyOrPatchFunctionsWorker(String currentNamespace, PulsarClusterSpec clusterSpec,
+                                                     List<OwnerReference> ownerReference) {
+        return checkReadyOrPatch(CUSTOM_RESOURCE_FUNCTIONS_WORKER,
                 FunctionsWorker.class,
                 FunctionsWorkerFullSpec.builder()
                         .global(clusterSpec.getGlobal())
@@ -186,7 +287,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     }
 
     @SneakyThrows
-    private <CR extends CustomResource<SPEC, ?>, SPEC> void patchCustomResource(
+    private <CR extends CustomResource<SPEC, ?>, SPEC> boolean checkReadyOrPatch(
             String customResourceName,
             Class<CR> resourceClass,
             SPEC spec,
@@ -199,8 +300,26 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             throw new IllegalStateException(customResourceName + " CRD not found");
         }
 
-        ObjectMeta meta = new ObjectMeta();
         final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), customResourceName);
+        final CR current = getExistingCustomResource(resourceClass, namespace, crFullName);
+        if (current != null) {
+            final SPEC currentSpec = current.getSpec();
+            final boolean specEquals = SpecDiffer.specsAreEquals(currentSpec, spec);
+            if (specEquals) {
+                final BaseComponentStatus currentStatus = (BaseComponentStatus) current.getStatus();
+                final Condition readyCondition = currentStatus.getConditions().stream()
+                        .filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
+                        .findFirst()
+                        .orElse(null);
+                if (readyCondition != null && readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        ObjectMeta meta = new ObjectMeta();
         meta.setName(crFullName);
         meta.setNamespace(namespace);
         meta.setOwnerReferences(ownerReferences);
@@ -209,26 +328,22 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         resource.setMetadata(meta);
         resource.setSpec(spec);
 
-        final CR current = client.resources(resourceClass)
-                .inNamespace(namespace)
-                .withName(crFullName)
-                .get();
-        if (current == null) {
-            client.resource(resource)
-                    .inNamespace(namespace)
-                    .create();
-        } else {
-            client
-                    .resource(current)
-                    .inNamespace(namespace)
-                    .patch(resource);
-        }
 
         resourceClient
                 .inNamespace(namespace)
                 .resource(resource)
                 .createOrReplace();
         log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
+        return false;
+    }
+
+    protected <CR extends CustomResource<SPEC, ?>, SPEC> CR getExistingCustomResource(
+            Class<CR> resourceClass, String namespace,
+            String crFullName) {
+        return client.resources(resourceClass)
+                .inNamespace(namespace)
+                .withName(crFullName)
+                .get();
     }
 
     void onStop(@Observes ShutdownEvent ev) {

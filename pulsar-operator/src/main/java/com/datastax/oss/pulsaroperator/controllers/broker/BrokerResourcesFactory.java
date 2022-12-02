@@ -198,7 +198,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
 
         List<Container> initContainers = new ArrayList<>();
-        initContainers.add(createWaitBKReadyContainer(spec.getImage(), spec.getImagePullPolicy()));
 
         if (spec.getInitContainer() != null) {
             volumes.add(
@@ -337,8 +336,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
         }
 
-        final Container initContainer = createWaitBrokerContainer(spec.getImage(), spec.getImagePullPolicy());
-
         String mainArgs = "";
         if (tlsEnabled) {
             mainArgs += "/pulsar/tools/certconverter.sh &&";
@@ -376,7 +373,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withDnsConfig(global.getDnsConfig())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withVolumes(volumes)
-                .withInitContainers(List.of(initContainer))
                 .withContainers(List.of(container))
                 .withRestartPolicy("OnFailure")
                 .endSpec()

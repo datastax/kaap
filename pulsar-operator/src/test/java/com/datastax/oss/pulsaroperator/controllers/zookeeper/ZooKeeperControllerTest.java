@@ -1,8 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
-import static org.mockito.Mockito.mock;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -19,11 +18,8 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -284,62 +280,6 @@ public class ZooKeeperControllerTest {
                             matchLabels:
                               app: pulsarname
                               component: zookeeper
-                            """);
-
-        final String job = client
-                .getCreatedResource(Job.class).getResourceYaml();
-        Assert.assertEquals(job,
-                """
-                        ---
-                        apiVersion: batch/v1
-                        kind: Job
-                        metadata:
-                          labels:
-                            app: pulsarname
-                            cluster: pulsarname
-                            component: zookeeper
-                          name: pulsarname-zookeeper
-                          namespace: ns
-                          ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
-                            kind: ZooKeeper
-                            blockOwnerDeletion: true
-                            controller: true
-                            name: pulsarname-cr
-                        spec:
-                          template:
-                            spec:
-                              containers:
-                              - args:
-                                - |
-                                  bin/pulsar initialize-cluster-metadata --cluster pulsarname \\
-                                      --zookeeper pulsarname-zookeeper-ca.ns.svc.cluster.local:2181 \\
-                                      --configuration-store pulsarname-zookeeper-ca.ns.svc.cluster.local:2181 \\
-                                      --web-service-url http://pulsarname-broker.ns.svc.cluster.local:8080/ \\
-                                      --broker-service-url pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                                command:
-                                - timeout
-                                - 60
-                                - sh
-                                - -c
-                                image: apachepulsar/pulsar:2.10.2
-                                imagePullPolicy: IfNotPresent
-                                name: pulsarname-zookeeper
-                              initContainers:
-                              - args:
-                                - |
-                                  until [ "$(echo ruok | nc -w 5 pulsarname-zookeeper-2.pulsarname-zookeeper.ns 2181)" = "imok" ]; do
-                                    echo Zookeeper not yet ready. Will try again after 3 seconds.
-                                    sleep 3;
-                                  done;
-                                  echo Zookeeper is ready.
-                                command:
-                                - sh
-                                - -c
-                                image: apachepulsar/pulsar:2.10.2
-                                imagePullPolicy: IfNotPresent
-                                name: wait-zookeeper-ready
-                              restartPolicy: OnFailure
                             """);
     }
 
@@ -959,7 +899,7 @@ public class ZooKeeperControllerTest {
         final StorageClass storageClass = createdStorageClass.getResource();
         Assert.assertEquals(storageClass.getMetadata().getName(), "pul-zookeeper-myvol");
         Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
-        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().get(0).getKind(), "ZooKeeper");
+        Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().size(), 0);
 
         Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
         Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
@@ -1128,40 +1068,23 @@ public class ZooKeeperControllerTest {
         Assert.assertNotEquals(checksum1, checksum2);
     }
 
+
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<ZooKeeper> result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        Assert.assertEquals(result.getResource().getStatus().getMessage(),
-                expectedErrorMessage);
-        Assert.assertEquals(result.getResource().getStatus().getReason(),
-                BaseComponentStatus.Reason.ErrorConfig);
+        new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        ZooKeeper.class,
+                        ZooKeeperFullSpec.class,
+                        ZooKeeperController.class);
     }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        final UpdateControl<ZooKeeper>
-                result = invokeController(mockKubernetesClient, spec);
-        Assert.assertTrue(result.isUpdateStatus());
-        return mockKubernetesClient;
-    }
-
-    private UpdateControl<ZooKeeper> invokeController(MockKubernetesClient mockKubernetesClient, String spec)
-            throws Exception {
-        final ZooKeeperController controller = new ZooKeeperController(mockKubernetesClient.getClient());
-
-        final ZooKeeper zooKeeper = new ZooKeeper();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(CLUSTER_NAME + "-cr");
-        meta.setNamespace(NAMESPACE);
-        zooKeeper.setMetadata(meta);
-
-        final ZooKeeperFullSpec zooKeeperFullSpec = MockKubernetesClient.readYaml(spec, ZooKeeperFullSpec.class);
-        zooKeeper.setSpec(zooKeeperFullSpec);
-
-        final UpdateControl<ZooKeeper> result = controller.reconcile(zooKeeper, mock(Context.class));
-        return result;
+        return new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(spec,
+                        ZooKeeper.class,
+                        ZooKeeperFullSpec.class,
+                        ZooKeeperController.class);
     }
 }

@@ -18,7 +18,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus-sdk.version>5.0.0.Beta1</quarkus-sdk.version>
+        <quarkus-sdk.version>5.0.0.Beta2</quarkus-sdk.version>
         <!-- quarkus.version must matches the imported version by quarkus-sdk -->
         <quarkus.version>2.14.0.Final</quarkus.version>
         <!-- kubernetes-client.version must matches the imported version by quarkus-sdk -->

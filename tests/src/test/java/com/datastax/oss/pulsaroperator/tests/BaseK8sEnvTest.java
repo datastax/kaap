@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
@@ -22,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -68,8 +69,14 @@ public abstract class BaseK8sEnvTest {
                 .collect(Collectors.toList());
     }
 
+    private static void setDefaultAwaitilityTimings() {
+        Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(360));
+    }
+
     @BeforeMethod(alwaysRun = true)
     public void before() throws Exception {
+        setDefaultAwaitilityTimings();
 
         namespace = "pulsar-operator-test-" + UUID.randomUUID();
 
@@ -223,9 +230,13 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
         for (Path yamlManifest : getYamlManifests()) {
+            System.out.println("setting image + " + yamlManifest.getFileName());
 
-            if (yamlManifest.getFileName().equals("kubernetes.yml")) {
-                client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get()
+
+            if (yamlManifest.toFile().getName().equals("kubernetes.yml")) {
+                final List<HasMetadata> resources =
+                        client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get();
+                resources
                         .stream()
                         .filter(hasMetadata -> hasMetadata instanceof Deployment)
                         .forEach(d -> {
@@ -236,7 +247,7 @@ public abstract class BaseK8sEnvTest {
                                     .setImage(OPERATOR_IMAGE);
                             client.resource(deployment).inNamespace(namespace)
                                     .create();
-                            log.info("Applied operator deployment");
+                            log.info("Applied operator deployment" + SerializationUtil.writeAsJson(deployment.getSpec().getTemplate()));
                         });
             } else {
                 applyManifestFromFile(yamlManifest);
@@ -297,6 +308,7 @@ public abstract class BaseK8sEnvTest {
                 deleteRBACManifests();
                 deleteOperatorDeploymentAndCRDs();
                 deleteCRDsSync();
+                client.namespaces().withName(namespace).delete();
             }
             env.cleanup();
         }
@@ -323,7 +335,7 @@ public abstract class BaseK8sEnvTest {
                 );
 
         // await for actual deletion to not pollute k8s resources
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() ->
+        Awaitility.await().untilAsserted(() ->
                 Assert.assertEquals(client.resources(CustomResourceDefinition.class).list()
                         .getItems()
                         .stream()
@@ -367,7 +379,7 @@ public abstract class BaseK8sEnvTest {
 
 
             } catch (Throwable t) {
-                log.error("failed to get operator pod logs: {}", t.getMessage(), t);
+                log.error("failed to get operator pod logs: {}", t.getMessage());
             }
         }
     }
@@ -444,7 +456,7 @@ public abstract class BaseK8sEnvTest {
 
 
     protected void awaitOperatorRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             final List<Pod> pods = client.pods()
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();

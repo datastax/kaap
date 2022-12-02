@@ -14,8 +14,8 @@ import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.SneakyThrows;
 import org.testng.Assert;
 
-public class ControllerTestUtil<FULLSPEC extends FullSpecWithDefaults,
-        CR extends CustomResource<FULLSPEC, BaseComponentStatus>> {
+public class ControllerTestUtil<X extends FullSpecWithDefaults,
+        R extends CustomResource<X, BaseComponentStatus>> {
 
     private final String namespace;
     private final String clusterName;
@@ -27,10 +27,10 @@ public class ControllerTestUtil<FULLSPEC extends FullSpecWithDefaults,
 
     @SneakyThrows
     public void invokeControllerAndAssertError(String spec, String expectedErrorMessage,
-                                                Class<CR> specClass, Class<FULLSPEC> fullSpecClass,
-                                                Class<? extends AbstractController<CR>> controllerClass) {
+                                               Class<R> specClass, Class<X> fullSpecClass,
+                                               Class<? extends AbstractController<R>> controllerClass) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(namespace);
-        final UpdateControl<CR> result = invokeController(mockKubernetesClient, spec,
+        final UpdateControl<R> result = invokeController(mockKubernetesClient, spec,
                 specClass, fullSpecClass, controllerClass);
         Assert.assertTrue(result.isUpdateStatus());
 
@@ -43,10 +43,10 @@ public class ControllerTestUtil<FULLSPEC extends FullSpecWithDefaults,
     }
 
     @SneakyThrows
-    public MockKubernetesClient invokeController(String spec, Class<CR> specClass, Class<FULLSPEC> fullSpecClass,
-                                                  Class<? extends AbstractController<CR>> controllerClass) {
+    public MockKubernetesClient invokeController(String spec, Class<R> specClass, Class<X> fullSpecClass,
+                                                 Class<? extends AbstractController<R>> controllerClass) {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(namespace);
-        final UpdateControl<CR>
+        final UpdateControl<R>
                 result = invokeController(mockKubernetesClient, spec, specClass, fullSpecClass, controllerClass);
         Assert.assertTrue(result.isUpdateStatus());
 
@@ -57,21 +57,21 @@ public class ControllerTestUtil<FULLSPEC extends FullSpecWithDefaults,
         return mockKubernetesClient;
     }
 
-    public UpdateControl<CR> invokeController(
+    public UpdateControl<R> invokeController(
             MockKubernetesClient mockKubernetesClient, String spec,
-            Class<CR> crClass, Class<FULLSPEC> fullSpecClass,
-            Class<? extends AbstractController<CR>> controllerClass)
+            Class<R> crClass, Class<X> fullSpecClass,
+            Class<? extends AbstractController<R>> controllerClass)
             throws Exception {
-        final AbstractController<CR> controller =
+        final AbstractController<R> controller =
                 controllerClass.getConstructor(KubernetesClient.class).newInstance(mockKubernetesClient.getClient());
 
-        final CR cr = crClass.getConstructor().newInstance();
+        final R cr = crClass.getConstructor().newInstance();
         ObjectMeta meta = new ObjectMeta();
         meta.setName(clusterName + "-cr");
         meta.setNamespace(namespace);
         cr.setMetadata(meta);
 
-        final FULLSPEC fSpec = MockKubernetesClient.readYaml(spec, fullSpecClass);
+        final X fSpec = MockKubernetesClient.readYaml(spec, fullSpecClass);
         cr.setSpec(fSpec);
 
         return controller.reconcile(cr, mock(Context.class));

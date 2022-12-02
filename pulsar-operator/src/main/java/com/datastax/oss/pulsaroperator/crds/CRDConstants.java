@@ -16,6 +16,7 @@ public final class CRDConstants {
     public static final String CONDITIONS_TYPE_READY_REASON_GENERIC_ERROR = "ReconciliationError";
     public static final String CONDITIONS_TYPE_READY_REASON_INVALID_SPEC = "InvalidSpec";
     public static final String CONDITIONS_TYPE_READY_REASON_INITIALIZING = "Initializing";
+    public static final String CONDITIONS_TYPE_READY_REASON_DISABLED = "Disabled";
 
 
     private CRDConstants() {

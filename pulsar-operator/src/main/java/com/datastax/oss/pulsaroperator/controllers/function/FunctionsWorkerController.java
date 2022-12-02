@@ -1,7 +1,6 @@
 package com.datastax.oss.pulsaroperator.controllers.function;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -56,6 +55,12 @@ public class FunctionsWorkerController extends AbstractController<FunctionsWorke
 
     private ReconciliationResult checkReady(FunctionsWorker resource,
                                             FunctionsWorkerResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final StatefulSet statefulSet = resourcesFactory.getStatefulSet();
         if (statefulSet == null) {
             patchAll(resourcesFactory);

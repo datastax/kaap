@@ -310,7 +310,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                     .withName("pulsar-function-0")
                     .waitUntilReady(30, TimeUnit.SECONDS);
 
-            Awaitility.await().pollInterval(1, TimeUnit.SECONDS).until(() -> {
+            Awaitility.await().until(() -> {
                 try {
                     execInPod(proxyPod, "pulsar-proxy",
                             "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
@@ -324,7 +324,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 return false;
             });
 
-            Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            Awaitility.await().untilAsserted(() -> {
                 printRunningPods();
                 Assert.assertTrue(
                         client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());
@@ -370,7 +370,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     private void awaitZooKeeperRunning() {
-        Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertTrue(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "zookeeper").list().getItems().size() >= 1);
@@ -393,6 +393,17 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .withName("pulsar-zookeeper-0")
                 .waitUntilReady(90, TimeUnit.SECONDS);
 
+        Awaitility
+                .await()
+                .until(() ->
+                        !client
+                                .pods()
+                                .inNamespace(namespace)
+                                .withLabel("job-name", "pulsar-zookeeper")
+                                .list()
+                                .getItems()
+                                .isEmpty()
+                );
         final Pod jobPod = client.pods().inNamespace(namespace).withLabel("job-name", "pulsar-zookeeper")
                 .list().getItems().get(0);
         client.pods().inNamespace(namespace).withName(jobPod.getMetadata().getName())
@@ -400,7 +411,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     private void awaitBookKeeperRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
@@ -426,7 +437,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     private void awaitBrokerRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "broker").list().getItems().size(), 1);
@@ -452,7 +463,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     private void awaitProxyRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "proxy").list().getItems().size(), 1);
@@ -479,7 +490,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
 
     private void awaitAutorecoveryRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "autorecovery").list().getItems().size(), 1);
@@ -500,7 +511,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
 
     private void awaitBastionRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "bastion").list().getItems().size(), 1);
@@ -520,7 +531,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     private void awaitFunctionsWorkerRunning() {
-        Awaitility.await().pollInterval(1, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
                     .withLabel("component", "function").list().getItems().size(), 1);
@@ -546,7 +557,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
     }
 
     private void awaitUninstalled() {
-        Awaitility.await().atMost(90, TimeUnit.SECONDS).pollInterval(5, TimeUnit.SECONDS).untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
             final List<Pod> pods = client.pods()
                     .inNamespace(namespace)
                     .withLabel("app", "pulsar").list().getItems();

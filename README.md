@@ -78,7 +78,7 @@ You can do that by running:
 mvn test -Dpulsar.operator.tests.env.existing=true \
     -Dpulsaroperator.tests.existingenv.kubeconfig.context=default \
     -pl tests \
-    -Dtest='PulsarClusterTest#testBaseInstall'
+    -Dtest='PulsarClusterTest#testScaling'
 ```
 If you're using a public cluster (e.g. GCP, EKS) you have to deploy the operator image to a Docker registry.
 When running the test you can set the operator image with the `pulsaroperator.tests.operator.image` system property.

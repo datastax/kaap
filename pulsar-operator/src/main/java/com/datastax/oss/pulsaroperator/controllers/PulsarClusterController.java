@@ -3,7 +3,6 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
@@ -85,12 +84,10 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
-        final boolean autorecoveryReady = checkReadyOrPatchAutorecovery(currentNamespace, clusterSpec, ownerReference);
 
-        PulsarClusterSpec pulsarClusterSpecWithDefaults = SerializationUtil.deepCloneObject(clusterSpec);
-        adjustBrokerReplicas(currentNamespace, clusterSpec, pulsarClusterSpecWithDefaults);
+        adjustBrokerReplicas(currentNamespace, clusterSpec);
         final boolean brokerReady = checkReadyOrPatchBroker(currentNamespace, clusterSpec, ownerReference);
-        autoscaler.onSpecChange(pulsarClusterSpecWithDefaults, currentNamespace);
+        autoscaler.onSpecChange(clusterSpec, currentNamespace);
 
         adjustProxyFunctionsWorkerDeployment(clusterSpec);
         final boolean proxyReady = checkReadyOrPatchProxy(currentNamespace, clusterSpec, ownerReference);
@@ -102,6 +99,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             functionsWorkerReady =
                     checkReadyOrPatchFunctionsWorker(currentNamespace, clusterSpec, ownerReference);
         }
+        final boolean autorecoveryReady = checkReadyOrPatchAutorecovery(currentNamespace, clusterSpec, ownerReference);
 
         boolean allReady = autorecoveryReady
                 && brokerReady
@@ -170,13 +168,10 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         }
     }
 
-    private void adjustBrokerReplicas(String currentNamespace, PulsarClusterSpec clusterSpec,
-                                      PulsarClusterSpec pulsarClusterSpecWithDefaults) {
-        pulsarClusterSpecWithDefaults.applyDefaults(clusterSpec.getGlobalSpec());
-
-        if (pulsarClusterSpecWithDefaults.getBroker() != null
-                && pulsarClusterSpecWithDefaults.getBroker().getAutoscaler() != null
-                && pulsarClusterSpecWithDefaults.getBroker().getAutoscaler().getEnabled()) {
+    private void adjustBrokerReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
+        if (clusterSpec.getBroker() != null
+                && clusterSpec.getBroker().getAutoscaler() != null
+                && clusterSpec.getBroker().getAutoscaler().getEnabled()) {
 
             final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BROKER);
             final Broker current = client.resources(Broker.class)
@@ -187,7 +182,6 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 final Integer currentReplicas = current.getSpec().getBroker().getReplicas();
                 // do not update replicas if patching, leave whatever the autoscaler have set
                 clusterSpec.getBroker().setReplicas(currentReplicas);
-                pulsarClusterSpecWithDefaults.getBroker().setReplicas(currentReplicas);
             }
         }
     }

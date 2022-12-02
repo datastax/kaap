@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +93,8 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
 
     @Override
     public UpdateControl<T> reconcile(T resource, Context<T> context) throws Exception {
-        log.infof("%s controller reconciliation started", resource.getFullResourceName());
+        log.debugf("%s controller reconciliation started (resource gen %d)",
+                resource.getFullResourceName(), resource.getMetadata().getGeneration());
         long start = System.nanoTime();
 
         final GlobalSpec globalSpec = resource.getSpec().getGlobalSpec();
@@ -197,19 +199,28 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         if (lastApplied == null) {
             return true;
         }
-        final FullSpecWithDefaults fromStatus = SerializationUtil.readJson(lastApplied, cr.getSpec().getClass());
-        return !SpecDiffer.specsAreEquals(cr.getSpec(), fromStatus);
+        return !SpecDiffer.specsAreEquals(cr.getSpec(), lastApplied.getBytes(StandardCharsets.UTF_8));
     }
 
     public static Condition createReadyCondition(CustomResource resource) {
         return createReadyCondition(resource.getMetadata().getGeneration());
     }
 
+    public static Condition createReadyConditionDisabled(CustomResource resource) {
+        return createReadyCondition(resource.getMetadata().getGeneration(),
+                CRDConstants.CONDITIONS_TYPE_READY_REASON_DISABLED);
+    }
+
     public static Condition createReadyCondition(Long generation) {
+        return createReadyCondition(generation, null);
+    }
+
+    public static Condition createReadyCondition(Long generation, String reason) {
         return new ConditionBuilder()
                 .withType(CRDConstants.CONDITIONS_TYPE_READY)
                 .withStatus(CRDConstants.CONDITIONS_STATUS_TRUE)
                 .withObservedGeneration(generation)
+                .withReason(reason)
                 .build();
     }
 

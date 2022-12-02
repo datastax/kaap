@@ -78,11 +78,6 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
             </dependency>
-            <dependency>
-                <groupId>io.javaoperatorsdk</groupId>
-                <artifactId>operator-framework-core</artifactId>
-                <version>4.1.3-SNAPSHOT</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

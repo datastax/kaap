@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -48,7 +49,7 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
             return new ReconciliationResult(true,
                     List.of(createNotReadyInitializingCondition(resource)));
         } else {
-            if (statefulSet.getStatus().getReadyReplicas() == statefulSet.getStatus().getReplicas()) {
+            if (BaseResourcesFactory.isStatefulSetReady(statefulSet)) {
                 return new ReconciliationResult(
                         false,
                         List.of(createReadyCondition(resource))

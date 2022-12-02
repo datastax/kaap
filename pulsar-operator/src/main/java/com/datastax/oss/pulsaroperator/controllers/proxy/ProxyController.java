@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -58,7 +59,7 @@ public class ProxyController extends AbstractController<Proxy> {
             return new ReconciliationResult(true,
                     List.of(createNotReadyInitializingCondition(resource)));
         } else {
-            if (deployment.getStatus().getReadyReplicas() == deployment.getStatus().getReplicas()) {
+            if (BaseResourcesFactory.isDeploymentReady(deployment)) {
                 return new ReconciliationResult(
                         false,
                         List.of(createReadyCondition(resource))

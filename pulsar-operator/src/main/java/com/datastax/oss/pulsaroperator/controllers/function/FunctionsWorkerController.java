@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.function;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -67,7 +68,7 @@ public class FunctionsWorkerController extends AbstractController<FunctionsWorke
             return new ReconciliationResult(true,
                     List.of(createNotReadyInitializingCondition(resource)));
         } else {
-            if (statefulSet.getStatus().getReadyReplicas() == statefulSet.getStatus().getReplicas()) {
+            if (BaseResourcesFactory.isStatefulSetReady(statefulSet)) {
                 return new ReconciliationResult(
                         false,
                         List.of(createReadyCondition(resource))

@@ -18,7 +18,9 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
@@ -499,5 +501,21 @@ public abstract class BaseResourcesFactory<T> {
         }
         final Integer succeeded = job.getStatus().getSucceeded();
         return succeeded != null && succeeded > 0;
+    }
+
+    public static boolean isStatefulSetReady(StatefulSet sts) {
+        final StatefulSetStatus status = sts.getStatus();
+        if (status.getReplicas() == null || status.getReadyReplicas() == null) {
+            return false;
+        }
+        return status.getReplicas().intValue() == status.getReadyReplicas().intValue();
+    }
+
+    public static boolean isDeploymentReady(Deployment deployment) {
+        final DeploymentStatus deploymentStatus = deployment.getStatus();
+        if (deploymentStatus.getReplicas() == null || deploymentStatus.getReadyReplicas() == null) {
+            return false;
+        }
+        return deploymentStatus.getReplicas().intValue() == deploymentStatus.getReadyReplicas().intValue();
     }
 }

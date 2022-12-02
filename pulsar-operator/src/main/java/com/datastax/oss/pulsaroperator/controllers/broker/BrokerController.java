@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.broker;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -59,7 +60,7 @@ public class BrokerController extends AbstractController<Broker> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
-        if (sts.getStatus().getReadyReplicas() == sts.getStatus().getReplicas()) {
+        if (BaseResourcesFactory.isStatefulSetReady(sts)) {
             resourcesFactory.createTransactionsInitJobIfNeeded();
 
             return new ReconciliationResult(

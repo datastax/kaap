@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
@@ -63,7 +64,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
-        if (sts.getStatus().getReadyReplicas() == sts.getStatus().getReplicas()) {
+        if (BaseResourcesFactory.isStatefulSetReady(sts)) {
 
             final Job job = resourcesFactory.getJob();
             if (job == null) {

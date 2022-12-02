@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.bastion;
 
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -54,7 +55,7 @@ public class BastionController extends AbstractController<Bastion> {
             return new ReconciliationResult(true,
                     List.of(createNotReadyInitializingCondition(resource)));
         } else {
-            if (deployment.getStatus().getReadyReplicas() == deployment.getStatus().getReplicas()) {
+            if (BaseResourcesFactory.isDeploymentReady(deployment)) {
                 return new ReconciliationResult(
                         false,
                         List.of(createReadyCondition(resource))

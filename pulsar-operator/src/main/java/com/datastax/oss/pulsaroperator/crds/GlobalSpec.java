@@ -1,10 +1,12 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
@@ -25,6 +27,25 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
             .defaultSecretName("pulsar-tls")
+            .build();
+
+    private static final Supplier<AuthConfig> DEFAULT_AUTH_CONFIG = () -> AuthConfig.builder()
+            .enabled(false)
+            .token(AuthConfig.TokenConfig.builder()
+                    .publicKeyFile("my-public.key")
+                    .privateKeyFile("my-private.key")
+                    .superUserRoles(List.of("superuser", "admin", "websocket", "proxy"))
+                    .proxyRoles(List.of("proxy"))
+                    .provisioner(AuthConfig.TokenAuthProvisionerConfig.builder()
+                            .initialize(true)
+                            .image("datastax/burnell:latest")
+                            .imagePullPolicy("IfNotPresent")
+                            .rbac(AuthConfig.TokenAuthProvisionerConfig.RbacConfig.builder()
+                                    .create(true)
+                                    .namespaced(true)
+                                    .build())
+                            .build())
+                    .build())
             .build();
 
     @Data
@@ -118,6 +139,11 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             """)
     private Boolean restartOnConfigMapChange;
 
+    @JsonPropertyDescription("""
+            Auth stuff.
+            """)
+    private AuthConfig auth;
+
     // overridable parameters
     @JsonPropertyDescription("Default Pulsar image to use. Any components can be configured to use a different image.")
     private String image;
@@ -153,21 +179,22 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             storage.getStorageClass().setReclaimPolicy("Retain");
         }
         applyTlsDefaults();
-
+        applyAuthDefaults();
     }
 
     private void applyTlsDefaults() {
         if (tls == null) {
             tls = DEFAULT_TLS_CONFIG.get();
+        } else {
+            tls.setEnabled(ObjectUtils.getFirstNonNull(
+                    () -> tls.getEnabled(),
+                    () -> DEFAULT_TLS_CONFIG.get().getEnabled())
+            );
+            tls.setDefaultSecretName(ObjectUtils.getFirstNonNull(
+                    () -> tls.getDefaultSecretName(),
+                    () -> DEFAULT_TLS_CONFIG.get().getDefaultSecretName())
+            );
         }
-        tls.setEnabled(ObjectUtils.getFirstNonNull(
-                () -> tls.getEnabled(),
-                () -> DEFAULT_TLS_CONFIG.get().getEnabled())
-        );
-        tls.setDefaultSecretName(ObjectUtils.getFirstNonNull(
-                () -> tls.getDefaultSecretName(),
-                () -> DEFAULT_TLS_CONFIG.get().getDefaultSecretName())
-        );
     }
 
     private void applyComponentsDefaults() {
@@ -181,6 +208,36 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setAutorecoveryBaseName(ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
         components.setBastionBaseName(ObjectUtils.firstNonNull(components.getBastionBaseName(), "bastion"));
         components.setFunctionsWorkerBaseName(ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
+    }
+
+    private void applyAuthDefaults() {
+        if (auth == null) {
+            auth = DEFAULT_AUTH_CONFIG.get();
+        } else {
+            ConfigUtil.applyDefaultsWithReflection(auth, DEFAULT_AUTH_CONFIG);
+            if (auth.getToken() == null) {
+                auth.setToken(DEFAULT_AUTH_CONFIG.get().getToken());
+            }
+            final AuthConfig.TokenConfig tokenConfig = auth.getToken();
+            if (tokenConfig != null) {
+                ConfigUtil.applyDefaultsWithReflection(auth.getToken(), () -> DEFAULT_AUTH_CONFIG.get().getToken());
+                if (tokenConfig.getProvisioner() == null) {
+                    tokenConfig.setProvisioner(DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner());
+                } else {
+                    ConfigUtil.applyDefaultsWithReflection(tokenConfig.getProvisioner(),
+                            () -> DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner());
+                }
+                if (tokenConfig.getProvisioner() != null) {
+                    final AuthConfig.TokenAuthProvisionerConfig prov = tokenConfig.getProvisioner();
+                    if (prov.getRbac() == null) {
+                        prov.setRbac(DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner().getRbac());
+                    } else {
+                        ConfigUtil.applyDefaultsWithReflection(prov.getRbac(),
+                                () -> DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner().getRbac());
+                    }
+                }
+            }
+        }
     }
 
     @Override

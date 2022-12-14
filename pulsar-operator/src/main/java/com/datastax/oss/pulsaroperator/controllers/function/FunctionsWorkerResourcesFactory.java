@@ -30,17 +30,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingBuilder;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRule;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRuleBuilder;
-import io.fabric8.kubernetes.api.model.rbac.Role;
-import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
-import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
-import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
-import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -538,58 +529,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .endMetadata()
                 .build();
         patchResource(serviceAccount);
-        if (namespaced) {
-            final Role role = new RoleBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .withNamespace(namespace)
-                    .endMetadata()
-                    .withRules(rules)
-                    .build();
-
-            final RoleBinding roleBinding = new RoleBindingBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .withNamespace(namespace)
-                    .endMetadata()
-                    .withNewRoleRef()
-                    .withKind("Role")
-                    .withName(resourceName)
-                    .endRoleRef()
-                    .withSubjects(new SubjectBuilder()
-                            .withKind("ServiceAccount")
-                            .withName(resourceName)
-                            .withNamespace(namespace)
-                            .build()
-                    )
-                    .build();
-            patchResource(role);
-            patchResource(roleBinding);
-        } else {
-            final ClusterRole role = new ClusterRoleBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .endMetadata()
-                    .withRules(rules)
-                    .build();
-            final ClusterRoleBinding roleBinding = new ClusterRoleBindingBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .endMetadata()
-                    .withNewRoleRef()
-                    .withKind("ClusterRole")
-                    .withName(resourceName)
-                    .endRoleRef()
-                    .withSubjects(new SubjectBuilder()
-                            .withKind("ServiceAccount")
-                            .withName(resourceName)
-                            .withNamespace(namespace)
-                            .build()
-                    )
-                    .build();
-            patchResource(role);
-            patchResource(roleBinding);
-        }
+        patchServiceAccountSingleRole(namespaced, rules, resourceName);
     }
 
 }

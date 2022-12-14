@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
+import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisionerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
@@ -15,6 +16,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
@@ -68,6 +70,14 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         final PulsarClusterSpec clusterSpec = resource.getSpec();
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
+
+        if (!checkTokenAuthProvisionerDoneOrPatch(currentNamespace, clusterSpec, ownerReference)) {
+            log.info("waiting for token auth provisioner to complete");
+            return new ReconciliationResult(
+                    true,
+                    List.of(createNotReadyInitializingCondition(resource))
+            );
+        }
 
         if (!checkReadyOrPatchZooKeeper(currentNamespace, clusterSpec, ownerReference)) {
             log.info("waiting for zookeeper to become ready");
@@ -344,6 +354,31 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .inNamespace(namespace)
                 .withName(crFullName)
                 .get();
+    }
+
+
+    @SneakyThrows
+    private boolean checkTokenAuthProvisionerDoneOrPatch(
+            String namespace,
+            PulsarClusterSpec clusterSpec,
+            List<OwnerReference> ownerReferences) {
+
+        final AuthConfig auth = clusterSpec.getGlobal().getAuth();
+        if (auth == null) {
+            return true;
+        }
+        if (!auth.getEnabled()) {
+            return true;
+        }
+        final TokenAuthProvisionerResourcesFactory resourcesFactory =
+                new TokenAuthProvisionerResourcesFactory(
+                        client,
+                        namespace,
+                        clusterSpec.getGlobal().getAuth().getToken(),
+                        clusterSpec.getGlobal(),
+                        ownerReferences.isEmpty() ? null : ownerReferences.get(0)
+                );
+        return resourcesFactory.patchJobAndCheckCompleted();
     }
 
     void onStop(@Observes ShutdownEvent ev) {

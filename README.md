@@ -20,6 +20,7 @@ docker push $dockerhub_repo/pulsar-operator:$tag
 ### Note: tested with K8s 1.25
 Install the operator and the CRDs with monitoring
 ```
+helm repo add prom https://prometheus-community.github.io/helm-charts
 helm dependency build helm/pulsar-operator
 helm install -n mypulsar --create-namespace pos helm/pulsar-operator \
     --set kube-prometheus-stack.enabled=true \

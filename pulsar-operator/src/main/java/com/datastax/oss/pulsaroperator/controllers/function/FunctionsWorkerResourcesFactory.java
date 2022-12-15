@@ -58,11 +58,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
     @Override
-    protected String getResourceName() {
-        return "%s-%s".formatted(global.getName(), getComponentBaseName());
-    }
-
-    @Override
     protected boolean isComponentEnabled() {
         return spec.getReplicas() > 0;
     }

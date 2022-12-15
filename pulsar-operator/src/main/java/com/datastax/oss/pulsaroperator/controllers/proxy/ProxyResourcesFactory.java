@@ -48,10 +48,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         return globalSpec.getComponents().getProxyBaseName();
     }
 
-    public static String getResourceName(GlobalSpec globalSpec) {
-        return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
-    }
-
     @Override
     protected boolean isComponentEnabled() {
         return spec.getReplicas() > 0;
@@ -69,11 +65,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     @Override
     protected String getComponentBaseName() {
         return getComponentBaseName(global);
-    }
-
-    @Override
-    protected String getResourceName() {
-        return getResourceName(global);
     }
 
     public void patchService() {

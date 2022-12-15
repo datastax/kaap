@@ -41,10 +41,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         return globalSpec.getComponents().getBrokerBaseName();
     }
 
-    public static String getResourceName(GlobalSpec globalSpec) {
-        return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
-    }
-
     private ConfigMap configMap;
 
     public BrokerResourcesFactory(KubernetesClient client, String namespace,
@@ -56,11 +52,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     @Override
     protected String getComponentBaseName() {
         return getComponentBaseName(global);
-    }
-
-    @Override
-    protected String getResourceName() {
-        return getResourceName(global);
     }
 
     @Override

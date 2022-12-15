@@ -68,10 +68,11 @@ public abstract class BaseResourcesFactory<T> {
         this.ownerReference = ownerReference;
     }
 
-    protected abstract String getResourceName();
+    protected String getResourceName() {
+        return "%s-%s".formatted(global.getName(), getComponentBaseName());
+    };
 
     protected abstract String getComponentBaseName();
-
 
     protected abstract boolean isComponentEnabled();
 

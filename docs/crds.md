@@ -251,6 +251,14 @@ Resource requirements for the Autorecovery container.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#autorecoveryspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#autorecoveryspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -324,6 +332,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Autorecovery.spec.global.auth
+<sup><sup>[↩ Parent](#autorecoveryspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#autorecoveryspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Autorecovery.spec.global.auth.token
+<sup><sup>[↩ Parent](#autorecoveryspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#autorecoveryspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Autorecovery.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#autorecoveryspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#autorecoveryspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#autorecoveryspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Autorecovery.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#autorecoveryspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Autorecovery.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#autorecoveryspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1087,6 +1308,14 @@ Resource requirements for the Autorecovery container.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#bastionspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#bastionspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -1160,6 +1389,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.auth
+<sup><sup>[↩ Parent](#bastionspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.auth.token
+<sup><sup>[↩ Parent](#bastionspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#bastionspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bastionspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#bastionspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Bastion.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#bastionspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2451,6 +2893,14 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#bookkeeperspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#bookkeeperspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -2524,6 +2974,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.global.auth
+<sup><sup>[↩ Parent](#bookkeeperspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bookkeeperspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.global.auth.token
+<sup><sup>[↩ Parent](#bookkeeperspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bookkeeperspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#bookkeeperspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bookkeeperspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#bookkeeperspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#bookkeeperspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#bookkeeperspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3866,6 +4529,14 @@ Update strategy for the Broker pod/s.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#brokerspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#brokerspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -3939,6 +4610,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.global.auth
+<sup><sup>[↩ Parent](#brokerspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#brokerspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.global.auth.token
+<sup><sup>[↩ Parent](#brokerspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#brokerspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#brokerspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#brokerspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#brokerspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#brokerspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Broker.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#brokerspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -5237,6 +6121,14 @@ Update strategy for the Broker pod/s.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#functionsworkerspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#functionsworkerspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -5310,6 +6202,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FunctionsWorker.spec.global.auth
+<sup><sup>[↩ Parent](#functionsworkerspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#functionsworkerspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FunctionsWorker.spec.global.auth.token
+<sup><sup>[↩ Parent](#functionsworkerspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#functionsworkerspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FunctionsWorker.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#functionsworkerspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#functionsworkerspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#functionsworkerspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FunctionsWorker.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#functionsworkerspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FunctionsWorker.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#functionsworkerspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -5954,6 +7059,14 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#proxyspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#proxyspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -6027,6 +7140,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.auth
+<sup><sup>[↩ Parent](#proxyspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.auth.token
+<sup><sup>[↩ Parent](#proxyspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#proxyspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#proxyspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#proxyspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### Proxy.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#proxyspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -9494,6 +10820,14 @@ Update strategy for the Broker pod/s.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -9567,6 +10901,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.auth
+<sup><sup>[↩ Parent](#pulsarclusterspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.auth.token
+<sup><sup>[↩ Parent](#pulsarclusterspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#pulsarclusterspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#pulsarclusterspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#pulsarclusterspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -11340,6 +12887,14 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
         </td>
         <td>true</td>
       </tr><tr>
+        <td><b><a href="#zookeeperspecglobalauth">auth</a></b></td>
+        <td>object</td>
+        <td>
+          Auth stuff.
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#zookeeperspecglobalcomponents">components</a></b></td>
         <td>object</td>
         <td>
@@ -11413,6 +12968,219 @@ The default value is 'cluster.local'.
         <td>object</td>
         <td>
           TLS configuration for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.spec.global.auth
+<sup><sup>[↩ Parent](#zookeeperspecglobal)</sup></sup>
+
+
+
+Auth stuff.
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#zookeeperspecglobalauthtoken">token</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.spec.global.auth.token
+<sup><sup>[↩ Parent](#zookeeperspecglobalauth)</sup></sup>
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>privateKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#zookeeperspecglobalauthtokenprovisioner">provisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>proxyRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>publicKeyFile</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>superUserRoles</b></td>
+        <td>[]string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.spec.global.auth.token.provisioner
+<sup><sup>[↩ Parent](#zookeeperspecglobalauthtoken)</sup></sup>
+
+
+
+Indicates if the Pdb policy is enabled for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initialize</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the Pdb policy is enabled for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#zookeeperspecglobalauthtokenprovisionerrbac">rbac</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#zookeeperspecglobalauthtokenprovisionerresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resource requirements for the ZooKeeper pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.spec.global.auth.token.provisioner.rbac
+<sup><sup>[↩ Parent](#zookeeperspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>create</b></td>
+        <td>boolean</td>
+        <td>
+          Create needed RBAC to run the Functions Worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaced</b></td>
+        <td>boolean</td>
+        <td>
+          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### ZooKeeper.spec.global.auth.token.provisioner.resources
+<sup><sup>[↩ Parent](#zookeeperspecglobalauthtokenprovisioner)</sup></sup>
+
+
+
+Resource requirements for the ZooKeeper pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>

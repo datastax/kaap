@@ -57,11 +57,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
     @Override
-    protected String getResourceName() {
-        return "%s-%s".formatted(global.getName(), getComponentBaseName());
-    }
-
-    @Override
     protected boolean isComponentEnabled() {
         return spec.getReplicas() > 0;
     }

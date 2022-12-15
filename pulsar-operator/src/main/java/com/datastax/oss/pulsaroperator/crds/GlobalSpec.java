@@ -209,34 +209,11 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setBastionBaseName(ObjectUtils.firstNonNull(components.getBastionBaseName(), "bastion"));
         components.setFunctionsWorkerBaseName(ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
     }
-
     private void applyAuthDefaults() {
         if (auth == null) {
             auth = DEFAULT_AUTH_CONFIG.get();
         } else {
-            ConfigUtil.applyDefaultsWithReflection(auth, DEFAULT_AUTH_CONFIG);
-            if (auth.getToken() == null) {
-                auth.setToken(DEFAULT_AUTH_CONFIG.get().getToken());
-            }
-            final AuthConfig.TokenConfig tokenConfig = auth.getToken();
-            if (tokenConfig != null) {
-                ConfigUtil.applyDefaultsWithReflection(auth.getToken(), () -> DEFAULT_AUTH_CONFIG.get().getToken());
-                if (tokenConfig.getProvisioner() == null) {
-                    tokenConfig.setProvisioner(DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner());
-                } else {
-                    ConfigUtil.applyDefaultsWithReflection(tokenConfig.getProvisioner(),
-                            () -> DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner());
-                }
-                if (tokenConfig.getProvisioner() != null) {
-                    final AuthConfig.TokenAuthProvisionerConfig prov = tokenConfig.getProvisioner();
-                    if (prov.getRbac() == null) {
-                        prov.setRbac(DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner().getRbac());
-                    } else {
-                        ConfigUtil.applyDefaultsWithReflection(prov.getRbac(),
-                                () -> DEFAULT_AUTH_CONFIG.get().getToken().getProvisioner().getRbac());
-                    }
-                }
-            }
+            auth = ConfigUtil.applyDefaultsWithReflection(auth, DEFAULT_AUTH_CONFIG);
         }
     }
 

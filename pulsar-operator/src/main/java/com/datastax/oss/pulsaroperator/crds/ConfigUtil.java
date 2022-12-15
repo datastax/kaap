@@ -11,26 +11,40 @@ public class ConfigUtil {
     private ConfigUtil() {}
 
     @SneakyThrows
-    public static <T> void applyDefaultsWithReflection(T object, Supplier<T> defaultObject) {
-
-        final Class<?> declaringClass = object.getClass();
+    public static <T> T applyDefaultsWithReflection(T object, Supplier<T> defaultObject) {
+        final Class<?> declaringClass;
+        if (object == null) {
+            final T defObject = defaultObject.get();
+            if (defObject == null) {
+                return null;
+            }
+            object = (T) defObject.getClass().getConstructor().newInstance();
+            declaringClass = defObject.getClass();
+        } else {
+            declaringClass = object.getClass();
+        }
         final List<Field> allFields = FieldUtils.getAllFieldsList(declaringClass);
         for (Field field : allFields) {
-            if (field.getDeclaringClass().isPrimitive() || field.getDeclaringClass().isArray()) {
-                final Object newValue = ObjectUtils.getFirstNonNull(
-                        () -> readField(object, field.getName()),
+            final Object newValue;
+            if (field.getType().getName().startsWith("java.")) {
+                final Object parent = object;
+                newValue = ObjectUtils.getFirstNonNull(
+                        () -> readField(parent, field.getName()),
                         () -> readField(defaultObject.get(), field.getName())
                 );
-                FieldUtils.writeField(field, object, newValue);
+            } else {
+                newValue = applyDefaultsWithReflection(
+                        readField(object, field.getName()),
+                        () -> readField(defaultObject.get(), field.getName())
+                );
             }
+            FieldUtils.writeField(field, object, newValue, true);
         }
+        return object;
     }
 
     @SneakyThrows
     private static Object readField(Object object, String fieldName) {
         return FieldUtils.readField(object, fieldName, true);
     }
-
-
-
 }

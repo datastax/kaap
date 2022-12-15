@@ -23,6 +23,8 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class TokenAuthProvisionerResourcesFactory extends BaseResourcesFactory<AuthConfig.TokenConfig> {
 
+    public static final String TOKEN_AUTH_PROVISIONER = "token-auth-provisioner";
+
     public TokenAuthProvisionerResourcesFactory(KubernetesClient client,
                                                 String namespace, AuthConfig.TokenConfig spec,
                                                 GlobalSpec global,
@@ -31,13 +33,8 @@ public class TokenAuthProvisionerResourcesFactory extends BaseResourcesFactory<A
     }
 
     @Override
-    protected String getResourceName() {
-        return "token-auth-provisioner";
-    }
-
-    @Override
     protected String getComponentBaseName() {
-        return "token-auth-provisioner";
+        return TOKEN_AUTH_PROVISIONER;
     }
 
     @Override
@@ -66,9 +63,6 @@ public class TokenAuthProvisionerResourcesFactory extends BaseResourcesFactory<A
                 return false;
             }
         }
-
-
-
 
         List<EnvVar> env = new ArrayList<>();
         env.add(new EnvVarBuilder()
@@ -165,7 +159,6 @@ public class TokenAuthProvisionerResourcesFactory extends BaseResourcesFactory<A
         final String serviceAccountName = getServiceAccountName();
         patchServiceAccountSingleRole(namespaced, rules, serviceAccountName);
     }
-
 
 
 }

@@ -246,6 +246,147 @@ spec:
                 type: object
               global:
                 properties:
+                  components:
+                    description: Pulsar cluster components names.
+                    properties:
+                      brokerBaseName:
+                        description: Broker base name. Default value is 'broker'.
+                        type: string
+                      zookeeperBaseName:
+                        description: Zookeeper base name. Default value is 'zookeeper'.
+                        type: string
+                      functionsWorkerBaseName:
+                        description: Functions Worker base name. Default value is
+                          'function'.
+                        type: string
+                      autorecoveryBaseName:
+                        description: Autorecovery base name. Default value is 'autorecovery'.
+                        type: string
+                      bookkeeperBaseName:
+                        description: BookKeeper base name. Default value is 'bookkeeper'.
+                        type: string
+                      bastionBaseName:
+                        description: Bastion base name. Default value is 'bastion'.
+                        type: string
+                      proxyBaseName:
+                        description: Proxy base name. Default value is 'proxy'.
+                        type: string
+                    type: object
+                  dnsConfig:
+                    description: Additional DNS config for each pod created by the
+                      operator.
+                    properties:
+                      nameservers:
+                        items:
+                          type: string
+                        type: array
+                      searches:
+                        items:
+                          type: string
+                        type: array
+                      options:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                  restartOnConfigMapChange:
+                    description: |
+                      By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
+                    type: boolean
+                  image:
+                    description: Default Pulsar image to use. Any components can be
+                      configured to use a different image.
+                    type: string
+                  auth:
+                    description: |
+                      Auth stuff.
+                    properties:
+                      token:
+                        properties:
+                          privateKeyFile:
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
+                            type: string
+                          provisioner:
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
+                            properties:
+                              initialize:
+                                description: Indicates if the Pdb policy is enabled
+                                  for this component.
+                                type: boolean
+                              rbac:
+                                description: Resource requirements for the ZooKeeper
+                                  pod.
+                                properties:
+                                  namespaced:
+                                    description: Whether or not the RBAC is created
+                                      per-namespace or for the cluster.
+                                    type: boolean
+                                  create:
+                                    description: Create needed RBAC to run the Functions
+                                      Worker.
+                                    type: boolean
+                                type: object
+                              image:
+                                description: Indicates if the Pdb policy is enabled
+                                  for this component.
+                                type: string
+                              resources:
+                                description: Resource requirements for the ZooKeeper
+                                  pod.
+                                properties:
+                                  limits:
+                                    additionalProperties:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      x-kubernetes-int-or-string: true
+                                    type: object
+                                  requests:
+                                    additionalProperties:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      x-kubernetes-int-or-string: true
+                                    type: object
+                                type: object
+                              imagePullPolicy:
+                                description: Indicates if the Pdb policy is enabled
+                                  for this component.
+                                type: string
+                            type: object
+                          proxyRoles:
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
+                            items:
+                              type: string
+                            type: array
+                          publicKeyFile:
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
+                            type: string
+                          superUserRoles:
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
+                            items:
+                              type: string
+                            type: array
+                        type: object
+                      enabled:
+                        description: Indicates if the Pdb policy is enabled for this
+                          component.
+                        type: boolean
+                    type: object
+                  persistence:
+                    description: |
+                      If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+                    type: boolean
                   storage:
                     description: Storage configuration.
                     properties:
@@ -286,32 +427,6 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
-                  components:
-                    description: Pulsar cluster components names.
-                    properties:
-                      brokerBaseName:
-                        description: Broker base name. Default value is 'broker'.
-                        type: string
-                      zookeeperBaseName:
-                        description: Zookeeper base name. Default value is 'zookeeper'.
-                        type: string
-                      functionsWorkerBaseName:
-                        description: Functions Worker base name. Default value is
-                          'function'.
-                        type: string
-                      autorecoveryBaseName:
-                        description: Autorecovery base name. Default value is 'autorecovery'.
-                        type: string
-                      bookkeeperBaseName:
-                        description: BookKeeper base name. Default value is 'bookkeeper'.
-                        type: string
-                      bastionBaseName:
-                        description: Bastion base name. Default value is 'bastion'.
-                        type: string
-                      proxyBaseName:
-                        description: Proxy base name. Default value is 'proxy'.
-                        type: string
-                    type: object
                   tls:
                     description: TLS configuration for the cluster.
                     properties:
@@ -363,36 +478,6 @@ spec:
                             type: string
                         type: object
                     type: object
-                  dnsConfig:
-                    description: Additional DNS config for each pod created by the
-                      operator.
-                    properties:
-                      nameservers:
-                        items:
-                          type: string
-                        type: array
-                      searches:
-                        items:
-                          type: string
-                        type: array
-                      options:
-                        items:
-                          properties:
-                            value:
-                              type: string
-                            name:
-                              type: string
-                          type: object
-                        type: array
-                    type: object
-                  restartOnConfigMapChange:
-                    description: |
-                      By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
-                    type: boolean
-                  image:
-                    description: Default Pulsar image to use. Any components can be
-                      configured to use a different image.
-                    type: string
                   name:
                     description: Pulsar cluster base name.
                     type: string
@@ -407,10 +492,6 @@ spec:
                       can be configured to use a different image pull policy. Default
                       value is 'IfNotPresent'.
                     type: string
-                  persistence:
-                    description: |
-                      If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
-                    type: boolean
                 required:
                 - name
                 type: object

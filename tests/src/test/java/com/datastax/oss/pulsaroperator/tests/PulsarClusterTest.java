@@ -9,6 +9,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
@@ -18,7 +19,10 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionList;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayOutputStream;
@@ -26,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +64,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         Assert.assertTrue(crds.contains("brokers.com.datastax.oss"));
         Assert.assertTrue(crds.contains("proxies.com.datastax.oss"));
         Assert.assertTrue(crds.contains("autorecoveries.com.datastax.oss"));
+        Assert.assertTrue(crds.contains("functionsworkers.com.datastax.oss"));
         Assert.assertTrue(crds.contains("bastions.com.datastax.oss"));
         Assert.assertTrue(crds.contains("pulsarclusters.com.datastax.oss"));
     }
@@ -338,6 +344,52 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         }
     }
 
+    @Test
+    public void testTokenAuth() throws Exception {
+        applyRBACManifests();
+        applyOperatorDeploymentAndCRDs();
+
+        final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+        specs.getZookeeper().setReplicas(1);
+        specs.getBroker().setConfig(
+                BaseComponentSpec.mergeMaps(specs.getBroker().getConfig(),
+                        Map.of(
+                                "managedLedgerDefaultAckQuorum", "1",
+                                "managedLedgerDefaultEnsembleSize", "1",
+                                "managedLedgerDefaultWriteQuorum", "1"
+
+                        ))
+        );
+        specs.getGlobal()
+                .setAuth(AuthConfig.builder()
+                        .enabled(true)
+                        .build());
+
+        try {
+            applyPulsarCluster(specsToYaml(specs));
+            awaitJobCompleted("pulsar-token-auth-provisioner");
+
+            final List<Secret> secrets = client.secrets()
+                    .inNamespace(namespace)
+                    .list().getItems();
+            Assert.assertEquals(secrets.size(), 6);
+            final Map<String, Secret> secretMap =
+                    secrets.stream().collect(Collectors.toMap(s -> s.getMetadata().getName(), Function.identity()));
+            Assert.assertTrue(secretMap.containsKey("token-private-key"));
+            Assert.assertTrue(secretMap.containsKey("token-public-key"));
+            Assert.assertTrue(secretMap.containsKey("token-superuser"));
+            Assert.assertTrue(secretMap.containsKey("token-admin"));
+            Assert.assertTrue(secretMap.containsKey("token-proxy"));
+            Assert.assertTrue(secretMap.containsKey("token-websocket"));
+
+
+        } catch (Throwable t) {
+            log.error("test failed with {}", t.getMessage(), t);
+            printAllPodsLogs();
+            throw new RuntimeException(t);
+        }
+    }
+
 
     @Test
     public void testInstallWithHelm() throws Exception {
@@ -404,10 +456,8 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                                 .getItems()
                                 .isEmpty()
                 );
-        final Pod jobPod = client.pods().inNamespace(namespace).withLabel("job-name", "pulsar-zookeeper")
-                .list().getItems().get(0);
-        client.pods().inNamespace(namespace).withName(jobPod.getMetadata().getName())
-                .waitUntilCondition(pod -> pod.getStatus().getPhase().equals("Succeeded"), 2, TimeUnit.MINUTES);
+
+        awaitJobCompleted("pulsar-zookeeper");
     }
 
     private void awaitBookKeeperRunning() {
@@ -579,5 +629,24 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             Assert.assertEquals(client.batch().v1().jobs()
                     .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
         });
+    }
+
+    private void awaitJobCompleted(String name) {
+        Awaitility.await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> {
+                    final Job job = client.batch().v1().jobs()
+                            .inNamespace(namespace)
+                            .withName(name)
+                            .get();
+                    Assert.assertNotNull(job);
+                    final JobStatus status = job.getStatus();
+                    Assert.assertNotNull(status);
+                    final Integer succeeded = status
+                            .getSucceeded();
+                    Assert.assertNotNull(succeeded);
+                    Assert.assertEquals(succeeded.intValue(), 1);
+                });
+
     }
 }

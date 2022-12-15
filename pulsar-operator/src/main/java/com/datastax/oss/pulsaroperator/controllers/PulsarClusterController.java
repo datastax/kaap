@@ -4,6 +4,7 @@ import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisionerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
@@ -370,15 +371,29 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         if (!auth.getEnabled()) {
             return true;
         }
-        final TokenAuthProvisionerResourcesFactory resourcesFactory =
-                new TokenAuthProvisionerResourcesFactory(
-                        client,
-                        namespace,
-                        clusterSpec.getGlobal().getAuth().getToken(),
-                        clusterSpec.getGlobal(),
-                        ownerReferences.isEmpty() ? null : ownerReferences.get(0)
-                );
-        return resourcesFactory.patchJobAndCheckCompleted();
+
+        return getTokenAuthProvisionerResourcesFactory(
+                namespace,
+                auth.getToken(),
+                clusterSpec.getGlobalSpec(),
+                ownerReferences.isEmpty() ? null : ownerReferences.get(0)
+        ).patchJobAndCheckCompleted();
+    }
+
+    protected TokenAuthProvisionerResourcesFactory getTokenAuthProvisionerResourcesFactory(
+            String namespace,
+            AuthConfig.TokenConfig tokenConfig,
+            GlobalSpec globalSpec,
+            OwnerReference ownerReference
+    ) {
+        return new TokenAuthProvisionerResourcesFactory(
+                client,
+                namespace,
+                tokenConfig,
+                globalSpec,
+                ownerReference
+        );
+
     }
 
     void onStop(@Observes ShutdownEvent ev) {

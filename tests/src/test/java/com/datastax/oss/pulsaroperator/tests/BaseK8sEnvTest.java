@@ -230,9 +230,6 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
         for (Path yamlManifest : getYamlManifests()) {
-            System.out.println("setting image + " + yamlManifest.getFileName());
-
-
             if (yamlManifest.toFile().getName().equals("kubernetes.yml")) {
                 final List<HasMetadata> resources =
                         client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get();

@@ -14,14 +14,17 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategy;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.ObjectUtils;
 
 @Data
 @NoArgsConstructor
@@ -51,8 +54,6 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
                     .build())
             .build();
 
-
-
     private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", Quantity.parse("2Gi"), "cpu", Quantity.parse("1")))
             .build();
@@ -60,6 +61,17 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     public static final Supplier<PodDisruptionBudgetConfig> DEFAULT_PDB = () -> PodDisruptionBudgetConfig.builder()
             .enabled(true)
             .maxUnavailable(1)
+            .build();
+
+    private static final Supplier<BookKeeperAutoscalerSpec> DEFAULT_BK_CONFIG = () -> BookKeeperAutoscalerSpec.builder()
+            .enabled(false)
+            .periodMs(TimeUnit.SECONDS.toMillis(10))
+            .minWritableBookies(3)
+            .scaleUpBy(1)
+            .scaleDownBy(1)
+            .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
+            .diskUsageToleranceHwm(0.92d)
+            .diskUsageToleranceLwm(0.75d)
             .build();
 
 
@@ -106,6 +118,9 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     private String pvcPrefix;
     @JsonPropertyDescription("Configurations for the Service resources associated to the BookKeeper pod.")
     private ServiceConfig service;
+    @JsonPropertyDescription("Autoscaling config.")
+    @Valid
+    private BookKeeperAutoscalerSpec autoscaler;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -138,6 +153,8 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
         volumes.getJournal().merge(DEFAULT_VOLUMES.get().getJournal());
         volumes.getLedgers().mergeVolumeConfigWithGlobal(globalSpec.getStorage());
         volumes.getLedgers().merge(DEFAULT_VOLUMES.get().getLedgers());
+
+        applyAutoscalerDefaults();
     }
 
     @Override
@@ -154,4 +171,44 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     public boolean isValid(BookKeeperSpec value, ConstraintValidatorContext context) {
         return true;
     }
+
+    private void applyAutoscalerDefaults() {
+        if (autoscaler == null) {
+            autoscaler = DEFAULT_BK_CONFIG.get();
+        }
+
+        autoscaler.setEnabled(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getEnabled(),
+                () -> DEFAULT_BK_CONFIG.get().getEnabled()
+        ));
+        autoscaler.setPeriodMs(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getPeriodMs(),
+                () -> DEFAULT_BK_CONFIG.get().getPeriodMs()
+        ));
+        autoscaler.setScaleUpBy(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getScaleUpBy(),
+                () -> DEFAULT_BK_CONFIG.get().getScaleUpBy()
+        ));
+        autoscaler.setScaleDownBy(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getScaleDownBy(),
+                () -> DEFAULT_BK_CONFIG.get().getScaleDownBy()
+        ));
+        autoscaler.setStabilizationWindowMs(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getStabilizationWindowMs(),
+                () -> DEFAULT_BK_CONFIG.get().getStabilizationWindowMs()
+        ));
+        autoscaler.setMinWritableBookies(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getMinWritableBookies(),
+                () -> DEFAULT_BK_CONFIG.get().getMinWritableBookies()
+        ));
+        autoscaler.setDiskUsageToleranceHwm(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getDiskUsageToleranceHwm(),
+                () -> DEFAULT_BK_CONFIG.get().getDiskUsageToleranceHwm()
+        ));
+        autoscaler.setDiskUsageToleranceLwm(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getDiskUsageToleranceLwm(),
+                () -> DEFAULT_BK_CONFIG.get().getDiskUsageToleranceLwm()
+        ));
+    }
+
 }

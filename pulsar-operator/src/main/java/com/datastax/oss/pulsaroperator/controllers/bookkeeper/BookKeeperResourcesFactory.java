@@ -132,14 +132,17 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         this.configMap = configMap;
     }
 
-
     public void patchStatefulSet() {
         if (!isComponentEnabled()) {
             log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
         }
+        final StatefulSet statefulSet = generateStatefulSet();
+        patchResource(statefulSet);
+    }
 
+    public StatefulSet generateStatefulSet() {
         Map<String, String> labels = getLabels();
         Map<String, String> allAnnotations = getDefaultAnnotations();
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
@@ -277,7 +280,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withVolumeClaimTemplates(persistentVolumeClaims)
                 .endSpec()
                 .build();
-        patchResource(statefulSet);
+        return statefulSet;
     }
 
 

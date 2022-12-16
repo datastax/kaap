@@ -5,18 +5,12 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import io.fabric8.kubernetes.api.model.ContainerStatus;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetrics;
 import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -217,51 +211,8 @@ public class BrokerAutoscaler implements Runnable {
 
     private boolean isBrokerReadyToScale(String clusterName, String brokerBaseName, String brokerName,
                                          int currentExpectedReplicas) {
-        final StatefulSet statefulSet = client.apps().statefulSets()
-                .inNamespace(namespace)
-                .withName(brokerName)
-                .get();
-
-        final int readyReplicas = Objects.requireNonNullElse(statefulSet.getStatus().getReadyReplicas(), 0);
-        if (readyReplicas != currentExpectedReplicas) {
-            log.infof("Not all sts replicas ready, expected %d, got %d", currentExpectedReplicas,
-                    readyReplicas);
-            return false;
-        }
-
-        final LinkedHashMap<String, String> withLabels = new LinkedHashMap<>();
-        withLabels.put(CRDConstants.LABEL_CLUSTER, clusterName);
-        withLabels.put(CRDConstants.LABEL_COMPONENT, brokerBaseName);
-
-        final PodList allBrokerPods = client.pods()
-                .inNamespace(namespace)
-                .withLabels(withLabels)
-                .list();
-
-        if (allBrokerPods.getItems().size() != currentExpectedReplicas) {
-            log.infof("Broker sts not in ready state");
-            return false;
-        }
-        final Instant now = Instant.now();
-        Long stabilizationWindowMs = clusterSpec.getBroker().getAutoscaler().getStabilizationWindowMs();
-        Instant maxStartTime = now.minusMillis(stabilizationWindowMs);
-        for (Pod pod : allBrokerPods.getItems()) {
-            final ContainerStatus containerStatus = pod.getStatus().getContainerStatuses().get(0);
-            final Boolean ready = containerStatus.getReady();
-            if (ready != null && !ready) {
-                log.infof("Broker pod %s is not ready", pod.getMetadata().getName());
-                return false;
-            }
-
-            final Instant podStartTime = Instant.parse(pod.getStatus().getStartTime());
-            if (podStartTime.isAfter(maxStartTime)) {
-                log.infof("Broker pod %s age is %d seconds, waiting at least %d s (stabilizationWindowMs)",
-                        pod.getMetadata().getName(),
-                        Duration.between(podStartTime, now).getSeconds(),
-                        stabilizationWindowMs / 1000);
-                return false;
-            }
-        }
-        return true;
+        return AutoscalerUtils.isStsReadyToScale(client,
+                clusterSpec.getBroker().getAutoscaler().getStabilizationWindowMs(),
+                clusterName, namespace, brokerBaseName, brokerName, currentExpectedReplicas);
     }
 }

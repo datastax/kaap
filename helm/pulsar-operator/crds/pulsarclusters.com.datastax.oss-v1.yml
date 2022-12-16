@@ -393,6 +393,35 @@ spec:
                     description: Pod management policy for the BookKeeper pod. Default
                       value is 'Parallel'.
                     type: string
+                  autoscaler:
+                    description: Autoscaling config.
+                    properties:
+                      periodMs:
+                        minimum: 1000.0
+                        type: integer
+                      diskUsageToleranceLwm:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: number
+                      diskUsageToleranceHwm:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: number
+                      enabled:
+                        type: boolean
+                      minWritableBookies:
+                        minimum: 1.0
+                        type: integer
+                      scaleUpBy:
+                        minimum: 1.0
+                        type: integer
+                      stabilizationWindowMs:
+                        minimum: 1.0
+                        type: integer
+                      scaleDownBy:
+                        minimum: 1.0
+                        type: integer
+                    type: object
                   resources:
                     description: Resource requirements for the BookKeeper pod.
                     properties:

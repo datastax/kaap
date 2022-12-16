@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers.function;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -143,6 +144,18 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
 
+        if (isAuthTokenEnabled()) {
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("authorizationEnabled", "true");
+            data.put("authenticationEnabled", "true");
+            data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+            data.put("superUserRoles", tokenConfig.superUserRolesAsString());
+            data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));
+            data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                    + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        }
+
         if (spec.getConfig() != null) {
             spec.getConfig().forEach((k, v) -> {
                 // only keep properties passed to the bin/pulsar command
@@ -182,6 +195,18 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         }
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
+        }
+        if (isAuthTokenEnabled()) {
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("authenticationEnabled", "true");
+            data.put("authorizationEnabled", "true");
+            data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
+            data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+            data.put("superUserRoles", tokenConfig.getSuperUserRoles());
+            data.put("properties", Map.of(
+                    "tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile())
+            ));
         }
         final String brokerServiceUrl = getBrokerServiceUrl();
         final String brokerWebServiceUrl = getBrokerWebServiceUrl();
@@ -275,6 +300,10 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        if (isAuthTokenEnabled()) {
+            addSecretTokenVolume(volumeMounts, volumes, "superuser");
+            addSecretTokenVolume(volumeMounts, volumes, "public-key");
+        }
         volumes.add(new VolumeBuilder()
                 .withName("config-volume")
                 .withNewConfigMap()
@@ -326,6 +355,10 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         }
 
         String mainArg = "";
+        if (isAuthTokenEnabled()) {
+            mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                    + ".jwt && ";
+        }
         if (isTlsEnabledGlobally()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
@@ -463,10 +496,12 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (specProbe == null) {
             return null;
         }
+        final String authHeader = isAuthTokenEnabled() ?
+                "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return new ProbeBuilder()
                 .withNewExec()
-                .withCommand("sh", "-c", "curl -s --max-time %d --fail http://localhost:6750/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout()))
+                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:6750/metrics/ > /dev/null"
+                        .formatted(specProbe.getTimeout(), authHeader))
                 .endExec()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())

@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -15,12 +16,9 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -726,9 +724,9 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
                 "/pulsar/data");
-        Assert.assertNotNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol").getEmptyDir());
+        Assert.assertNotNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol").getEmptyDir());
         Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
@@ -757,9 +755,9 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
                 "/pulsar/data");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
+        Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
@@ -813,9 +811,9 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
                 "/pulsar/data");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
+        Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
@@ -879,9 +877,9 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
                 "/pulsar/data");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
+        Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
@@ -908,25 +906,6 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(storageClass.getParameters().get("type"), "gp2");
         Assert.assertEquals(storageClass.getParameters().get("fsType"), "ext4");
         Assert.assertEquals(storageClass.getParameters().get("iopsPerGB"), "10");
-    }
-
-    private VolumeMount getVolumeMountByName(Collection<VolumeMount> mounts, String name) {
-        log.infof("looking for %s in mounts %s", name, mounts);
-        for (VolumeMount mount : mounts) {
-            if (mount.getName().equals(name)) {
-                return mount;
-            }
-        }
-        return null;
-    }
-
-    private Volume getVolumeByName(Collection<Volume> volumes, String name) {
-        for (Volume volume : volumes) {
-            if (volume.getName().equals(name)) {
-                return volume;
-            }
-        }
-        return null;
     }
 
     @Test

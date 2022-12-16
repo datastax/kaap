@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.crds.configs;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +31,21 @@ public class AuthConfig {
         private List<String> proxyRoles;
         @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
         private TokenAuthProvisionerConfig provisioner;
+
+        public String superUserRolesAsString() {
+            return convertRoleListToString(superUserRoles);
+        }
+
+        public String proxyRolesAsString() {
+            return convertRoleListToString(proxyRoles);
+        }
+
+        private static String convertRoleListToString(List<String> roles) {
+            if (roles == null) {
+                return "";
+            }
+            return roles.stream().collect(Collectors.joining(","));
+        }
 
     }
 

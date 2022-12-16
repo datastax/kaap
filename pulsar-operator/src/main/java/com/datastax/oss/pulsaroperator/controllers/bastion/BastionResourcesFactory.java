@@ -55,6 +55,11 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
 
+        if (isAuthTokenEnabled()) {
+            data.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
+            data.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        }
+
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
         }
@@ -88,7 +93,19 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
-        final String mainArg = "bin/apply-config-from-env.py conf/client.conf && "
+        String mainArg = "";
+
+        if (isAuthTokenEnabled()) {
+            addSecretTokenVolume(volumeMounts, volumes, "private-key");
+            addSecretTokenVolume(volumeMounts, volumes, "public-key");
+            addSecretTokenVolume(volumeMounts, volumes, "admin");
+            addSecretTokenVolume(volumeMounts, volumes, "superuser");
+            mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                    + ".jwt && ";
+        }
+
+
+        mainArg += "bin/apply-config-from-env.py conf/client.conf && "
                 + "exec /bin/bash -c \"trap : TERM INT; sleep infinity & wait\"";
 
         List<Container> containers = new ArrayList<>();

@@ -211,6 +211,10 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .storage(GlobalSpec.GlobalStorageConfig.builder()
                         .existingStorageClassName(env.getStorageClass())
                         .build())
+                .auth(AuthConfig.builder()
+                        .enabled(true)
+                        .build()
+                )
                 .build());
 
         // speed up readiness

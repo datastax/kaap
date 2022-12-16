@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
@@ -596,6 +597,30 @@ public abstract class BaseResourcesFactory<T> {
             patchResource(role);
             patchResource(roleBinding);
         }
+    }
+
+    protected boolean isAuthTokenEnabled() {
+        final AuthConfig auth = global.getAuth();
+        return auth != null
+                && auth.getEnabled()
+                && auth.getToken() != null;
+    }
+
+    protected void addSecretTokenVolume(List<VolumeMount> volumeMounts, List<Volume> volumes, String role) {
+        final String tokenName = "token-%s".formatted(role);
+        volumes.add(
+                new VolumeBuilder()
+                        .withName(tokenName)
+                        .withNewSecret().withSecretName(tokenName).endSecret()
+                        .build()
+        );
+        volumeMounts.add(
+                new VolumeMountBuilder()
+                        .withName(tokenName)
+                        .withMountPath("/pulsar/%s".formatted(tokenName))
+                        .withReadOnly(true)
+                        .build()
+        );
     }
 
 }

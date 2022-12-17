@@ -576,6 +576,15 @@ public class PulsarClusterControllerTest {
                         name: ledgers
                         size: 50Gi
                         existingStorageClassName: default
+                    autoscaler:
+                      enabled: false
+                      periodMs: 10000
+                      diskUsageToleranceHwm: 0.92
+                      diskUsageToleranceLwm: 0.75
+                      minWritableBookies: 3
+                      scaleUpBy: 1
+                      scaleDownBy: 1
+                      stabilizationWindowMs: 300000
                 status:
                   conditions: []
                 """);

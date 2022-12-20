@@ -49,9 +49,7 @@ import org.testng.annotations.Test;
 
 public class BookKeeperAutoscalerTest {
 
-
     private static final String NAMESPACE = "ns";
-
 
     @Builder(setterPrefix = "with")
     public static class MockServer implements AutoCloseable {
@@ -176,7 +174,7 @@ public class BookKeeperAutoscalerTest {
                             )
                     )
                     .andReturn(HttpURLConnection.HTTP_OK, podList)
-                    .times(2);
+                    .always();
 
             final PodMetricsList podMetricsList = new PodMetricsListBuilder()
                     .withItems(podsMetrics)
@@ -221,7 +219,7 @@ public class BookKeeperAutoscalerTest {
      * Test that output of "df -k" is used and parsed correctly
      */
     @Test
-    public void testDfParsing() {
+    public void testRestAPIParsing() {
         final String spec = """
                 global:
                    name: pul
@@ -233,39 +231,66 @@ public class BookKeeperAutoscalerTest {
 
         final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
                 null, server -> {
-                    String dfResponseOk =
-                            "Filesystem     1K-blocks      Used Available Use% Mounted on\n"
-                                    + "/dev/disk1s1s1 488245288 264974864 223270424  55% /";
-                    String dfResponseFull =
-                            "Filesystem     1K-blocks      Used Available Use% Mounted on\n"
-                                    + "/dev/disk1s1s1 488245288 488245000 288  100% /";
-                    server.server.expect()
-                            .get()
-                            .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-0"
-                                    + "/exec?command=df&command=-k&command=%2Fpulsar%2Fdata%2Fbookkeeper%2Fledgers"
-                                    + "&container=bookkeeper&stdout=true&stderr=true")
-                            .andUpgradeToWebSocket()
-                            .open(new OutputStreamMessage(dfResponseOk))
-                            .done()
-                            .always();
-                    server.server.expect()
-                            .get()
-                            .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-1"
-                                    + "/exec?command=df&command=-k&command=%2Fpulsar%2Fdata%2Fbookkeeper%2Fledgers"
-                                    + "&container=bookkeeper&stdout=true&stderr=true")
-                            .andUpgradeToWebSocket()
-                            .open(new OutputStreamMessage(dfResponseOk))
-                            .done()
-                            .always();
-                    server.server.expect()
-                            .get()
-                            .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-2"
-                                    + "/exec?command=df&command=-k&command=%2Fpulsar%2Fdata%2Fbookkeeper%2Fledgers"
-                                    + "&container=bookkeeper&stdout=true&stderr=true")
-                            .andUpgradeToWebSocket()
-                            .open(new OutputStreamMessage(dfResponseFull))
-                            .done()
-                            .always();
+                    String bookieInfoOk = """
+{
+  "freeSpace" : 49769177088,
+  "totalSpace" : 101129359360
+}
+""";
+                    String bookieStateOk = """
+{
+  "running" : true,
+  "readOnly" : false,
+  "shuttingDown" : false,
+  "availableForHighPriorityWrites" : true
+}
+""";
+                    String bookieStateReadOnly = """
+{
+  "running" : true,
+  "readOnly" : true,
+  "shuttingDown" : false,
+  "availableForHighPriorityWrites" : true
+}
+""";
+                    for (int i = 0; i < 3; i++) {
+                        // Bookie info
+                        server.server.expect()
+                                .get()
+                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
+                                        + "/exec?command=curl&command=-s&"
+                                        + "command=localhost%3A8000%2Fapi%2Fv1%2Fbookie%2Finfo"
+                                        + "&container=bookkeeper&stdout=true&stderr=true")
+                                .andUpgradeToWebSocket()
+                                .open(new OutputStreamMessage(bookieInfoOk))
+                                .done()
+                                .always();
+
+                        // Bookie state
+                        String response = i == 0 ? bookieStateReadOnly : bookieStateOk;
+                        server.server.expect()
+                                .get()
+                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
+                                        + "/exec?command=curl&command=-s&"
+                                        + "command=localhost%3A8000%2Fapi%2Fv1%2Fbookie%2Fstate"
+                                        + "&container=bookkeeper&stdout=true&stderr=true")
+                                .andUpgradeToWebSocket()
+                                .open(new OutputStreamMessage(response))
+                                .done()
+                                .always();
+                        // AR list under replicated
+                        server.server.expect()
+                                .get()
+                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
+                                        + "/exec?command=curl&command=-s&"
+                                        + "command=localhost%3A8000%2Fapi%2Fv1%2F"
+                                        + "autorecovery%2Flist_under_replicated_ledger%2F"
+                                        + "&container=bookkeeper&stdout=true&stderr=true")
+                                .andUpgradeToWebSocket()
+                                .open(new OutputStreamMessage("No under replicated ledgers found"))
+                                .done()
+                                .always();
+                    }
                 });
         Assert.assertEquals(4, mockServer.patchOp.getValue());
     }
@@ -495,8 +520,74 @@ public class BookKeeperAutoscalerTest {
         };
 
         final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
-                bookieInfofunc);
+                bookieInfofunc, server -> {
+                    for (int i = 0; i < 4; i++) {
+                        // AR list under replicated
+                        server.server.expect()
+                                .get()
+                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
+                                        + "/exec?command=curl&command=-s&command=localhost%3A8000%2Fapi%2Fv1%2F"
+                                        + "autorecovery%2Flist_under_replicated_ledger%2F&container=bookkeeper"
+                                        + "&stdout=true&stderr=true")
+                                .andUpgradeToWebSocket()
+                                .open(new OutputStreamMessage("No under replicated ledgers found"))
+                                .done()
+                                .always();
+                    }
+                });
         Assert.assertEquals(3, mockServer.patchOp.getValue());
+    }
+
+    /**
+     * All bookies are writable and disk usages below LWM
+     * but under replicated ledgers exist.
+     */
+    @Test
+    public void testNotScaleDownUnderReplicatedCluster() {
+        final String spec = """
+                global:
+                   name: pul
+                bookkeeper:
+                    replicas: 4
+                    autoscaler:
+                        enabled: true
+                """;
+
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+            boolean isWritable = true;
+            long usedBytes = 10000;
+
+            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
+                    .maxBytes(1000000)
+                    .usedBytes(usedBytes)
+                    .build();
+            ledgerDiskInfos.add(diskInfo);
+
+            return BookKeeperAutoscaler.BookieInfo.builder()
+                    .isWritable(isWritable)
+                    .ledgerDiskInfos(ledgerDiskInfos)
+                    .build();
+        };
+
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+                bookieInfofunc, server -> {
+
+                    for (int i = 0; i < 4; i++) {
+                        // AR list under replicated
+                        server.server.expect()
+                                .get()
+                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
+                                        + "/exec?command=curl&command=-s&command=localhost%3A8000%2Fapi%2Fv1%2F"
+                                        + "autorecovery%2Flist_under_replicated_ledger%2F&container=bookkeeper"
+                                        + "&stdout=true&stderr=true")
+                                .andUpgradeToWebSocket()
+                                .open(new OutputStreamMessage("blah blah"))
+                                .done()
+                                .always();
+                    }
+        });
+        Assert.assertNull(mockServer.patchOp);
     }
 
     /**

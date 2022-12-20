@@ -5,13 +5,18 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
 import javax.validation.Valid;
 import lombok.Builder;
@@ -22,6 +27,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 @JBossLog
 public class BookKeeperAutoscaler implements Runnable {
+
+    static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Data
     @Builder
@@ -158,6 +165,8 @@ public class BookKeeperAutoscaler implements Runnable {
                 }
             }
 
+            canScaleDown = canScaleDown && doesNotHaveUnderReplicatedLedgers();
+
             if (canScaleDown) {
                 desiredScaleChange -= bookieSafeStepDown;
                 log.infof("Some writable bookies can be released, removing %d",
@@ -182,6 +191,35 @@ public class BookKeeperAutoscaler implements Runnable {
         }
     }
 
+    @SneakyThrows
+    private boolean doesNotHaveUnderReplicatedLedgers() {
+        //TODO: improve BK API, add an option for true/false response if any UR ledger exists
+        // to avoid long wait for the full list, return json
+        /*
+        $ curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/
+        No under replicated ledgers found
+        */
+        final String clusterName = clusterSpec.getGlobal().getName();
+        final String bkBaseName = clusterSpec.getGlobal()
+                .getComponents().getBookkeeperBaseName();
+
+        final LinkedHashMap<String, String> withLabels = new LinkedHashMap<>();
+        withLabels.put(CRDConstants.LABEL_CLUSTER, clusterName);
+        withLabels.put(CRDConstants.LABEL_COMPONENT, bkBaseName);
+
+        Optional<PodResource> pod = client.pods().inNamespace(namespace).withLabels(withLabels).resources().findFirst();
+        if (pod.isEmpty()) {
+            log.info("Could not get PodResource, assume something is underreplicated");
+            return true;
+        }
+        CompletableFuture<String> urLedgersOut = AutoscalerUtils.execInPod(client, namespace,
+                pod.get().get().getMetadata().getName(),
+                clusterSpec.getGlobal().getComponents().getBookkeeperBaseName(),
+                "curl", "-s", "localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/");
+
+        return urLedgersOut.get().contains("No under replicated ledgers found");
+    }
+
     protected boolean isDiskUsageAboveTolerance(BookieLedgerDiskInfo diskInfo, double tolerance) {
         return !isDiskUsageBelowTolerance(diskInfo, tolerance);
     }
@@ -193,37 +231,62 @@ public class BookKeeperAutoscaler implements Runnable {
 
     @SneakyThrows
     protected BookieInfo getBoookieInfo(String namespace, PodResource pod) {
-        // TODO get the info
-        // generate something for now
+        if (log.isDebugEnabled()) {
+            log.debugf("getting BookieInfo for pod ()", pod.get().getMetadata().getName());
+        }
 
-        log.infof("got pod ()", pod.get().getMetadata().getName());
-
-        CompletableFuture<String> dfOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
+        CompletableFuture<String> bkStateOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
                 clusterSpec.getGlobal().getComponents().getBookkeeperBaseName(),
-                "df", "-k",
-                // TODO: get this form config somehow
-                "/pulsar/data/bookkeeper/" + clusterSpec.getBookkeeper().getVolumes().getLedgers().getName());
+                "curl", "-s", "localhost:8000/api/v1/bookie/state");
 
-        log.infof("df out: %s", dfOut.get());
+        CompletableFuture<String> bkInfoOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
+                clusterSpec.getGlobal().getComponents().getBookkeeperBaseName(),
+                "curl", "-s", "localhost:8000/api/v1/bookie/info");
 
         List<BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
         BookieLedgerDiskInfo diskInfo = BookieLedgerDiskInfo.builder()
                 .build();
-        parseDiskUsage(diskInfo, dfOut.get());
+        parseAndFillDiskUsage(diskInfo, bkInfoOut.get());
         ledgerDiskInfos.add(diskInfo);
 
-        // TODO: get writable status
+        boolean writable = parseIsWritable(bkStateOut.get());
+
         return BookieInfo.builder()
-                .isWritable(true)
+                .isWritable(writable)
                 .ledgerDiskInfos(ledgerDiskInfos)
                 .build();
     }
 
-    private void parseDiskUsage(BookieLedgerDiskInfo diskInfo, String dfOutput) {
-        String secondLine = dfOutput.split("\\R")[1];
-        String[] chunks = secondLine.split("\s+");
-        long total = Long.parseLong(chunks[1]) * 1024;
-        long used = Long.parseLong(chunks[2]) * 1024;
+    @SneakyThrows
+    private boolean parseIsWritable(String bkStateOutput) throws JsonProcessingException, InterruptedException, ExecutionException {
+        /*
+        $ curl -s localhost:8000/api/v1/bookie/state
+        {
+          "running" : true,
+          "readOnly" : false,
+          "shuttingDown" : false,
+          "availableForHighPriorityWrites" : true
+        }
+        */
+        JsonNode node = MAPPER.readTree(bkStateOutput);
+        boolean writable = node.get("running").asBoolean()
+                && !node.get("readOnly").asBoolean()
+                && !node.get("shuttingDown").asBoolean();
+        return writable;
+    }
+
+    @SneakyThrows
+    private void parseAndFillDiskUsage(BookieLedgerDiskInfo diskInfo, String bkStateOutput) {
+        /*
+        $ curl -s localhost:8000/api/v1/bookie/info
+        {
+          "freeSpace" : 49769177088,
+          "totalSpace" : 101129359360
+        }
+        */
+        JsonNode node = MAPPER.readTree(bkStateOutput);
+        long total = node.get("totalSpace").asLong(0);
+        long used = node.get("freeSpace").asLong(Long.MAX_VALUE);
         diskInfo.setMaxBytes(total);
         diskInfo.setUsedBytes(used);
     }

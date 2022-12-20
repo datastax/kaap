@@ -16,6 +16,7 @@ public class ScalingTest extends BasePulsarClusterTest {
         applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+        specs.getGlobal().getAuth().setEnabled(false);
         try {
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();

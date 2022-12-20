@@ -58,24 +58,20 @@ public class TokenAuthTest extends BasePulsarClusterTest {
             Assert.assertTrue(secretMap.containsKey("token-websocket"));
 
             awaitInstalled();
-            final String bastion = client.pods().inNamespace(namespace)
-                    .withLabel("component", "bastion")
-                    .list().getItems().get(0).getMetadata().getName();
-            execInPod(bastion,
-                    "bin/pulsar tokens create --private-key /pulsar/token-private-key/my-private.key --subject myuser"
+            execInBastionPod("bin/pulsar tokens create --private-key /pulsar/token-private-key/my-private.key --subject myuser"
                             + " > myuser.jwt",
                     "bin/pulsar tokens create --private-key /pulsar/token-private-key/my-private.key --subject "
                             + "myuser2 > myuser2.jwt",
                     "bin/pulsar-admin namespaces grant-permission --role myuser --actions produce public/default",
                     "bin/pulsar-admin namespaces grant-permission --role myuser2 --actions consume public/default");
 
-            execInPod(bastion,
+            execInBastionPod(
                     "export PULSAR_PREFIX_authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken",
                     "export PULSAR_PREFIX_authParams=\"file:///pulsar/myuser.jwt\"",
                     "/pulsar/bin/apply-config-from-env.py /pulsar/conf/client.conf",
                     "bin/pulsar-client produce -m hello public/default/topic");
 
-            execInPod(bastion,
+            execInBastionPod(
                     "export PULSAR_PREFIX_authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken",
                     "export PULSAR_PREFIX_authParams=\"file:///pulsar/myuser2.jwt\"",
                     "/pulsar/bin/apply-config-from-env.py /pulsar/conf/client.conf",

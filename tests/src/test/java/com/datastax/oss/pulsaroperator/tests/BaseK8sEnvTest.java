@@ -451,6 +451,13 @@ public abstract class BaseK8sEnvTest {
     }
 
 
+    protected void execInBastionPod(String... cmd) {
+        final String bastion = client.pods().inNamespace(namespace)
+                .withLabel("component", "bastion")
+                .list().getItems().get(0).getMetadata().getName();
+        execInPod(bastion, cmd);
+    }
+
     @SneakyThrows
     protected void execInPod(String podName, String... cmd) {
         execInPodContainer(podName, null, cmd);

@@ -61,7 +61,7 @@ public class FunctionsTest extends BasePulsarClusterTest {
 
             Awaitility.await().until(() -> {
                 try {
-                    execInPodContainer(proxyPod, "pulsar-proxy",
+                    execInBastionPod(
                             "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
                                     + "--destinationTopicName generator_test --source-type data-generator "
                                     + "--ram 12800000 --cpu 0.001 --disk 1000000000 "

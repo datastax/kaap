@@ -401,8 +401,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (specProbe == null) {
             return null;
         }
-        final String authHeader = isAuthTokenEnabled() ?
-                "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
+        final String authHeader = isAuthTokenEnabled()
+                ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return new ProbeBuilder()
                 .withNewExec()
                 .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/metrics/ > /dev/null"

@@ -10,7 +10,6 @@ public class KubeTestUtil {
     private KubeTestUtil() {
     }
 
-
     public static VolumeMount getVolumeMountByName(Collection<VolumeMount> mounts, String name) {
         for (VolumeMount mount : mounts) {
             if (mount.getName().equals(name)) {
@@ -32,7 +31,7 @@ public class KubeTestUtil {
     public static void assertVolumeFromSecret(Collection<Volume> volumes, String volumeAndSecretName) {
         final Volume vol = KubeTestUtil.getVolumeByName(volumes, volumeAndSecretName);
         Assert.assertNotNull(vol, "volume %s not found".formatted(volumeAndSecretName));
-        Assert.assertEquals(vol.getSecret().getSecretName(),volumeAndSecretName);
+        Assert.assertEquals(vol.getSecret().getSecretName(), volumeAndSecretName);
     }
 
     public static void assertVolumeMount(Collection<VolumeMount> volumeMounts,
@@ -46,8 +45,8 @@ public class KubeTestUtil {
     }
 
     public static void assertRolesMounted(Collection<Volume> volumes,
-                                           Collection<VolumeMount> volumeMounts,
-                                           String... roles) {
+                                          Collection<VolumeMount> volumeMounts,
+                                          String... roles) {
         List.of(roles)
                 .forEach(role -> {
                     final String secret = "token-%s".formatted(role);

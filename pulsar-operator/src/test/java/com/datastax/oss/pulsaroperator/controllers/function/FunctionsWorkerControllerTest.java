@@ -650,7 +650,6 @@ public class FunctionsWorkerControllerTest {
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),
                 expectedDataForExtra);
-        
 
         final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
 

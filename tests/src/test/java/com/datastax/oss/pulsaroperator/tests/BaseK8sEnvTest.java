@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.tests;
 
-import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -12,26 +11,32 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.dsl.ExecListener;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.testcontainers.containers.Container;
 import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -245,7 +250,8 @@ public abstract class BaseK8sEnvTest {
                                     .setImage(OPERATOR_IMAGE);
                             client.resource(deployment).inNamespace(namespace)
                                     .create();
-                            log.info("Applied operator deployment" + SerializationUtil.writeAsJson(deployment.getSpec().getTemplate()));
+                            log.info("Applied operator deployment" + SerializationUtil.writeAsJson(
+                                    deployment.getSpec().getTemplate()));
                         });
             } else {
                 applyManifestFromFile(yamlManifest);
@@ -421,33 +427,6 @@ public abstract class BaseK8sEnvTest {
 
 
     @SneakyThrows
-    protected void helmInstall() {
-        final Path helmHome = Paths.get("..", "helm", "pulsar-operator");
-
-
-        final Helm3Container helm3Container = env.withHelmContainer((Consumer<Helm3Container>) helm -> {
-            helm.withFileSystemBind(helmHome.toFile().getAbsolutePath(), "/helm-pulsar-operator");
-        });
-
-        helm3Container.execInContainer("helm", "delete", "test", "-n", namespace);
-        final String cmd = "helm install test -n " + namespace + " /helm-pulsar-operator";
-        final Container.ExecResult exec = helm3Container.execInContainer(cmd.split(" "));
-        if (exec.getExitCode() != 0) {
-            throw new RuntimeException("Helm installation failed: " + exec.getStderr());
-        }
-    }
-
-    @SneakyThrows
-    protected void helmUninstall() {
-        final Helm3Container helm3Container = env.helmContainer();
-        final Container.ExecResult exec =
-                helm3Container.execInContainer("helm", "delete", "test", "-n", namespace);
-        if (exec.getExitCode() != 0) {
-            throw new RuntimeException("Helm uninstallation failed: " + exec.getStderr());
-        }
-    }
-
-    @SneakyThrows
     protected Path getHelmExampleFilePath(String name) {
         return Paths.get("..", "helm", "examples", name);
     }
@@ -470,6 +449,82 @@ public abstract class BaseK8sEnvTest {
                 .get(0)
                 .getMetadata()
                 .getName();
+    }
+
+
+    @SneakyThrows
+    protected void execInPod(String podName, String... cmd) {
+        execInPodContainer(podName, null, cmd);
+    }
+
+    @SneakyThrows
+    protected void execInPodContainer(String podName, String containerName, String... cmds) {
+        final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" && "));
+        log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        CompletableFuture<String> future = new CompletableFuture<>();
+        try (final ExecWatch exec = client
+                .pods()
+                .inNamespace(namespace)
+                .withName(podName)
+                .inContainer(containerName)
+                .writingOutput(baos)
+                .writingError(baos)
+                .usingListener(new SimpleListener(future, baos))
+                .exec("bash", "-c", cmd);) {
+            final String outputCmd = future.get(30, TimeUnit.SECONDS);
+            log.info("Output cmd: {}", outputCmd);
+            if (exec.exitCode().get().intValue() != 0) {
+                log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
+                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
+            }
+        }
+    }
+
+    static class SimpleListener implements ExecListener {
+
+        private CompletableFuture<String> data;
+        private ByteArrayOutputStream baos;
+
+        public SimpleListener(CompletableFuture<String> data, ByteArrayOutputStream baos) {
+            this.data = data;
+            this.baos = baos;
+        }
+
+        @Override
+        public void onOpen() {
+        }
+
+        @Override
+        public void onFailure(Throwable t, Response failureResponse) {
+            System.err.println(t.getMessage());
+            data.completeExceptionally(t);
+        }
+
+        @Override
+        public void onClose(int code, String reason) {
+            data.complete(baos.toString());
+        }
+    }
+
+
+    private void awaitJobCompleted(String name) {
+        Awaitility.await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> {
+                    final Job job = client.batch().v1().jobs()
+                            .inNamespace(namespace)
+                            .withName(name)
+                            .get();
+                    Assert.assertNotNull(job);
+                    final JobStatus status = job.getStatus();
+                    Assert.assertNotNull(status);
+                    final Integer succeeded = status
+                            .getSucceeded();
+                    Assert.assertNotNull(succeeded);
+                    Assert.assertEquals(succeeded.intValue(), 1);
+                });
+
     }
 
 }

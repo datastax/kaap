@@ -40,4 +40,10 @@ jobs:
         run: mvn -B -ntp -nsu test -pl pulsar-operator
 
       - name: Integration tests
-        run: mvn -B -ntp -nsu test -pl tests
+        run: |
+        #!/bin/bash
+        ./tests/src/test/scripts/local-k3s.sh & (
+        docker pull datastax/lunastreaming-all:2.10_2.4
+        sleep 60
+        ./tests/src/test/scripts/local-k3s-run-test.sh
+        )

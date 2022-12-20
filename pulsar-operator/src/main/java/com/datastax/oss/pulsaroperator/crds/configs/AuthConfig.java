@@ -1,8 +1,8 @@
 package com.datastax.oss.pulsaroperator.crds.configs;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,11 +26,11 @@ public class AuthConfig {
         @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
         private String privateKeyFile;
         @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
-        private List<String> superUserRoles;
+        private TreeSet<String> superUserRoles;
         @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
-        private List<String> proxyRoles;
+        private TreeSet<String> proxyRoles;
         @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
-        private TokenAuthProvisionerConfig provisioner;
+        private Boolean initialize;
 
         public String superUserRolesAsString() {
             return convertRoleListToString(superUserRoles);
@@ -40,44 +40,12 @@ public class AuthConfig {
             return convertRoleListToString(proxyRoles);
         }
 
-        private static String convertRoleListToString(List<String> roles) {
+        private static String convertRoleListToString(Set<String> roles) {
             if (roles == null) {
                 return "";
             }
             return roles.stream().collect(Collectors.joining(","));
         }
-
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class TokenAuthProvisionerConfig {
-
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class RbacConfig {
-            @JsonPropertyDescription("Create needed RBAC to run the Functions Worker.")
-            private Boolean create;
-            @JsonPropertyDescription("Whether or not the RBAC is created per-namespace or for the cluster.")
-            private Boolean namespaced;
-        }
-
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
-        private Boolean initialize;
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
-        private String image;
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
-        private String imagePullPolicy;
-        @JsonPropertyDescription("Resource requirements for the ZooKeeper pod.")
-        private ResourceRequirements resources;
-        @JsonPropertyDescription("Resource requirements for the ZooKeeper pod.")
-        private RbacConfig rbac;
-
-
 
     }
 

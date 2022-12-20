@@ -1,10 +1,9 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
-import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisionerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
@@ -71,14 +70,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         final PulsarClusterSpec clusterSpec = resource.getSpec();
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
-
-        if (!checkTokenAuthProvisionerDoneOrPatch(currentNamespace, clusterSpec, ownerReference)) {
-            log.info("waiting for token auth provisioner to complete");
-            return new ReconciliationResult(
-                    true,
-                    List.of(createNotReadyInitializingCondition(resource))
-            );
-        }
+        generateSecretsIfAbsent(currentNamespace, clusterSpec);
 
         if (!checkReadyOrPatchZooKeeper(currentNamespace, clusterSpec, ownerReference)) {
             log.info("waiting for zookeeper to become ready");
@@ -359,41 +351,19 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
 
     @SneakyThrows
-    private boolean checkTokenAuthProvisionerDoneOrPatch(
-            String namespace,
-            PulsarClusterSpec clusterSpec,
-            List<OwnerReference> ownerReferences) {
-
+    private void generateSecretsIfAbsent(String namespace, PulsarClusterSpec clusterSpec) {
         final AuthConfig auth = clusterSpec.getGlobal().getAuth();
         if (auth == null) {
-            return true;
+            return;
         }
         if (!auth.getEnabled()) {
-            return true;
+            return;
         }
-
-        return getTokenAuthProvisionerResourcesFactory(
-                namespace,
-                auth.getToken(),
-                clusterSpec.getGlobalSpec(),
-                ownerReferences.isEmpty() ? null : ownerReferences.get(0)
-        ).patchJobAndCheckCompleted();
+        getTokenAuthProvisioner(namespace).generateSecretsIfAbsent(auth.getToken());
     }
 
-    protected TokenAuthProvisionerResourcesFactory getTokenAuthProvisionerResourcesFactory(
-            String namespace,
-            AuthConfig.TokenConfig tokenConfig,
-            GlobalSpec globalSpec,
-            OwnerReference ownerReference
-    ) {
-        return new TokenAuthProvisionerResourcesFactory(
-                client,
-                namespace,
-                tokenConfig,
-                globalSpec,
-                ownerReference
-        );
-
+    protected TokenAuthProvisioner getTokenAuthProvisioner(String namespace) {
+        return new TokenAuthProvisioner(client, namespace);
     }
 
     void onStop(@Observes ShutdownEvent ev) {

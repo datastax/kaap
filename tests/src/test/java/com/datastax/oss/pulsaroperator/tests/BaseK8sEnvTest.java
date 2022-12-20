@@ -162,6 +162,7 @@ public abstract class BaseK8sEnvTest {
                       - configmaps
                       - services
                       - serviceaccounts
+                      - secrets
                     verbs:
                       - '*'
                   - apiGroups:

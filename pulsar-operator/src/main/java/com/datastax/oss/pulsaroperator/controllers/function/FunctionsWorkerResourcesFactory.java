@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeSet;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
@@ -203,7 +204,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
             data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
-            data.put("superUserRoles", tokenConfig.getSuperUserRoles());
+            data.put("superUserRoles", new TreeSet<>(tokenConfig.getSuperUserRoles()));
             data.put("properties", Map.of(
                     "tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile())
             ));
@@ -234,13 +235,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 data.put("functionRuntimeFactoryClassName",
                         "org.apache.pulsar.functions.runtime.kubernetes.KubernetesRuntimeFactory");
                 data.put("functionRuntimeFactoryConfigs", Map.of("jobNamespace", namespace,
-                                "pulsarDockerImageName", spec.getImage(),
-                                "pulsarRootDir", "/pulsar",
-                                "submittingInsidePod", true,
-                                "pulsarServiceUrl", brokerServiceUrl,
-                                "pulsarAdminUrl", "https://%s.%s:6750/"
-                                        .formatted(resourceName, getServiceDnsSuffix()),
-                                "percentMemoryPadding", 10)
+                        "pulsarDockerImageName", spec.getImage(),
+                        "pulsarRootDir", "/pulsar",
+                        "submittingInsidePod", true,
+                        "pulsarServiceUrl", brokerServiceUrl,
+                        "pulsarAdminUrl", "https://%s.%s:6750/"
+                                .formatted(resourceName, getServiceDnsSuffix()),
+                        "percentMemoryPadding", 10)
                 );
                 break;
             case "process":

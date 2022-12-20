@@ -163,7 +163,7 @@ public class BrokerControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -178,7 +178,7 @@ public class BrokerControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -416,7 +416,7 @@ public class BrokerControllerTest {
         expectedData.put("authenticationEnabled", "true");
         expectedData.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
         expectedData.put("proxyRoles", "proxy");
-        expectedData.put("superUserRoles", "superuser,admin,websocket,proxy");
+        expectedData.put("superUserRoles", "admin,proxy,superuser,websocket");
         expectedData.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
         expectedData.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedData.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
@@ -918,7 +918,7 @@ public class BrokerControllerTest {
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
-                "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
+                "curl -s --max-time %d --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);

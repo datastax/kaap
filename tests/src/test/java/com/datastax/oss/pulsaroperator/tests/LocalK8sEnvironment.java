@@ -6,12 +6,21 @@ import com.dajudge.kindcontainer.K3sContainer;
 import com.dajudge.kindcontainer.K3sContainerVersion;
 import com.dajudge.kindcontainer.KubernetesImageSpec;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.testcontainers.DockerClientFactory;
 
 @Slf4j
 public class LocalK8sEnvironment extends LocalK3SContainer {
@@ -28,9 +37,12 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         final KubernetesImageSpec<K3sContainerVersion> k3sImage =
                 new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
                         .withImage("rancher/k3s:v1.25.3-k3s1");
-        try (final K3sContainer container = new K3sContainer(k3sImage);) {
+        try (final K3sContainer container = new K3sContainer(k3sImage)) {
             final ExecutorService executorService = Executors.newCachedThreadPool();
 
+            container.withCreateContainerCmdModifier(
+                    (Consumer<CreateContainerCmd>)
+                            createContainerCmd -> createContainerCmd.withName("pulsaroperator-local-k3s"));
             createAndMountImages(executorService, container);
 
             container.start();
@@ -48,7 +60,8 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
                             + "config set-context --current --namespace=ns "
                             + "&& kubectl apply -f helm/examples/local-k3s.yaml", tmpKubeConfig);
             log.info("You can even run the integration test using this cluster:\n"
-                    + "export KUBECONFIG={} && mvn test -pl tests -Dpulsaroperator.tests.env.existing -Dpulsaroperator.tests.existingenv"
+                    + "export KUBECONFIG={} && mvn test -pl tests -Dpulsaroperator.tests.env.existing "
+                    + "-Dpulsaroperator.tests.existingenv"
                     + ".kubeconfig.context=default -Dpulsaroperator.tests.existingenv.storageclass=local-path "
                     + "-Dtest='PulsarClusterTest'\n", tmpKubeConfig);
 
@@ -97,6 +110,19 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
                     throw new RuntimeException(throwable);
                 })
                 .join();
+    }
+
+    public static class GenerateImageDigest {
+        @SneakyThrows
+        public static void main(String[] args) {
+            final Path target = Path.of(args[0]);
+            long start = System.currentTimeMillis();
+            final DockerClient dockerClient = DockerClientFactory.lazyClient();
+            final InputStream saved = dockerClient.saveImageCmd(OPERATOR_IMAGE).exec();
+            Files.copy(saved, target, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Local image {} digest generated in {} ms", OPERATOR_IMAGE, (System.currentTimeMillis() - start));
+
+        }
     }
 
 }

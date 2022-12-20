@@ -6,8 +6,9 @@ import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.NotNull;
@@ -34,17 +35,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             .token(AuthConfig.TokenConfig.builder()
                     .publicKeyFile("my-public.key")
                     .privateKeyFile("my-private.key")
-                    .superUserRoles(List.of("superuser", "admin", "websocket", "proxy"))
-                    .proxyRoles(List.of("proxy"))
-                    .provisioner(AuthConfig.TokenAuthProvisionerConfig.builder()
-                            .initialize(true)
-                            .image("datastax/burnell:latest")
-                            .imagePullPolicy("IfNotPresent")
-                            .rbac(AuthConfig.TokenAuthProvisionerConfig.RbacConfig.builder()
-                                    .create(true)
-                                    .namespaced(true)
-                                    .build())
-                            .build())
+                    .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy")))
+                    .proxyRoles(new TreeSet<>(Set.of("proxy")))
+                    .initialize(true)
                     .build())
             .build();
 
@@ -104,7 +97,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @AllArgsConstructor
     @Builder
     public static class GlobalStorageConfig {
-        @JsonPropertyDescription("Indicates if a StorageClass is used. The operator will create the StorageClass if needed.")
+        @JsonPropertyDescription("Indicates if a StorageClass is used. The operator will create the StorageClass if "
+                + "needed.")
         private StorageClassConfig storageClass;
         @JsonPropertyDescription("Indicates if an already existing storage class should be used.")
         private String existingStorageClassName;
@@ -147,7 +141,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     // overridable parameters
     @JsonPropertyDescription("Default Pulsar image to use. Any components can be configured to use a different image.")
     private String image;
-    @JsonPropertyDescription("Default Pulsar image pull policy to use. Any components can be configured to use a different image pull policy. Default value is 'IfNotPresent'.")
+    @JsonPropertyDescription("Default Pulsar image pull policy to use. Any components can be configured to use a "
+            + "different image pull policy. Default value is 'IfNotPresent'.")
     private String imagePullPolicy;
     @JsonPropertyDescription("Storage configuration.")
     private GlobalStorageConfig storage;
@@ -205,10 +200,13 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setBookkeeperBaseName(ObjectUtils.firstNonNull(components.getBookkeeperBaseName(), "bookkeeper"));
         components.setBrokerBaseName(ObjectUtils.firstNonNull(components.getBrokerBaseName(), "broker"));
         components.setProxyBaseName(ObjectUtils.firstNonNull(components.getProxyBaseName(), "proxy"));
-        components.setAutorecoveryBaseName(ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
+        components.setAutorecoveryBaseName(
+                ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
         components.setBastionBaseName(ObjectUtils.firstNonNull(components.getBastionBaseName(), "bastion"));
-        components.setFunctionsWorkerBaseName(ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
+        components.setFunctionsWorkerBaseName(
+                ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
     }
+
     private void applyAuthDefaults() {
         if (auth == null) {
             auth = DEFAULT_AUTH_CONFIG.get();

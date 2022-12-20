@@ -1,28 +1,24 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisionerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
@@ -60,30 +56,24 @@ public class PulsarClusterControllerTest {
                     publicKeyFile: my-public.key
                     privateKeyFile: my-private.key
                     superUserRoles:
-                    - superuser
                     - admin
-                    - websocket
                     - proxy
+                    - superuser
+                    - websocket
                     proxyRoles:
                     - proxy
-                    provisioner:
-                      initialize: true
-                      image: datastax/burnell:latest
-                      imagePullPolicy: IfNotPresent
-                      rbac:
-                        create: true
-                        namespaced: true
+                    initialize: true
                 image: apachepulsar/pulsar:2.10.2
                 imagePullPolicy: IfNotPresent
                 storage:
                   existingStorageClassName: default""";
     static final String NAMESPACE = "ns";
 
-    TokenAuthProvisionerResourcesFactory tokenAuthProvisionerResourcesFactory;
+    TokenAuthProvisioner tokenAuthProvisioner;
 
     @BeforeMethod
     public void setup() {
-        tokenAuthProvisionerResourcesFactory = mock(TokenAuthProvisionerResourcesFactory.class);
+        tokenAuthProvisioner = mock(TokenAuthProvisioner.class);
     }
 
     @Test
@@ -591,10 +581,9 @@ public class PulsarClusterControllerTest {
                     }
 
                     @Override
-                    protected TokenAuthProvisionerResourcesFactory getTokenAuthProvisionerResourcesFactory(
-                            String namespace, AuthConfig.TokenConfig tokenConfig, GlobalSpec globalSpec,
-                            OwnerReference ownerReference) {
-                        return tokenAuthProvisionerResourcesFactory;
+                    protected TokenAuthProvisioner getTokenAuthProvisioner(String namespace) {
+                        Assert.assertEquals(namespace, NAMESPACE);
+                        return tokenAuthProvisioner;
                     }
                 };
 
@@ -650,23 +639,10 @@ public class PulsarClusterControllerTest {
                     auth:
                         enabled: true
                 """;
-        when(tokenAuthProvisionerResourcesFactory.patchJobAndCheckCompleted())
-                .thenReturn(false);
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         UpdateControl<PulsarCluster> control = invokeController(client, spec, r -> null);
-        Assert.assertEquals(client.countCreatedResources(), 0);
-        assertUpdateControlInitializing(control);
-        verify(tokenAuthProvisionerResourcesFactory).patchJobAndCheckCompleted();
-
-        when(tokenAuthProvisionerResourcesFactory.patchJobAndCheckCompleted())
-                .thenReturn(true);
-        client = new MockKubernetesClient(NAMESPACE);
-        control = invokeController(client, spec, r -> null);
-        Assert.assertNotNull(client.getCreatedResource(ZooKeeper.class));
         Assert.assertEquals(client.countCreatedResources(), 1);
         assertUpdateControlInitializing(control);
-        verify(tokenAuthProvisionerResourcesFactory, times(2)).patchJobAndCheckCompleted();
-
-
+        verify(tokenAuthProvisioner).generateSecretsIfAbsent(any());
     }
 }

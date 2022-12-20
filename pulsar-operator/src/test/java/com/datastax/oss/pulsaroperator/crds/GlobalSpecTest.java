@@ -2,8 +2,9 @@ package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -149,15 +150,9 @@ public class GlobalSpecTest {
         final AuthConfig.TokenConfig token = auth.getToken();
         Assert.assertEquals(token.getPrivateKeyFile(), "my-private.key");
         Assert.assertEquals(token.getPublicKeyFile(), "my-public.key");
-        Assert.assertEquals(token.getProxyRoles(), List.of("proxy"));
-        Assert.assertEquals(token.getSuperUserRoles(), List.of("superuser", "admin", "websocket", "proxy"));
-        final AuthConfig.TokenAuthProvisionerConfig provisioner = token.getProvisioner();
-        Assert.assertEquals(provisioner.getImage(), "datastax/burnell:latest");
-        Assert.assertEquals(provisioner.getImagePullPolicy(), "IfNotPresent");
-        Assert.assertTrue(provisioner.getRbac().getCreate());
-        Assert.assertTrue(provisioner.getRbac().getNamespaced());
-        Assert.assertTrue(provisioner.getInitialize());
-        Assert.assertNull(provisioner.getResources());
+        Assert.assertEquals(token.getProxyRoles(), Set.of("proxy"));
+        Assert.assertEquals(token.getSuperUserRoles(), new TreeSet<>(Set.of("admin", "proxy", "superuser", "websocket")));
+        Assert.assertTrue(token.getInitialize());
     }
 
     @Test
@@ -166,8 +161,8 @@ public class GlobalSpecTest {
         globalSpec.setAuth(AuthConfig.builder()
                 .enabled(true)
                 .token(AuthConfig.TokenConfig.builder()
-                        .superUserRoles(List.of("superuser", "admin", "websocket", "proxy", "superuser2"))
-                        .proxyRoles(List.of("proxy", "superuser2"))
+                        .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy", "superuser2")))
+                        .proxyRoles(new TreeSet<>(Set.of("proxy", "superuser2")))
                         .build())
                 .build());
         globalSpec.applyDefaults(null);
@@ -176,41 +171,9 @@ public class GlobalSpecTest {
         final AuthConfig.TokenConfig token = auth.getToken();
         Assert.assertEquals(token.getPrivateKeyFile(), "my-private.key");
         Assert.assertEquals(token.getPublicKeyFile(), "my-public.key");
-        Assert.assertEquals(token.getProxyRoles(), List.of("proxy", "superuser2"));
-        Assert.assertEquals(token.getSuperUserRoles(), List.of("superuser", "admin", "websocket", "proxy", "superuser2"));
+        Assert.assertEquals(token.getProxyRoles(), Set.of("proxy", "superuser2"));
+        Assert.assertEquals(token.getSuperUserRoles(),
+                new TreeSet<>(Set.of("admin", "proxy", "superuser", "superuser2", "websocket")));
+        Assert.assertTrue(token.getInitialize());
     }
-
-    @Test
-    public void testAuthTokenProvisionerDefaults() {
-        GlobalSpec globalSpec = new GlobalSpec();
-        globalSpec.setAuth(AuthConfig.builder()
-                .enabled(true)
-                .token(AuthConfig.TokenConfig.builder()
-                        .provisioner(AuthConfig.TokenAuthProvisionerConfig.builder()
-                                .initialize(false)
-                                .image("datastax/burnell:v1")
-                                .rbac(AuthConfig.TokenAuthProvisionerConfig.RbacConfig.builder()
-                                        .namespaced(false)
-                                        .build())
-                                .build())
-                        .build())
-                .build());
-        globalSpec.applyDefaults(null);
-        final AuthConfig auth = globalSpec.getAuth();
-        Assert.assertTrue(auth.getEnabled());
-        final AuthConfig.TokenConfig token = auth.getToken();
-        Assert.assertEquals(token.getPrivateKeyFile(), "my-private.key");
-        Assert.assertEquals(token.getPublicKeyFile(), "my-public.key");
-        Assert.assertEquals(token.getProxyRoles(), List.of("proxy"));
-        Assert.assertEquals(token.getSuperUserRoles(), List.of("superuser", "admin", "websocket", "proxy"));
-        final AuthConfig.TokenAuthProvisionerConfig provisioner = token.getProvisioner();
-        Assert.assertEquals(provisioner.getImage(), "datastax/burnell:v1");
-        Assert.assertEquals(provisioner.getImagePullPolicy(), "IfNotPresent");
-        Assert.assertTrue(provisioner.getRbac().getCreate());
-        Assert.assertFalse(provisioner.getRbac().getNamespaced());
-        Assert.assertFalse(provisioner.getInitialize());
-        Assert.assertNull(provisioner.getResources());
-    }
-
-
 }

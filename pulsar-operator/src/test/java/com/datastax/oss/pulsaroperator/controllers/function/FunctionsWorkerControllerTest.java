@@ -254,7 +254,7 @@ public class FunctionsWorkerControllerTest {
                                     command:
                                     - sh
                                     - -c
-                                    - curl -s --max-time 5 --fail http://localhost:6750/metrics/ > /dev/null
+                                    - curl -s --max-time 5 --fail  http://localhost:6750/metrics/ > /dev/null
                                   initialDelaySeconds: 10
                                   periodSeconds: 30
                                   timeoutSeconds: 5
@@ -622,7 +622,7 @@ public class FunctionsWorkerControllerTest {
         expectedData.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
         expectedData.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedData.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
-        expectedData.put("superUserRoles", List.of("superuser", "admin", "websocket", "proxy"));
+        expectedData.put("superUserRoles", List.of("admin", "proxy", "superuser", "websocket"));
         expectedData.put("properties", Map.of(
                 "tokenPublicKey", "file:///pulsar/token-public-key/my-public.key")
         );
@@ -643,7 +643,7 @@ public class FunctionsWorkerControllerTest {
         expectedDataForExtra.put("authenticationEnabled", "true");
         expectedDataForExtra.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedDataForExtra.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
-        expectedDataForExtra.put("superUserRoles", "superuser,admin,websocket,proxy");
+        expectedDataForExtra.put("superUserRoles", "admin,proxy,superuser,websocket");
         expectedDataForExtra.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
         expectedDataForExtra.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
                 + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
@@ -1044,7 +1044,7 @@ public class FunctionsWorkerControllerTest {
     private void assertLivenessProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(),
                 List.of("sh", "-c",
-                        "curl -s --max-time %d --fail http://localhost:6750/metrics/ > /dev/null".formatted(timeout)));
+                        "curl -s --max-time %d --fail  http://localhost:6750/metrics/ > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);

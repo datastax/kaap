@@ -195,7 +195,7 @@ public class LocalK3SContainer implements K8sEnv {
         container.withFileSystemBind(imageBinPath.toFile().getAbsolutePath(), "/" + imageFilename);
     }
 
-    private static String getMountedImageFilename(DockerClient dockerClient, String image) {
+    public static String getMountedImageFilename(DockerClient dockerClient, String image) {
         final String dockerImageId = dockerClient.inspectImageCmd(image).exec()
                 .getId()
                 .replace("sha256:", "");

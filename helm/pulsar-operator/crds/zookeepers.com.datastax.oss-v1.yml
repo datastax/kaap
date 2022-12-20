@@ -288,55 +288,16 @@ spec:
                             description: Indicates if the Pdb policy is enabled for
                               this component.
                             type: string
-                          provisioner:
+                          initialize:
                             description: Indicates if the Pdb policy is enabled for
                               this component.
-                            properties:
-                              initialize:
-                                description: Indicates if the Pdb policy is enabled
-                                  for this component.
-                                type: boolean
-                              rbac:
-                                description: Resource requirements for the ZooKeeper
-                                  pod.
-                                properties:
-                                  namespaced:
-                                    description: Whether or not the RBAC is created
-                                      per-namespace or for the cluster.
-                                    type: boolean
-                                  create:
-                                    description: Create needed RBAC to run the Functions
-                                      Worker.
-                                    type: boolean
-                                type: object
-                              image:
-                                description: Indicates if the Pdb policy is enabled
-                                  for this component.
-                                type: string
-                              resources:
-                                description: Resource requirements for the ZooKeeper
-                                  pod.
-                                properties:
-                                  limits:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      x-kubernetes-int-or-string: true
-                                    type: object
-                                  requests:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      x-kubernetes-int-or-string: true
-                                    type: object
-                                type: object
-                              imagePullPolicy:
-                                description: Indicates if the Pdb policy is enabled
-                                  for this component.
-                                type: string
-                            type: object
+                            type: boolean
+                          superUserRoles:
+                            description: Indicates if the Pdb policy is enabled for
+                              this component.
+                            items:
+                              type: string
+                            type: array
                           proxyRoles:
                             description: Indicates if the Pdb policy is enabled for
                               this component.
@@ -347,12 +308,6 @@ spec:
                             description: Indicates if the Pdb policy is enabled for
                               this component.
                             type: string
-                          superUserRoles:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
-                            items:
-                              type: string
-                            type: array
                         type: object
                       enabled:
                         description: Indicates if the Pdb policy is enabled for this

@@ -201,7 +201,7 @@ public class ProxyControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/metrics/ > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -214,7 +214,7 @@ public class ProxyControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/metrics/ > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -343,7 +343,7 @@ public class ProxyControllerTest {
 
         expectedData.put("authenticationEnabled", "true");
         expectedData.put("authorizationEnabled", "true");
-        expectedData.put("superUserRoles", "superuser,admin,websocket,proxy");
+        expectedData.put("superUserRoles", "admin,proxy,superuser,websocket");
         expectedData.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
         expectedData.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
         expectedData.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
@@ -375,7 +375,7 @@ public class ProxyControllerTest {
                 + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
         expectedDataForWs.put("authenticationEnabled", "true");
         expectedDataForWs.put("authorizationEnabled", "true");
-        expectedDataForWs.put("superUserRoles", "superuser,admin,websocket,proxy");
+        expectedDataForWs.put("superUserRoles", "admin,proxy,superuser,websocket");
         expectedDataForWs.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
                 + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
         expectedDataForWs.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
@@ -962,7 +962,7 @@ public class ProxyControllerTest {
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
-                "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
+                "curl -s --max-time %d --fail  http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);

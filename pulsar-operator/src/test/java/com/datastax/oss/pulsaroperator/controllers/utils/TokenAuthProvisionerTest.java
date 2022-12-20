@@ -6,8 +6,10 @@ import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.jsonwebtoken.Jwts;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -98,10 +100,11 @@ public class TokenAuthProvisionerTest {
     }
 
     private void assertJwtInSecret(Secret secret, String subject, PrivateKey privateKey) {
-        final String jwt = secret
+        final String jwtBase64 = secret
                 .getData()
                 .get("%s.jwt".formatted(subject));
-        Assert.assertNotNull(jwt);
+        Assert.assertNotNull(jwtBase64);
+        final String jwt = new String(Base64.getDecoder().decode(jwtBase64), StandardCharsets.UTF_8);
         Jwts.parserBuilder()
                 .requireSubject(subject)
                 .setSigningKey(privateKey)

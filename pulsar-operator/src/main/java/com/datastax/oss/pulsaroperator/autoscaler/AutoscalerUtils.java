@@ -34,7 +34,9 @@ public class AutoscalerUtils {
 
         final int readyReplicas = Objects.requireNonNullElse(statefulSet.getStatus().getReadyReplicas(), 0);
         if (readyReplicas != currentExpectedReplicas) {
-            log.infof("Not all sts replicas ready, expected %d, got %d", currentExpectedReplicas,
+            log.infof("Not all sts replicas ready for %s, expected %d, got %d",
+                    baseName,
+                    currentExpectedReplicas,
                     readyReplicas);
             return false;
         }

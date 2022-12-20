@@ -64,13 +64,13 @@ public class BookKeeperAutoscaler implements Runnable {
     @Override
     public void run() {
         try {
-            log.infof("Broker autoscaler starting");
+            log.infof("Bookkeeper autoscaler starting");
             internalRun();
         } catch (Throwable tt) {
             if (ExceptionUtils.indexOfThrowable(tt, RejectedExecutionException.class) >= 0) {
                 return;
             }
-            log.error("Broker autoscaler error", tt);
+            log.error("Bookkeeper autoscaler error", tt);
         }
     }
 
@@ -291,11 +291,11 @@ public class BookKeeperAutoscaler implements Runnable {
         diskInfo.setUsedBytes(used);
     }
 
-    private boolean isBkReadyToScale(String clusterName, String brokerBaseName, String brokerName,
+    private boolean isBkReadyToScale(String clusterName, String bkBaseName, String bkName,
                                          int currentExpectedReplicas) {
         return AutoscalerUtils.isStsReadyToScale(client,
                 clusterSpec.getBookkeeper().getAutoscaler().getStabilizationWindowMs(),
-                clusterName, namespace, brokerBaseName, brokerName, currentExpectedReplicas);
+                clusterName, namespace, bkBaseName, bkName, currentExpectedReplicas);
     }
 
 }

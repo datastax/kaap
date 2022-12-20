@@ -112,7 +112,6 @@ public class TokenAuthProvisioner {
                     .compact();
 
             final String tokenEncoded = ENCODER.encodeToString(token.getBytes(StandardCharsets.UTF_8));
-            log.infof("Generating secret %s for role %s, value %s", secretName, superUserRole, tokenEncoded);
             createSecret(client, namespace, secretName,
                     Map.of("%s.jwt".formatted(superUserRole), tokenEncoded));
             log.infof("Generated secret %s for role %s", secretName, superUserRole);

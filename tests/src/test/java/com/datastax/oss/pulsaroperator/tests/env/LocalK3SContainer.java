@@ -10,7 +10,6 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.fabric8.kubernetes.client.Config;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -228,9 +227,9 @@ public class LocalK3SContainer implements K8sEnv {
 
     @SneakyThrows
     public static String getTmpKubeConfig(K3sContainer container) {
-        File tmpKubeConfig = File.createTempFile("test-kubeconfig", ".yaml");
+        File tmpKubeConfig = Paths.get("/tmp", "pulsaroperator-local-k3s-kube-config").toFile();
         tmpKubeConfig.deleteOnExit();
-        Files.write(tmpKubeConfig.toPath(), container.getKubeconfig().getBytes(StandardCharsets.UTF_8));
+        Files.writeString(tmpKubeConfig.toPath(), container.getKubeconfig());
         return tmpKubeConfig.getAbsolutePath();
     }
 

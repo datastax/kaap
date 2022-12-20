@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -128,18 +129,19 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
         final String proxyPod =
                 client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
 
-        execInPod(proxyPod, "pulsar-proxy-ws",
+        execInPodContainer(proxyPod, "pulsar-proxy-ws",
                 "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
-        execInPod(proxyPod, "pulsar-proxy", "bin/pulsar-client consume -s sub-proxy -p Earliest test-topic-proxy");
+        execInPodContainer(proxyPod, "pulsar-proxy", "bin/pulsar-client consume -s sub-proxy -p Earliest test-topic-proxy");
     }
 
     @SneakyThrows
-    private void execInPod(String podName, String cmd) {
-        execInPod(podName, null, cmd);
+    private void execInPod(String podName, String... cmd) {
+        execInPodContainer(podName, null, cmd);
     }
 
     @SneakyThrows
-    private void execInPod(String podName, String containerName, String cmd) {
+    private void execInPodContainer(String podName, String containerName, String... cmds) {
+        final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" && "));
         log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         CompletableFuture<String> future = new CompletableFuture<>();
@@ -152,7 +154,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
                 .writingError(baos)
                 .usingListener(new SimpleListener(future, baos))
                 .exec("bash", "-c", cmd);) {
-            final String outputCmd = future.get(10, TimeUnit.SECONDS);
+            final String outputCmd = future.get(30, TimeUnit.SECONDS);
             log.info("Output cmd: {}", outputCmd);
             if (exec.exitCode().get().intValue() != 0) {
                 log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
@@ -322,7 +324,7 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
             Awaitility.await().until(() -> {
                 try {
-                    execInPod(proxyPod, "pulsar-proxy",
+                    execInPodContainer(proxyPod, "pulsar-proxy",
                             "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
                                     + "--destinationTopicName generator_test --source-type data-generator "
                                     + "--ram 12800000 --cpu 0.001 --disk 1000000000 "
@@ -371,12 +373,15 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
 
         try {
             applyPulsarCluster(specsToYaml(specs));
-            awaitJobCompleted("pulsar-token-auth-provisioner");
-
+            Awaitility.await().untilAsserted(() -> {
+                final List<Secret> secrets = client.secrets()
+                        .inNamespace(namespace)
+                        .list().getItems();
+                Assert.assertEquals(secrets.size(), 6);
+            });
             final List<Secret> secrets = client.secrets()
                     .inNamespace(namespace)
                     .list().getItems();
-            Assert.assertEquals(secrets.size(), 6);
             final Map<String, Secret> secretMap =
                     secrets.stream().collect(Collectors.toMap(s -> s.getMetadata().getName(), Function.identity()));
             Assert.assertTrue(secretMap.containsKey("token-private-key"));
@@ -386,7 +391,27 @@ public class PulsarClusterTest extends BaseK8sEnvTest {
             Assert.assertTrue(secretMap.containsKey("token-proxy"));
             Assert.assertTrue(secretMap.containsKey("token-websocket"));
 
+            awaitInstalled();
+            final String bastion = client.pods().inNamespace(namespace)
+                    .withLabel("component", "bastion")
+                    .list().getItems().get(0).getMetadata().getName();
+            execInPod(bastion,
+                    "bin/pulsar tokens create --private-key /pulsar/token-private-key/my-private.key --subject myuser > myuser.jwt",
+                    "bin/pulsar tokens create --private-key /pulsar/token-private-key/my-private.key --subject myuser2 > myuser2.jwt",
+                    "bin/pulsar-admin namespaces grant-permission --role myuser --actions produce public/default",
+                    "bin/pulsar-admin namespaces grant-permission --role myuser2 --actions consume public/default");
 
+            execInPod(bastion,
+                    "export PULSAR_PREFIX_authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken",
+                    "export PULSAR_PREFIX_authParams=\"file:///pulsar/myuser.jwt\"",
+                    "/pulsar/bin/apply-config-from-env.py /pulsar/conf/client.conf",
+                    "bin/pulsar-client produce -m hello public/default/topic");
+
+            execInPod(bastion,
+                    "export PULSAR_PREFIX_authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationToken",
+                    "export PULSAR_PREFIX_authParams=\"file:///pulsar/myuser2.jwt\"",
+                    "/pulsar/bin/apply-config-from-env.py /pulsar/conf/client.conf",
+                    "bin/pulsar-client consume -s sub -p Earliest public/default/topic");
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();

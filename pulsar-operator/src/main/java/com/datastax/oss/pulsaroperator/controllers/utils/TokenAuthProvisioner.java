@@ -75,7 +75,6 @@ public class TokenAuthProvisioner {
             final KeyPair keyPair = genKeyPair();
             privateKey = keyPair.getPrivate();
             final String encodedPrivateKey = encodePrivateKey(privateKey);
-            log.infof("saving pk %s", encodedPrivateKey);
             createSecret(client, namespace, privateKeySecretName, Map.of(
                     tokenConfig.getPrivateKeyFile(), encodedPrivateKey));
 

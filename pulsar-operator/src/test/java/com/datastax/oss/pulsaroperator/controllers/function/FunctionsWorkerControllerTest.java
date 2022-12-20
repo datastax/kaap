@@ -618,6 +618,8 @@ public class FunctionsWorkerControllerTest {
                 "org.apache.pulsar.functions.runtime.process.ProcessRuntimeFactory");
         expectedData.put("functionRuntimeFactoryConfigs", Map.of());
         expectedData.put("authenticationEnabled", "true");
+        expectedData.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
         expectedData.put("authorizationEnabled", "true");
         expectedData.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
         expectedData.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");

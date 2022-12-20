@@ -202,6 +202,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("authenticationEnabled", "true");
             data.put("authorizationEnabled", "true");
             data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
+            data.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                    "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
             data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
             data.put("superUserRoles", new TreeSet<>(tokenConfig.getSuperUserRoles()));

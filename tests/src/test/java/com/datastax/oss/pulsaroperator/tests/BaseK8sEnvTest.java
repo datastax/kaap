@@ -306,7 +306,6 @@ public abstract class BaseK8sEnvTest {
 
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
-        printOperatorPodLogs();
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
             if (client != null) {
                 deleteRBACManifests();

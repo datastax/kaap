@@ -298,7 +298,7 @@ public abstract class BaseK8sEnvTest {
 
     @AfterClass(alwaysRun = true)
     public void afterClass() throws Exception {
-        if (env != null) {
+        if (!REUSE_ENV && env != null) {
             env.close();
         }
 

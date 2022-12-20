@@ -42,6 +42,6 @@ jobs:
       - name: Integration tests
         run: |
           #!/bin/bash
-          ./tests/src/test/scripts/local-k3s.sh & (
-          ./tests/src/test/scripts/local-k3s-run-test.sh
-          )
+          echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+          mvn -B -ntp -nsu test -pl tests \
+            -Dpulsaroperator.tests.env.reuse=true

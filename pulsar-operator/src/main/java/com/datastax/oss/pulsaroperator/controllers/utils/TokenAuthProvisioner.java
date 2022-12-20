@@ -49,13 +49,13 @@ public class TokenAuthProvisioner {
             throw new IllegalStateException("""
                     Found private key secret %s, but the public key secret %s is missing.
                     Please delete the private key secret or create the public key one."""
-                    .formatted(privateKeySecret, publicKeySecret));
+                    .formatted(privateKeySecretName, publicKeySecretName));
         }
-        if (publicKeySecret != null && publicKeySecret == null) {
+        if (publicKeySecret != null && privateKeySecret == null) {
             throw new IllegalStateException("""
                     Found public key secret %s, but the private key secret %s is missing.
                     Please delete the public key secret or create the private key one."""
-                    .formatted(publicKeySecret, privateKeySecret));
+                    .formatted(publicKeySecretName, privateKeySecretName));
         }
         if (publicKeySecret != null) {
             if (!publicKeySecret.getData().containsKey(tokenConfig.getPublicKeyFile())) {

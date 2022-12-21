@@ -1,11 +1,14 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.NotNull;
@@ -25,6 +28,17 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
             .defaultSecretName("pulsar-tls")
+            .build();
+
+    private static final Supplier<AuthConfig> DEFAULT_AUTH_CONFIG = () -> AuthConfig.builder()
+            .enabled(false)
+            .token(AuthConfig.TokenConfig.builder()
+                    .publicKeyFile("my-public.key")
+                    .privateKeyFile("my-private.key")
+                    .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy")))
+                    .proxyRoles(new TreeSet<>(Set.of("proxy")))
+                    .initialize(true)
+                    .build())
             .build();
 
     @Data
@@ -83,7 +97,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @AllArgsConstructor
     @Builder
     public static class GlobalStorageConfig {
-        @JsonPropertyDescription("Indicates if a StorageClass is used. The operator will create the StorageClass if needed.")
+        @JsonPropertyDescription("Indicates if a StorageClass is used. The operator will create the StorageClass if "
+                + "needed.")
         private StorageClassConfig storageClass;
         @JsonPropertyDescription("Indicates if an already existing storage class should be used.")
         private String existingStorageClassName;
@@ -118,10 +133,16 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             """)
     private Boolean restartOnConfigMapChange;
 
+    @JsonPropertyDescription("""
+            Auth stuff.
+            """)
+    private AuthConfig auth;
+
     // overridable parameters
     @JsonPropertyDescription("Default Pulsar image to use. Any components can be configured to use a different image.")
     private String image;
-    @JsonPropertyDescription("Default Pulsar image pull policy to use. Any components can be configured to use a different image pull policy. Default value is 'IfNotPresent'.")
+    @JsonPropertyDescription("Default Pulsar image pull policy to use. Any components can be configured to use a "
+            + "different image pull policy. Default value is 'IfNotPresent'.")
     private String imagePullPolicy;
     @JsonPropertyDescription("Storage configuration.")
     private GlobalStorageConfig storage;
@@ -153,21 +174,22 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             storage.getStorageClass().setReclaimPolicy("Retain");
         }
         applyTlsDefaults();
-
+        applyAuthDefaults();
     }
 
     private void applyTlsDefaults() {
         if (tls == null) {
             tls = DEFAULT_TLS_CONFIG.get();
+        } else {
+            tls.setEnabled(ObjectUtils.getFirstNonNull(
+                    () -> tls.getEnabled(),
+                    () -> DEFAULT_TLS_CONFIG.get().getEnabled())
+            );
+            tls.setDefaultSecretName(ObjectUtils.getFirstNonNull(
+                    () -> tls.getDefaultSecretName(),
+                    () -> DEFAULT_TLS_CONFIG.get().getDefaultSecretName())
+            );
         }
-        tls.setEnabled(ObjectUtils.getFirstNonNull(
-                () -> tls.getEnabled(),
-                () -> DEFAULT_TLS_CONFIG.get().getEnabled())
-        );
-        tls.setDefaultSecretName(ObjectUtils.getFirstNonNull(
-                () -> tls.getDefaultSecretName(),
-                () -> DEFAULT_TLS_CONFIG.get().getDefaultSecretName())
-        );
     }
 
     private void applyComponentsDefaults() {
@@ -178,9 +200,19 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         components.setBookkeeperBaseName(ObjectUtils.firstNonNull(components.getBookkeeperBaseName(), "bookkeeper"));
         components.setBrokerBaseName(ObjectUtils.firstNonNull(components.getBrokerBaseName(), "broker"));
         components.setProxyBaseName(ObjectUtils.firstNonNull(components.getProxyBaseName(), "proxy"));
-        components.setAutorecoveryBaseName(ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
+        components.setAutorecoveryBaseName(
+                ObjectUtils.firstNonNull(components.getAutorecoveryBaseName(), "autorecovery"));
         components.setBastionBaseName(ObjectUtils.firstNonNull(components.getBastionBaseName(), "bastion"));
-        components.setFunctionsWorkerBaseName(ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
+        components.setFunctionsWorkerBaseName(
+                ObjectUtils.firstNonNull(components.getFunctionsWorkerBaseName(), "function"));
+    }
+
+    private void applyAuthDefaults() {
+        if (auth == null) {
+            auth = DEFAULT_AUTH_CONFIG.get();
+        } else {
+            auth = ConfigUtil.applyDefaultsWithReflection(auth, DEFAULT_AUTH_CONFIG);
+        }
     }
 
     @Override

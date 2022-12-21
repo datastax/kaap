@@ -30,10 +30,6 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         return globalSpec.getComponents().getAutorecoveryBaseName();
     }
 
-    public static String getResourceName(GlobalSpec globalSpec) {
-        return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
-    }
-
     private ConfigMap configMap;
 
     public AutorecoveryResourcesFactory(KubernetesClient client, String namespace,
@@ -45,11 +41,6 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
     @Override
     protected String getComponentBaseName() {
         return getComponentBaseName(global);
-    }
-
-    @Override
-    protected String getResourceName() {
-        return getResourceName(global);
     }
 
     @Override

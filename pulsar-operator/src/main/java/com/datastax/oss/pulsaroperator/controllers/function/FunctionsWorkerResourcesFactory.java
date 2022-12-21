@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers.function;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -30,23 +31,15 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingBuilder;
-import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRule;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRuleBuilder;
-import io.fabric8.kubernetes.api.model.rbac.Role;
-import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
-import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
-import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
-import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeSet;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
@@ -64,11 +57,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     @Override
     protected String getComponentBaseName() {
         return global.getComponents().getFunctionsWorkerBaseName();
-    }
-
-    @Override
-    protected String getResourceName() {
-        return "%s-%s".formatted(global.getName(), getComponentBaseName());
     }
 
     @Override
@@ -157,6 +145,18 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
 
+        if (isAuthTokenEnabled()) {
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("authorizationEnabled", "true");
+            data.put("authenticationEnabled", "true");
+            data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+            data.put("superUserRoles", tokenConfig.superUserRolesAsString());
+            data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));
+            data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                    + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        }
+
         if (spec.getConfig() != null) {
             spec.getConfig().forEach((k, v) -> {
                 // only keep properties passed to the bin/pulsar command
@@ -197,6 +197,20 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
         }
+        if (isAuthTokenEnabled()) {
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("authenticationEnabled", "true");
+            data.put("authorizationEnabled", "true");
+            data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
+            data.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                    "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
+            data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+            data.put("superUserRoles", new TreeSet<>(tokenConfig.getSuperUserRoles()));
+            data.put("properties", Map.of(
+                    "tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile())
+            ));
+        }
         final String brokerServiceUrl = getBrokerServiceUrl();
         final String brokerWebServiceUrl = getBrokerWebServiceUrl();
 
@@ -223,13 +237,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 data.put("functionRuntimeFactoryClassName",
                         "org.apache.pulsar.functions.runtime.kubernetes.KubernetesRuntimeFactory");
                 data.put("functionRuntimeFactoryConfigs", Map.of("jobNamespace", namespace,
-                                "pulsarDockerImageName", spec.getImage(),
-                                "pulsarRootDir", "/pulsar",
-                                "submittingInsidePod", true,
-                                "pulsarServiceUrl", brokerServiceUrl,
-                                "pulsarAdminUrl", "https://%s.%s:6750/"
-                                        .formatted(resourceName, getServiceDnsSuffix()),
-                                "percentMemoryPadding", 10)
+                        "pulsarDockerImageName", spec.getImage(),
+                        "pulsarRootDir", "/pulsar",
+                        "submittingInsidePod", true,
+                        "pulsarServiceUrl", brokerServiceUrl,
+                        "pulsarAdminUrl", "https://%s.%s:6750/"
+                                .formatted(resourceName, getServiceDnsSuffix()),
+                        "percentMemoryPadding", 10)
                 );
                 break;
             case "process":
@@ -289,6 +303,10 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        if (isAuthTokenEnabled()) {
+            addSecretTokenVolume(volumeMounts, volumes, "superuser");
+            addSecretTokenVolume(volumeMounts, volumes, "public-key");
+        }
         volumes.add(new VolumeBuilder()
                 .withName("config-volume")
                 .withNewConfigMap()
@@ -340,6 +358,10 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         }
 
         String mainArg = "";
+        if (isAuthTokenEnabled()) {
+            mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                    + ".jwt && ";
+        }
         if (isTlsEnabledGlobally()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
@@ -477,10 +499,12 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (specProbe == null) {
             return null;
         }
+        final String authHeader = isAuthTokenEnabled()
+                ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return new ProbeBuilder()
                 .withNewExec()
-                .withCommand("sh", "-c", "curl -s --max-time %d --fail http://localhost:6750/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout()))
+                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:6750/metrics/ > /dev/null"
+                        .formatted(specProbe.getTimeout(), authHeader))
                 .endExec()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())
@@ -538,58 +562,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .endMetadata()
                 .build();
         patchResource(serviceAccount);
-        if (namespaced) {
-            final Role role = new RoleBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .withNamespace(namespace)
-                    .endMetadata()
-                    .withRules(rules)
-                    .build();
-
-            final RoleBinding roleBinding = new RoleBindingBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .withNamespace(namespace)
-                    .endMetadata()
-                    .withNewRoleRef()
-                    .withKind("Role")
-                    .withName(resourceName)
-                    .endRoleRef()
-                    .withSubjects(new SubjectBuilder()
-                            .withKind("ServiceAccount")
-                            .withName(resourceName)
-                            .withNamespace(namespace)
-                            .build()
-                    )
-                    .build();
-            patchResource(role);
-            patchResource(roleBinding);
-        } else {
-            final ClusterRole role = new ClusterRoleBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .endMetadata()
-                    .withRules(rules)
-                    .build();
-            final ClusterRoleBinding roleBinding = new ClusterRoleBindingBuilder()
-                    .withNewMetadata()
-                    .withName(resourceName)
-                    .endMetadata()
-                    .withNewRoleRef()
-                    .withKind("ClusterRole")
-                    .withName(resourceName)
-                    .endRoleRef()
-                    .withSubjects(new SubjectBuilder()
-                            .withKind("ServiceAccount")
-                            .withName(resourceName)
-                            .withNamespace(namespace)
-                            .build()
-                    )
-                    .build();
-            patchResource(role);
-            patchResource(roleBinding);
-        }
+        patchServiceAccountSingleRole(namespaced, rules, resourceName);
     }
 
 }

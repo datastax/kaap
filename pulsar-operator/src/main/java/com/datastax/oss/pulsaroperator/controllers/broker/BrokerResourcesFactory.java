@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers.broker;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -41,10 +42,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         return globalSpec.getComponents().getBrokerBaseName();
     }
 
-    public static String getResourceName(GlobalSpec globalSpec) {
-        return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
-    }
-
     private ConfigMap configMap;
 
     public BrokerResourcesFactory(KubernetesClient client, String namespace,
@@ -56,11 +53,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     @Override
     protected String getComponentBaseName() {
         return getComponentBaseName(global);
-    }
-
-    @Override
-    protected String getResourceName() {
-        return getResourceName(global);
     }
 
     @Override
@@ -125,6 +117,20 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         data.put("configurationStoreServers", zkServers);
         data.put("clusterName", global.getName());
         // TODO: TLS config
+
+        if (isAuthTokenEnabled()) {
+            data.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
+            data.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("authorizationEnabled", "true");
+            data.put("authenticationEnabled", "true");
+            data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("proxyRoles", tokenConfig.proxyRolesAsString());
+            data.put("superUserRoles", tokenConfig.superUserRolesAsString());
+            data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));
+            data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        }
 
         if (spec.getFunctionsWorkerEnabled()) {
             data.put("functionsWorkerEnabled", "true");
@@ -196,6 +202,10 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        if (isAuthTokenEnabled()) {
+            addSecretTokenVolume(volumeMounts, volumes, "public-key");
+            addSecretTokenVolume(volumeMounts, volumes, "superuser");
+        }
 
         List<Container> initContainers = new ArrayList<>();
 
@@ -235,6 +245,12 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
                 + "bin/apply-config-from-env.py conf/client.conf && "
                 + "bin/gen-yml-from-env.py conf/functions_worker.yml && ";
+
+        if (isAuthTokenEnabled()) {
+            mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                    + ".jwt && ";
+
+        }
 
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar broker";
 
@@ -389,10 +405,12 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         if (specProbe == null) {
             return null;
         }
+        final String authHeader = isAuthTokenEnabled()
+                ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return new ProbeBuilder()
                 .withNewExec()
-                .withCommand("sh", "-c", "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout()))
+                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/admin/v2/brokers/health > /dev/null"
+                        .formatted(specProbe.getTimeout(), authHeader))
                 .endExec()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())

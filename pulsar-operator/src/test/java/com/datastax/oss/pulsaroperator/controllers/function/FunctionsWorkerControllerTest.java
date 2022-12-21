@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.function;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
@@ -27,11 +28,11 @@ import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -253,7 +254,7 @@ public class FunctionsWorkerControllerTest {
                                     command:
                                     - sh
                                     - -c
-                                    - curl -s --max-time 5 --fail http://localhost:6750/metrics/ > /dev/null
+                                    - curl -s --max-time 5 --fail  http://localhost:6750/metrics/ > /dev/null
                                   initialDelaySeconds: 10
                                   periodSeconds: 30
                                   timeoutSeconds: 5
@@ -567,6 +568,107 @@ public class FunctionsWorkerControllerTest {
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
+    }
+
+    @Test
+    public void testAuthToken() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    auth:
+                        enabled: true
+                functionsWorker:
+                    replicas: 1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zooKeeperSessionTimeoutMillis", 30000);
+        expectedData.put("pulsarFunctionsCluster", "pul");
+        expectedData.put("workerId", "pul-function");
+        expectedData.put("workerHostname", "pul-function");
+        expectedData.put("workerPort", 6750);
+
+        expectedData.put("pulsarServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("pulsarWebServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("downloadDirectory", "/tmp/pulsar_functions");
+        expectedData.put("pulsarFunctionsNamespace", "public/functions");
+        expectedData.put("functionMetadataTopicName", "metadata");
+        expectedData.put("clusterCoordinationTopicName", "coordinate");
+        expectedData.put("numHttpServerThreads", 16);
+        expectedData.put("schedulerClassName", "org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler");
+        expectedData.put("functionAssignmentTopicName", "assignments");
+        expectedData.put("failureCheckFreqMs", 30000);
+        expectedData.put("rescheduleTimeoutMs", 60000);
+        expectedData.put("initialBrokerReconnectMaxRetries", 60);
+        expectedData.put("assignmentWriteMaxRetries", 60);
+        expectedData.put("instanceLivenessCheckFreqMs", 30000);
+        expectedData.put("topicCompactionFrequencySec", 1800);
+        expectedData.put("includeStandardPrometheusMetrics", "true");
+        expectedData.put("connectorsDirectory", "./connectors");
+        expectedData.put("numFunctionPackageReplicas", 2);
+        expectedData.put("functionRuntimeFactoryClassName",
+                "org.apache.pulsar.functions.runtime.process.ProcessRuntimeFactory");
+        expectedData.put("functionRuntimeFactoryConfigs", Map.of());
+        expectedData.put("authenticationEnabled", "true");
+        expectedData.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
+        expectedData.put("authorizationEnabled", "true");
+        expectedData.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
+        expectedData.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedData.put("superUserRoles", List.of("admin", "proxy", "superuser", "websocket"));
+        expectedData.put("properties", Map.of(
+                "tokenPublicKey", "file:///pulsar/token-public-key/my-public.key")
+        );
+
+        final Map<String, Object> data = (Map<String, Object>) SerializationUtil
+                .readYaml(client.getCreatedResources(ConfigMap.class).get(0).getResource().getData().get("functions_worker.yml"), Map.class);
+        Assert.assertEquals(data, expectedData);
+
+
+
+        Map<String, Object> expectedDataForExtra = new HashMap<>();
+        expectedDataForExtra.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
+        expectedDataForExtra.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedDataForExtra.put("PULSAR_LOG_LEVEL", "info");
+        expectedDataForExtra.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedDataForExtra.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedDataForExtra.put("authorizationEnabled", "true");
+        expectedDataForExtra.put("authenticationEnabled", "true");
+        expectedDataForExtra.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedDataForExtra.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedDataForExtra.put("superUserRoles", "admin,proxy,superuser,websocket");
+        expectedDataForExtra.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedDataForExtra.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),
+                expectedDataForExtra);
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+
+        final List<Volume> volumes = sts.getSpec().getTemplate().getSpec().getVolumes();
+        final List<VolumeMount> volumeMounts = sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getVolumeMounts();
+        KubeTestUtil.assertRolesMounted(volumes, volumeMounts,
+                "public-key", "superuser");
+        final String cmdArg = sts.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
+                .stream().collect(Collectors.joining(" "));
+        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                + ".jwt && "));
+
+        Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getLivenessProbe().getExec().getCommand()
+                .get(2), "curl -s --max-time 5 --fail -H \"Authorization: Bearer $(cat "
+                + "/pulsar/token-superuser/superuser.jwt | tr -d '\\r')\" http://localhost:6750/metrics/ > /dev/null");
     }
 
 
@@ -943,7 +1045,7 @@ public class FunctionsWorkerControllerTest {
     private void assertLivenessProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(),
                 List.of("sh", "-c",
-                        "curl -s --max-time %d --fail http://localhost:6750/metrics/ > /dev/null".formatted(timeout)));
+                        "curl -s --max-time %d --fail  http://localhost:6750/metrics/ > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);
@@ -982,9 +1084,9 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-fnlogs").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-fnlogs").getMountPath(),
                 "/pulsar/logs");
-        Assert.assertNotNull(getVolumeByName(podSpec.getVolumes(), "pul-function-fnlogs").getEmptyDir());
+        Assert.assertNotNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-function-fnlogs").getEmptyDir());
         Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
@@ -1013,9 +1115,9 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
                 "/pulsar/logs");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-logs"));
+        Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-logs"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
@@ -1069,9 +1171,9 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
                 "/pulsar/logs");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
+        Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
@@ -1135,9 +1237,9 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
                 "/pulsar/logs");
-        Assert.assertNull(getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
+        Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
 
         final PersistentVolumeClaim persistentVolumeClaim = createdResource.getResource().getSpec()
                 .getVolumeClaimTemplates().get(0);
@@ -1164,25 +1266,6 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals(storageClass.getParameters().get("type"), "gp2");
         Assert.assertEquals(storageClass.getParameters().get("fsType"), "ext4");
         Assert.assertEquals(storageClass.getParameters().get("iopsPerGB"), "10");
-    }
-
-    private VolumeMount getVolumeMountByName(Collection<VolumeMount> mounts, String name) {
-        log.infof("looking for %s in mounts %s", name, mounts);
-        for (VolumeMount mount : mounts) {
-            if (mount.getName().equals(name)) {
-                return mount;
-            }
-        }
-        return null;
-    }
-
-    private Volume getVolumeByName(Collection<Volume> volumes, String name) {
-        for (Volume volume : volumes) {
-            if (volume.getName().equals(name)) {
-                return volume;
-            }
-        }
-        return null;
     }
 
     @Test

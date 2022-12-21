@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -13,11 +14,14 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -197,7 +201,7 @@ public class ProxyControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/metrics/ > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -210,7 +214,7 @@ public class ProxyControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/metrics/ > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -308,6 +312,107 @@ public class ProxyControllerTest {
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
     }
+
+    @Test
+    public void testAuthToken() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    auth:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
+
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("numHttpServerThreads", "10");
+
+        expectedData.put("authenticationEnabled", "true");
+        expectedData.put("authorizationEnabled", "true");
+        expectedData.put("superUserRoles", "admin,proxy,superuser,websocket");
+        expectedData.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+        expectedData.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedData.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
+
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(0).getResource().getData(),
+                expectedData);
+
+
+
+        Map<String, Object> expectedDataForWs = new HashMap<>();
+        expectedDataForWs.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedDataForWs.put("brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedDataForWs.put("serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedDataForWs.put("serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedDataForWs.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedDataForWs.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedDataForWs.put("clusterName", "pul");
+        expectedDataForWs.put("webServicePort", "8000");
+
+        expectedDataForWs.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        expectedDataForWs.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedDataForWs.put("PULSAR_LOG_LEVEL", "info");
+        expectedDataForWs.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedDataForWs.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedDataForWs.put("numHttpServerThreads", "10");
+        expectedDataForWs.put("webServicePort", "8000");
+        expectedDataForWs.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        expectedDataForWs.put("authenticationEnabled", "true");
+        expectedDataForWs.put("authorizationEnabled", "true");
+        expectedDataForWs.put("superUserRoles", "admin,proxy,superuser,websocket");
+        expectedDataForWs.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        expectedDataForWs.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedDataForWs.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedDataForWs.put("brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
+
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),
+                expectedDataForWs);
+
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+
+        final List<Volume> volumes = deployment.getSpec().getTemplate().getSpec().getVolumes();
+        final List<VolumeMount> volumeMounts = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getVolumeMounts();
+        KubeTestUtil.assertRolesMounted(volumes, volumeMounts,
+                "private-key", "public-key", "superuser", "websocket", "proxy");
+        final String cmdArg = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
+                .stream().collect(Collectors.joining(" "));
+        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                + ".jwt && "));
+
+        final String cmdArgWs = deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getArgs()
+                .stream().collect(Collectors.joining(" "));
+        Assert.assertTrue(cmdArgWs.contains("echo \"tokenPublicKey=\" >> /pulsar/conf/websocket.conf && "));
+
+        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getLivenessProbe().getExec().getCommand()
+                .get(2), "curl -s --max-time 5 --fail -H \"Authorization: Bearer $(cat "
+                + "/pulsar/token-superuser/superuser.jwt | tr -d '\\r')\" http://localhost:8080/metrics/ > /dev/null");
+
+        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getReadinessProbe().getExec().getCommand()
+                .get(2), "curl -s --max-time 5 --fail -H \"Authorization: Bearer $(cat "
+                + "/pulsar/token-superuser/superuser.jwt | tr -d '\\r')\" http://localhost:8080/metrics/ > /dev/null");
+    }
+
 
     @Test
     public void testConfigWebSocket() throws Exception {
@@ -857,7 +962,7 @@ public class ProxyControllerTest {
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
-                "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
+                "curl -s --max-time %d --fail  http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);

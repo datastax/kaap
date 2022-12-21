@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.tests;
 
-import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -12,26 +11,32 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.dsl.ExecListener;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.testcontainers.containers.Container;
 import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -51,6 +56,7 @@ public abstract class BaseK8sEnvTest {
 
     private static final boolean REUSE_ENV = Boolean
             .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "false"));
+    protected static final int DEFAULT_AWAIT_SECONDS = 360;
 
     protected String namespace;
     protected K8sEnv env;
@@ -71,7 +77,7 @@ public abstract class BaseK8sEnvTest {
 
     private static void setDefaultAwaitilityTimings() {
         Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
-        Awaitility.setDefaultTimeout(Duration.ofSeconds(360));
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(DEFAULT_AWAIT_SECONDS));
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -96,10 +102,16 @@ public abstract class BaseK8sEnvTest {
         eventsWatch = client.resources(Event.class).inNamespace(namespace).watch(new Watcher<>() {
             @Override
             public void eventReceived(Action action, Event resource) {
-                log.info("event [{} - {}]: {} - {}", resource.getRegarding().getName(),
-                        resource.getRegarding().getKind(),
-                        resource.getNote(), resource.getReason());
-            }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("[{}/{}]: {} -> {}", resource.getRegarding().getName(),
+                            resource.getRegarding().getKind(), resource.getReason(), resource.getNote());
+                } else {
+                    log.info("[{}/{}]: {}", resource.getRegarding().getKind(),
+                            resource.getRegarding().getName(), resource.getReason());
+
+                }
+             }
 
             @Override
             public void onClose(WatcherException cause) {
@@ -162,6 +174,7 @@ public abstract class BaseK8sEnvTest {
                       - configmaps
                       - services
                       - serviceaccounts
+                      - secrets
                     verbs:
                       - '*'
                   - apiGroups:
@@ -230,9 +243,6 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
         for (Path yamlManifest : getYamlManifests()) {
-            System.out.println("setting image + " + yamlManifest.getFileName());
-
-
             if (yamlManifest.toFile().getName().equals("kubernetes.yml")) {
                 final List<HasMetadata> resources =
                         client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get();
@@ -247,7 +257,8 @@ public abstract class BaseK8sEnvTest {
                                     .setImage(OPERATOR_IMAGE);
                             client.resource(deployment).inNamespace(namespace)
                                     .create();
-                            log.info("Applied operator deployment" + SerializationUtil.writeAsJson(deployment.getSpec().getTemplate()));
+                            log.info("Applied operator deployment" + SerializationUtil.writeAsJson(
+                                    deployment.getSpec().getTemplate()));
                         });
             } else {
                 applyManifestFromFile(yamlManifest);
@@ -294,7 +305,7 @@ public abstract class BaseK8sEnvTest {
 
     @AfterClass(alwaysRun = true)
     public void afterClass() throws Exception {
-        if (env != null) {
+        if (!REUSE_ENV && env != null) {
             env.close();
         }
 
@@ -302,7 +313,6 @@ public abstract class BaseK8sEnvTest {
 
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
-        printOperatorPodLogs();
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
             if (client != null) {
                 deleteRBACManifests();
@@ -367,14 +377,14 @@ public abstract class BaseK8sEnvTest {
                 client.pods().inNamespace(namespace)
                         .withName(podName)
                         .get().getSpec().getContainers().forEach(container -> {
-                            final String sep = "-".repeat(100);
+                            final String sep = "=".repeat(300);
                             final String containerLog = client.pods().inNamespace(namespace)
                                     .withName(podName)
                                     .inContainer(container.getName())
                                     .tailingLines(300)
                                     .getLog();
-                            log.info("{}\n{}/{} pod logs:\n{}\n{}", sep, podName, container.getName(),
-                                    containerLog, sep);
+                            log.info("{}\n{}\n{}/{} pod logs:\n{}\n{}\n{}", sep, sep, podName, container.getName(),
+                                    containerLog, sep, sep);
                         });
 
 
@@ -423,33 +433,6 @@ public abstract class BaseK8sEnvTest {
 
 
     @SneakyThrows
-    protected void helmInstall() {
-        final Path helmHome = Paths.get("..", "helm", "pulsar-operator");
-
-
-        final Helm3Container helm3Container = env.withHelmContainer((Consumer<Helm3Container>) helm -> {
-            helm.withFileSystemBind(helmHome.toFile().getAbsolutePath(), "/helm-pulsar-operator");
-        });
-
-        helm3Container.execInContainer("helm", "delete", "test", "-n", namespace);
-        final String cmd = "helm install test -n " + namespace + " /helm-pulsar-operator";
-        final Container.ExecResult exec = helm3Container.execInContainer(cmd.split(" "));
-        if (exec.getExitCode() != 0) {
-            throw new RuntimeException("Helm installation failed: " + exec.getStderr());
-        }
-    }
-
-    @SneakyThrows
-    protected void helmUninstall() {
-        final Helm3Container helm3Container = env.helmContainer();
-        final Container.ExecResult exec =
-                helm3Container.execInContainer("helm", "delete", "test", "-n", namespace);
-        if (exec.getExitCode() != 0) {
-            throw new RuntimeException("Helm uninstallation failed: " + exec.getStderr());
-        }
-    }
-
-    @SneakyThrows
     protected Path getHelmExampleFilePath(String name) {
         return Paths.get("..", "helm", "examples", name);
     }
@@ -472,6 +455,89 @@ public abstract class BaseK8sEnvTest {
                 .get(0)
                 .getMetadata()
                 .getName();
+    }
+
+
+    protected void execInBastionPod(String... cmd) {
+        final String bastion = client.pods().inNamespace(namespace)
+                .withLabel("component", "bastion")
+                .list().getItems().get(0).getMetadata().getName();
+        execInPod(bastion, cmd);
+    }
+
+    @SneakyThrows
+    protected void execInPod(String podName, String... cmd) {
+        execInPodContainer(podName, null, cmd);
+    }
+
+    @SneakyThrows
+    protected void execInPodContainer(String podName, String containerName, String... cmds) {
+        final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" && "));
+        log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        CompletableFuture<String> future = new CompletableFuture<>();
+        try (final ExecWatch exec = client
+                .pods()
+                .inNamespace(namespace)
+                .withName(podName)
+                .inContainer(containerName)
+                .writingOutput(baos)
+                .writingError(baos)
+                .usingListener(new SimpleListener(future, baos))
+                .exec("bash", "-c", cmd);) {
+            final String outputCmd = future.get(30, TimeUnit.SECONDS);
+            log.info("Output cmd: {}", outputCmd);
+            if (exec.exitCode().get().intValue() != 0) {
+                log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
+                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
+            }
+        }
+    }
+
+    static class SimpleListener implements ExecListener {
+
+        private CompletableFuture<String> data;
+        private ByteArrayOutputStream baos;
+
+        public SimpleListener(CompletableFuture<String> data, ByteArrayOutputStream baos) {
+            this.data = data;
+            this.baos = baos;
+        }
+
+        @Override
+        public void onOpen() {
+        }
+
+        @Override
+        public void onFailure(Throwable t, Response failureResponse) {
+            System.err.println(t.getMessage());
+            data.completeExceptionally(t);
+        }
+
+        @Override
+        public void onClose(int code, String reason) {
+            data.complete(baos.toString());
+        }
+    }
+
+
+    private void awaitJobCompleted(String name) {
+        Awaitility.await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> {
+                    final Job job = client.batch().v1().jobs()
+                            .inNamespace(namespace)
+                            .withName(name)
+                            .get();
+                    Assert.assertNotNull(job);
+                    final JobStatus status = job.getStatus();
+                    Assert.assertNotNull(status);
+                    final Integer succeeded = status
+                            .getSucceeded();
+                    Assert.assertNotNull(succeeded);
+                    Assert.assertEquals(succeeded.intValue(), 1);
+                });
+
     }
 
 }

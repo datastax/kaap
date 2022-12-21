@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.broker;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -13,11 +14,14 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -159,7 +163,7 @@ public class BrokerControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -174,7 +178,7 @@ public class BrokerControllerTest {
                             command:
                             - sh
                             - -c
-                            - curl -s --max-time 5 --fail http://localhost:8080/metrics/ > /dev/null
+                            - curl -s --max-time 5 --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -373,6 +377,70 @@ public class BrokerControllerTest {
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
+    }
+
+    @Test
+    public void testAuthToken() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    auth:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("clusterName", "pul");
+        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("brokerDeduplicationEnabled", "false");
+        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
+        expectedData.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("authorizationEnabled", "true");
+        expectedData.put("authenticationEnabled", "true");
+        expectedData.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+        expectedData.put("proxyRoles", "proxy");
+        expectedData.put("superUserRoles", "admin,proxy,superuser,websocket");
+        expectedData.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedData.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+
+        final List<Volume> volumes = sts.getSpec().getTemplate().getSpec().getVolumes();
+        final List<VolumeMount> volumeMounts = sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getVolumeMounts();
+        KubeTestUtil.assertRolesMounted(volumes, volumeMounts,
+                "public-key", "superuser");
+        final String cmdArg = sts.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
+                .stream().collect(Collectors.joining(" "));
+        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                + ".jwt && "));
+
+        Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getLivenessProbe().getExec().getCommand()
+                .get(2), "curl -s --max-time 5 --fail -H \"Authorization: Bearer $(cat "
+                + "/pulsar/token-superuser/superuser.jwt | tr -d '\\r')\" "
+                + "http://localhost:8080/admin/v2/brokers/health > /dev/null");
     }
 
 
@@ -850,7 +918,7 @@ public class BrokerControllerTest {
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
-                "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null".formatted(timeout)));
+                "curl -s --max-time %d --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null".formatted(timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);

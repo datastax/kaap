@@ -1,7 +1,10 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
@@ -24,12 +27,54 @@ import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @JBossLog
 public class PulsarClusterControllerTest {
 
+    public static final String GLOBAL_SPEC_YAML_PART = """
+            global:
+                name: pulsarname
+                components:
+                  zookeeperBaseName: zookeeper
+                  bookkeeperBaseName: bookkeeper
+                  brokerBaseName: broker
+                  proxyBaseName: proxy
+                  autorecoveryBaseName: autorecovery
+                  bastionBaseName: bastion
+                  functionsWorkerBaseName: function
+                kubernetesClusterDomain: cluster.local
+                tls:
+                  enabled: false
+                  defaultSecretName: pulsar-tls
+                persistence: true
+                restartOnConfigMapChange: false
+                auth:
+                  enabled: false
+                  token:
+                    publicKeyFile: my-public.key
+                    privateKeyFile: my-private.key
+                    superUserRoles:
+                    - admin
+                    - proxy
+                    - superuser
+                    - websocket
+                    proxyRoles:
+                    - proxy
+                    initialize: true
+                image: apachepulsar/pulsar:2.10.2
+                imagePullPolicy: IfNotPresent
+                storage:
+                  existingStorageClassName: default""";
     static final String NAMESPACE = "ns";
+
+    TokenAuthProvisioner tokenAuthProvisioner;
+
+    @BeforeMethod
+    public void setup() {
+        tokenAuthProvisioner = mock(TokenAuthProvisioner.class);
+    }
 
     @Test
     public void testInstallCluster() throws Exception {
@@ -214,26 +259,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   functionsWorker:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -266,7 +292,7 @@ public class PulsarClusterControllerTest {
                       namespaced: true
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
     private void assertBastionYaml(MockKubernetesClient client) {
@@ -284,26 +310,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   bastion:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -316,7 +323,7 @@ public class PulsarClusterControllerTest {
                     targetProxy: true
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
     private void assertAutorecoveryYaml(MockKubernetesClient client) {
@@ -334,26 +341,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   autorecovery:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -365,7 +353,7 @@ public class PulsarClusterControllerTest {
                         memory: 512Mi
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
     private void assertProxyYaml(MockKubernetesClient client) {
@@ -383,26 +371,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   proxy:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -436,7 +405,7 @@ public class PulsarClusterControllerTest {
                           memory: 1Gi
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
     private void assertBrokerYaml(MockKubernetesClient client) {
@@ -454,26 +423,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   broker:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -509,7 +459,7 @@ public class PulsarClusterControllerTest {
                       stabilizationWindowMs: 300000
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
     private void assertBkYaml(String yaml) {
@@ -527,26 +477,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   bookkeeper:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -578,7 +509,7 @@ public class PulsarClusterControllerTest {
                         existingStorageClassName: default
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
     private void assertZkYaml(String yaml) {
@@ -596,26 +527,7 @@ public class PulsarClusterControllerTest {
                     controller: true
                     name: pulsar-cluster
                 spec:
-                  global:
-                    name: pulsarname
-                    components:
-                      zookeeperBaseName: zookeeper
-                      bookkeeperBaseName: bookkeeper
-                      brokerBaseName: broker
-                      proxyBaseName: proxy
-                      autorecoveryBaseName: autorecovery
-                      bastionBaseName: bastion
-                      functionsWorkerBaseName: function
-                    kubernetesClusterDomain: cluster.local
-                    tls:
-                      enabled: false
-                      defaultSecretName: pulsar-tls
-                    persistence: true
-                    restartOnConfigMapChange: false
-                    image: apachepulsar/pulsar:2.10.2
-                    imagePullPolicy: IfNotPresent
-                    storage:
-                      existingStorageClassName: default
+                  %s
                   zookeeper:
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
@@ -644,7 +556,7 @@ public class PulsarClusterControllerTest {
                       timeout: 60
                 status:
                   conditions: []
-                """);
+                """.formatted(GLOBAL_SPEC_YAML_PART));
     }
 
 
@@ -666,6 +578,12 @@ public class PulsarClusterControllerTest {
                             Class<CR> resourceClass, String namespace, String crFullName) {
                         Assert.assertEquals(namespace, NAMESPACE);
                         return (CR) existingResourceProvider.getExistingCustomResource(resourceClass);
+                    }
+
+                    @Override
+                    protected TokenAuthProvisioner getTokenAuthProvisioner(String namespace) {
+                        Assert.assertEquals(namespace, NAMESPACE);
+                        return tokenAuthProvisioner;
                     }
                 };
 
@@ -710,5 +628,21 @@ public class PulsarClusterControllerTest {
         Condition readyCondition = getReadyCondition(updateControl.getResource().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
+    }
+
+    @Test
+    public void testAuthTokenProvisioner() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                    auth:
+                        enabled: true
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        UpdateControl<PulsarCluster> control = invokeController(client, spec, r -> null);
+        Assert.assertEquals(client.countCreatedResources(), 1);
+        assertUpdateControlInitializing(control);
+        verify(tokenAuthProvisioner).generateSecretsIfAbsent(any());
     }
 }

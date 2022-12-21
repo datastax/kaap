@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
@@ -13,6 +14,8 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -24,6 +27,16 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingBuilder;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBuilder;
+import io.fabric8.kubernetes.api.model.rbac.PolicyRule;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
+import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
+import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
+import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -56,10 +69,11 @@ public abstract class BaseResourcesFactory<T> {
         this.ownerReference = ownerReference;
     }
 
-    protected abstract String getResourceName();
+    protected String getResourceName() {
+        return "%s-%s".formatted(global.getName(), getComponentBaseName());
+    };
 
     protected abstract String getComponentBaseName();
-
 
     protected abstract boolean isComponentEnabled();
 
@@ -429,11 +443,15 @@ public abstract class BaseResourcesFactory<T> {
         if (!global.getRestartOnConfigMapChange()) {
             return;
         }
-        String checksum = DigestUtils.sha256Hex(SerializationUtil.writeAsJsonBytes(configMap.getData()));
+        String checksum = genChecksum(configMap.getData());
         annotations.put(
                 "%s/configmap-%s".formatted(CRDConstants.GROUP, configMap.getMetadata().getName()),
                 checksum
         );
+    }
+
+    protected String genChecksum(Object object) {
+        return DigestUtils.sha256Hex(SerializationUtil.writeAsJsonBytes(object));
     }
 
     protected PersistentVolumeClaim createPersistentVolumeClaim(String name,
@@ -518,4 +536,91 @@ public abstract class BaseResourcesFactory<T> {
         }
         return deploymentStatus.getReplicas().intValue() == deploymentStatus.getReadyReplicas().intValue();
     }
+
+    protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules, String serviceAccountName) {
+        final ServiceAccount serviceAccount = new ServiceAccountBuilder()
+                .withNewMetadata()
+                .withName(serviceAccountName)
+                .withNamespace(namespace)
+                .endMetadata()
+                .build();
+        patchResource(serviceAccount);
+        if (namespaced) {
+            final Role role = new RoleBuilder()
+                    .withNewMetadata()
+                    .withName(resourceName)
+                    .withNamespace(namespace)
+                    .endMetadata()
+                    .withRules(rules)
+                    .build();
+
+            final RoleBinding roleBinding = new RoleBindingBuilder()
+                    .withNewMetadata()
+                    .withName(resourceName)
+                    .withNamespace(namespace)
+                    .endMetadata()
+                    .withNewRoleRef()
+                    .withKind("Role")
+                    .withName(resourceName)
+                    .endRoleRef()
+                    .withSubjects(new SubjectBuilder()
+                            .withKind("ServiceAccount")
+                            .withName(serviceAccountName)
+                            .withNamespace(namespace)
+                            .build()
+                    )
+                    .build();
+            patchResource(role);
+            patchResource(roleBinding);
+        } else {
+            final ClusterRole role = new ClusterRoleBuilder()
+                    .withNewMetadata()
+                    .withName(resourceName)
+                    .endMetadata()
+                    .withRules(rules)
+                    .build();
+            final ClusterRoleBinding roleBinding = new ClusterRoleBindingBuilder()
+                    .withNewMetadata()
+                    .withName(resourceName)
+                    .endMetadata()
+                    .withNewRoleRef()
+                    .withKind("ClusterRole")
+                    .withName(resourceName)
+                    .endRoleRef()
+                    .withSubjects(new SubjectBuilder()
+                            .withKind("ServiceAccount")
+                            .withName(serviceAccountName)
+                            .withNamespace(namespace)
+                            .build()
+                    )
+                    .build();
+            patchResource(role);
+            patchResource(roleBinding);
+        }
+    }
+
+    protected boolean isAuthTokenEnabled() {
+        final AuthConfig auth = global.getAuth();
+        return auth != null
+                && auth.getEnabled()
+                && auth.getToken() != null;
+    }
+
+    protected void addSecretTokenVolume(List<VolumeMount> volumeMounts, List<Volume> volumes, String role) {
+        final String tokenName = "token-%s".formatted(role);
+        volumes.add(
+                new VolumeBuilder()
+                        .withName(tokenName)
+                        .withNewSecret().withSecretName(tokenName).endSecret()
+                        .build()
+        );
+        volumeMounts.add(
+                new VolumeMountBuilder()
+                        .withName(tokenName)
+                        .withMountPath("/pulsar/%s".formatted(tokenName))
+                        .withReadOnly(true)
+                        .build()
+        );
+    }
+
 }

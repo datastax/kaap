@@ -55,6 +55,7 @@ rules:
       - configmaps
       - services
       - serviceaccounts
+      - secrets
     verbs:
       - '*'
   - apiGroups:

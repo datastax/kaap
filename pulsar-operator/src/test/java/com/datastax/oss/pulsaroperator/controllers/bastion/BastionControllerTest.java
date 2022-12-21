@@ -2,16 +2,20 @@ package com.datastax.oss.pulsaroperator.controllers.bastion;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -32,7 +36,6 @@ public class BastionControllerTest {
                 """;
 
         final MockKubernetesClient client = invokeController(spec);
-
 
 
         Assert.assertEquals(client
@@ -453,6 +456,47 @@ public class BastionControllerTest {
         Assert.assertNotEquals(checksum1, checksum2);
     }
 
+    @Test
+    public void testAuthToken() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    auth:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
+        expectedData.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+
+        final List<Volume> volumes = deployment.getSpec().getTemplate().getSpec().getVolumes();
+        final List<VolumeMount> volumeMounts = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getVolumeMounts();
+        KubeTestUtil.assertRolesMounted(volumes, volumeMounts,
+                "private-key", "public-key", "admin", "superuser");
+        final String cmdArg = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
+                .stream().collect(Collectors.joining(" "));
+        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                + ".jwt && "));
+    }
 
 
     @SneakyThrows

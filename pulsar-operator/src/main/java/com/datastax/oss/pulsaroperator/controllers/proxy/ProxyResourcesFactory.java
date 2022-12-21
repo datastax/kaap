@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -48,10 +49,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         return globalSpec.getComponents().getProxyBaseName();
     }
 
-    public static String getResourceName(GlobalSpec globalSpec) {
-        return "%s-%s".formatted(globalSpec.getName(), getComponentBaseName(globalSpec));
-    }
-
     @Override
     protected boolean isComponentEnabled() {
         return spec.getReplicas() > 0;
@@ -69,11 +66,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     @Override
     protected String getComponentBaseName() {
         return getComponentBaseName(global);
-    }
-
-    @Override
-    protected String getResourceName() {
-        return getResourceName(global);
     }
 
     public void patchService() {
@@ -148,6 +140,17 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
         data.putAll(DEFAULT_CONFIG_MAP);
 
+        if (isAuthTokenEnabled()) {
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("authenticationEnabled", "true");
+            data.put("authorizationEnabled", "true");
+            data.put("superUserRoles", tokenConfig.superUserRolesAsString());
+            data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+            data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));
+            data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
+        }
+
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
         }
@@ -180,6 +183,20 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         data.put("clusterName", global.getName());
 
         data.putAll(DEFAULT_CONFIG_MAP);
+        if (isAuthTokenEnabled()) {
+            data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                    + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            data.put("authenticationEnabled", "true");
+            data.put("authorizationEnabled", "true");
+            data.put("superUserRoles", tokenConfig.superUserRolesAsString());
+            data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                    + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+            data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));
+            data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+            data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
+        }
+
 
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
@@ -221,6 +238,13 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        if (isAuthTokenEnabled()) {
+            addSecretTokenVolume(volumeMounts, volumes, "public-key");
+            addSecretTokenVolume(volumeMounts, volumes, "private-key");
+            addSecretTokenVolume(volumeMounts, volumes, "proxy");
+            addSecretTokenVolume(volumeMounts, volumes, "websocket");
+            addSecretTokenVolume(volumeMounts, volumes, "superuser");
+        }
 
         List<Container> initContainers = new ArrayList<>();
 
@@ -252,6 +276,10 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
         final Probe probe = createProbe();
         String mainArg = "";
+        if (isAuthTokenEnabled()) {
+            mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                    + ".jwt && ";
+        }
         if (isTlsEnabledGlobally()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
@@ -300,6 +328,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (webSocket.getEnabled()) {
 
             String wsArg = "";
+            if (isAuthTokenEnabled()) {
+                wsArg += "echo \"tokenPublicKey=\" >> /pulsar/conf/websocket.conf && ";
+            }
             if (isTlsEnabledGlobally()) {
                 wsArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                         + "-out /pulsar/tls-pk8.key -nocrypt && "
@@ -370,10 +401,12 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (specProbe == null) {
             return null;
         }
+        final String authHeader = isAuthTokenEnabled()
+                ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return new ProbeBuilder()
                 .withNewExec()
-                .withCommand("sh", "-c", "curl -s --max-time %d --fail http://localhost:8080/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout()))
+                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/metrics/ > /dev/null"
+                        .formatted(specProbe.getTimeout(), authHeader))
                 .endExec()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())

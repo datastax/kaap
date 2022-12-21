@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
+import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
@@ -15,6 +16,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
@@ -68,6 +70,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         final PulsarClusterSpec clusterSpec = resource.getSpec();
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
+        generateSecretsIfAbsent(currentNamespace, clusterSpec);
 
         if (!checkReadyOrPatchZooKeeper(currentNamespace, clusterSpec, ownerReference)) {
             log.info("waiting for zookeeper to become ready");
@@ -344,6 +347,23 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .inNamespace(namespace)
                 .withName(crFullName)
                 .get();
+    }
+
+
+    @SneakyThrows
+    private void generateSecretsIfAbsent(String namespace, PulsarClusterSpec clusterSpec) {
+        final AuthConfig auth = clusterSpec.getGlobal().getAuth();
+        if (auth == null) {
+            return;
+        }
+        if (!auth.getEnabled()) {
+            return;
+        }
+        getTokenAuthProvisioner(namespace).generateSecretsIfAbsent(auth.getToken());
+    }
+
+    protected TokenAuthProvisioner getTokenAuthProvisioner(String namespace) {
+        return new TokenAuthProvisioner(client, namespace);
     }
 
     void onStop(@Observes ShutdownEvent ev) {

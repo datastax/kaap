@@ -2000,6 +2000,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#bookkeeperspecbookkeeperautoscaler">autoscaler</a></b></td>
+        <td>object</td>
+        <td>
+          Autoscaling config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
@@ -2097,6 +2104,98 @@ TLS configurations related to the ZooKeeper component.
         <td>object</td>
         <td>
           Volumes configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### BookKeeper.spec.bookkeeper.autoscaler
+<sup><sup>[↩ Parent](#bookkeeperspecbookkeeper)</sup></sup>
+
+
+
+Autoscaling config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>diskUsageToleranceHwm</b></td>
+        <td>number</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>diskUsageToleranceLwm</b></td>
+        <td>number</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minWritableBookies</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>periodMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1000<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleDownBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleUpBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stabilizationWindowMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -8083,6 +8182,13 @@ Resource requirements for the Autorecovery container.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperautoscaler">autoscaler</a></b></td>
+        <td>object</td>
+        <td>
+          Autoscaling config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
@@ -8180,6 +8286,98 @@ Resource requirements for the Autorecovery container.
         <td>object</td>
         <td>
           Volumes configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.autoscaler
+<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
+
+
+
+Autoscaling config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>diskUsageToleranceHwm</b></td>
+        <td>number</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>diskUsageToleranceLwm</b></td>
+        <td>number</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 0<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minWritableBookies</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>periodMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1000<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleDownBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scaleUpBy</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stabilizationWindowMs</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
         </td>
         <td>false</td>
       </tr></tbody>

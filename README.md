@@ -16,15 +16,15 @@ mvn package -DskipTests -pl pulsar-operator
 docker push $dockerhub_repo/pulsar-operator:$tag
 ```
 
-### Helm deployment
-### Note: tested with K8s 1.25
-Install the operator and the CRDs with monitoring
+### Helm deployment (tested with K8s 1.25)
+
+Install the stack operator and the CRDs with monitoring
 ```
 helm repo add prom https://prometheus-community.github.io/helm-charts
-helm dependency build helm/pulsar-operator
-helm install -n mypulsar --create-namespace pos helm/pulsar-operator \
+helm dependency build helm/pulsar-stack
+helm install -n mypulsar --create-namespace pos helm/pulsar-stack \
     --set kube-prometheus-stack.enabled=true \
-    --set grafanaDashboards.enabled=true \
+    --set pulsarGrafanaDashboards.enabled=true \
     --set kube-prometheus-stack.grafana.adminPassword=grafana
 ```
 
@@ -36,7 +36,7 @@ kubectl -n mypulsar apply -f helm/examples/cluster.yaml
 
 Wait for the cluster to be up and running
 ```
-kubectl wait pulsar -n ns pulsar-cluster --for condition=Ready=True --timeout=240s
+kubectl wait pulsar -n mypulsar pulsar-cluster --for condition=Ready=True --timeout=240s
 ```
 
 Uninstall the cluster

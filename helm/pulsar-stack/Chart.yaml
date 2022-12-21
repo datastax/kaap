@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+name: pulsar-stack
+description: Apache Pulsar stack on Kubernetes
+version: 0.0.1-alpha
+dependencies:
+  - name: pulsar-operator
+    version: 0.0.1-alpha
+    repository: file://../pulsar-operator
+  - name: kube-prometheus-stack
+    version: 41.x.x
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled

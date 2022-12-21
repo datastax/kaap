@@ -1,4 +1,4 @@
-{{- if .Values.grafanaDashboards.enabled -}}
+{{- if .Values.pulsarGrafanaDashboards.enabled -}}
 {{ range $path, $_ :=  .Files.Glob "grafana-dashboards/**.json" }}
   {{- $name := (base $path) | replace (ext $path) "" }}
 apiVersion: v1

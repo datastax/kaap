@@ -56,6 +56,7 @@ public abstract class BaseK8sEnvTest {
 
     private static final boolean REUSE_ENV = Boolean
             .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "false"));
+    protected static final int DEFAULT_AWAIT_SECONDS = 360;
 
     protected String namespace;
     protected K8sEnv env;
@@ -76,7 +77,7 @@ public abstract class BaseK8sEnvTest {
 
     private static void setDefaultAwaitilityTimings() {
         Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
-        Awaitility.setDefaultTimeout(Duration.ofSeconds(360));
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(DEFAULT_AWAIT_SECONDS));
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -101,10 +102,16 @@ public abstract class BaseK8sEnvTest {
         eventsWatch = client.resources(Event.class).inNamespace(namespace).watch(new Watcher<>() {
             @Override
             public void eventReceived(Action action, Event resource) {
-                log.info("event [{} - {}]: {} - {}", resource.getRegarding().getName(),
-                        resource.getRegarding().getKind(),
-                        resource.getNote(), resource.getReason());
-            }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("[{}/{}]: {} -> {}", resource.getRegarding().getName(),
+                            resource.getRegarding().getKind(), resource.getReason(), resource.getNote());
+                } else {
+                    log.info("[{}/{}]: {}", resource.getRegarding().getKind(),
+                            resource.getRegarding().getName(), resource.getReason());
+
+                }
+             }
 
             @Override
             public void onClose(WatcherException cause) {
@@ -370,14 +377,14 @@ public abstract class BaseK8sEnvTest {
                 client.pods().inNamespace(namespace)
                         .withName(podName)
                         .get().getSpec().getContainers().forEach(container -> {
-                            final String sep = "-".repeat(100);
+                            final String sep = "=".repeat(300);
                             final String containerLog = client.pods().inNamespace(namespace)
                                     .withName(podName)
                                     .inContainer(container.getName())
                                     .tailingLines(300)
                                     .getLog();
-                            log.info("{}\n{}/{} pod logs:\n{}\n{}", sep, podName, container.getName(),
-                                    containerLog, sep);
+                            log.info("{}\n{}\n{}/{} pod logs:\n{}\n{}\n{}", sep, sep, podName, container.getName(),
+                                    containerLog, sep, sep);
                         });
 
 

@@ -103,6 +103,13 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         defaultSpecs.setBroker(BrokerSpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
+                .config(
+                        Map.of(
+                                "managedLedgerDefaultAckQuorum", "1",
+                                "managedLedgerDefaultEnsembleSize", "1",
+                                "managedLedgerDefaultWriteQuorum", "1"
+                        )
+                )
                 .probe(probe)
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
@@ -153,10 +160,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "zookeeper").list().getItems().size(), 1);
         });
 
+        log.info("awaiting zk pod up");
         client.pods()
                 .inNamespace(namespace)
                 .withName("pulsar-zookeeper-0")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
         Awaitility
                 .await()
@@ -170,6 +178,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 .isEmpty()
                 );
 
+        log.info("awaiting zk init job to complete");
         awaitJobCompleted("pulsar-zookeeper");
     }
 
@@ -192,10 +201,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
         });
 
+        log.info("awaiting bk pod up");
         client.pods()
                 .inNamespace(namespace)
                 .withName("pulsar-bookkeeper-0")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
     }
 
@@ -218,10 +228,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "broker").list().getItems().size(), 1);
         });
 
+        log.info("awaiting broker pod up");
         client.pods()
                 .inNamespace(namespace)
                 .withName("pulsar-broker-0")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
     }
 
@@ -244,10 +255,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "proxy").list().getItems().size(), 1);
         });
 
+        log.info("awaiting proxy pod up");
         client.apps().deployments()
                 .inNamespace(namespace)
                 .withName("pulsar-proxy")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
     }
 
@@ -265,10 +277,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "autorecovery").list().getItems().size(), 1);
         });
 
+        log.info("awaiting autorecovery pod up");
         client.apps().deployments()
                 .inNamespace(namespace)
                 .withName("pulsar-autorecovery")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
     }
 
@@ -286,10 +299,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "bastion").list().getItems().size(), 1);
         });
 
+        log.info("awaiting bastion pod up");
         client.apps().deployments()
                 .inNamespace(namespace)
                 .withName("pulsar-bastion")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
     }
 
@@ -312,10 +326,11 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "function").list().getItems().size(), 2);
         });
 
+        log.info("awaiting functions worker pod up");
         client.apps().statefulSets()
                 .inNamespace(namespace)
                 .withName("pulsar-function")
-                .waitUntilReady(90, TimeUnit.SECONDS);
+                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
     }
 

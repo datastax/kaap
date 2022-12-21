@@ -19,13 +19,14 @@ public class ScalingTest extends BasePulsarClusterTest {
         specs.getGlobal().getAuth().setEnabled(false);
         try {
             applyPulsarCluster(specsToYaml(specs));
+
             awaitInstalled();
 
             client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withName("pulsar-zookeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             specs.getBookkeeper().setReplicas(3);
             specs.getBroker().setConfig(
@@ -44,7 +45,7 @@ public class ScalingTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withName("pulsar-bookkeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             specs.getBroker().setReplicas(3);
             applyPulsarCluster(specsToYaml(specs));
@@ -53,7 +54,7 @@ public class ScalingTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withName("pulsar-broker")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, 180, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             assertProduceConsume();
         } catch (Throwable t) {

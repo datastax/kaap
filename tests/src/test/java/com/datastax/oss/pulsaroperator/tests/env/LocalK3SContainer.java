@@ -9,14 +9,13 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.fabric8.kubernetes.client.Config;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -93,6 +92,7 @@ public class LocalK3SContainer implements K8sEnv {
     private ReusableK3sContainer container;
 
     @Override
+    @SneakyThrows
     public void start() {
         boolean containerWasNull = container == null;
         if (containerWasNull) {
@@ -100,24 +100,17 @@ public class LocalK3SContainer implements K8sEnv {
                     new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
                             .withImage("rancher/k3s:v1.25.3-k3s1");
             container = new ReusableK3sContainer(k3sImage);
-            createAndMountImageDigest(BaseK8sEnvTest.OPERATOR_IMAGE);
-            createAndMountImageDigest(BaseK8sEnvTest.PULSAR_IMAGE);
+            CompletableFuture.allOf(
+                    createAndMountImageDigest(BaseK8sEnvTest.OPERATOR_IMAGE),
+                    createAndMountImageDigest(BaseK8sEnvTest.PULSAR_IMAGE)
+            ).get();
         }
         container.start();
         printDebugInfo();
-        final ExecutorService executorService = Executors.newFixedThreadPool(2);
-        try {
-            CompletableFuture.allOf(
-                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
-                            executorService),
-                    CompletableFuture.runAsync(() -> restoreDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE),
-                            executorService)
-            ).exceptionally(throwable -> {
-                throw new RuntimeException(throwable);
-            }).join();
-        } finally {
-            executorService.shutdown();
-        }
+        CompletableFuture.allOf(
+                restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
+                restoreDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE)
+        ).get();
         container.followOutput((Consumer<OutputFrame>) outputFrame -> {
             if (DEBUG_LOG_CONTAINER) {
                 log.debug("k3s > {}", outputFrame.getUtf8String());
@@ -160,38 +153,51 @@ public class LocalK3SContainer implements K8sEnv {
         return container.helm3();
     }
 
-    private void createAndMountImageDigest(String image) {
-        createAndMountImageDigest(image, container);
+    private CompletableFuture<Void> createAndMountImageDigest(String image) {
+        return createAndMountImageDigest(image, container);
     }
 
     @SneakyThrows
-    protected static void createAndMountImageDigest(String image, GenericContainer container) {
-        String imageFilename;
-        try {
-            imageFilename = getMountedImageFilename(hostDockerClient, image);
-        } catch (com.github.dockerjava.api.exception.NotFoundException notFoundException) {
-            log.info("image {} not found locally, pulling..", image);
-            final String[] split = image.split(":");
-            hostDockerClient.pullImageCmd(split[0])
-                    .withTag(split[1])
-                    .start().awaitCompletion();
-            log.info("image {} pulled", image);
-            imageFilename = getMountedImageFilename(hostDockerClient, image);
-        }
+    protected static CompletableFuture<Void> createAndMountImageDigest(String image, GenericContainer container) {
+        return CompletableFuture.runAsync(
+                new Runnable() {
+                    @Override
+                    @SneakyThrows
+                    public void run() {
 
-        Paths.get("target").toFile().mkdir();
-        final Path imageBinPath = Paths.get("target", imageFilename);
-        if (imageBinPath.toFile().exists()) {
-            log.info("Local image {} digest already exists, reusing it", image);
-        } else {
-            long start = System.currentTimeMillis();
-            log.info("Local image {} digest not found in {}, generating", image,
-                    imageBinPath.toFile().getAbsolutePath());
-            final InputStream saved = hostDockerClient.saveImageCmd(image).exec();
-            Files.copy(saved, imageBinPath, StandardCopyOption.REPLACE_EXISTING);
-            log.info("Local image {} digest generated in {} ms", image, (System.currentTimeMillis() - start));
-        }
-        container.withFileSystemBind(imageBinPath.toFile().getAbsolutePath(), "/" + imageFilename);
+                        String imageFilename;
+                        try {
+                            imageFilename = getMountedImageFilename(hostDockerClient, image);
+                        } catch (com.github.dockerjava.api.exception.NotFoundException notFoundException) {
+                            log.info("image {} not found locally, pulling..", image);
+                            final String[] split = image.split(":");
+                            hostDockerClient.pullImageCmd(split[0])
+                                    .withTag(split[1])
+                                    .start().awaitCompletion();
+                            log.info("image {} pulled", image);
+                            imageFilename = getMountedImageFilename(hostDockerClient, image);
+                        }
+
+                        Paths.get("target").toFile().mkdir();
+                        final Path imageBinPath = Paths.get("target", imageFilename);
+                        if (imageBinPath.toFile().exists()) {
+                            log.info("Local image {} digest already exists, reusing it", image);
+                        } else {
+                            long start = System.currentTimeMillis();
+                            log.info("Local image {} digest not found in {}, generating", image,
+                                    imageBinPath.toFile().getAbsolutePath());
+                            final InputStream saved = hostDockerClient.saveImageCmd(image).exec();
+                            try {
+                                Files.copy(saved, imageBinPath, StandardCopyOption.REPLACE_EXISTING);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            log.info("Local image {} digest generated in {} ms", image,
+                                    (System.currentTimeMillis() - start));
+                        }
+                        container.withFileSystemBind(imageBinPath.toFile().getAbsolutePath(), "/" + imageFilename);
+                    }
+                });
     }
 
     public static String getMountedImageFilename(DockerClient dockerClient, String image) {
@@ -202,27 +208,39 @@ public class LocalK3SContainer implements K8sEnv {
         return "docker-digest-" + dockerImageId + ".bin";
     }
 
-    private void restoreDockerImageInK3s(String imageName) {
-        restoreDockerImageInK3s(imageName, container);
+    private CompletableFuture<Void> restoreDockerImageInK3s(String imageName) {
+        return restoreDockerImageInK3s(imageName, container);
     }
 
     @SneakyThrows
-    protected static void restoreDockerImageInK3s(String imageName, GenericContainer container) {
-        log.info("Restoring docker image {} in k3s", imageName);
-        long start = System.currentTimeMillis();
-        final String mountedImageFilename = getMountedImageFilename(hostDockerClient, imageName);
-        if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
-            log.info("Image {} already exists in the k3s", imageName);
-            return;
-        }
+    protected static CompletableFuture<Void> restoreDockerImageInK3s(String imageName, GenericContainer container) {
+        return CompletableFuture.runAsync(new Runnable() {
+            @Override
+            @SneakyThrows
+            public void run() {
+                log.info("Restoring docker image {} in k3s", imageName);
+                long start = System.currentTimeMillis();
+                final String mountedImageFilename = getMountedImageFilename(hostDockerClient, imageName);
 
-        final Container.ExecResult execResult =
-                container.execInContainer("ctr", "-a", "/run/k3s/containerd/containerd.sock",
-                        "image", "import", mountedImageFilename);
-        if (execResult.getExitCode() != 0) {
-            throw new RuntimeException("ctr images import failed: " + execResult.getStderr());
-        }
-        log.info("Restored docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
+
+                final Container.ExecResult execResult;
+                try {
+                    if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
+                        log.info("Image {} already exists in the k3s", imageName);
+                        return;
+                    }
+                    execResult = container.execInContainer("ctr", "-a", "/run/k3s/containerd/containerd.sock",
+                            "image", "import", mountedImageFilename);
+                    if (execResult.getExitCode() != 0) {
+                        throw new RuntimeException("ctr images import failed: " + execResult.getStderr());
+                    }
+                    log.info("Restored docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
     }
 
     @SneakyThrows

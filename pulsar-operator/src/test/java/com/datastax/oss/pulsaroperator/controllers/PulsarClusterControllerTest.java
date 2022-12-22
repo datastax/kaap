@@ -247,13 +247,13 @@ public class PulsarClusterControllerTest {
     private void assertFnWorkerYaml(MockKubernetesClient client) {
         Assert.assertEquals(client.getCreatedResource(FunctionsWorker.class).getResourceYaml(), """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: FunctionsWorker
                 metadata:
                   name: pulsarname-functionsworker
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true
@@ -298,13 +298,13 @@ public class PulsarClusterControllerTest {
     private void assertBastionYaml(MockKubernetesClient client) {
         Assert.assertEquals(client.getCreatedResource(Bastion.class).getResourceYaml(), """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: Bastion
                 metadata:
                   name: pulsarname-bastion
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true
@@ -329,13 +329,13 @@ public class PulsarClusterControllerTest {
     private void assertAutorecoveryYaml(MockKubernetesClient client) {
         Assert.assertEquals(client.getCreatedResource(Autorecovery.class).getResourceYaml(), """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: Autorecovery
                 metadata:
                   name: pulsarname-autorecovery
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true
@@ -359,13 +359,13 @@ public class PulsarClusterControllerTest {
     private void assertProxyYaml(MockKubernetesClient client) {
         Assert.assertEquals(client.getCreatedResource(Proxy.class).getResourceYaml(), """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: Proxy
                 metadata:
                   name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true
@@ -411,13 +411,13 @@ public class PulsarClusterControllerTest {
     private void assertBrokerYaml(MockKubernetesClient client) {
         Assert.assertEquals(client.getCreatedResource(Broker.class).getResourceYaml(), """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: Broker
                 metadata:
                   name: pulsarname-broker
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true
@@ -464,13 +464,13 @@ public class PulsarClusterControllerTest {
     private void assertBkYaml(String yaml) {
         Assert.assertEquals(yaml, """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: BookKeeper
                 metadata:
                   name: pulsarname-bookkeeper
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true
@@ -523,13 +523,13 @@ public class PulsarClusterControllerTest {
     private void assertZkYaml(String yaml) {
         Assert.assertEquals(yaml, """
                 ---
-                apiVersion: com.datastax.oss/v1alpha1
+                apiVersion: pulsar.oss.datastax.com/v1alpha1
                 kind: ZooKeeper
                 metadata:
                   name: pulsarname-zookeeper
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: PulsarCluster
                     blockOwnerDeletion: true
                     controller: true

@@ -21,14 +21,14 @@ public class CRDsTest extends BasePulsarClusterTest {
                 .stream()
                 .map(crd -> crd.getMetadata().getName())
                 .collect(Collectors.toList());
-        Assert.assertTrue(crds.contains("zookeepers.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("bookkeepers.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("brokers.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("proxies.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("autorecoveries.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("functionsworkers.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("bastions.com.datastax.oss"));
-        Assert.assertTrue(crds.contains("pulsarclusters.com.datastax.oss"));
+        Assert.assertTrue(crds.contains("zookeepers.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("bookkeepers.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("brokers.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("proxies.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("autorecoveries.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("functionsworkers.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("bastions.pulsar.oss.datastax.com"));
+        Assert.assertTrue(crds.contains("pulsarclusters.pulsar.oss.datastax.com"));
     }
 
 }

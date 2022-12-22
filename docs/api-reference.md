@@ -2,9 +2,9 @@
 
 Packages:
 
-- [com.datastax.oss/v1alpha1](#comdatastaxossv1alpha1)
+- [pulsar.oss.datastax.com/v1alpha1](#pulsarossdatastaxcomv1alpha1)
 
-# com.datastax.oss/v1alpha1
+# pulsar.oss.datastax.com/v1alpha1
 
 Resource Types:
 
@@ -33,7 +33,7 @@ Resource Types:
     <tbody><tr>
       <td><b>apiVersion</b></td>
       <td>string</td>
-      <td>com.datastax.oss/v1alpha1</td>
+      <td>pulsar.oss.datastax.com/v1alpha1</td>
       <td>true</td>
       </tr>
       <tr>

@@ -203,7 +203,7 @@ public abstract class BaseK8sEnvTest {
                     verbs:
                         - '*'
                   - apiGroups:
-                      - com.datastax.oss
+                      - pulsar.oss.datastax.com
                     resources:
                         - pulsarclusters
                         - pulsarclusters/status

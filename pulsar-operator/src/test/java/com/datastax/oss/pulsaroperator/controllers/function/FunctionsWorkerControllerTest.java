@@ -70,7 +70,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -120,7 +120,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function-extra
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -146,7 +146,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function-ca
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -175,7 +175,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -206,7 +206,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -316,7 +316,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -338,7 +338,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -353,7 +353,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -397,7 +397,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsarname-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -1375,20 +1375,20 @@ public class FunctionsWorkerControllerTest {
 
         StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
         final String checksum1 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-function");
         Assert.assertNotNull(checksum1);
 
         final String checksum1extra = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function-extra");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-function-extra");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         Assert.assertEquals(sts.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function"),
+                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-function"),
                 checksum1);
         Assert.assertEquals(sts.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function-extra"),
+                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-function-extra"),
                 checksum1extra);
 
         spec = """
@@ -1407,12 +1407,12 @@ public class FunctionsWorkerControllerTest {
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         final String checksum2 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-function");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
 
         final String checksum2extra = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-function-extra");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-function-extra");
         Assert.assertNotNull(checksum2extra);
         Assert.assertNotEquals(checksum1extra, checksum2extra);
     }
@@ -1460,7 +1460,7 @@ public class FunctionsWorkerControllerTest {
                           name: pul-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -1474,7 +1474,7 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           name: pul-function
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -1517,7 +1517,7 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           name: pul-function
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true

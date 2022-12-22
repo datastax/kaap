@@ -114,7 +114,7 @@ public class BookKeeperAutoscalerTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/com.datastax.oss/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(clusterName))
+                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(clusterName))
                     .andReturn(HttpURLConnection.HTTP_OK, bkCr)
                     .times(2);
 
@@ -192,7 +192,7 @@ public class BookKeeperAutoscalerTest {
 
             server.expect()
                     .patch()
-                    .withPath("/apis/com.datastax.oss/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(clusterName))
+                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(clusterName))
                     .andReply(HttpURLConnection.HTTP_OK, new BodyProvider<Object>() {
                         @Override
                         @SneakyThrows

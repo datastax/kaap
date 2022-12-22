@@ -1,4 +1,4 @@
-apiVersion: com.datastax.oss/v1alpha1
+apiVersion: pulsar.oss.datastax.com/v1alpha1
 kind: PulsarCluster
 metadata:
   name: pulsar-cluster

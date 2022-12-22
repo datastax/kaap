@@ -61,7 +61,7 @@ public class ZooKeeperControllerTest {
                           name: pulsarname-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -91,7 +91,7 @@ public class ZooKeeperControllerTest {
                           name: pulsarname-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -197,7 +197,7 @@ public class ZooKeeperControllerTest {
                           name: pulsarname-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -233,7 +233,7 @@ public class ZooKeeperControllerTest {
                           name: pulsarname-zookeeper-ca
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -267,7 +267,7 @@ public class ZooKeeperControllerTest {
                           name: pulsarname-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -1019,13 +1019,13 @@ public class ZooKeeperControllerTest {
         System.out.println(sts.getSpec().getTemplate()
                 .getMetadata().getAnnotations());
         final String checksum1 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-zookeeper");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         Assert.assertEquals(sts.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper"),
+                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-zookeeper"),
                 checksum1);
 
         spec = """
@@ -1042,7 +1042,7 @@ public class ZooKeeperControllerTest {
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         final String checksum2 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-zookeeper");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-zookeeper");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
     }

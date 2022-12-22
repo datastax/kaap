@@ -52,7 +52,7 @@ public class BastionControllerTest {
                           name: pulsarname-bastion
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: com.datastax.oss/v1alpha1
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
                             kind: Bastion
                             blockOwnerDeletion: true
                             controller: true
@@ -81,7 +81,7 @@ public class BastionControllerTest {
                   name: pulsarname-bastion
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: com.datastax.oss/v1alpha1
+                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
                     kind: Bastion
                     blockOwnerDeletion: true
                     controller: true
@@ -428,13 +428,13 @@ public class BastionControllerTest {
         System.out.println(depl.getSpec().getTemplate()
                 .getMetadata().getAnnotations());
         final String checksum1 = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-bastion");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bastion");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         depl = client.getCreatedResource(Deployment.class).getResource();
         Assert.assertEquals(depl.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-bastion"),
+                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bastion"),
                 checksum1);
 
         spec = """
@@ -451,7 +451,7 @@ public class BastionControllerTest {
         client = invokeController(spec);
         depl = client.getCreatedResource(Deployment.class).getResource();
         final String checksum2 = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("com.datastax.oss/configmap-pul-bastion");
+                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bastion");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
     }

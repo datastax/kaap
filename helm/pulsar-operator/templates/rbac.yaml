@@ -90,7 +90,7 @@ rules:
     verbs:
         - "*"
   - apiGroups:
-      - com.datastax.oss
+      - pulsar.oss.datastax.com
     resources:
         - pulsarclusters
         - pulsarclusters/status

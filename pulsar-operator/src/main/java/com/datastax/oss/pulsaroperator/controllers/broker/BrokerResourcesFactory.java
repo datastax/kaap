@@ -141,9 +141,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("PF_pulsarServiceUrl", "pulsar://localhost:6650");
             data.put("PF_pulsarWebServiceUrl", "http://localhost:8080");
         }
-        if (spec.getWebSocketServiceEnabled()) {
-            data.put("webSocketServiceEnabled", "true");
-        }
         if (spec.getTransactions() != null && spec.getTransactions().getEnabled()) {
             data.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
         }

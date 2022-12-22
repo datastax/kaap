@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
@@ -65,9 +66,9 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     @AllArgsConstructor
     @Builder
     public static class ServiceConfig {
-        @JsonPropertyDescription("Additional annotations to add to the ZooKeeper Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ANNOTATIONS)
         private Map<String, String> annotations;
-        @JsonPropertyDescription("Additional ports for the ZooKeeper Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_PORTS)
         private List<ServicePort> additionalPorts;
     }
 
@@ -77,31 +78,30 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     @AllArgsConstructor
     @Builder
     public static class MetadataInitializationJobConfig {
-        @JsonPropertyDescription("Resource requirements for the Job's Pod.")
+        @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
         private ResourceRequirements resources;
         @JsonPropertyDescription("Timeout (in seconds) for the metadata initialization execution. Default value is 60.")
         private int timeout;
     }
 
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
     protected Map<String, String> config;
-    @JsonPropertyDescription("Pod management policy for the ZooKeeper pod. Default value is 'Parallel'.")
+    @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")
     private String podManagementPolicy;
-    @JsonPropertyDescription("Update strategy for the ZooKeeper pod. Default value is rolling update.")
+    @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
-    @JsonPropertyDescription("Annotations to add to each ZooKeeper resource.")
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the ZooKeeper pod. Default value is 60.")
+    @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the ZooKeeper pod.")
+    @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
     @JsonPropertyDescription("Volume configuration for ZooKeeper data.")
     private VolumeConfig dataVolume;
-    @JsonPropertyDescription("Configurations for the Service resources associated to the ZooKeeper pod.")
+    @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
-
     @JsonPropertyDescription("Configuration about the job that initializes the Pulsar cluster creating the needed "
             + "ZooKeeper nodes.")
     private MetadataInitializationJobConfig metadataInitializationJob;

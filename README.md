@@ -2,4 +2,4 @@
 
 Kubernetes operator for Apache Pulsar.
 
-See [Docs](docs/README.md) to read the documentation.s
+See [docs](docs/README.md) to learn how to use the operator components.

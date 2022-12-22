@@ -16,7 +16,7 @@ public class VolumeConfig {
     @JsonPropertyDescription("Indicates the suffix for the volume. Default value is 'data'.")
     private String name;
     @JsonPropertyDescription("Indicates the requested size for the volume. The format follows the Kubernetes' "
-            + "Quantity. Default value is '5Gi'.")
+            + "Quantity.")
     private String size;
     @JsonPropertyDescription("Indicates if a StorageClass is used. The operator will create the StorageClass if "
             + "needed.")

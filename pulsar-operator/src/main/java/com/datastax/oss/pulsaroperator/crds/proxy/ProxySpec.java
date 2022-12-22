@@ -1,7 +1,9 @@
 package com.datastax.oss.pulsaroperator.crds.proxy;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -73,9 +75,9 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     @AllArgsConstructor
     @Builder
     public static class ServiceConfig {
-        @JsonPropertyDescription("Additional annotations to add to the Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ANNOTATIONS)
         private Map<String, String> annotations;
-        @JsonPropertyDescription("Additional ports for the Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_PORTS)
         private List<ServicePort> additionalPorts;
         @JsonPropertyDescription("Assign a load balancer IP.")
         private String loadBalancerIP;
@@ -86,23 +88,6 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
 
     }
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class InitContainerConfig {
-        @JsonPropertyDescription("The image used to run the container.")
-        private String image;
-        @JsonPropertyDescription("The image pull policy used for the container.")
-        private String imagePullPolicy;
-        @JsonPropertyDescription("The command used for the container.")
-        private List<String> command;
-        @JsonPropertyDescription("The command args used for the container.")
-        private List<String> args;
-        @JsonPropertyDescription("The container path where the emptyDir volume is mounted.")
-        private String emptyDirPath;
-    }
-
 
     @Data
     @NoArgsConstructor
@@ -111,27 +96,27 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     public static class WebSocketConfig {
         @JsonPropertyDescription("Enable WebSocket standalone as container in the proxy pod.")
         private Boolean enabled;
-        @JsonPropertyDescription("Resource requirements for the pod.")
+        @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
         private ResourceRequirements resources;
     }
 
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
     protected Map<String, String> config;
     @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
-    @JsonPropertyDescription("Annotations to add to each Proxy resource.")
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the Proxy pod. Default value is 60.")
+    @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the Proxy container.")
+    @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
-    @JsonPropertyDescription("Configurations for the Service resource associated to the Proxy pod.")
+    @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
     @JsonPropertyDescription("Additional init container.")
     private InitContainerConfig initContainer;
-    @JsonPropertyDescription("WebSocket proxy configuration.")
+    @JsonPropertyDescription("WebSocket configuration.")
     private WebSocketConfig webSocket;
     @JsonPropertyDescription("Whether or not the functions worker is in standalone mode.")
     private Boolean standaloneFunctionsWorker;

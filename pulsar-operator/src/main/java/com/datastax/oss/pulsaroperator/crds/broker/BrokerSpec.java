@@ -1,7 +1,9 @@
 package com.datastax.oss.pulsaroperator.crds.broker;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -73,9 +75,9 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @AllArgsConstructor
     @Builder
     public static class ServiceConfig {
-        @JsonPropertyDescription("Additional annotations to add to the Broker Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ANNOTATIONS)
         private Map<String, String> annotations;
-        @JsonPropertyDescription("Additional ports for the Broker Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_PORTS)
         private List<ServicePort> additionalPorts;
         @JsonPropertyDescription("Service type. Default value is 'ClusterIP'")
         private String type;
@@ -87,11 +89,11 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @AllArgsConstructor
     @Builder
     public static class TransactionCoordinatorConfig {
-        @JsonPropertyDescription("Enable the transaction coordinator in the broker.")
+        @JsonPropertyDescription("Initialize the transaction coordinator if it's not yet and configure the broker to accept transactions.")
         private Boolean enabled;
-        @JsonPropertyDescription("Partitions count for the transaction's topic.")
+        @JsonPropertyDescription("Number of coordinators to create.")
         private Integer partitions;
-        @JsonPropertyDescription("Initialization job configuration.")
+        @JsonPropertyDescription("Config for the init job.")
         private TransactionCoordinatorInitJobConfig initJob;
     }
 
@@ -100,50 +102,29 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @AllArgsConstructor
     @Builder
     public static class TransactionCoordinatorInitJobConfig {
-        @JsonPropertyDescription("Resource requirements for the Job's Pod.")
+        @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
         private ResourceRequirements resources;
     }
 
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class InitContainerConfig {
-        @JsonPropertyDescription("The image used to run the container.")
-        private String image;
-        @JsonPropertyDescription("The image pull policy used for the container.")
-        private String imagePullPolicy;
-        @JsonPropertyDescription("The command used for the container.")
-        private List<String> command;
-        @JsonPropertyDescription("The command args used for the container.")
-        private List<String> args;
-        @JsonPropertyDescription("The container path where the emptyDir volume is mounted.")
-        private String emptyDirPath;
-    }
-
-
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
     protected Map<String, String> config;
     @JsonPropertyDescription("Enable functions worker embedded in the broker.")
     private Boolean functionsWorkerEnabled;
-    @JsonPropertyDescription("Enable websocket service in the broker.")
-    private Boolean webSocketServiceEnabled;
     @JsonPropertyDescription("Enable transactions in the broker.")
     private TransactionCoordinatorConfig transactions;
-    @JsonPropertyDescription("Update strategy for the Broker pod/s. ")
+    @JsonPropertyDescription("Update strategy for the StatefulSet.")
     private StatefulSetUpdateStrategy updateStrategy;
-    @JsonPropertyDescription("Pod management policy for the Broker pod.")
+    @JsonPropertyDescription("Pod management policy.")
     private String podManagementPolicy;
-    @JsonPropertyDescription("Annotations to add to each Broker resource.")
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the Broker pod. Default value is 60.")
+    @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the Broker pod.")
+    @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
-    @JsonPropertyDescription("Configurations for the Service resources associated to the Broker pod.")
+    @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
     @JsonPropertyDescription("Service account name for the Broker StatefulSet.")
     private String serviceAccountName;
@@ -166,9 +147,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         applyServiceDefaults();
         if (functionsWorkerEnabled == null) {
             functionsWorkerEnabled = false;
-        }
-        if (webSocketServiceEnabled == null) {
-            webSocketServiceEnabled = false;
         }
         applyAutoscalerDefaults();
         if (replicas == null) {

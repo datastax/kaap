@@ -22,7 +22,7 @@ spec:
               functionsWorker:
                 properties:
                   updateStrategy:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Update strategy for the StatefulSet.
                     properties:
                       type:
                         type: string
@@ -38,19 +38,17 @@ spec:
                         type: object
                     type: object
                   config:
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
-                    description: Termination grace period in seconds for the Broker
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   service:
-                    description: Configurations for the Service resources associated
-                      to the Broker pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the Broker Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -73,15 +71,14 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the Broker Service
-                          resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                       type:
                         description: Service type. Default value is 'ClusterIP'
                         type: string
                     type: object
                   imagePullSecrets:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Image pull secrets.
                     items:
                       properties:
                         name:
@@ -91,14 +88,14 @@ spec:
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Broker resource.
+                    description: Annotations to add to each resource.
                     type: object
                   rbac:
-                    description: Function runtime resources.
+                    description: RBAC config.
                     properties:
                       namespaced:
                         description: Whether or not the RBAC is created per-namespace
-                          or for the cluster.
+                          or cluster-wise.
                         type: boolean
                       create:
                         description: Create needed RBAC to run the Functions Worker.
@@ -134,8 +131,7 @@ spec:
                         type: object
                       size:
                         description: Indicates the requested size for the volume.
-                          The format follows the Kubernetes' Quantity. Default value
-                          is '5Gi'.
+                          The format follows the Kubernetes' Quantity.
                         type: string
                       name:
                         description: Indicates the suffix for the volume. Default
@@ -147,7 +143,7 @@ spec:
                         type: string
                     type: object
                   podManagementPolicy:
-                    description: Pod management policy for the Broker pod.
+                    description: Pod management policy.
                     type: string
                   initContainer:
                     description: Additional init container.
@@ -174,7 +170,7 @@ spec:
                         type: string
                     type: object
                   resources:
-                    description: Resource requirements for the Broker pod.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -208,34 +204,32 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
               bookkeeper:
@@ -244,7 +238,7 @@ spec:
                     description: Volumes configuration.
                     properties:
                       journal:
-                        description: Indicates the volume config for the journal.
+                        description: Config for the journal volume.
                         properties:
                           storageClass:
                             description: Indicates if a StorageClass is used. The
@@ -274,8 +268,7 @@ spec:
                             type: object
                           size:
                             description: Indicates the requested size for the volume.
-                              The format follows the Kubernetes' Quantity. Default
-                              value is '5Gi'.
+                              The format follows the Kubernetes' Quantity.
                             type: string
                           name:
                             description: Indicates the suffix for the volume. Default
@@ -287,7 +280,7 @@ spec:
                             type: string
                         type: object
                       ledgers:
-                        description: Indicates the volume config for the ledgers.
+                        description: Config for the ledgers volume.
                         properties:
                           storageClass:
                             description: Indicates if a StorageClass is used. The
@@ -317,8 +310,7 @@ spec:
                             type: object
                           size:
                             description: Indicates the requested size for the volume.
-                              The format follows the Kubernetes' Quantity. Default
-                              value is '5Gi'.
+                              The format follows the Kubernetes' Quantity.
                             type: string
                           name:
                             description: Indicates the suffix for the volume. Default
@@ -331,8 +323,8 @@ spec:
                         type: object
                     type: object
                   updateStrategy:
-                    description: Update strategy for the BookKeeper pod/s. Default
-                      value is rolling update.
+                    description: Update strategy for the StatefulSet. Default value
+                      is rolling update.
                     properties:
                       type:
                         type: string
@@ -348,21 +340,19 @@ spec:
                         type: object
                     type: object
                   gracePeriod:
-                    description: Termination grace period in seconds for the BookKeeper
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each BookKeeper resource.
+                    description: Annotations to add to each resource.
                     type: object
                   service:
-                    description: Configurations for the Service resources associated
-                      to the BookKeeper pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the BookKeeper Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -385,13 +375,11 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the BookKeeper
-                          Service resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                     type: object
                   podManagementPolicy:
-                    description: Pod management policy for the BookKeeper pod. Default
-                      value is 'Parallel'.
+                    description: Pod management policy. Default value is 'Parallel'.
                     type: string
                   autoscaler:
                     description: Autoscaling config.
@@ -423,7 +411,7 @@ spec:
                         type: integer
                     type: object
                   resources:
-                    description: Resource requirements for the BookKeeper pod.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -446,7 +434,7 @@ spec:
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Override Pulsar image.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.
@@ -462,61 +450,58 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
               bastion:
                 properties:
                   gracePeriod:
-                    description: Termination grace period in seconds for the Autorecovery
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Autorecovery resource.
+                    description: Annotations to add to each resource.
                     type: object
                   resources:
-                    description: Resource requirements for the Autorecovery container.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -538,22 +523,21 @@ spec:
                       default value depends whether Proxy is deployed or not.
                     type: boolean
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                 type: object
               broker:
                 properties:
                   service:
-                    description: Configurations for the Service resources associated
-                      to the Broker pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the Broker Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -576,15 +560,14 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the Broker Service
-                          resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                       type:
                         description: Service type. Default value is 'ClusterIP'
                         type: string
                     type: object
                   updateStrategy:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Update strategy for the StatefulSet.
                     properties:
                       type:
                         type: string
@@ -599,12 +582,8 @@ spec:
                             type: integer
                         type: object
                     type: object
-                  webSocketServiceEnabled:
-                    description: Enable websocket service in the broker.
-                    type: boolean
                   gracePeriod:
-                    description: Termination grace period in seconds for the Broker
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   functionsWorkerEnabled:
@@ -614,13 +593,13 @@ spec:
                     description: Enable transactions in the broker.
                     properties:
                       partitions:
-                        description: Partitions count for the transaction's topic.
+                        description: Number of coordinators to create.
                         type: integer
                       initJob:
-                        description: Initialization job configuration.
+                        description: Config for the init job.
                         properties:
                           resources:
-                            description: Resource requirements for the Job's Pod.
+                            description: Resources requirements.
                             properties:
                               limits:
                                 additionalProperties:
@@ -639,13 +618,14 @@ spec:
                             type: object
                         type: object
                       enabled:
-                        description: Enable the transaction coordinator in the broker.
+                        description: Initialize the transaction coordinator if it's
+                          not yet and configure the broker to accept transactions.
                         type: boolean
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Broker resource.
+                    description: Annotations to add to each resource.
                     type: object
                   autoscaler:
                     description: Autoscaling config.
@@ -678,6 +658,9 @@ spec:
                         minimum: 1.0
                         type: integer
                     type: object
+                  podManagementPolicy:
+                    description: Pod management policy.
+                    type: string
                   initContainer:
                     description: Additional init container.
                     properties:
@@ -702,11 +685,8 @@ spec:
                         description: The image pull policy used for the container.
                         type: string
                     type: object
-                  podManagementPolicy:
-                    description: Pod management policy for the Broker pod.
-                    type: string
                   resources:
-                    description: Resource requirements for the Broker pod.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -726,7 +706,7 @@ spec:
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                   serviceAccountName:
                     description: Service account name for the Broker StatefulSet.
@@ -745,34 +725,32 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
               zookeeper:
@@ -782,7 +760,7 @@ spec:
                       Pulsar cluster creating the needed ZooKeeper nodes.
                     properties:
                       resources:
-                        description: Resource requirements for the Job's Pod.
+                        description: Resources requirements.
                         properties:
                           limits:
                             additionalProperties:
@@ -805,7 +783,7 @@ spec:
                         type: integer
                     type: object
                   updateStrategy:
-                    description: Update strategy for the ZooKeeper pod. Default value
+                    description: Update strategy for the StatefulSet. Default value
                       is rolling update.
                     properties:
                       type:
@@ -822,16 +800,14 @@ spec:
                         type: object
                     type: object
                   gracePeriod:
-                    description: Termination grace period in seconds for the ZooKeeper
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   service:
-                    description: Configurations for the Service resources associated
-                      to the ZooKeeper pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the ZooKeeper Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -854,18 +830,16 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the ZooKeeper
-                          Service resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each ZooKeeper resource.
+                    description: Annotations to add to each resource.
                     type: object
                   podManagementPolicy:
-                    description: Pod management policy for the ZooKeeper pod. Default
-                      value is 'Parallel'.
+                    description: Pod management policy. Default value is 'Parallel'.
                     type: string
                   dataVolume:
                     description: Volume configuration for ZooKeeper data.
@@ -897,8 +871,7 @@ spec:
                         type: object
                       size:
                         description: Indicates the requested size for the volume.
-                          The format follows the Kubernetes' Quantity. Default value
-                          is '5Gi'.
+                          The format follows the Kubernetes' Quantity.
                         type: string
                       name:
                         description: Indicates the suffix for the volume. Default
@@ -910,7 +883,7 @@ spec:
                         type: string
                     type: object
                   resources:
-                    description: Resource requirements for the ZooKeeper pod.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -930,7 +903,7 @@ spec:
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.
@@ -946,44 +919,41 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
               proxy:
                 properties:
                   service:
-                    description: Configurations for the Service resource associated
-                      to the Proxy pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -1009,8 +979,7 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the Service
-                          resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                       type:
                         description: Service type. Default value is 'ClusterIP'
@@ -1021,8 +990,7 @@ spec:
                         type: boolean
                     type: object
                   gracePeriod:
-                    description: Termination grace period in seconds for the Proxy
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   standaloneFunctionsWorker:
@@ -1032,7 +1000,33 @@ spec:
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Proxy resource.
+                    description: Annotations to add to each resource.
+                    type: object
+                  webSocket:
+                    description: WebSocket configuration.
+                    properties:
+                      resources:
+                        description: Resources requirements.
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                        type: object
+                      enabled:
+                        description: Enable WebSocket standalone as container in the
+                          proxy pod.
+                        type: boolean
                     type: object
                   initContainer:
                     description: Additional init container.
@@ -1058,32 +1052,6 @@ spec:
                         description: The image pull policy used for the container.
                         type: string
                     type: object
-                  webSocket:
-                    description: WebSocket proxy configuration.
-                    properties:
-                      resources:
-                        description: Resource requirements for the pod.
-                        properties:
-                          limits:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              x-kubernetes-int-or-string: true
-                            type: object
-                          requests:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
-                      enabled:
-                        description: Enable WebSocket standalone as container in the
-                          proxy pod.
-                        type: boolean
-                    type: object
                   updateStrategy:
                     description: Strategy for the proxy deployment.
                     properties:
@@ -1104,7 +1072,7 @@ spec:
                         type: string
                     type: object
                   resources:
-                    description: Resource requirements for the Proxy container.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -1124,7 +1092,7 @@ spec:
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.
@@ -1140,61 +1108,58 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
               autorecovery:
                 properties:
                   gracePeriod:
-                    description: Termination grace period in seconds for the Autorecovery
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Autorecovery resource.
+                    description: Annotations to add to each resource.
                     type: object
                   resources:
-                    description: Resource requirements for the Autorecovery container.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -1212,12 +1177,12 @@ spec:
                         type: object
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                 type: object
               global:
@@ -1430,8 +1395,12 @@ spec:
           status:
             properties:
               lastApplied:
+                description: Last spec applied.
                 type: string
               conditions:
+                description: |-
+                  Conditions:
+                   1. Condition Ready: possible status are True or False. If False, the reason contains the error message.
                 items:
                   properties:
                     status:

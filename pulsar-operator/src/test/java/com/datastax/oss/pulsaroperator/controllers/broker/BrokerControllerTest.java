@@ -263,44 +263,6 @@ public class BrokerControllerTest {
 
 
     @Test
-    public void testEnableWebSocket() throws Exception {
-        String spec = """
-                global:
-                    name: pul
-                    persistence: false
-                    image: apachepulsar/pulsar:global
-                broker:
-                    webSocketServiceEnabled: true
-                """;
-        MockKubernetesClient client = invokeController(spec);
-
-        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
-                client.getCreatedResource(ConfigMap.class);
-
-        Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
-        expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
-                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "info");
-        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
-        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("webSocketServiceEnabled", "true");
-
-        final Map<String, String> data = createdResource.getResource().getData();
-        Assert.assertEquals(data, expectedData);
-    }
-
-
-    @Test
     public void testTransactions() throws Exception {
         String spec = """
                 global:

@@ -22,11 +22,10 @@ spec:
               broker:
                 properties:
                   service:
-                    description: Configurations for the Service resources associated
-                      to the Broker pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the Broker Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -49,15 +48,14 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the Broker Service
-                          resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                       type:
                         description: Service type. Default value is 'ClusterIP'
                         type: string
                     type: object
                   updateStrategy:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Update strategy for the StatefulSet.
                     properties:
                       type:
                         type: string
@@ -72,12 +70,8 @@ spec:
                             type: integer
                         type: object
                     type: object
-                  webSocketServiceEnabled:
-                    description: Enable websocket service in the broker.
-                    type: boolean
                   gracePeriod:
-                    description: Termination grace period in seconds for the Broker
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   functionsWorkerEnabled:
@@ -87,13 +81,13 @@ spec:
                     description: Enable transactions in the broker.
                     properties:
                       partitions:
-                        description: Partitions count for the transaction's topic.
+                        description: Number of coordinators to create.
                         type: integer
                       initJob:
-                        description: Initialization job configuration.
+                        description: Config for the init job.
                         properties:
                           resources:
-                            description: Resource requirements for the Job's Pod.
+                            description: Resources requirements.
                             properties:
                               limits:
                                 additionalProperties:
@@ -112,13 +106,14 @@ spec:
                             type: object
                         type: object
                       enabled:
-                        description: Enable the transaction coordinator in the broker.
+                        description: Initialize the transaction coordinator if it's
+                          not yet and configure the broker to accept transactions.
                         type: boolean
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Broker resource.
+                    description: Annotations to add to each resource.
                     type: object
                   autoscaler:
                     description: Autoscaling config.
@@ -151,6 +146,9 @@ spec:
                         minimum: 1.0
                         type: integer
                     type: object
+                  podManagementPolicy:
+                    description: Pod management policy.
+                    type: string
                   initContainer:
                     description: Additional init container.
                     properties:
@@ -175,11 +173,8 @@ spec:
                         description: The image pull policy used for the container.
                         type: string
                     type: object
-                  podManagementPolicy:
-                    description: Pod management policy for the Broker pod.
-                    type: string
                   resources:
-                    description: Resource requirements for the Broker pod.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -199,7 +194,7 @@ spec:
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                   serviceAccountName:
                     description: Service account name for the Broker StatefulSet.
@@ -218,34 +213,32 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
               global:
@@ -458,8 +451,12 @@ spec:
           status:
             properties:
               lastApplied:
+                description: Last spec applied.
                 type: string
               conditions:
+                description: |-
+                  Conditions:
+                   1. Condition Ready: possible status are True or False. If False, the reason contains the error message.
                 items:
                   properties:
                     status:

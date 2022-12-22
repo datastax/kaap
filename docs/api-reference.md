@@ -9,13 +9,11 @@ Packages:
 Resource Types:
 
 - [PulsarCluster](#pulsarcluster)
-
+  
 
 
 
 ## PulsarCluster
-<sup><sup>[↩ Parent](#comdatastaxossv1alpha1 )</sup></sup>
-
 
 
 
@@ -68,7 +66,6 @@ Resource Types:
 
 
 ### PulsarCluster.spec
-<sup><sup>[↩ Parent](#pulsarcluster)</sup></sup>
 
 
 
@@ -144,7 +141,6 @@ Resource Types:
 
 
 ### PulsarCluster.spec.autorecovery
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -163,21 +159,21 @@ Resource Types:
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Autorecovery resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Autorecovery pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -186,35 +182,35 @@ Resource Types:
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoveryresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Autorecovery container.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -222,11 +218,10 @@ Resource Types:
 
 
 ### PulsarCluster.spec.autorecovery.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecautorecovery)</sup></sup>
 
 
 
-Resource requirements for the Autorecovery container.
+Resources requirements.
 
 <table>
     <thead>
@@ -256,7 +251,6 @@ Resource requirements for the Autorecovery container.
 
 
 ### PulsarCluster.spec.bastion
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -275,21 +269,21 @@ Resource requirements for the Autorecovery container.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Autorecovery resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Autorecovery pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -298,35 +292,35 @@ Resource requirements for the Autorecovery container.
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Autorecovery container.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -341,11 +335,10 @@ Resource requirements for the Autorecovery container.
 
 
 ### PulsarCluster.spec.bastion.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecbastion)</sup></sup>
 
 
 
-Resource requirements for the Autorecovery container.
+Resources requirements.
 
 <table>
     <thead>
@@ -375,7 +368,6 @@ Resource requirements for the Autorecovery container.
 
 
 ### PulsarCluster.spec.bookkeeper
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -394,7 +386,7 @@ Resource requirements for the Autorecovery container.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each BookKeeper resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -408,14 +400,14 @@ Resource requirements for the Autorecovery container.
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the BookKeeper pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -424,35 +416,35 @@ Resource requirements for the Autorecovery container.
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperpdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for this component.<br/>
+          Pod disruption budget configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>podManagementPolicy</b></td>
         <td>string</td>
         <td>
-          Pod management policy for the BookKeeper pod. Default value is 'Parallel'.<br/>
+          Pod management policy. Default value is 'Parallel'.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -473,28 +465,28 @@ Resource requirements for the Autorecovery container.
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the BookKeeper pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resources associated to the BookKeeper pod.<br/>
+          Service configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperupdatestrategy">updateStrategy</a></b></td>
         <td>object</td>
         <td>
-          Update strategy for the BookKeeper pod/s. Default value is rolling update.<br/>
+          Update strategy for the StatefulSet. Default value is rolling update.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -509,7 +501,6 @@ Resource requirements for the Autorecovery container.
 
 
 ### PulsarCluster.spec.bookkeeper.autoscaler
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
@@ -601,11 +592,10 @@ Autoscaling config.
 
 
 ### PulsarCluster.spec.bookkeeper.pdb
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
-Pod disruption budget configuration for this component.
+Pod disruption budget configuration.
 
 <table>
     <thead>
@@ -620,14 +610,14 @@ Pod disruption budget configuration for this component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Enable Pdb policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>integer</td>
         <td>
-          Indicates the maxUnavailable property for the Pdb.<br/>
+          Number of maxUnavailable pods.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -635,7 +625,6 @@ Pod disruption budget configuration for this component.
 
 
 ### PulsarCluster.spec.bookkeeper.probe
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
@@ -654,7 +643,7 @@ Liveness and readiness probe values.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates whether the probe is enabled or not.<br/>
+          Enables the probe.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -683,11 +672,10 @@ Liveness and readiness probe values.
 
 
 ### PulsarCluster.spec.bookkeeper.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
-Resource requirements for the BookKeeper pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -717,11 +705,10 @@ Resource requirements for the BookKeeper pod.
 
 
 ### PulsarCluster.spec.bookkeeper.service
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
-Configurations for the Service resources associated to the BookKeeper pod.
+Service configuration.
 
 <table>
     <thead>
@@ -736,14 +723,14 @@ Configurations for the Service resources associated to the BookKeeper pod.
         <td><b><a href="#pulsarclusterspecbookkeeperserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the BookKeeper Service resources.<br/>
+          Additional ports to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the BookKeeper Service resources.<br/>
+          Additional annotations to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -751,7 +738,6 @@ Configurations for the Service resources associated to the BookKeeper pod.
 
 
 ### PulsarCluster.spec.bookkeeper.service.additionalPorts[index]
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeperservice)</sup></sup>
 
 
 
@@ -813,11 +799,10 @@ Configurations for the Service resources associated to the BookKeeper pod.
 
 
 ### PulsarCluster.spec.bookkeeper.updateStrategy
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
-Update strategy for the BookKeeper pod/s. Default value is rolling update.
+Update strategy for the StatefulSet. Default value is rolling update.
 
 <table>
     <thead>
@@ -847,7 +832,6 @@ Update strategy for the BookKeeper pod/s. Default value is rolling update.
 
 
 ### PulsarCluster.spec.bookkeeper.updateStrategy.rollingUpdate
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeperupdatestrategy)</sup></sup>
 
 
 
@@ -881,7 +865,6 @@ Update strategy for the BookKeeper pod/s. Default value is rolling update.
 
 
 ### PulsarCluster.spec.bookkeeper.volumes
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeeper)</sup></sup>
 
 
 
@@ -900,14 +883,14 @@ Volumes configuration.
         <td><b><a href="#pulsarclusterspecbookkeepervolumesjournal">journal</a></b></td>
         <td>object</td>
         <td>
-          Indicates the volume config for the journal.<br/>
+          Config for the journal volume.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepervolumesledgers">ledgers</a></b></td>
         <td>object</td>
         <td>
-          Indicates the volume config for the ledgers.<br/>
+          Config for the ledgers volume.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -915,11 +898,10 @@ Volumes configuration.
 
 
 ### PulsarCluster.spec.bookkeeper.volumes.journal
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeepervolumes)</sup></sup>
 
 
 
-Indicates the volume config for the journal.
+Config for the journal volume.
 
 <table>
     <thead>
@@ -948,7 +930,7 @@ Indicates the volume config for the journal.
         <td><b>size</b></td>
         <td>string</td>
         <td>
-          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity. Default value is '5Gi'.<br/>
+          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -963,7 +945,6 @@ Indicates the volume config for the journal.
 
 
 ### PulsarCluster.spec.bookkeeper.volumes.journal.storageClass
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeepervolumesjournal)</sup></sup>
 
 
 
@@ -1018,11 +999,10 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 
 
 ### PulsarCluster.spec.bookkeeper.volumes.ledgers
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeepervolumes)</sup></sup>
 
 
 
-Indicates the volume config for the ledgers.
+Config for the ledgers volume.
 
 <table>
     <thead>
@@ -1051,7 +1031,7 @@ Indicates the volume config for the ledgers.
         <td><b>size</b></td>
         <td>string</td>
         <td>
-          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity. Default value is '5Gi'.<br/>
+          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1066,7 +1046,6 @@ Indicates the volume config for the ledgers.
 
 
 ### PulsarCluster.spec.bookkeeper.volumes.ledgers.storageClass
-<sup><sup>[↩ Parent](#pulsarclusterspecbookkeepervolumesledgers)</sup></sup>
 
 
 
@@ -1121,7 +1100,6 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 
 
 ### PulsarCluster.spec.broker
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -1140,7 +1118,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Broker resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1154,7 +1132,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1168,7 +1146,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Broker pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -1177,14 +1155,14 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1198,21 +1176,21 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerpdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for this component.<br/>
+          Pod disruption budget configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>podManagementPolicy</b></td>
         <td>string</td>
         <td>
-          Pod management policy for the Broker pod.<br/>
+          Pod management policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1226,21 +1204,21 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Broker pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resources associated to the Broker pod.<br/>
+          Service configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1261,14 +1239,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b><a href="#pulsarclusterspecbrokerupdatestrategy">updateStrategy</a></b></td>
         <td>object</td>
         <td>
-          Update strategy for the Broker pod/s. <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>webSocketServiceEnabled</b></td>
-        <td>boolean</td>
-        <td>
-          Enable websocket service in the broker.<br/>
+          Update strategy for the StatefulSet.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1276,7 +1247,6 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 
 
 ### PulsarCluster.spec.broker.autoscaler
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
@@ -1375,7 +1345,6 @@ Autoscaling config.
 
 
 ### PulsarCluster.spec.broker.initContainer
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
@@ -1430,11 +1399,10 @@ Additional init container.
 
 
 ### PulsarCluster.spec.broker.pdb
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
-Pod disruption budget configuration for this component.
+Pod disruption budget configuration.
 
 <table>
     <thead>
@@ -1449,14 +1417,14 @@ Pod disruption budget configuration for this component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Enable Pdb policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>integer</td>
         <td>
-          Indicates the maxUnavailable property for the Pdb.<br/>
+          Number of maxUnavailable pods.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1464,7 +1432,6 @@ Pod disruption budget configuration for this component.
 
 
 ### PulsarCluster.spec.broker.probe
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
@@ -1483,7 +1450,7 @@ Liveness and readiness probe values.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates whether the probe is enabled or not.<br/>
+          Enables the probe.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1512,11 +1479,10 @@ Liveness and readiness probe values.
 
 
 ### PulsarCluster.spec.broker.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
-Resource requirements for the Broker pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -1546,11 +1512,10 @@ Resource requirements for the Broker pod.
 
 
 ### PulsarCluster.spec.broker.service
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
-Configurations for the Service resources associated to the Broker pod.
+Service configuration.
 
 <table>
     <thead>
@@ -1565,14 +1530,14 @@ Configurations for the Service resources associated to the Broker pod.
         <td><b><a href="#pulsarclusterspecbrokerserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the Broker Service resources.<br/>
+          Additional ports to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the Broker Service resources.<br/>
+          Additional annotations to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1587,7 +1552,6 @@ Configurations for the Service resources associated to the Broker pod.
 
 
 ### PulsarCluster.spec.broker.service.additionalPorts[index]
-<sup><sup>[↩ Parent](#pulsarclusterspecbrokerservice)</sup></sup>
 
 
 
@@ -1649,7 +1613,6 @@ Configurations for the Service resources associated to the Broker pod.
 
 
 ### PulsarCluster.spec.broker.transactions
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
@@ -1668,21 +1631,21 @@ Enable transactions in the broker.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable the transaction coordinator in the broker.<br/>
+          Initialize the transaction coordinator if it's not yet and configure the broker to accept transactions.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokertransactionsinitjob">initJob</a></b></td>
         <td>object</td>
         <td>
-          Initialization job configuration.<br/>
+          Config for the init job.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>partitions</b></td>
         <td>integer</td>
         <td>
-          Partitions count for the transaction's topic.<br/>
+          Number of coordinators to create.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1690,11 +1653,10 @@ Enable transactions in the broker.
 
 
 ### PulsarCluster.spec.broker.transactions.initJob
-<sup><sup>[↩ Parent](#pulsarclusterspecbrokertransactions)</sup></sup>
 
 
 
-Initialization job configuration.
+Config for the init job.
 
 <table>
     <thead>
@@ -1709,7 +1671,7 @@ Initialization job configuration.
         <td><b><a href="#pulsarclusterspecbrokertransactionsinitjobresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Job's Pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1717,11 +1679,10 @@ Initialization job configuration.
 
 
 ### PulsarCluster.spec.broker.transactions.initJob.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecbrokertransactionsinitjob)</sup></sup>
 
 
 
-Resource requirements for the Job's Pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -1751,11 +1712,10 @@ Resource requirements for the Job's Pod.
 
 
 ### PulsarCluster.spec.broker.updateStrategy
-<sup><sup>[↩ Parent](#pulsarclusterspecbroker)</sup></sup>
 
 
 
-Update strategy for the Broker pod/s. 
+Update strategy for the StatefulSet.
 
 <table>
     <thead>
@@ -1785,7 +1745,6 @@ Update strategy for the Broker pod/s.
 
 
 ### PulsarCluster.spec.broker.updateStrategy.rollingUpdate
-<sup><sup>[↩ Parent](#pulsarclusterspecbrokerupdatestrategy)</sup></sup>
 
 
 
@@ -1819,7 +1778,6 @@ Update strategy for the Broker pod/s.
 
 
 ### PulsarCluster.spec.functionsWorker
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -1838,21 +1796,21 @@ Update strategy for the Broker pod/s.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Broker resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
         <td>JSON</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Broker pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -1861,21 +1819,21 @@ Update strategy for the Broker pod/s.
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerimagepullsecretsindex">imagePullSecrets</a></b></td>
         <td>[]object</td>
         <td>
-          Update strategy for the Broker pod/s. <br/>
+          Image pull secrets.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1896,21 +1854,21 @@ Update strategy for the Broker pod/s.
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerpdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for this component.<br/>
+          Pod disruption budget configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>podManagementPolicy</b></td>
         <td>string</td>
         <td>
-          Pod management policy for the Broker pod.<br/>
+          Pod management policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1924,21 +1882,21 @@ Update strategy for the Broker pod/s.
         <td><b><a href="#pulsarclusterspecfunctionsworkerrbac">rbac</a></b></td>
         <td>object</td>
         <td>
-          Function runtime resources.<br/>
+          RBAC config.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Broker pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1952,14 +1910,14 @@ Update strategy for the Broker pod/s.
         <td><b><a href="#pulsarclusterspecfunctionsworkerservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resources associated to the Broker pod.<br/>
+          Service configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerupdatestrategy">updateStrategy</a></b></td>
         <td>object</td>
         <td>
-          Update strategy for the Broker pod/s. <br/>
+          Update strategy for the StatefulSet.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1967,7 +1925,6 @@ Update strategy for the Broker pod/s.
 
 
 ### PulsarCluster.spec.functionsWorker.imagePullSecrets[index]
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
@@ -1994,7 +1951,6 @@ Update strategy for the Broker pod/s.
 
 
 ### PulsarCluster.spec.functionsWorker.initContainer
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
@@ -2049,7 +2005,6 @@ Additional init container.
 
 
 ### PulsarCluster.spec.functionsWorker.logsVolume
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
@@ -2082,7 +2037,7 @@ Volume configuration for export function logs.
         <td><b>size</b></td>
         <td>string</td>
         <td>
-          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity. Default value is '5Gi'.<br/>
+          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2097,7 +2052,6 @@ Volume configuration for export function logs.
 
 
 ### PulsarCluster.spec.functionsWorker.logsVolume.storageClass
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworkerlogsvolume)</sup></sup>
 
 
 
@@ -2152,11 +2106,10 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 
 
 ### PulsarCluster.spec.functionsWorker.pdb
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
-Pod disruption budget configuration for this component.
+Pod disruption budget configuration.
 
 <table>
     <thead>
@@ -2171,14 +2124,14 @@ Pod disruption budget configuration for this component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Enable Pdb policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>integer</td>
         <td>
-          Indicates the maxUnavailable property for the Pdb.<br/>
+          Number of maxUnavailable pods.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2186,7 +2139,6 @@ Pod disruption budget configuration for this component.
 
 
 ### PulsarCluster.spec.functionsWorker.probe
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
@@ -2205,7 +2157,7 @@ Liveness and readiness probe values.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates whether the probe is enabled or not.<br/>
+          Enables the probe.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2234,11 +2186,10 @@ Liveness and readiness probe values.
 
 
 ### PulsarCluster.spec.functionsWorker.rbac
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
-Function runtime resources.
+RBAC config.
 
 <table>
     <thead>
@@ -2260,7 +2211,7 @@ Function runtime resources.
         <td><b>namespaced</b></td>
         <td>boolean</td>
         <td>
-          Whether or not the RBAC is created per-namespace or for the cluster.<br/>
+          Whether or not the RBAC is created per-namespace or cluster-wise.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2268,11 +2219,10 @@ Function runtime resources.
 
 
 ### PulsarCluster.spec.functionsWorker.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
-Resource requirements for the Broker pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -2302,11 +2252,10 @@ Resource requirements for the Broker pod.
 
 
 ### PulsarCluster.spec.functionsWorker.service
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
-Configurations for the Service resources associated to the Broker pod.
+Service configuration.
 
 <table>
     <thead>
@@ -2321,14 +2270,14 @@ Configurations for the Service resources associated to the Broker pod.
         <td><b><a href="#pulsarclusterspecfunctionsworkerserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the Broker Service resources.<br/>
+          Additional ports to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the Broker Service resources.<br/>
+          Additional annotations to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2343,7 +2292,6 @@ Configurations for the Service resources associated to the Broker pod.
 
 
 ### PulsarCluster.spec.functionsWorker.service.additionalPorts[index]
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworkerservice)</sup></sup>
 
 
 
@@ -2405,11 +2353,10 @@ Configurations for the Service resources associated to the Broker pod.
 
 
 ### PulsarCluster.spec.functionsWorker.updateStrategy
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworker)</sup></sup>
 
 
 
-Update strategy for the Broker pod/s. 
+Update strategy for the StatefulSet.
 
 <table>
     <thead>
@@ -2439,7 +2386,6 @@ Update strategy for the Broker pod/s.
 
 
 ### PulsarCluster.spec.functionsWorker.updateStrategy.rollingUpdate
-<sup><sup>[↩ Parent](#pulsarclusterspecfunctionsworkerupdatestrategy)</sup></sup>
 
 
 
@@ -2473,7 +2419,6 @@ Update strategy for the Broker pod/s.
 
 
 ### PulsarCluster.spec.global
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -2584,7 +2529,6 @@ The default value is 'cluster.local'.
 
 
 ### PulsarCluster.spec.global.auth
-<sup><sup>[↩ Parent](#pulsarclusterspecglobal)</sup></sup>
 
 
 
@@ -2619,7 +2563,6 @@ Auth stuff.
 
 
 ### PulsarCluster.spec.global.auth.token
-<sup><sup>[↩ Parent](#pulsarclusterspecglobalauth)</sup></sup>
 
 
 
@@ -2674,7 +2617,6 @@ Auth stuff.
 
 
 ### PulsarCluster.spec.global.components
-<sup><sup>[↩ Parent](#pulsarclusterspecglobal)</sup></sup>
 
 
 
@@ -2743,7 +2685,6 @@ Pulsar cluster components names.
 
 
 ### PulsarCluster.spec.global.dnsConfig
-<sup><sup>[↩ Parent](#pulsarclusterspecglobal)</sup></sup>
 
 
 
@@ -2784,7 +2725,6 @@ Additional DNS config for each pod created by the operator.
 
 
 ### PulsarCluster.spec.global.dnsConfig.options[index]
-<sup><sup>[↩ Parent](#pulsarclusterspecglobaldnsconfig)</sup></sup>
 
 
 
@@ -2818,7 +2758,6 @@ Additional DNS config for each pod created by the operator.
 
 
 ### PulsarCluster.spec.global.storage
-<sup><sup>[↩ Parent](#pulsarclusterspecglobal)</sup></sup>
 
 
 
@@ -2852,7 +2791,6 @@ Storage configuration.
 
 
 ### PulsarCluster.spec.global.storage.storageClass
-<sup><sup>[↩ Parent](#pulsarclusterspecglobalstorage)</sup></sup>
 
 
 
@@ -2907,7 +2845,6 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 
 
 ### PulsarCluster.spec.global.tls
-<sup><sup>[↩ Parent](#pulsarclusterspecglobal)</sup></sup>
 
 
 
@@ -2969,7 +2906,6 @@ TLS configuration for the cluster.
 
 
 ### PulsarCluster.spec.global.tls.bookkeeper
-<sup><sup>[↩ Parent](#pulsarclusterspecglobaltls)</sup></sup>
 
 
 
@@ -3003,7 +2939,6 @@ TLS configurations related to the BookKeeper component.
 
 
 ### PulsarCluster.spec.global.tls.broker
-<sup><sup>[↩ Parent](#pulsarclusterspecglobaltls)</sup></sup>
 
 
 
@@ -3037,7 +2972,6 @@ TLS configurations related to the broker component.
 
 
 ### PulsarCluster.spec.global.tls.proxy
-<sup><sup>[↩ Parent](#pulsarclusterspecglobaltls)</sup></sup>
 
 
 
@@ -3071,7 +3005,6 @@ TLS configurations related to the proxy component.
 
 
 ### PulsarCluster.spec.global.tls.zookeeper
-<sup><sup>[↩ Parent](#pulsarclusterspecglobaltls)</sup></sup>
 
 
 
@@ -3105,7 +3038,6 @@ TLS configurations related to the ZooKeeper component.
 
 
 ### PulsarCluster.spec.proxy
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -3124,21 +3056,21 @@ TLS configurations related to the ZooKeeper component.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each Proxy resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the Proxy pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -3147,14 +3079,14 @@ TLS configurations related to the ZooKeeper component.
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3168,14 +3100,14 @@ TLS configurations related to the ZooKeeper component.
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxypdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for this component.<br/>
+          Pod disruption budget configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3189,21 +3121,21 @@ TLS configurations related to the ZooKeeper component.
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Proxy container.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resource associated to the Proxy pod.<br/>
+          Service configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3224,7 +3156,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b><a href="#pulsarclusterspecproxywebsocket">webSocket</a></b></td>
         <td>object</td>
         <td>
-          WebSocket proxy configuration.<br/>
+          WebSocket configuration.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3232,7 +3164,6 @@ TLS configurations related to the ZooKeeper component.
 
 
 ### PulsarCluster.spec.proxy.initContainer
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
@@ -3287,11 +3218,10 @@ Additional init container.
 
 
 ### PulsarCluster.spec.proxy.pdb
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
-Pod disruption budget configuration for this component.
+Pod disruption budget configuration.
 
 <table>
     <thead>
@@ -3306,14 +3236,14 @@ Pod disruption budget configuration for this component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Enable Pdb policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>integer</td>
         <td>
-          Indicates the maxUnavailable property for the Pdb.<br/>
+          Number of maxUnavailable pods.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3321,7 +3251,6 @@ Pod disruption budget configuration for this component.
 
 
 ### PulsarCluster.spec.proxy.probe
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
@@ -3340,7 +3269,7 @@ Liveness and readiness probe values.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates whether the probe is enabled or not.<br/>
+          Enables the probe.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3369,11 +3298,10 @@ Liveness and readiness probe values.
 
 
 ### PulsarCluster.spec.proxy.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
-Resource requirements for the Proxy container.
+Resources requirements.
 
 <table>
     <thead>
@@ -3403,11 +3331,10 @@ Resource requirements for the Proxy container.
 
 
 ### PulsarCluster.spec.proxy.service
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
-Configurations for the Service resource associated to the Proxy pod.
+Service configuration.
 
 <table>
     <thead>
@@ -3422,14 +3349,14 @@ Configurations for the Service resource associated to the Proxy pod.
         <td><b><a href="#pulsarclusterspecproxyserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the Service resources.<br/>
+          Additional ports to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the Service resources.<br/>
+          Additional annotations to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3458,7 +3385,6 @@ Configurations for the Service resource associated to the Proxy pod.
 
 
 ### PulsarCluster.spec.proxy.service.additionalPorts[index]
-<sup><sup>[↩ Parent](#pulsarclusterspecproxyservice)</sup></sup>
 
 
 
@@ -3520,7 +3446,6 @@ Configurations for the Service resource associated to the Proxy pod.
 
 
 ### PulsarCluster.spec.proxy.updateStrategy
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
@@ -3554,7 +3479,6 @@ Strategy for the proxy deployment.
 
 
 ### PulsarCluster.spec.proxy.updateStrategy.rollingUpdate
-<sup><sup>[↩ Parent](#pulsarclusterspecproxyupdatestrategy)</sup></sup>
 
 
 
@@ -3588,11 +3512,10 @@ Strategy for the proxy deployment.
 
 
 ### PulsarCluster.spec.proxy.webSocket
-<sup><sup>[↩ Parent](#pulsarclusterspecproxy)</sup></sup>
 
 
 
-WebSocket proxy configuration.
+WebSocket configuration.
 
 <table>
     <thead>
@@ -3614,7 +3537,7 @@ WebSocket proxy configuration.
         <td><b><a href="#pulsarclusterspecproxywebsocketresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3622,11 +3545,10 @@ WebSocket proxy configuration.
 
 
 ### PulsarCluster.spec.proxy.webSocket.resources
-<sup><sup>[↩ Parent](#pulsarclusterspecproxywebsocket)</sup></sup>
 
 
 
-Resource requirements for the pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -3656,7 +3578,6 @@ Resource requirements for the pod.
 
 
 ### PulsarCluster.spec.zookeeper
-<sup><sup>[↩ Parent](#pulsarclusterspec)</sup></sup>
 
 
 
@@ -3675,14 +3596,14 @@ Resource requirements for the pod.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each ZooKeeper resource.<br/>
+          Annotations to add to each resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
         <td>map[string]string</td>
         <td>
-          Configuration entries directly passed to this component.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3696,7 +3617,7 @@ Resource requirements for the pod.
         <td><b>gracePeriod</b></td>
         <td>integer</td>
         <td>
-          Termination grace period in seconds for the ZooKeeper pod. Default value is 60.<br/>
+          Termination grace period in seconds.<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
         </td>
@@ -3705,14 +3626,14 @@ Resource requirements for the pod.
         <td><b>image</b></td>
         <td>string</td>
         <td>
-          Pulsar image to use for this component.<br/>
+          Override Pulsar image.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>imagePullPolicy</b></td>
         <td>string</td>
         <td>
-          Pulsar image pull policy to use for this component.<br/>
+          Override image pull policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3726,21 +3647,21 @@ Resource requirements for the pod.
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Additional node selectors for this component.<br/>
+          Additional node selectors.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperpdb">pdb</a></b></td>
         <td>object</td>
         <td>
-          Pod disruption budget configuration for this component.<br/>
+          Pod disruption budget configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>podManagementPolicy</b></td>
         <td>string</td>
         <td>
-          Pod management policy for the ZooKeeper pod. Default value is 'Parallel'.<br/>
+          Pod management policy. Default value is 'Parallel'.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3754,28 +3675,28 @@ Resource requirements for the pod.
         <td><b>replicas</b></td>
         <td>integer</td>
         <td>
-          Replicas of this component.<br/>
+          Number of desired replicas.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the ZooKeeper pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperservice">service</a></b></td>
         <td>object</td>
         <td>
-          Configurations for the Service resources associated to the ZooKeeper pod.<br/>
+          Service configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperupdatestrategy">updateStrategy</a></b></td>
         <td>object</td>
         <td>
-          Update strategy for the ZooKeeper pod. Default value is rolling update.<br/>
+          Update strategy for the StatefulSet. Default value is rolling update.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3783,7 +3704,6 @@ Resource requirements for the pod.
 
 
 ### PulsarCluster.spec.zookeeper.dataVolume
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
@@ -3816,7 +3736,7 @@ Volume configuration for ZooKeeper data.
         <td><b>size</b></td>
         <td>string</td>
         <td>
-          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity. Default value is '5Gi'.<br/>
+          Indicates the requested size for the volume. The format follows the Kubernetes' Quantity.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3831,7 +3751,6 @@ Volume configuration for ZooKeeper data.
 
 
 ### PulsarCluster.spec.zookeeper.dataVolume.storageClass
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeperdatavolume)</sup></sup>
 
 
 
@@ -3886,7 +3805,6 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 
 
 ### PulsarCluster.spec.zookeeper.metadataInitializationJob
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
@@ -3905,7 +3823,7 @@ Configuration about the job that initializes the Pulsar cluster creating the nee
         <td><b><a href="#pulsarclusterspeczookeepermetadatainitializationjobresources">resources</a></b></td>
         <td>object</td>
         <td>
-          Resource requirements for the Job's Pod.<br/>
+          Resources requirements.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3920,11 +3838,10 @@ Configuration about the job that initializes the Pulsar cluster creating the nee
 
 
 ### PulsarCluster.spec.zookeeper.metadataInitializationJob.resources
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeepermetadatainitializationjob)</sup></sup>
 
 
 
-Resource requirements for the Job's Pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -3954,11 +3871,10 @@ Resource requirements for the Job's Pod.
 
 
 ### PulsarCluster.spec.zookeeper.pdb
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
-Pod disruption budget configuration for this component.
+Pod disruption budget configuration.
 
 <table>
     <thead>
@@ -3973,14 +3889,14 @@ Pod disruption budget configuration for this component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Enable Pdb policy.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>maxUnavailable</b></td>
         <td>integer</td>
         <td>
-          Indicates the maxUnavailable property for the Pdb.<br/>
+          Number of maxUnavailable pods.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3988,7 +3904,6 @@ Pod disruption budget configuration for this component.
 
 
 ### PulsarCluster.spec.zookeeper.probe
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
@@ -4007,7 +3922,7 @@ Liveness and readiness probe values.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates whether the probe is enabled or not.<br/>
+          Enables the probe.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -4036,11 +3951,10 @@ Liveness and readiness probe values.
 
 
 ### PulsarCluster.spec.zookeeper.resources
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
-Resource requirements for the ZooKeeper pod.
+Resources requirements.
 
 <table>
     <thead>
@@ -4070,11 +3984,10 @@ Resource requirements for the ZooKeeper pod.
 
 
 ### PulsarCluster.spec.zookeeper.service
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
-Configurations for the Service resources associated to the ZooKeeper pod.
+Service configuration.
 
 <table>
     <thead>
@@ -4089,14 +4002,14 @@ Configurations for the Service resources associated to the ZooKeeper pod.
         <td><b><a href="#pulsarclusterspeczookeeperserviceadditionalportsindex">additionalPorts</a></b></td>
         <td>[]object</td>
         <td>
-          Additional ports for the ZooKeeper Service resources.<br/>
+          Additional ports to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Additional annotations to add to the ZooKeeper Service resources.<br/>
+          Additional annotations to add to the Service.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -4104,7 +4017,6 @@ Configurations for the Service resources associated to the ZooKeeper pod.
 
 
 ### PulsarCluster.spec.zookeeper.service.additionalPorts[index]
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeperservice)</sup></sup>
 
 
 
@@ -4166,11 +4078,10 @@ Configurations for the Service resources associated to the ZooKeeper pod.
 
 
 ### PulsarCluster.spec.zookeeper.updateStrategy
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeper)</sup></sup>
 
 
 
-Update strategy for the ZooKeeper pod. Default value is rolling update.
+Update strategy for the StatefulSet. Default value is rolling update.
 
 <table>
     <thead>
@@ -4200,7 +4111,6 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
 
 
 ### PulsarCluster.spec.zookeeper.updateStrategy.rollingUpdate
-<sup><sup>[↩ Parent](#pulsarclusterspeczookeeperupdatestrategy)</sup></sup>
 
 
 
@@ -4234,7 +4144,6 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
 
 
 ### PulsarCluster.status
-<sup><sup>[↩ Parent](#pulsarcluster)</sup></sup>
 
 
 
@@ -4253,14 +4162,15 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
         <td><b><a href="#pulsarclusterstatusconditionsindex">conditions</a></b></td>
         <td>[]object</td>
         <td>
-          <br/>
+          Conditions:
+ 1. Condition Ready: possible status are True or False. If False, the reason contains the error message.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>lastApplied</b></td>
         <td>string</td>
         <td>
-          <br/>
+          Last spec applied.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -4268,7 +4178,6 @@ Update strategy for the ZooKeeper pod. Default value is rolling update.
 
 
 ### PulsarCluster.status.conditions[index]
-<sup><sup>[↩ Parent](#pulsarclusterstatus)</sup></sup>
 
 
 

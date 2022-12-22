@@ -437,7 +437,6 @@ public class PulsarClusterControllerTest {
                       enabled: true
                       maxUnavailable: 1
                     functionsWorkerEnabled: false
-                    webSocketServiceEnabled: false
                     transactions:
                       enabled: false
                       partitions: 16

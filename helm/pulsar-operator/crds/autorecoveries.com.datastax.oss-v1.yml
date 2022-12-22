@@ -23,28 +23,27 @@ spec:
               autorecovery:
                 properties:
                   gracePeriod:
-                    description: Termination grace period in seconds for the Autorecovery
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Autorecovery resource.
+                    description: Annotations to add to each resource.
                     type: object
                   resources:
-                    description: Resource requirements for the Autorecovery container.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -62,12 +61,12 @@ spec:
                         type: object
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                   config:
                     additionalProperties:
                       type: string
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     type: object
                 type: object
               global:
@@ -280,8 +279,12 @@ spec:
           status:
             properties:
               lastApplied:
+                description: Last spec applied.
                 type: string
               conditions:
+                description: |-
+                  Conditions:
+                   1. Condition Ready: possible status are True or False. If False, the reason contains the error message.
                 items:
                   properties:
                     status:

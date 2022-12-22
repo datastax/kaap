@@ -1,7 +1,9 @@
 package com.datastax.oss.pulsaroperator.crds.function;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
@@ -75,7 +77,7 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     public static class RbacConfig {
         @JsonPropertyDescription("Create needed RBAC to run the Functions Worker.")
         private Boolean create;
-        @JsonPropertyDescription("Whether or not the RBAC is created per-namespace or for the cluster.")
+        @JsonPropertyDescription("Whether or not the RBAC is created per-namespace or cluster-wise.")
         private Boolean namespaced;
     }
 
@@ -84,49 +86,33 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     @AllArgsConstructor
     @Builder
     public static class ServiceConfig {
-        @JsonPropertyDescription("Additional annotations to add to the Broker Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ANNOTATIONS)
         private Map<String, String> annotations;
-        @JsonPropertyDescription("Additional ports for the Broker Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_PORTS)
         private List<ServicePort> additionalPorts;
         @JsonPropertyDescription("Service type. Default value is 'ClusterIP'")
         private String type;
     }
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class InitContainerConfig {
-        @JsonPropertyDescription("The image used to run the container.")
-        private String image;
-        @JsonPropertyDescription("The image pull policy used for the container.")
-        private String imagePullPolicy;
-        @JsonPropertyDescription("The command used for the container.")
-        private List<String> command;
-        @JsonPropertyDescription("The command args used for the container.")
-        private List<String> args;
-        @JsonPropertyDescription("The container path where the emptyDir volume is mounted.")
-        private String emptyDirPath;
-    }
-
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
+    // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
-    @JsonPropertyDescription("Update strategy for the Broker pod/s. ")
+    @JsonPropertyDescription("Update strategy for the StatefulSet.")
     private StatefulSetUpdateStrategy updateStrategy;
-    @JsonPropertyDescription("Pod management policy for the Broker pod.")
+    @JsonPropertyDescription("Pod management policy.")
     private String podManagementPolicy;
-    @JsonPropertyDescription("Update strategy for the Broker pod/s. ")
+    @JsonPropertyDescription("Image pull secrets.")
     private List<LocalObjectReference> imagePullSecrets;
-    @JsonPropertyDescription("Annotations to add to each Broker resource.")
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the Broker pod. Default value is 60.")
+    @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the Broker pod.")
+    @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
-    @JsonPropertyDescription("Configurations for the Service resources associated to the Broker pod.")
+    @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
     @JsonPropertyDescription("Additional init container.")
     private InitContainerConfig initContainer;
@@ -134,7 +120,7 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     private VolumeConfig logsVolume;
     @JsonPropertyDescription("Runtime mode for functions.")
     private String runtime;
-    @JsonPropertyDescription("Function runtime resources.")
+    @JsonPropertyDescription("RBAC config.")
     private RbacConfig rbac;
 
     @Override

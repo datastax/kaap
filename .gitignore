@@ -18,3 +18,5 @@ target
 # Chart dependencies
 **/charts/*.tgz
 Chart.lock
+
+.DS_Store

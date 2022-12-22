@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class PodDisruptionBudgetConfig {
-    @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+    @JsonPropertyDescription("Enable Pdb policy.")
     private Boolean enabled;
-    @JsonPropertyDescription("Indicates the maxUnavailable property for the Pdb.")
+    @JsonPropertyDescription("Number of maxUnavailable pods.")
     private Integer maxUnavailable;
 }

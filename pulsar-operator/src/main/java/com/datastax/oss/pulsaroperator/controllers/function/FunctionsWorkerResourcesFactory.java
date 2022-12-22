@@ -146,7 +146,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
 
         if (isAuthTokenEnabled()) {
-            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            final AuthConfig.TokenAuthenticationConfig tokenConfig = global.getAuth().getToken();
             data.put("authorizationEnabled", "true");
             data.put("authenticationEnabled", "true");
             data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
@@ -198,7 +198,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("bookkeeperTLSClientAuthentication", "true");
         }
         if (isAuthTokenEnabled()) {
-            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            final AuthConfig.TokenAuthenticationConfig tokenConfig = global.getAuth().getToken();
             data.put("authenticationEnabled", "true");
             data.put("authorizationEnabled", "true");
             data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");

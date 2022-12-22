@@ -141,7 +141,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         data.putAll(DEFAULT_CONFIG_MAP);
 
         if (isAuthTokenEnabled()) {
-            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            final AuthConfig.TokenAuthenticationConfig tokenConfig = global.getAuth().getToken();
             data.put("authenticationEnabled", "true");
             data.put("authorizationEnabled", "true");
             data.put("superUserRoles", tokenConfig.superUserRolesAsString());
@@ -186,7 +186,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (isAuthTokenEnabled()) {
             data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
                     + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
-            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            final AuthConfig.TokenAuthenticationConfig tokenConfig = global.getAuth().getToken();
             data.put("authenticationEnabled", "true");
             data.put("authorizationEnabled", "true");
             data.put("superUserRoles", tokenConfig.superUserRolesAsString());

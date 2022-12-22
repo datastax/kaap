@@ -35,7 +35,7 @@ public class TokenAuthProvisioner {
     }
 
     @SneakyThrows
-    public void generateSecretsIfAbsent(AuthConfig.TokenConfig tokenConfig) {
+    public void generateSecretsIfAbsent(AuthConfig.TokenAuthenticationConfig tokenConfig) {
         final String prefix = "token";
 
         final String privateKeySecretName = "%s-%s".formatted(prefix, "private-key");

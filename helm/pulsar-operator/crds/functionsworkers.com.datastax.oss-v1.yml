@@ -50,8 +50,7 @@ spec:
                         type: string
                     type: object
                   dnsConfig:
-                    description: Additional DNS config for each pod created by the
-                      operator.
+                    description: DNS config for each pod.
                     properties:
                       nameservers:
                         items:
@@ -81,38 +80,38 @@ spec:
                     type: string
                   auth:
                     description: |
-                      Auth stuff.
+                      Authentication and authorization configuration.
                     properties:
                       token:
+                        description: Token based authentication configuration.
                         properties:
                           privateKeyFile:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Private key file name stored in the Secret.
+                              Default is 'my-private.key'
                             type: string
                           initialize:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Initialize Secrets with new pair of keys
+                              and tokens for the super user roles. The generated Secret
+                              name is 'token-<role>'.
                             type: boolean
                           superUserRoles:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Super user roles.
                             items:
                               type: string
                             type: array
                           proxyRoles:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Proxy roles.
                             items:
                               type: string
                             type: array
                           publicKeyFile:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Public key file name stored in the Secret.
+                              Default is 'my-public.key'
                             type: string
                         type: object
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable authentication in the cluster. Default
+                          is 'false'.
                         type: boolean
                     type: object
                   persistence:
@@ -211,13 +210,13 @@ spec:
                         type: object
                     type: object
                   name:
-                    description: Pulsar cluster base name.
+                    description: Pulsar cluster name.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
                     description: "Global node selector. If set, this will apply to\
-                      \ all components."
+                      \ all the components."
                     type: object
                   imagePullPolicy:
                     description: Default Pulsar image pull policy to use. Any components
@@ -230,7 +229,7 @@ spec:
               functionsWorker:
                 properties:
                   updateStrategy:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Update strategy for the StatefulSet.
                     properties:
                       type:
                         type: string
@@ -246,19 +245,17 @@ spec:
                         type: object
                     type: object
                   config:
-                    description: Configuration entries directly passed to this component.
+                    description: Configuration.
                     x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
-                    description: Termination grace period in seconds for the Broker
-                      pod. Default value is 60.
+                    description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
                   service:
-                    description: Configurations for the Service resources associated
-                      to the Broker pod.
+                    description: Service configuration.
                     properties:
                       additionalPorts:
-                        description: Additional ports for the Broker Service resources.
+                        description: Additional ports to add to the Service.
                         items:
                           properties:
                             targetPort:
@@ -281,15 +278,14 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Additional annotations to add to the Broker Service
-                          resources.
+                        description: Additional annotations to add to the Service.
                         type: object
                       type:
                         description: Service type. Default value is 'ClusterIP'
                         type: string
                     type: object
                   imagePullSecrets:
-                    description: 'Update strategy for the Broker pod/s. '
+                    description: Image pull secrets.
                     items:
                       properties:
                         name:
@@ -299,14 +295,14 @@ spec:
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Annotations to add to each Broker resource.
+                    description: Annotations to add to each resource.
                     type: object
                   rbac:
-                    description: Function runtime resources.
+                    description: RBAC config.
                     properties:
                       namespaced:
                         description: Whether or not the RBAC is created per-namespace
-                          or for the cluster.
+                          or cluster-wise.
                         type: boolean
                       create:
                         description: Create needed RBAC to run the Functions Worker.
@@ -342,8 +338,7 @@ spec:
                         type: object
                       size:
                         description: Indicates the requested size for the volume.
-                          The format follows the Kubernetes' Quantity. Default value
-                          is '5Gi'.
+                          The format follows the Kubernetes' Quantity.
                         type: string
                       name:
                         description: Indicates the suffix for the volume. Default
@@ -355,7 +350,7 @@ spec:
                         type: string
                     type: object
                   podManagementPolicy:
-                    description: Pod management policy for the Broker pod.
+                    description: Pod management policy.
                     type: string
                   initContainer:
                     description: Additional init container.
@@ -382,7 +377,7 @@ spec:
                         type: string
                     type: object
                   resources:
-                    description: Resource requirements for the Broker pod.
+                    description: Resources requirements.
                     properties:
                       limits:
                         additionalProperties:
@@ -416,42 +411,44 @@ spec:
                           the probe.
                         type: integer
                       enabled:
-                        description: Indicates whether the probe is enabled or not.
+                        description: Enables the probe.
                         type: boolean
                     type: object
                   replicas:
-                    description: Replicas of this component.
+                    description: Number of desired replicas.
                     type: integer
                   pdb:
-                    description: Pod disruption budget configuration for this component.
+                    description: Pod disruption budget configuration.
                     properties:
                       maxUnavailable:
-                        description: Indicates the maxUnavailable property for the
-                          Pdb.
+                        description: Number of maxUnavailable pods.
                         type: integer
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable Pdb policy.
                         type: boolean
                     type: object
                   image:
-                    description: Pulsar image to use for this component.
+                    description: Override Pulsar image.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
-                    description: Additional node selectors for this component.
+                    description: Additional node selectors.
                     type: object
                   imagePullPolicy:
-                    description: Pulsar image pull policy to use for this component.
+                    description: Override image pull policy.
                     type: string
                 type: object
             type: object
           status:
             properties:
               lastApplied:
+                description: Last spec applied.
                 type: string
               conditions:
+                description: |-
+                  Conditions:
+                   1. Condition Ready: possible status are True or False. If False, the reason contains the error message.
                 items:
                   properties:
                     status:

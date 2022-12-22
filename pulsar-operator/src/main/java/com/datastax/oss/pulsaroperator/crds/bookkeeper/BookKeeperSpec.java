@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
@@ -80,9 +81,9 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     @AllArgsConstructor
     @Builder
     public static class Volumes {
-        @JsonPropertyDescription("Indicates the volume config for the journal.")
+        @JsonPropertyDescription("Config for the journal volume.")
         private VolumeConfig journal;
-        @JsonPropertyDescription("Indicates the volume config for the ledgers.")
+        @JsonPropertyDescription("Config for the ledgers volume.")
         private VolumeConfig ledgers;
     }
 
@@ -91,32 +92,32 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     @AllArgsConstructor
     @Builder
     public static class ServiceConfig {
-        @JsonPropertyDescription("Additional annotations to add to the BookKeeper Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ANNOTATIONS)
         private Map<String, String> annotations;
-        @JsonPropertyDescription("Additional ports for the BookKeeper Service resources.")
+        @JsonPropertyDescription(CRDConstants.DOC_SERVICE_PORTS)
         private List<ServicePort> additionalPorts;
     }
 
 
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE)
     protected Map<String, String> config;
-    @JsonPropertyDescription("Update strategy for the BookKeeper pod/s. Default value is rolling update.")
+    @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
-    @JsonPropertyDescription("Pod management policy for the BookKeeper pod. Default value is 'Parallel'.")
+    @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")
     private String podManagementPolicy;
-    @JsonPropertyDescription("Annotations to add to each BookKeeper resource.")
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the BookKeeper pod. Default value is 60.")
+    @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the BookKeeper pod.")
+    @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
     @JsonPropertyDescription("Volumes configuration.")
     private Volumes volumes;
     @JsonPropertyDescription("Prefix for each PVC created.")
     private String pvcPrefix;
-    @JsonPropertyDescription("Configurations for the Service resources associated to the BookKeeper pod.")
+    @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
     @JsonPropertyDescription("Autoscaling config.")
     @Valid

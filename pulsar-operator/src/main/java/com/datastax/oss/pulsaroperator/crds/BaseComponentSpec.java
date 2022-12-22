@@ -20,17 +20,17 @@ import org.apache.commons.lang3.ObjectUtils;
 @SuperBuilder
 public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements WithDefaults {
 
-    @JsonPropertyDescription("Pulsar image to use for this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE)
     protected String image;
-    @JsonPropertyDescription("Pulsar image pull policy to use for this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_POLICY)
     private String imagePullPolicy;
-    @JsonPropertyDescription("Additional node selectors for this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_NODE_SELECTORS)
     protected Map<String, String> nodeSelectors;
-    @JsonPropertyDescription("Replicas of this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_REPLICAS)
     protected Integer replicas;
     @JsonPropertyDescription("Liveness and readiness probe values.")
     private ProbeConfig probe;
-    @JsonPropertyDescription("Pod disruption budget configuration for this component.")
+    @JsonPropertyDescription("Pod disruption budget configuration.")
     private PodDisruptionBudgetConfig pdb;
 
     @Override

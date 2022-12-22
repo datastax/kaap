@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds.bastion;
 
 import static com.datastax.oss.pulsaroperator.crds.BaseComponentSpec.mergeMaps;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
@@ -29,23 +30,23 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
                     .build();
 
 
-    @JsonPropertyDescription("Pulsar image to use for this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE)
     protected String image;
-    @JsonPropertyDescription("Pulsar image pull policy to use for this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_POLICY)
     private String imagePullPolicy;
-    @JsonPropertyDescription("Additional node selectors for this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_NODE_SELECTORS)
     protected Map<String, String> nodeSelectors;
-    @JsonPropertyDescription("Configuration entries directly passed to this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
     protected Map<String, String> config;
-    @JsonPropertyDescription("Replicas of this component.")
+    @JsonPropertyDescription(CRDConstants.DOC_REPLICAS)
     protected Integer replicas;
-    @JsonPropertyDescription("Annotations to add to each Autorecovery resource.")
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
-    @JsonPropertyDescription("Termination grace period in seconds for the Autorecovery pod. Default value is 60.")
+    @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)
     private Integer gracePeriod;
-    @JsonPropertyDescription("Resource requirements for the Autorecovery container.")
+    @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
     @JsonPropertyDescription("Indicates to connect to proxy or the broker. The default value depends whether Proxy is deployed or not.")
     private Boolean targetProxy;

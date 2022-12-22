@@ -15,21 +15,31 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthConfig {
 
+    /*
+    .token(AuthConfig.TokenAuthenticationConfig.builder()
+                    .publicKeyFile("my-public.key")
+                    .privateKeyFile("my-private.key")
+                    .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy")))
+                    .proxyRoles(new TreeSet<>(Set.of("proxy")))
+                    .initialize(true)
+                    .build())
+            .build();
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class TokenConfig {
+    public static class TokenAuthenticationConfig {
 
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+        @JsonPropertyDescription("Public key file name stored in the Secret. Default is 'my-public.key'")
         private String publicKeyFile;
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+        @JsonPropertyDescription("Private key file name stored in the Secret. Default is 'my-private.key'")
         private String privateKeyFile;
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+        @JsonPropertyDescription("Super user roles.")
         private TreeSet<String> superUserRoles;
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+        @JsonPropertyDescription("Proxy roles.")
         private TreeSet<String> proxyRoles;
-        @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+        @JsonPropertyDescription("Initialize Secrets with new pair of keys and tokens for the super user roles. The generated Secret name is 'token-<role>'.")
         private Boolean initialize;
 
         public String superUserRolesAsString() {
@@ -49,8 +59,9 @@ public class AuthConfig {
 
     }
 
-    @JsonPropertyDescription("Indicates if the Pdb policy is enabled for this component.")
+    @JsonPropertyDescription("Enable authentication in the cluster. Default is 'false'.")
     Boolean enabled;
-    TokenConfig token;
+    @JsonPropertyDescription("Token based authentication configuration.")
+    TokenAuthenticationConfig token;
 
 }

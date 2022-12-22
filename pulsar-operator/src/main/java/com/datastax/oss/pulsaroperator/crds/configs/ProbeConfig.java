@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ProbeConfig {
-    @JsonPropertyDescription("Indicates whether the probe is enabled or not.")
+    @JsonPropertyDescription("Enables the probe.")
     private Boolean enabled;
     @JsonPropertyDescription("Indicates the timeout (in seconds) for the probe.")
     private Integer timeout;

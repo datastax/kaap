@@ -14,3 +14,7 @@ target
 *.swo
 *~
 *.iml
+
+# Chart dependencies
+**/charts/*.tgz
+Chart.lock

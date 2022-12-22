@@ -2,15 +2,15 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: brokers.com.datastax.oss
+  name: zookeepers.pulsar.oss.datastax.com
 spec:
-  group: com.datastax.oss
+  group: pulsar.oss.datastax.com
   names:
-    kind: Broker
-    plural: brokers
+    kind: ZooKeeper
+    plural: zookeepers
     shortNames:
-    - br
-    singular: broker
+    - zk
+    singular: zookeeper
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -19,8 +19,56 @@ spec:
         properties:
           spec:
             properties:
-              broker:
+              zookeeper:
                 properties:
+                  metadataInitializationJob:
+                    description: Configuration about the job that initializes the
+                      Pulsar cluster creating the needed ZooKeeper nodes.
+                    properties:
+                      resources:
+                        description: Resources requirements.
+                        properties:
+                          limits:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                          requests:
+                            additionalProperties:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            type: object
+                        type: object
+                      timeout:
+                        description: Timeout (in seconds) for the metadata initialization
+                          execution. Default value is 60.
+                        type: integer
+                    type: object
+                  updateStrategy:
+                    description: Update strategy for the StatefulSet. Default value
+                      is rolling update.
+                    properties:
+                      type:
+                        type: string
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          partition:
+                            type: integer
+                        type: object
+                    type: object
+                  gracePeriod:
+                    description: Termination grace period in seconds.
+                    minimum: 0.0
+                    type: integer
                   service:
                     description: Service configuration.
                     properties:
@@ -50,127 +98,54 @@ spec:
                           type: string
                         description: Additional annotations to add to the Service.
                         type: object
-                      type:
-                        description: Service type. Default value is 'ClusterIP'
-                        type: string
-                    type: object
-                  updateStrategy:
-                    description: Update strategy for the StatefulSet.
-                    properties:
-                      type:
-                        type: string
-                      rollingUpdate:
-                        properties:
-                          maxUnavailable:
-                            anyOf:
-                            - type: integer
-                            - type: string
-                            x-kubernetes-int-or-string: true
-                          partition:
-                            type: integer
-                        type: object
-                    type: object
-                  gracePeriod:
-                    description: Termination grace period in seconds.
-                    minimum: 0.0
-                    type: integer
-                  functionsWorkerEnabled:
-                    description: Enable functions worker embedded in the broker.
-                    type: boolean
-                  transactions:
-                    description: Enable transactions in the broker.
-                    properties:
-                      partitions:
-                        description: Number of coordinators to create.
-                        type: integer
-                      initJob:
-                        description: Config for the init job.
-                        properties:
-                          resources:
-                            description: Resources requirements.
-                            properties:
-                              limits:
-                                additionalProperties:
-                                  anyOf:
-                                  - type: integer
-                                  - type: string
-                                  x-kubernetes-int-or-string: true
-                                type: object
-                              requests:
-                                additionalProperties:
-                                  anyOf:
-                                  - type: integer
-                                  - type: string
-                                  x-kubernetes-int-or-string: true
-                                type: object
-                            type: object
-                        type: object
-                      enabled:
-                        description: Initialize the transaction coordinator if it's
-                          not yet and configure the broker to accept transactions.
-                        type: boolean
                     type: object
                   annotations:
                     additionalProperties:
                       type: string
                     description: Annotations to add to each resource.
                     type: object
-                  autoscaler:
-                    description: Autoscaling config.
-                    properties:
-                      periodMs:
-                        minimum: 1000.0
-                        type: integer
-                      max:
-                        type: integer
-                      higherCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: number
-                      enabled:
-                        type: boolean
-                      min:
-                        minimum: 1.0
-                        type: integer
-                      scaleUpBy:
-                        minimum: 1.0
-                        type: integer
-                      stabilizationWindowMs:
-                        minimum: 1.0
-                        type: integer
-                      lowerCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: number
-                      scaleDownBy:
-                        minimum: 1.0
-                        type: integer
-                    type: object
                   podManagementPolicy:
-                    description: Pod management policy.
+                    description: Pod management policy. Default value is 'Parallel'.
                     type: string
-                  initContainer:
-                    description: Additional init container.
+                  dataVolume:
+                    description: Volume configuration for ZooKeeper data.
                     properties:
-                      args:
-                        description: The command args used for the container.
-                        items:
-                          type: string
-                        type: array
-                      command:
-                        description: The command used for the container.
-                        items:
-                          type: string
-                        type: array
-                      image:
-                        description: The image used to run the container.
+                      storageClass:
+                        description: Indicates if a StorageClass is used. The operator
+                          will create the StorageClass if needed.
+                        properties:
+                          extraParams:
+                            additionalProperties:
+                              type: string
+                            description: Adds extra parameters for the StorageClass.
+                            type: object
+                          provisioner:
+                            description: Indicates the provisioner property for the
+                              StorageClass.
+                            type: string
+                          type:
+                            description: Indicates the 'type' parameter for the StorageClass.
+                            type: string
+                          fsType:
+                            description: Indicates the 'fsType' parameter for the
+                              StorageClass.
+                            type: string
+                          reclaimPolicy:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: string
+                        type: object
+                      size:
+                        description: Indicates the requested size for the volume.
+                          The format follows the Kubernetes' Quantity.
                         type: string
-                      emptyDirPath:
-                        description: The container path where the emptyDir volume
-                          is mounted.
+                      name:
+                        description: Indicates the suffix for the volume. Default
+                          value is 'data'.
                         type: string
-                      imagePullPolicy:
-                        description: The image pull policy used for the container.
+                      existingStorageClassName:
+                        description: Indicates if an already existing storage class
+                          should be used.
                         type: string
                     type: object
                   resources:
@@ -196,9 +171,6 @@ spec:
                       type: string
                     description: Configuration.
                     type: object
-                  serviceAccountName:
-                    description: Service account name for the Broker StatefulSet.
-                    type: string
                   probe:
                     description: Liveness and readiness probe values.
                     properties:

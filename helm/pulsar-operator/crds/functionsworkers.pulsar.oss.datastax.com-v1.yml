@@ -2,16 +2,17 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: autorecoveries.com.datastax.oss
+  name: functionsworkers.pulsar.oss.datastax.com
 spec:
-  group: com.datastax.oss
+  group: pulsar.oss.datastax.com
   names:
-    kind: Autorecovery
-    plural: autorecoveries
+    kind: FunctionsWorker
+    plural: functionsworkers
     shortNames:
-    - au
-    - aur
-    singular: autorecovery
+    - fn
+    - fnw
+    - fw
+    singular: functionsworker
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -20,55 +21,6 @@ spec:
         properties:
           spec:
             properties:
-              autorecovery:
-                properties:
-                  gracePeriod:
-                    description: Termination grace period in seconds.
-                    minimum: 0.0
-                    type: integer
-                  replicas:
-                    description: Number of desired replicas.
-                    type: integer
-                  image:
-                    description: Override Pulsar image.
-                    type: string
-                  nodeSelectors:
-                    additionalProperties:
-                      type: string
-                    description: Additional node selectors.
-                    type: object
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Annotations to add to each resource.
-                    type: object
-                  resources:
-                    description: Resources requirements.
-                    properties:
-                      limits:
-                        additionalProperties:
-                          anyOf:
-                          - type: integer
-                          - type: string
-                          x-kubernetes-int-or-string: true
-                        type: object
-                      requests:
-                        additionalProperties:
-                          anyOf:
-                          - type: integer
-                          - type: string
-                          x-kubernetes-int-or-string: true
-                        type: object
-                    type: object
-                  imagePullPolicy:
-                    description: Override image pull policy.
-                    type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
-                    type: object
-                type: object
               global:
                 properties:
                   components:
@@ -273,6 +225,219 @@ spec:
                     type: string
                 required:
                 - name
+                type: object
+              functionsWorker:
+                properties:
+                  updateStrategy:
+                    description: Update strategy for the StatefulSet.
+                    properties:
+                      type:
+                        type: string
+                      rollingUpdate:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          partition:
+                            type: integer
+                        type: object
+                    type: object
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
+                  gracePeriod:
+                    description: Termination grace period in seconds.
+                    minimum: 0.0
+                    type: integer
+                  service:
+                    description: Service configuration.
+                    properties:
+                      additionalPorts:
+                        description: Additional ports to add to the Service.
+                        items:
+                          properties:
+                            targetPort:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            port:
+                              type: integer
+                            nodePort:
+                              type: integer
+                            name:
+                              type: string
+                            appProtocol:
+                              type: string
+                            protocol:
+                              type: string
+                          type: object
+                        type: array
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Additional annotations to add to the Service.
+                        type: object
+                      type:
+                        description: Service type. Default value is 'ClusterIP'
+                        type: string
+                    type: object
+                  imagePullSecrets:
+                    description: Image pull secrets.
+                    items:
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                    type: array
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each resource.
+                    type: object
+                  rbac:
+                    description: RBAC config.
+                    properties:
+                      namespaced:
+                        description: Whether or not the RBAC is created per-namespace
+                          or cluster-wise.
+                        type: boolean
+                      create:
+                        description: Create needed RBAC to run the Functions Worker.
+                        type: boolean
+                    type: object
+                  logsVolume:
+                    description: Volume configuration for export function logs.
+                    properties:
+                      storageClass:
+                        description: Indicates if a StorageClass is used. The operator
+                          will create the StorageClass if needed.
+                        properties:
+                          extraParams:
+                            additionalProperties:
+                              type: string
+                            description: Adds extra parameters for the StorageClass.
+                            type: object
+                          provisioner:
+                            description: Indicates the provisioner property for the
+                              StorageClass.
+                            type: string
+                          type:
+                            description: Indicates the 'type' parameter for the StorageClass.
+                            type: string
+                          fsType:
+                            description: Indicates the 'fsType' parameter for the
+                              StorageClass.
+                            type: string
+                          reclaimPolicy:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: string
+                        type: object
+                      size:
+                        description: Indicates the requested size for the volume.
+                          The format follows the Kubernetes' Quantity.
+                        type: string
+                      name:
+                        description: Indicates the suffix for the volume. Default
+                          value is 'data'.
+                        type: string
+                      existingStorageClassName:
+                        description: Indicates if an already existing storage class
+                          should be used.
+                        type: string
+                    type: object
+                  podManagementPolicy:
+                    description: Pod management policy.
+                    type: string
+                  initContainer:
+                    description: Additional init container.
+                    properties:
+                      args:
+                        description: The command args used for the container.
+                        items:
+                          type: string
+                        type: array
+                      command:
+                        description: The command used for the container.
+                        items:
+                          type: string
+                        type: array
+                      image:
+                        description: The image used to run the container.
+                        type: string
+                      emptyDirPath:
+                        description: The container path where the emptyDir volume
+                          is mounted.
+                        type: string
+                      imagePullPolicy:
+                        description: The image pull policy used for the container.
+                        type: string
+                    type: object
+                  resources:
+                    description: Resources requirements.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          x-kubernetes-int-or-string: true
+                        type: object
+                    type: object
+                  runtime:
+                    description: Runtime mode for functions.
+                    type: string
+                  probe:
+                    description: Liveness and readiness probe values.
+                    properties:
+                      period:
+                        description: Indicates the period (in seconds) for the probe.
+                        type: integer
+                      timeout:
+                        description: Indicates the timeout (in seconds) for the probe.
+                        type: integer
+                      initial:
+                        description: Indicates the initial delay (in seconds) for
+                          the probe.
+                        type: integer
+                      enabled:
+                        description: Enables the probe.
+                        type: boolean
+                    type: object
+                  replicas:
+                    description: Number of desired replicas.
+                    type: integer
+                  pdb:
+                    description: Pod disruption budget configuration.
+                    properties:
+                      maxUnavailable:
+                        description: Number of maxUnavailable pods.
+                        type: integer
+                      enabled:
+                        description: Enable Pdb policy.
+                        type: boolean
+                    type: object
+                  image:
+                    description: Override Pulsar image.
+                    type: string
+                  nodeSelectors:
+                    additionalProperties:
+                      type: string
+                    description: Additional node selectors.
+                    type: object
+                  imagePullPolicy:
+                    description: Override image pull policy.
+                    type: string
                 type: object
             type: object
           status:

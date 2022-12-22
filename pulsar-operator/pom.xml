@@ -117,7 +117,7 @@
                                 <resource>
                                     <directory>${project.build.directory}/kubernetes</directory>
                                     <includes>
-                                        <include>*.com.datastax.oss*.yml</include>
+                                        <include>*.pulsar.oss.datastax.com-*.yml</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>

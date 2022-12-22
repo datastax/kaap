@@ -2437,14 +2437,14 @@ Update strategy for the StatefulSet.
         <td><b>name</b></td>
         <td>string</td>
         <td>
-          Pulsar cluster base name.<br/>
+          Pulsar cluster name.<br/>
         </td>
         <td>true</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobalauth">auth</a></b></td>
         <td>object</td>
         <td>
-          Auth stuff.
+          Authentication and authorization configuration.
 <br/>
         </td>
         <td>false</td>
@@ -2459,7 +2459,7 @@ Update strategy for the StatefulSet.
         <td><b><a href="#pulsarclusterspecglobaldnsconfig">dnsConfig</a></b></td>
         <td>object</td>
         <td>
-          Additional DNS config for each pod created by the operator.<br/>
+          DNS config for each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2491,7 +2491,7 @@ The default value is 'cluster.local'.
         <td><b>nodeSelectors</b></td>
         <td>map[string]string</td>
         <td>
-          Global node selector. If set, this will apply to all components.<br/>
+          Global node selector. If set, this will apply to all the components.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2532,7 +2532,7 @@ The default value is 'cluster.local'.
 
 
 
-Auth stuff.
+Authentication and authorization configuration.
 
 
 <table>
@@ -2548,14 +2548,14 @@ Auth stuff.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Enable authentication in the cluster. Default is 'false'.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobalauthtoken">token</a></b></td>
         <td>object</td>
         <td>
-          <br/>
+          Token based authentication configuration.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2566,7 +2566,7 @@ Auth stuff.
 
 
 
-
+Token based authentication configuration.
 
 <table>
     <thead>
@@ -2581,35 +2581,35 @@ Auth stuff.
         <td><b>initialize</b></td>
         <td>boolean</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Initialize Secrets with new pair of keys and tokens for the super user roles. The generated Secret name is 'token-<role>'.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>privateKeyFile</b></td>
         <td>string</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Private key file name stored in the Secret. Default is 'my-private.key'<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>proxyRoles</b></td>
         <td>[]string</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Proxy roles.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>publicKeyFile</b></td>
         <td>string</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Public key file name stored in the Secret. Default is 'my-public.key'<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>superUserRoles</b></td>
         <td>[]string</td>
         <td>
-          Indicates if the Pdb policy is enabled for this component.<br/>
+          Super user roles.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2688,7 +2688,7 @@ Pulsar cluster components names.
 
 
 
-Additional DNS config for each pod created by the operator.
+DNS config for each pod.
 
 <table>
     <thead>

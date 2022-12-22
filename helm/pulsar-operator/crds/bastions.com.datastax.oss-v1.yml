@@ -102,8 +102,7 @@ spec:
                         type: string
                     type: object
                   dnsConfig:
-                    description: Additional DNS config for each pod created by the
-                      operator.
+                    description: DNS config for each pod.
                     properties:
                       nameservers:
                         items:
@@ -133,38 +132,38 @@ spec:
                     type: string
                   auth:
                     description: |
-                      Auth stuff.
+                      Authentication and authorization configuration.
                     properties:
                       token:
+                        description: Token based authentication configuration.
                         properties:
                           privateKeyFile:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Private key file name stored in the Secret.
+                              Default is 'my-private.key'
                             type: string
                           initialize:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Initialize Secrets with new pair of keys
+                              and tokens for the super user roles. The generated Secret
+                              name is 'token-<role>'.
                             type: boolean
                           superUserRoles:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Super user roles.
                             items:
                               type: string
                             type: array
                           proxyRoles:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Proxy roles.
                             items:
                               type: string
                             type: array
                           publicKeyFile:
-                            description: Indicates if the Pdb policy is enabled for
-                              this component.
+                            description: Public key file name stored in the Secret.
+                              Default is 'my-public.key'
                             type: string
                         type: object
                       enabled:
-                        description: Indicates if the Pdb policy is enabled for this
-                          component.
+                        description: Enable authentication in the cluster. Default
+                          is 'false'.
                         type: boolean
                     type: object
                   persistence:
@@ -263,13 +262,13 @@ spec:
                         type: object
                     type: object
                   name:
-                    description: Pulsar cluster base name.
+                    description: Pulsar cluster name.
                     type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
                     description: "Global node selector. If set, this will apply to\
-                      \ all components."
+                      \ all the components."
                     type: object
                   imagePullPolicy:
                     description: Default Pulsar image pull policy to use. Any components

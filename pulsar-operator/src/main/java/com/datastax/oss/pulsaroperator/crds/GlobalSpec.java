@@ -32,7 +32,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     private static final Supplier<AuthConfig> DEFAULT_AUTH_CONFIG = () -> AuthConfig.builder()
             .enabled(false)
-            .token(AuthConfig.TokenConfig.builder()
+            .token(AuthConfig.TokenAuthenticationConfig.builder()
                     .publicKeyFile("my-public.key")
                     .privateKeyFile("my-private.key")
                     .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy")))
@@ -107,11 +107,11 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     @NotNull
     @Required
-    @JsonPropertyDescription("Pulsar cluster base name.")
+    @JsonPropertyDescription("Pulsar cluster name.")
     private String name;
     @JsonPropertyDescription("Pulsar cluster components names.")
     private Components components;
-    @JsonPropertyDescription("Additional DNS config for each pod created by the operator.")
+    @JsonPropertyDescription("DNS config for each pod.")
     private PodDNSConfig dnsConfig;
     @JsonPropertyDescription("""
             The domain name for your kubernetes cluster.
@@ -120,7 +120,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             The default value is 'cluster.local'.
             """)
     private String kubernetesClusterDomain;
-    @JsonPropertyDescription("Global node selector. If set, this will apply to all components.")
+    @JsonPropertyDescription("Global node selector. If set, this will apply to all the components.")
     protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription("TLS configuration for the cluster.")
     private TlsConfig tls;
@@ -134,7 +134,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private Boolean restartOnConfigMapChange;
 
     @JsonPropertyDescription("""
-            Auth stuff.
+            Authentication and authorization configuration.
             """)
     private AuthConfig auth;
 

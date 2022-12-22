@@ -24,7 +24,7 @@ public class TokenAuthProvisionerTest {
     @Test
     public void testDefaults() throws Exception {
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        generateSecrets(mockKubernetesClient, AuthConfig.TokenConfig.builder().build());
+        generateSecrets(mockKubernetesClient, AuthConfig.TokenAuthenticationConfig.builder().build());
 
         final Map<String, Secret> secretsMap = getGeneratedSecretsMap(mockKubernetesClient);
         Assert.assertEquals(secretsMap.size(), 6);
@@ -78,7 +78,7 @@ public class TokenAuthProvisionerTest {
                         }
                     }
                 });
-        generateSecrets(mockKubernetesClient, AuthConfig.TokenConfig.builder()
+        generateSecrets(mockKubernetesClient, AuthConfig.TokenAuthenticationConfig.builder()
                 .privateKeyFile("ext-private.key")
                 .publicKeyFile("ext-public.key")
                 .build());
@@ -120,7 +120,7 @@ public class TokenAuthProvisionerTest {
         );
     }
 
-    private void generateSecrets(MockKubernetesClient mockKubernetesClient, AuthConfig.TokenConfig tokenConfig) {
+    private void generateSecrets(MockKubernetesClient mockKubernetesClient, AuthConfig.TokenAuthenticationConfig tokenConfig) {
         final TokenAuthProvisioner tokenAuthProvisioner =
                 new TokenAuthProvisioner(mockKubernetesClient.getClient(), NAMESPACE);
 

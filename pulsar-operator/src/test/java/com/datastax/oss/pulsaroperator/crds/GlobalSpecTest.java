@@ -147,7 +147,7 @@ public class GlobalSpecTest {
         globalSpec.applyDefaults(null);
         final AuthConfig auth = globalSpec.getAuth();
         Assert.assertFalse(auth.getEnabled());
-        final AuthConfig.TokenConfig token = auth.getToken();
+        final AuthConfig.TokenAuthenticationConfig token = auth.getToken();
         Assert.assertEquals(token.getPrivateKeyFile(), "my-private.key");
         Assert.assertEquals(token.getPublicKeyFile(), "my-public.key");
         Assert.assertEquals(token.getProxyRoles(), Set.of("proxy"));
@@ -160,7 +160,7 @@ public class GlobalSpecTest {
         GlobalSpec globalSpec = new GlobalSpec();
         globalSpec.setAuth(AuthConfig.builder()
                 .enabled(true)
-                .token(AuthConfig.TokenConfig.builder()
+                .token(AuthConfig.TokenAuthenticationConfig.builder()
                         .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy", "superuser2")))
                         .proxyRoles(new TreeSet<>(Set.of("proxy", "superuser2")))
                         .build())
@@ -168,7 +168,7 @@ public class GlobalSpecTest {
         globalSpec.applyDefaults(null);
         final AuthConfig auth = globalSpec.getAuth();
         Assert.assertTrue(auth.getEnabled());
-        final AuthConfig.TokenConfig token = auth.getToken();
+        final AuthConfig.TokenAuthenticationConfig token = auth.getToken();
         Assert.assertEquals(token.getPrivateKeyFile(), "my-private.key");
         Assert.assertEquals(token.getPublicKeyFile(), "my-public.key");
         Assert.assertEquals(token.getProxyRoles(), Set.of("proxy", "superuser2"));

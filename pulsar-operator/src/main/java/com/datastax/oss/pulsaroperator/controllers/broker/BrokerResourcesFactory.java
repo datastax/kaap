@@ -124,7 +124,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("authorizationEnabled", "true");
             data.put("authenticationEnabled", "true");
             data.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
-            final AuthConfig.TokenConfig tokenConfig = global.getAuth().getToken();
+            final AuthConfig.TokenAuthenticationConfig tokenConfig = global.getAuth().getToken();
             data.put("proxyRoles", tokenConfig.proxyRolesAsString());
             data.put("superUserRoles", tokenConfig.superUserRolesAsString());
             data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));

@@ -1,0 +1,9 @@
+dependencies:
+- name: pulsar-operator
+  repository: file://../pulsar-operator
+  version: 0.0.1-alpha
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 41.9.1
+digest: sha256:2923c0428d58687e98b4d97986eae79f02e8f13da4230df1fcfe0a66b8320eaf
+generated: "2022-12-21T17:32:41.343936+01:00"

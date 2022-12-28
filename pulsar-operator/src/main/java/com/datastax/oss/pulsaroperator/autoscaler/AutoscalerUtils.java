@@ -81,8 +81,10 @@ public class AutoscalerUtils {
                                                  String... cmd) {
         if (log.isDebugEnabled()) {
             log.debugf("Executing in pod %s: %s",
-                    containerName == null ? podName : podName + "/" + containerName, cmd);
+                    containerName == null ? podName : podName + "/" + containerName,
+                    Arrays.toString(cmd));
         }
+
         final AtomicBoolean completed = new AtomicBoolean(false);
         final CompletableFuture<String> response = new CompletableFuture<>();
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -101,11 +103,11 @@ public class AutoscalerUtils {
                 if (!completed.compareAndSet(false, true)) {
                     return;
                 }
-                log.warnf("Error executing %s encountered; \ncode: %s\n stderr: %s\nstdout: %s",
-                        cmd,
+                log.warnf(t, "Error executing %s encountered; \ncode: %s\n stderr: %s\nstdout: %s",
+                        Arrays.toString(cmd),
                         error.toString(StandardCharsets.UTF_8),
                         out.toString(StandardCharsets.UTF_8),
-                        failureResponse.code(), t);
+                        failureResponse.code());
                 response.completeExceptionally(t);
             }
 
@@ -115,7 +117,8 @@ public class AutoscalerUtils {
                     return;
                 }
                 if (log.isDebugEnabled()) {
-                    log.debugf("Shell closed for %s; rc = %s; reason: %s", cmd, rc, reason);
+                    log.debugf("Shell closed for %s; rc = %s; reason: %s",
+                            Arrays.toString(cmd), rc, reason);
                 }
                 // rc is not bash's return code, it is client's code so no point checking it
                 response.complete(out.toString(StandardCharsets.UTF_8));
@@ -135,7 +138,7 @@ public class AutoscalerUtils {
                     .usingListener(listener)
                     .exec(cmd);
         } catch (Throwable t) {
-            log.errorf("Execution failed for %s", cmd, t);
+            log.errorf(t, "Execution failed for %s", Arrays.toString(cmd));
             completed.set(true);
             response.completeExceptionally(t);
         }

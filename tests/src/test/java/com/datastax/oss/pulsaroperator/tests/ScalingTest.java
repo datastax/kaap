@@ -28,7 +28,9 @@ public class ScalingTest extends BasePulsarClusterTest {
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
                             && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
-            specs.getBookkeeper().setReplicas(3);
+            specs.getBookkeeper().getAutoscaler().setEnabled(true);
+            specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
+            specs.getBookkeeper().setReplicas(1);
             specs.getBroker().setConfig(
                     BaseComponentSpec.mergeMaps(
                             specs.getBroker().getConfig(),

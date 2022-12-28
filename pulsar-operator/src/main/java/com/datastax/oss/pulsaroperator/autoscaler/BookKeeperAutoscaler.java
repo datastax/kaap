@@ -5,7 +5,6 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
 import javax.validation.Valid;
 import lombok.Builder;
@@ -258,7 +256,7 @@ public class BookKeeperAutoscaler implements Runnable {
     }
 
     @SneakyThrows
-    private boolean parseIsWritable(String bkStateOutput) throws JsonProcessingException, InterruptedException, ExecutionException {
+    private boolean parseIsWritable(String bkStateOutput) {
         /*
         $ curl -s localhost:8000/api/v1/bookie/state
         {

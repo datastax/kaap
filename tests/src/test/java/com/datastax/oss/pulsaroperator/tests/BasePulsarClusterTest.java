@@ -4,6 +4,7 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
@@ -98,6 +99,16 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                         .build())
                         .build()
                 )
+                .autoscaler(BookKeeperAutoscalerSpec.builder()
+                        .diskUsageToleranceHwm(0.8)
+                        .diskUsageToleranceLwm(0.7)
+                        .scaleUpBy(1)
+                        .scaleDownBy(1)
+                        .periodMs(5000L)
+                        .stabilizationWindowMs(10000L)
+                        .minWritableBookies(1)
+                        .enabled(false)
+                        .build())
                 .build());
 
         defaultSpecs.setBroker(BrokerSpec.builder()

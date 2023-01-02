@@ -19,4 +19,4 @@ target
 **/charts/*.tgz
 Chart.lock
 
-.DS_Store
+**/.DS_Store

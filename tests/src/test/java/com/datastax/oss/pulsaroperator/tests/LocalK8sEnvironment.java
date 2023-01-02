@@ -19,6 +19,9 @@ import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.dockerclient.DockerClientProviderStrategy;
+import org.testcontainers.dockerclient.UnixSocketClientProviderStrategy;
+import org.testng.annotations.Test;
 
 @Slf4j
 public class LocalK8sEnvironment extends LocalK3SContainer {
@@ -30,6 +33,10 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
 
     private static final List<String> PROMETHEUS_OPERATOR_IMAGES = List.of("quay.io/prometheus/prometheus:v2.39.1",
             "quay.io/kiwigrid/k8s-sidecar:1.19.2");
+    @Test
+    public void testMain() throws Exception {
+        main(null);
+    }
 
     public static void main(String[] args) throws Exception {
         final KubernetesImageSpec<K3sContainerVersion> k3sImage =

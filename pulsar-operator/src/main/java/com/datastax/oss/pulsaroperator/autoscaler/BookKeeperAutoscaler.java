@@ -213,7 +213,7 @@ public class BookKeeperAutoscaler implements Runnable {
         CompletableFuture<String> urLedgersOut = AutoscalerUtils.execInPod(client, namespace,
                 pod.get().get().getMetadata().getName(),
                 BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "bash", "-c", "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/");
+                "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/");
 
         return urLedgersOut.get().contains("No under replicated ledgers found");
     }
@@ -239,11 +239,11 @@ public class BookKeeperAutoscaler implements Runnable {
         );
         CompletableFuture<String> bkStateOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
                 BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "bash", "-c", "curl -s localhost:8000/api/v1/bookie/state");
+                "curl -s localhost:8000/api/v1/bookie/state");
 
         CompletableFuture<String> bkInfoOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
                 BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "bash", "-c", "curl -s localhost:8000/api/v1/bookie/info");
+                "curl -s localhost:8000/api/v1/bookie/info");
 
         List<BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
         BookieLedgerDiskInfo diskInfo = BookieLedgerDiskInfo.builder()

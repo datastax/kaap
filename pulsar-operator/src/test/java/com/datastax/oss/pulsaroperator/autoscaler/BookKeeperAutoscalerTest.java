@@ -257,10 +257,8 @@ public class BookKeeperAutoscalerTest {
                         // Bookie info
                         server.server.expect()
                                 .get()
-                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
-                                        + "/exec?command=curl&command=-s&"
-                                        + "command=localhost%3A8000%2Fapi%2Fv1%2Fbookie%2Finfo"
-                                        + "&container=bookkeeper&stdout=true&stderr=true")
+                                .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
+                                        "curl -s localhost:8000/api/v1/bookie/info"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage(bookieInfoOk))
                                 .done()
@@ -270,10 +268,8 @@ public class BookKeeperAutoscalerTest {
                         String response = i == 0 ? bookieStateReadOnly : bookieStateOk;
                         server.server.expect()
                                 .get()
-                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
-                                        + "/exec?command=curl&command=-s&"
-                                        + "command=localhost%3A8000%2Fapi%2Fv1%2Fbookie%2Fstate"
-                                        + "&container=bookkeeper&stdout=true&stderr=true")
+                                .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
+                                        "curl -s localhost:8000/api/v1/bookie/state"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage(response))
                                 .done()
@@ -281,11 +277,8 @@ public class BookKeeperAutoscalerTest {
                         // AR list under replicated
                         server.server.expect()
                                 .get()
-                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
-                                        + "/exec?command=curl&command=-s&"
-                                        + "command=localhost%3A8000%2Fapi%2Fv1%2F"
-                                        + "autorecovery%2Flist_under_replicated_ledger%2F"
-                                        + "&container=bookkeeper&stdout=true&stderr=true")
+                                .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
+                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -525,10 +518,8 @@ public class BookKeeperAutoscalerTest {
                         // AR list under replicated
                         server.server.expect()
                                 .get()
-                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
-                                        + "/exec?command=curl&command=-s&command=localhost%3A8000%2Fapi%2Fv1%2F"
-                                        + "autorecovery%2Flist_under_replicated_ledger%2F&container=bookkeeper"
-                                        + "&stdout=true&stderr=true")
+                                .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
+                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -577,10 +568,8 @@ public class BookKeeperAutoscalerTest {
                         // AR list under replicated
                         server.server.expect()
                                 .get()
-                                .withPath("/api/v1/namespaces/ns/pods/pul-bookkeeper-" + i
-                                        + "/exec?command=curl&command=-s&command=localhost%3A8000%2Fapi%2Fv1%2F"
-                                        + "autorecovery%2Flist_under_replicated_ledger%2F&container=bookkeeper"
-                                        + "&stdout=true&stderr=true")
+                                .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
+                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("blah blah"))
                                 .done()
@@ -760,5 +749,14 @@ public class BookKeeperAutoscalerTest {
             return server;
         }
 
+    }
+
+    private static String genExpectedUrlForExecInPod(String podName, String cmd) {
+        final String res = "/api/v1/namespaces/ns/pods/" + podName
+                + "/exec?command=bash&command=-c&command=" +
+                URLEncoder.encode(cmd, StandardCharsets.UTF_8).replace("+", "%20")
+                + "&container=pul-bookkeeper&stdout=true&stderr=true";
+        System.out.println("gen: " + res);
+        return res;
     }
 }

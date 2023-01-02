@@ -752,9 +752,10 @@ public class BookKeeperAutoscalerTest {
     }
 
     private static String genExpectedUrlForExecInPod(String podName, String cmd) {
-        return "/api/v1/namespaces/ns/pods/" + podName
-                + "/exec?command=bash&command=-c&command=" +
-                URLEncoder.encode(cmd, StandardCharsets.UTF_8).replace("+", "%20")
+        return "/api/v1/namespaces/ns/pods/"
+                + podName
+                + "/exec?command=bash&command=-c&command="
+                + URLEncoder.encode(cmd, StandardCharsets.UTF_8).replace("+", "%20")
                 + "&container=pul-bookkeeper&stdout=true&stderr=true";
     }
 }

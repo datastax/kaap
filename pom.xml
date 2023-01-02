@@ -34,7 +34,7 @@
         <jjwt.version>0.11.5</jjwt.version>
         <jackson.version>2.13.4</jackson.version>
         <sundrio.version>0.93.2</sundrio.version>
-
+        <testcontainers.version>1.17.6</testcontainers.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -113,6 +113,12 @@
                 <groupId>io.sundr</groupId>
                 <artifactId>sundr-adapter-reflect</artifactId>
                 <version>${sundrio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

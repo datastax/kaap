@@ -1,0 +1,13 @@
+{{- if .Values.keycloak.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "realm-config"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  pulsar-realm.json: |-
+{{ .Files.Get "keycloak-realms/pulsar-realm.json" | indent 4 }}
+{{- end }}

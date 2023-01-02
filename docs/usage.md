@@ -50,3 +50,7 @@ echo $PULSAR_TOKEN
 kubectl exec deployment/pulsar-bastion -- bin/pulsar-shell -e 'admin namespaces grant-permission --role myuser --actions produce,consume public/default'
 kubectl exec deployment/pulsar-bastion -- bin/pulsar-shell -e "client --auth-params \"token:$PULSAR_TOKEN\" produce -m hello public/default/topic"
 ```
+
+### Keycloak
+
+See the [Keycloak example](../helm/examples/keycloak).

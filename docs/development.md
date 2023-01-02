@@ -6,8 +6,8 @@ It requires JDK17+.
 ## Creates the operator docker image
 ```
 mvn package -DskipTests -pl pulsar-operator
-docker tag datastax/pulsar-operator:latest
-docker push $dockerhub_repo/pulsar-operator:$tag
+docker tag datastax/pulsar-operator:latest $dockerhub_repo/pulsar-operator:latest
+docker push $dockerhub_repo/pulsar-operator:latest
 ```
 ## Local deployment
 

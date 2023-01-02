@@ -69,8 +69,12 @@ public abstract class BaseResourcesFactory<T> {
         this.ownerReference = ownerReference;
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    };
+
     protected String getResourceName() {
-        return "%s-%s".formatted(global.getName(), getComponentBaseName());
+        return getResourceName(global.getName(), getComponentBaseName());
     };
 
     protected abstract String getComponentBaseName();

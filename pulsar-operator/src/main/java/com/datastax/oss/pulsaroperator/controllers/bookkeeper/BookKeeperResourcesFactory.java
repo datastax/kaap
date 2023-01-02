@@ -37,6 +37,10 @@ import org.apache.commons.lang3.ObjectUtils;
 @JBossLog
 public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperSpec> {
 
+    public static String getBookKeeperContainerName(GlobalSpec globalSpec) {
+        return getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName());
+    }
+
     private ConfigMap configMap;
 
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
@@ -223,7 +227,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
         List<Container> containers = List.of(
                 new ContainerBuilder()
-                        .withName(resourceName)
+                        .withName(getBookKeeperContainerName(global))
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withLivenessProbe(probe)

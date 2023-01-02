@@ -19,8 +19,6 @@ import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.dockerclient.DockerClientProviderStrategy;
-import org.testcontainers.dockerclient.UnixSocketClientProviderStrategy;
 import org.testng.annotations.Test;
 
 @Slf4j

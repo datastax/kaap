@@ -13,7 +13,7 @@ metadata:
   name: {{ .Chart.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.operator.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}

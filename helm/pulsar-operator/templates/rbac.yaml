@@ -97,6 +97,12 @@ rules:
     verbs:
         - "*"
   - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - "*"
+  - apiGroups:
       - pulsar.oss.datastax.com
     resources:
         - pulsarclusters

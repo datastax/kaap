@@ -1,16 +1,11 @@
 # Usage
-## Helm deployment (tested with K8s 1.25)
+#### Helm deployment (tested with K8s 1.25)
 
-Install the stack operator and the CRDs with monitoring
+Install the stack operator:
 ```
 export ns=mypulsar
-helm repo add prom https://prometheus-community.github.io/helm-charts
 helm dependency build helm/pulsar-stack
-helm install -n $ns --create-namespace pulsar helm/pulsar-stack \
-    --set pulsar-operatpr.operator.image=datastax/pulsaroperator:latest \
-    --set kube-prometheus-stack.enabled=true \
-    --set pulsarGrafanaDashboards.enabled=true \
-    --set kube-prometheus-stack.grafana.adminPassword=grafana
+helm install -n $ns --create-namespace pulsar helm/pulsar-stack
 ```
 
 Install a Pulsar cluster Custom Resource
@@ -50,6 +45,11 @@ echo $PULSAR_TOKEN
 kubectl exec deployment/pulsar-bastion -- bin/pulsar-shell -e 'admin namespaces grant-permission --role myuser --actions produce,consume public/default'
 kubectl exec deployment/pulsar-bastion -- bin/pulsar-shell -e "client --auth-params \"token:$PULSAR_TOKEN\" produce -m hello public/default/topic"
 ```
+
+### Grafana
+
+See the [Grafana example](../helm/examples/grafana).
+
 
 ### Keycloak
 

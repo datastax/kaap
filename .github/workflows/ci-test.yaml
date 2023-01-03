@@ -39,13 +39,6 @@ jobs:
       - name: Unit tests
         run: mvn -B -ntp -nsu test -pl pulsar-operator
 
-      - name: Integration tests
-        run: |
-          #!/bin/bash
-          echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-          mvn -B -ntp -nsu test -pl tests \
-            -Dpulsaroperator.tests.env.reuse=true
-
   integration-tests:
     name: Integration tests - ${{ matrix.name }}
     runs-on: ubuntu-20.04

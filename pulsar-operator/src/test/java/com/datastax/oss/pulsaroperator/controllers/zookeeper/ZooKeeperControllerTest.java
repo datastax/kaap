@@ -399,7 +399,7 @@ public class ZooKeeperControllerTest {
         expectedData.put("PULSAR_EXTRA_OPTS",
                 "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log"
                         + ".root.level=info");
-        expectedData.put("serverCnxnFactory", "my.class.MyClass");
+        expectedData.put("PULSAR_PREFIX_serverCnxnFactory", "my.class.MyClass");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);

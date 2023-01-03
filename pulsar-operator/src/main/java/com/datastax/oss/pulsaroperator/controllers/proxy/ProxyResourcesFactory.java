@@ -160,7 +160,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.configMap = configMap;
@@ -210,7 +210,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withName("%s-ws".formatted(resourceName))
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.wsConfigMap = configMap;

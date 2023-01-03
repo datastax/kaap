@@ -71,12 +71,12 @@ public class BookKeeperControllerTest {
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
+                          PULSAR_PREFIX_autoRecoveryDaemonEnabled: "false"
+                          PULSAR_PREFIX_httpServerEnabled: "true"
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
-                          autoRecoveryDaemonEnabled: "false"
-                          httpServerEnabled: "true"
-                          statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
-                          useHostNameAsBookieID: "true"
-                          zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
+                          PULSAR_PREFIX_useHostNameAsBookieID: "true"
+                          PULSAR_PREFIX_zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String service = client
@@ -276,11 +276,11 @@ public class BookKeeperControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("autoRecoveryDaemonEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_autoRecoveryDaemonEnabled", "false");
         // In k8s always want to use hostname as bookie ID since IP addresses are ephemeral
-        expectedData.put("useHostNameAsBookieID", "true");
+        expectedData.put("PULSAR_PREFIX_useHostNameAsBookieID", "true");
         // HTTP server used by health check
-        expectedData.put("httpServerEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_httpServerEnabled", "true");
         //Pulsar's metadata store based rack awareness solution
         expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
                 "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
@@ -292,9 +292,9 @@ public class BookKeeperControllerTest {
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("statsProviderClass", "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
-        expectedData.put("zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_statsProviderClass", "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
+        expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
 
 
         final Map<String, String> data = createdResource.getResource().getData();

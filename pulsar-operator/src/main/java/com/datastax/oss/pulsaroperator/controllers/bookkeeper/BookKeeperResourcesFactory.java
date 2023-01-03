@@ -103,7 +103,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         // HTTP server used by health check
         data.put("httpServerEnabled", "true");
         //Pulsar's metadata store based rack awareness solution
-        data.put("PULSAR_PREFIX_reppDnsResolverClass", "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
+        data.put("reppDnsResolverClass", "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
 
         data.put("BOOKIE_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled "
                 + "-Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
@@ -125,7 +125,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.configMap = configMap;

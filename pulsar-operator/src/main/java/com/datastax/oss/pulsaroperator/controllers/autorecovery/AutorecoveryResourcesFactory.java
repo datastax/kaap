@@ -51,7 +51,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
     public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
         final String zkServers = getZkServers();
-        data.put("PULSAR_PREFIX_reppDnsResolverClass", "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
+        data.put("reppDnsResolverClass", "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
         data.put("zkServers", zkServers);
         data.put("BOOKIE_MEM", "-Xms512m -Xmx512m -XX:+ExitOnOutOfMemoryError");
         data.put("BOOKIE_GC", "-XX:+UseG1GC");
@@ -68,7 +68,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.configMap = configMap;

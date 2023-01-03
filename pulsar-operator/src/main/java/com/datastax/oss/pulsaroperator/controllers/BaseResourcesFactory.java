@@ -627,4 +627,23 @@ public abstract class BaseResourcesFactory<T> {
         );
     }
 
+    protected <T> Map<String, T> handleConfigPulsarPrefix(Map<String, T> data) {
+        if (data == null) {
+            return null;
+        }
+        Map<String, T> newData = new HashMap<>();
+        data.forEach((k, v) -> {
+            final String newKey;
+            // don't modify PULSAR_XX
+            if (k.startsWith("PULSAR_") || k.startsWith("BOOKIE_")) {
+                newKey = k;
+            } else {
+                newKey = "PULSAR_PREFIX_%s".formatted(k);
+            }
+            newData.put(newKey, v);
+        });
+        return newData;
+    }
+
+
 }

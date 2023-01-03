@@ -134,15 +134,15 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
         if (spec.getFunctionsWorkerEnabled()) {
             data.put("functionsWorkerEnabled", "true");
-            data.put("PF_pulsarFunctionsCluster", global.getName());
+            data.put("pulsarFunctionsCluster", global.getName());
 
             // Since function worker connects on localhost, we can always non-TLS ports
             // when running with the broker
-            data.put("PF_pulsarServiceUrl", "pulsar://localhost:6650");
-            data.put("PF_pulsarWebServiceUrl", "http://localhost:8080");
+            data.put("pulsarServiceUrl", "pulsar://localhost:6650");
+            data.put("pulsarWebServiceUrl", "http://localhost:8080");
         }
         if (spec.getTransactions() != null && spec.getTransactions().getEnabled()) {
-            data.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
+            data.put("transactionCoordinatorEnabled", "true");
         }
 
         data.put("allowAutoTopicCreationType", "non-partitioned");
@@ -167,7 +167,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.configMap = configMap;

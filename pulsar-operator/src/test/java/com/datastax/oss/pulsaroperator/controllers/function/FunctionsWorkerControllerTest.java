@@ -641,13 +641,13 @@ public class FunctionsWorkerControllerTest {
         expectedDataForExtra.put("PULSAR_LOG_LEVEL", "info");
         expectedDataForExtra.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedDataForExtra.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedDataForExtra.put("authorizationEnabled", "true");
-        expectedDataForExtra.put("authenticationEnabled", "true");
-        expectedDataForExtra.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedDataForExtra.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
-        expectedDataForExtra.put("superUserRoles", "admin,proxy,superuser,websocket");
-        expectedDataForExtra.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedDataForExtra.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+        expectedDataForExtra.put("PULSAR_PREFIX_authorizationEnabled", "true");
+        expectedDataForExtra.put("PULSAR_PREFIX_authenticationEnabled", "true");
+        expectedDataForExtra.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedDataForExtra.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedDataForExtra.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
+        expectedDataForExtra.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedDataForExtra.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
                 + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),

@@ -63,8 +63,8 @@ public class BastionControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_MEM: -XX:+ExitOnOutOfMemoryError
-                          brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                          webServiceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                          PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                          PULSAR_PREFIX_webServiceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
                         """);
 
         final String depl = client
@@ -141,14 +141,14 @@ public class BastionControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedData.put("webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -171,8 +171,8 @@ public class BastionControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("brokerServiceUrl", "pulsar://pul-proxy.ns.svc.cluster.local:6650/");
-        expectedData.put("webServiceUrl", "http://pul-proxy.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-proxy.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_webServiceUrl", "http://pul-proxy.ns.svc.cluster.local:8080/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
@@ -472,15 +472,15 @@ public class BastionControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedData.put("webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
-        expectedData.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("PULSAR_PREFIX_authParams", "file:///pulsar/token-superuser-stripped.jwt");
+        expectedData.put("PULSAR_PREFIX_authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);

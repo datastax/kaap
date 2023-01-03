@@ -151,11 +151,9 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info");
 
         if (isTlsEnabledOnZooKeeper()) {
-            data.put("PULSAR_PREFIX_serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("secureClientPort", "2281");
             data.put("sslQuorum", "true");
-            data.put("PULSAR_PREFIX_sslQuorum", "true");
         }
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
@@ -166,7 +164,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.configMap = configMap;

@@ -69,7 +69,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels()).endMetadata()
-                .withData(data)
+                .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
         this.configMap = configMap;

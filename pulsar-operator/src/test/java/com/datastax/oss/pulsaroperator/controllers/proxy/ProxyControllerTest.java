@@ -68,14 +68,14 @@ public class ProxyControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_MEM: -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
-                          brokerServiceURL: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                          brokerServiceURLTLS: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
-                          brokerWebServiceURL: http://pulsarname-broker.ns.svc.cluster.local:8080/
-                          brokerWebServiceURLTLS: https://pulsarname-broker.ns.svc.cluster.local:8443/
-                          clusterName: pulsarname
-                          configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
-                          numHttpServerThreads: 10
-                          zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_brokerServiceURL: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                          PULSAR_PREFIX_brokerServiceURLTLS: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
+                          PULSAR_PREFIX_brokerWebServiceURL: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                          PULSAR_PREFIX_brokerWebServiceURLTLS: https://pulsarname-broker.ns.svc.cluster.local:8443/
+                          PULSAR_PREFIX_clusterName: pulsarname
+                          PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_numHttpServerThreads: 10
+                          PULSAR_PREFIX_zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         Assert.assertEquals(client
@@ -103,15 +103,15 @@ public class ProxyControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_MEM: -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
-                          brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                          brokerServiceUrlTls: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
-                          clusterName: pulsarname
-                          configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
-                          numHttpServerThreads: 10
-                          serviceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
-                          serviceUrlTls: https://pulsarname-broker.ns.svc.cluster.local:8443/
-                          webServicePort: 8000
-                          zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
+                          PULSAR_PREFIX_brokerServiceUrlTls: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
+                          PULSAR_PREFIX_clusterName: pulsarname
+                          PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_numHttpServerThreads: 10
+                          PULSAR_PREFIX_serviceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                          PULSAR_PREFIX_serviceUrlTls: https://pulsarname-broker.ns.svc.cluster.local:8443/
+                          PULSAR_PREFIX_webServicePort: 8000
+                          PULSAR_PREFIX_zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String service = client
@@ -293,21 +293,21 @@ public class ProxyControllerTest {
 
         Map<String, String> expectedData = new HashMap<>();
 
-        expectedData.put("brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedData.put("brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
-        expectedData.put("brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
-        expectedData.put("brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
         expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("numHttpServerThreads", "10");
-        expectedData.put("customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -326,28 +326,28 @@ public class ProxyControllerTest {
         MockKubernetesClient client = invokeController(spec);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedData.put("brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
-        expectedData.put("brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
-        expectedData.put("brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
         expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("numHttpServerThreads", "10");
+        expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
 
-        expectedData.put("authenticationEnabled", "true");
-        expectedData.put("authorizationEnabled", "true");
-        expectedData.put("superUserRoles", "admin,proxy,superuser,websocket");
-        expectedData.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
-        expectedData.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedData.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedData.put("brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
+        expectedData.put("PULSAR_PREFIX_authenticationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_authorizationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
+        expectedData.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+        expectedData.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(0).getResource().getData(),
                 expectedData);
@@ -355,32 +355,32 @@ public class ProxyControllerTest {
 
 
         Map<String, Object> expectedDataForWs = new HashMap<>();
-        expectedDataForWs.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedDataForWs.put("brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
-        expectedDataForWs.put("serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
-        expectedDataForWs.put("serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
-        expectedDataForWs.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedDataForWs.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedDataForWs.put("clusterName", "pul");
-        expectedDataForWs.put("webServicePort", "8000");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedDataForWs.put("PULSAR_PREFIX_serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedDataForWs.put("PULSAR_PREFIX_serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedDataForWs.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedDataForWs.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedDataForWs.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedDataForWs.put("PULSAR_PREFIX_webServicePort", "8000");
 
         expectedDataForWs.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedDataForWs.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedDataForWs.put("PULSAR_LOG_LEVEL", "info");
         expectedDataForWs.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedDataForWs.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedDataForWs.put("numHttpServerThreads", "10");
-        expectedDataForWs.put("webServicePort", "8000");
-        expectedDataForWs.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+        expectedDataForWs.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+        expectedDataForWs.put("PULSAR_PREFIX_webServicePort", "8000");
+        expectedDataForWs.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
                 + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
-        expectedDataForWs.put("authenticationEnabled", "true");
-        expectedDataForWs.put("authorizationEnabled", "true");
-        expectedDataForWs.put("superUserRoles", "admin,proxy,superuser,websocket");
-        expectedDataForWs.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+        expectedDataForWs.put("PULSAR_PREFIX_authenticationEnabled", "true");
+        expectedDataForWs.put("PULSAR_PREFIX_authorizationEnabled", "true");
+        expectedDataForWs.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
+        expectedDataForWs.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
                 + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
-        expectedDataForWs.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedDataForWs.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedDataForWs.put("brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
+        expectedDataForWs.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),
                 expectedDataForWs);
@@ -433,23 +433,23 @@ public class ProxyControllerTest {
 
         Map<String, String> expectedData = new HashMap<>();
 
-        expectedData.put("brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedData.put("brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
-        expectedData.put("serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
-        expectedData.put("serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("webServicePort", "8000");
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_webServicePort", "8000");
 
         expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("numHttpServerThreads", "10");
-        expectedData.put("customConfig", "customValue");
-        expectedData.put("webServicePort", "8000");
+        expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_webServicePort", "8000");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);

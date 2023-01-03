@@ -1,0 +1,12 @@
+pulsar-operator:
+  operator:
+    image: nicoloboschi/pulsar-operator:latest
+    imagePullPolicy: Always
+
+pulsarGrafanaDashboards:
+  enabled: true
+
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    adminPassword: grafana1

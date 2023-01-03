@@ -12,6 +12,7 @@ import org.testcontainers.containers.Container;
 import org.testng.annotations.Test;
 
 @Slf4j
+@Test(groups = "misc")
 public class HelmTest extends BasePulsarClusterTest {
 
     @Test

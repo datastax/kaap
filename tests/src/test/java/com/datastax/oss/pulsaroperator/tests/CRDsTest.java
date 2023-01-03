@@ -8,6 +8,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
+@Test(groups = "misc")
 public class CRDsTest extends BasePulsarClusterTest {
 
     @Test

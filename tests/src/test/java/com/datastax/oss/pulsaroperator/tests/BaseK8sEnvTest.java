@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.tests;
 
+import com.datastax.oss.pulsaroperator.LeaderElectionConfig;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -62,7 +63,6 @@ public abstract class BaseK8sEnvTest {
     protected K8sEnv env;
     protected KubernetesClient client;
     private Watch eventsWatch;
-    private String operatorPodName;
     private String rbacManifest;
 
     @SneakyThrows
@@ -361,10 +361,6 @@ public abstract class BaseK8sEnvTest {
         );
     }
 
-    private void printOperatorPodLogs() {
-        printPodLogs(operatorPodName);
-    }
-
     protected void printAllPodsLogs() {
         client.pods().inNamespace(namespace).list().getItems()
                 .forEach(pod -> printPodLogs(pod.getMetadata().getName()));
@@ -454,14 +450,12 @@ public abstract class BaseK8sEnvTest {
             Assert.assertEquals(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
                     .count(), 1);
         });
-        operatorPodName = client.pods()
-                .inNamespace(namespace)
-                .withLabel("app.kubernetes.io/name", "pulsar-operator")
-                .list()
-                .getItems()
-                .get(0)
-                .getMetadata()
-                .getName();
+        Awaitility.await().untilAsserted(() -> {
+            Assert.assertNotNull(client.leases()
+                    .inNamespace(namespace)
+                    .withName(LeaderElectionConfig.PULSAR_OPERATOR_LEASE_NAME)
+                    .get());
+        });
     }
 
 

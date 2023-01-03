@@ -59,7 +59,7 @@ public class AutorecoveryControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
-                          zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String depl = client
@@ -141,13 +141,13 @@ public class AutorecoveryControllerTest {
         Map<String, String> expectedData = new HashMap<>();
         expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
                 "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
-        expectedData.put("zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("BOOKIE_MEM", "-Xms512m -Xmx512m -XX:+ExitOnOutOfMemoryError");
         expectedData.put("BOOKIE_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);

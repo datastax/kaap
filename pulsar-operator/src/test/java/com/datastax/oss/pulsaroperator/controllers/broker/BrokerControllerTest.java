@@ -69,14 +69,14 @@ public class BrokerControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError
-                          allowAutoTopicCreationType: non-partitioned
-                          backlogQuotaDefaultRetentionPolicy: producer_exception
-                          brokerDeduplicationEnabled: "false"
-                          clusterName: pulsarname
-                          configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
-                          exposeConsumerLevelMetricsInPrometheus: "false"
-                          exposeTopicLevelMetricsInPrometheus: "true"
-                          zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_allowAutoTopicCreationType: non-partitioned
+                          PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy: producer_exception
+                          PULSAR_PREFIX_brokerDeduplicationEnabled: "false"
+                          PULSAR_PREFIX_clusterName: pulsarname
+                          PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus: "false"
+                          PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus: "true"
+                          PULSAR_PREFIX_zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String service = client
@@ -236,10 +236,10 @@ public class BrokerControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
@@ -247,14 +247,14 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("functionsWorkerEnabled", "true");
-        expectedData.put("PF_pulsarFunctionsCluster", "pul");
-        expectedData.put("PF_pulsarServiceUrl", "pulsar://localhost:6650");
-        expectedData.put("PF_pulsarWebServiceUrl", "http://localhost:8080");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_functionsWorkerEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_pulsarFunctionsCluster", "pul");
+        expectedData.put("PULSAR_PREFIX_pulsarServiceUrl", "pulsar://localhost:6650");
+        expectedData.put("PULSAR_PREFIX_pulsarWebServiceUrl", "http://localhost:8080");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -279,10 +279,10 @@ public class BrokerControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
@@ -290,10 +290,10 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
         expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -319,10 +319,10 @@ public class BrokerControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
@@ -330,11 +330,11 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -357,10 +357,10 @@ public class BrokerControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
-        expectedData.put("clusterName", "pul");
-        expectedData.put("allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
@@ -368,20 +368,20 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("brokerDeduplicationEnabled", "false");
-        expectedData.put("exposeTopicLevelMetricsInPrometheus", "true");
-        expectedData.put("exposeConsumerLevelMetricsInPrometheus", "false");
-        expectedData.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
-        expectedData.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
-        expectedData.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedData.put("authorizationEnabled", "true");
-        expectedData.put("authenticationEnabled", "true");
-        expectedData.put("authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
-        expectedData.put("proxyRoles", "proxy");
-        expectedData.put("superUserRoles", "admin,proxy,superuser,websocket");
-        expectedData.put("tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedData.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedData.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_authParams", "file:///pulsar/token-superuser-stripped.jwt");
+        expectedData.put("PULSAR_PREFIX_authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("PULSAR_PREFIX_authorizationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_authenticationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+        expectedData.put("PULSAR_PREFIX_proxyRoles", "proxy");
+        expectedData.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
+        expectedData.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);

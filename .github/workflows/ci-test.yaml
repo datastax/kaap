@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-and-unit-test:
     name: Build and test
     runs-on: ubuntu-20.04
     timeout-minutes: 60
@@ -39,9 +39,36 @@ jobs:
       - name: Unit tests
         run: mvn -B -ntp -nsu test -pl pulsar-operator
 
+  integration-tests:
+    name: Integration tests - ${{ matrix.name }}
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Scaling
+            group: scaling
+          - name: Misc
+            group: misc
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Build
+        run: mvn -B -T 1C -ntp -nsu install -DskipTests -pl pulsar-operator -am
+
       - name: Integration tests
         run: |
           #!/bin/bash
           echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
           mvn -B -ntp -nsu test -pl tests \
-            -Dpulsaroperator.tests.env.reuse=true
+            -Dpulsaroperator.tests.env.reuse=true \
+            -Dgroups='${{ matrix.group }}'
+          

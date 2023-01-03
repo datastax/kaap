@@ -14,6 +14,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
+@Test(groups = "misc")
 public class TokenAuthTest extends BasePulsarClusterTest {
 
     @Test

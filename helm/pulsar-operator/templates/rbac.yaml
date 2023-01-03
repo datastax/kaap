@@ -59,6 +59,13 @@ rules:
     verbs:
       - '*'
   - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - 'get' # java client uses GET before executing to a pod
+      - 'create'
+  - apiGroups:
       - "batch"
     resources:
       - jobs

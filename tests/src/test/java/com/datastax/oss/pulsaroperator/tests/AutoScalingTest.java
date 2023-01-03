@@ -30,7 +30,6 @@ public class AutoScalingTest extends BasePulsarClusterTest {
 
             specs.getBookkeeper().getAutoscaler().setEnabled(true);
             specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
-            specs.getBookkeeper().setReplicas(1);
             specs.getBroker().setConfig(
                     BaseComponentSpec.mergeMaps(
                             specs.getBroker().getConfig(),

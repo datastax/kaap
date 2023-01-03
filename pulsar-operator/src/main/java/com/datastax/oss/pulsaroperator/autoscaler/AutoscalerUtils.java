@@ -80,11 +80,14 @@ public class AutoscalerUtils {
     public static CompletableFuture<String> execInPod(KubernetesClient client,
                                                  String namespace, String podName, String containerName,
                                                  String... cmds) {
+
         final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" "));
+        /*log.infof("Executing in pod %s: %s",
+                containerName == null ? podName : podName + "/" + containerName, cmd);
         if (log.isDebugEnabled()) {
             log.debugf("Executing in pod %s: %s",
                     containerName == null ? podName : podName + "/" + containerName, cmd);
-        }
+        }*/
         final AtomicBoolean completed = new AtomicBoolean(false);
         final CompletableFuture<String> response = new CompletableFuture<>();
         final ByteArrayOutputStream out = new ByteArrayOutputStream();

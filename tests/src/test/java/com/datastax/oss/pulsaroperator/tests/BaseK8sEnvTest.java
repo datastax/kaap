@@ -178,6 +178,13 @@ public abstract class BaseK8sEnvTest {
                     verbs:
                       - '*'
                   - apiGroups:
+                      - ""
+                    resources:
+                      - pods/exec
+                    verbs:
+                      - 'get'
+                      - 'create'
+                  - apiGroups:
                       - "batch"
                     resources:
                       - jobs

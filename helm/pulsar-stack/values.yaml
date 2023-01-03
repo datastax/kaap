@@ -1,5 +1,3 @@
----
-
 pulsar-operator:
   ## Whether to create the Operator RBAC.
   rbac:
@@ -31,9 +29,35 @@ pulsar-operator:
       successThreshold: 1
       initialDelaySeconds: 0
 
-  # Deploy Grafana dashboard for Pulsar.
-  # These dashboards will be discovered by the kube-prometheus-stack
-  # if it is running the same namespace as the stack
+
+# Deploy Keycloak
+keycloak:
+  enabled: false
+  # This block sets up an example Pulsar Realm
+  # https://www.keycloak.org/docs/latest/server_admin/#_export_import
+  extraStartupArgs: "-Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/realm/pulsar-realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING"
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: realm-config
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: "/realm/"
+      readOnly: true
+  auth:
+    # curl -d "client_id=pulsar-admin-example-client" -d "client_secret=XX" -d "grant_type=client_credentials" "http://pstack-keycloak/realms/pulsar/protocol/openid-connect/token"
+    # adminUser: "admin2"
+    # adminPassword: "adminpassword"
+    tls:
+      enabled: false
+  # Config specific to this helm chart
+  # The realm to use when the Pulsar Admin Console calls Keycloak (this configures nginx)
+  # Note that this is the realm in the pre-configured realm that ships with this helm chart
+  realm: "pulsar"
+
+# Deploy Grafana dashboard for Pulsar.
+# These dashboards will be discovered by the kube-prometheus-stack
+# if it is running the same namespace as the stack
 
 pulsarGrafanaDashboards:
     enabled: false

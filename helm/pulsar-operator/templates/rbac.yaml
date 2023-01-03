@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: pulsar-operator-cluster-role-admin
+  name: {{ .Chart.Name }}-cluster-role-admin-{{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
@@ -22,21 +22,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: pulsar-operator-cluster-role-admin-binding
+  name: {{ .Chart.Name }}-cluster-role-admin-binding-{{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
-  name: pulsar-operator-cluster-role-admin
+  name: {{ .Chart.Name }}-cluster-role-admin-{{ .Release.Name }}
 subjects:
   - kind: ServiceAccount
-    name: pulsar-operator
+    name: {{ .Values.serviceAccount.name }}
     namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: pulsar-operator-role-admin
+  name: {{ .Chart.Name }}-role-admin
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
@@ -121,14 +121,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: pulsar-operator-role-admin-binding
+  name: {{ .Chart.Name }}-role-admin-binding
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
   apiGroup: rbac.authorization.k8s.io
-  name: pulsar-operator-role-admin
+  name: {{ .Chart.Name }}-role-admin
 subjects:
   - kind: ServiceAccount
-    name: pulsar-operator
+    name: {{ .Values.serviceAccount.name }}
     namespace: {{ .Release.Namespace }}
 {{- end }}

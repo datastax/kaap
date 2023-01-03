@@ -10,7 +10,7 @@ metadata:
   labels:
     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
     app.kubernetes.io/name: {{ .Chart.Name }}
-  name: pulsar-operator
+  name: {{ .Chart.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
@@ -63,4 +63,4 @@ spec:
             periodSeconds: {{ .Values.operator.readinessProbe.periodSeconds }}
             successThreshold: {{ .Values.operator.readinessProbe.successThreshold }}
             timeoutSeconds: {{ .Values.operator.readinessProbe.timeoutSeconds }}
-      serviceAccountName: pulsar-operator
+      serviceAccountName: {{ .Values.serviceAccount.name }}

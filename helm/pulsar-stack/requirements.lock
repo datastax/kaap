@@ -5,5 +5,8 @@ dependencies:
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 41.9.1
-digest: sha256:2923c0428d58687e98b4d97986eae79f02e8f13da4230df1fcfe0a66b8320eaf
-generated: "2022-12-21T17:32:41.343936+01:00"
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 9.8.1
+digest: sha256:84a78fae650335481c406e2878b323ac5a34271032f1cd655861523338654bc4
+generated: "2023-01-02T16:28:40.079351+01:00"

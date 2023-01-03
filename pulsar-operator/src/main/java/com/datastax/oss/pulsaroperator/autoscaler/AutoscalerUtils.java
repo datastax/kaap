@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
@@ -78,7 +79,9 @@ public class AutoscalerUtils {
 
     public static CompletableFuture<String> execInPod(KubernetesClient client,
                                                  String namespace, String podName, String containerName,
-                                                 String... cmd) {
+                                                 String... cmds) {
+
+        final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" "));
         if (log.isDebugEnabled()) {
             log.debugf("Executing in pod %s: %s",
                     containerName == null ? podName : podName + "/" + containerName, cmd);
@@ -92,7 +95,7 @@ public class AutoscalerUtils {
             @Override
             public void onOpen() {
                 if (log.isDebugEnabled()) {
-                    log.debugf("Shell was opened for %s", Arrays.toString(cmd));
+                    log.debugf("Shell was opened for %s", cmd);
                 }
             }
 
@@ -133,7 +136,7 @@ public class AutoscalerUtils {
                     .writingOutput(out)
                     .writingError(error)
                     .usingListener(listener)
-                    .exec(cmd);
+                    .exec("bash", "-c", cmd);
         } catch (Throwable t) {
             log.errorf("Execution failed for %s", cmd, t);
             completed.set(true);

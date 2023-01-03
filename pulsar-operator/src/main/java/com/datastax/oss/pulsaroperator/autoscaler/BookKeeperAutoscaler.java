@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
@@ -200,12 +201,9 @@ public class BookKeeperAutoscaler implements Runnable {
         No under replicated ledgers found
         */
         final String clusterName = clusterSpec.getGlobal().getName();
-        final String bkBaseName = clusterSpec.getGlobal()
-                .getComponents().getBookkeeperBaseName();
-
         final LinkedHashMap<String, String> withLabels = new LinkedHashMap<>();
         withLabels.put(CRDConstants.LABEL_CLUSTER, clusterName);
-        withLabels.put(CRDConstants.LABEL_COMPONENT, bkBaseName);
+        withLabels.put(CRDConstants.LABEL_COMPONENT, clusterSpec.getGlobal().getComponents().getBookkeeperBaseName());
 
         Optional<PodResource> pod = client.pods().inNamespace(namespace).withLabels(withLabels).resources().findFirst();
         if (pod.isEmpty()) {
@@ -214,8 +212,8 @@ public class BookKeeperAutoscaler implements Runnable {
         }
         CompletableFuture<String> urLedgersOut = AutoscalerUtils.execInPod(client, namespace,
                 pod.get().get().getMetadata().getName(),
-                clusterSpec.getGlobal().getComponents().getBookkeeperBaseName(),
-                "curl", "-s", "localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/");
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/");
 
         return urLedgersOut.get().contains("No under replicated ledgers found");
     }
@@ -235,13 +233,17 @@ public class BookKeeperAutoscaler implements Runnable {
             log.debugf("getting BookieInfo for pod ()", pod.get().getMetadata().getName());
         }
 
+        final String bookkeeperContainer = "%s-%s".formatted(
+                clusterSpec.getGlobal().getName(),
+                clusterSpec.getGlobal().getComponents().getBookkeeperBaseName()
+        );
         CompletableFuture<String> bkStateOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
-                clusterSpec.getGlobal().getComponents().getBookkeeperBaseName(),
-                "curl", "-s", "localhost:8000/api/v1/bookie/state");
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "curl -s localhost:8000/api/v1/bookie/state");
 
         CompletableFuture<String> bkInfoOut = AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
-                clusterSpec.getGlobal().getComponents().getBookkeeperBaseName(),
-                "curl", "-s", "localhost:8000/api/v1/bookie/info");
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "curl -s localhost:8000/api/v1/bookie/info");
 
         List<BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
         BookieLedgerDiskInfo diskInfo = BookieLedgerDiskInfo.builder()

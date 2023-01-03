@@ -80,6 +80,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             );
         }
 
+        adjustBookKeeperReplicas(currentNamespace, clusterSpec);
         if (!checkReadyOrPatchBookKeeper(currentNamespace, clusterSpec, ownerReference)) {
             log.info("waiting for bookkeeper to become ready");
             return new ReconciliationResult(
@@ -185,6 +186,24 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 final Integer currentReplicas = current.getSpec().getBroker().getReplicas();
                 // do not update replicas if patching, leave whatever the autoscaler have set
                 clusterSpec.getBroker().setReplicas(currentReplicas);
+            }
+        }
+    }
+
+    private void adjustBookKeeperReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
+        if (clusterSpec.getBookkeeper() != null
+                && clusterSpec.getBookkeeper().getAutoscaler() != null
+                && clusterSpec.getBookkeeper().getAutoscaler().getEnabled()) {
+
+            final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BOOKKEEPER);
+            final BookKeeper current = client.resources(BookKeeper.class)
+                    .inNamespace(currentNamespace)
+                    .withName(crFullName)
+                    .get();
+            if (current != null) {
+                final Integer currentReplicas = current.getSpec().getBookkeeper().getReplicas();
+                // do not update replicas if patching, leave whatever the autoscaler have set
+                clusterSpec.getBookkeeper().setReplicas(currentReplicas);
             }
         }
     }

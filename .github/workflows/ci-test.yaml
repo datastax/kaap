@@ -56,7 +56,7 @@ jobs:
         include:
           - name: Scaling
             group: scaling
-         -  name: Misc
+          - name: Misc
             group: misc
     steps:
       - name: checkout

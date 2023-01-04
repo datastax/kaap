@@ -138,7 +138,7 @@ public abstract class BaseK8sEnvTest {
         );
         String result = "";
         // simulate go templating
-        for (String l: allRbac) {
+        for (String l : allRbac) {
             if (l.contains("{{- if")) { // assume always true and no content other than the if
                 continue;
             }

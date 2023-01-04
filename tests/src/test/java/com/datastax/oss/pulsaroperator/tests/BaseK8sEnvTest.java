@@ -11,8 +11,6 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
@@ -26,7 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -434,12 +431,6 @@ public abstract class BaseK8sEnvTest {
     }
 
 
-    @SneakyThrows
-    protected Path getHelmExampleFilePath(String name) {
-        return Paths.get("..", "helm", "examples", name);
-    }
-
-
     protected void awaitOperatorRunning() {
         Awaitility.await().untilAsserted(() -> {
             final List<Pod> pods = client.pods()
@@ -513,25 +504,4 @@ public abstract class BaseK8sEnvTest {
             data.complete(baos.toString());
         }
     }
-
-
-    private void awaitJobCompleted(String name) {
-        Awaitility.await()
-                .atMost(2, TimeUnit.MINUTES)
-                .untilAsserted(() -> {
-                    final Job job = client.batch().v1().jobs()
-                            .inNamespace(namespace)
-                            .withName(name)
-                            .get();
-                    Assert.assertNotNull(job);
-                    final JobStatus status = job.getStatus();
-                    Assert.assertNotNull(status);
-                    final Integer succeeded = status
-                            .getSucceeded();
-                    Assert.assertNotNull(succeeded);
-                    Assert.assertEquals(succeeded.intValue(), 1);
-                });
-
-    }
-
 }

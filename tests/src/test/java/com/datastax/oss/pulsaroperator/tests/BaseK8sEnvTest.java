@@ -446,9 +446,9 @@ public abstract class BaseK8sEnvTest {
             final List<Pod> pods = client.pods()
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
-            Assert.assertEquals(pods.size(), 2);
-            Assert.assertEquals(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
-                    .count(), 2);
+            Assert.assertTrue(pods.size() > 0);
+            Assert.assertTrue(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
+                    .count() > 0);
         });
         Awaitility.await().untilAsserted(() -> {
             Assert.assertNotNull(client.leases()

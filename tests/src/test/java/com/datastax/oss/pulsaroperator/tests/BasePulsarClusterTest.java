@@ -150,6 +150,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         awaitProxyRunning();
         awaitAutorecoveryRunning();
         awaitBastionRunning();
+
     }
 
     private void awaitZooKeeperRunning() {

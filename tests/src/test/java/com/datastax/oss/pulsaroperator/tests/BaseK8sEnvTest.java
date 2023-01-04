@@ -11,8 +11,6 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
@@ -23,13 +21,16 @@ import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +63,6 @@ public abstract class BaseK8sEnvTest {
     protected K8sEnv env;
     protected KubernetesClient client;
     private Watch eventsWatch;
-    private String operatorPodName;
     private String rbacManifest;
 
     @SneakyThrows
@@ -111,140 +111,46 @@ public abstract class BaseK8sEnvTest {
                             resource.getRegarding().getName(), resource.getReason());
 
                 }
-             }
+            }
 
             @Override
             public void onClose(WatcherException cause) {
             }
         });
 
-        rbacManifest = """
-                apiVersion: v1
-                kind: ServiceAccount
-                metadata:
-                  name: pulsar-operator
-                  namespace: %s
-                ---
-                apiVersion: rbac.authorization.k8s.io/v1
-                kind: ClusterRole
-                metadata:
-                  name: pulsar-operator-cluster-role-admin
-                  namespace: %s
-                rules:
-                  - apiGroups:
-                      - "apiextensions.k8s.io"
-                    resources:
-                      - customresourcedefinitions
-                    verbs:
-                      - '*'
-                ---
-                apiVersion: rbac.authorization.k8s.io/v1
-                kind: ClusterRoleBinding
-                metadata:
-                  name: pulsar-operator-cluster-role-admin-binding
-                  namespace: %s
-                roleRef:
-                  kind: ClusterRole
-                  apiGroup: rbac.authorization.k8s.io
-                  name: pulsar-operator-cluster-role-admin
-                subjects:
-                  - kind: ServiceAccount
-                    name: pulsar-operator
-                    namespace: %s
-                ---
-                apiVersion: rbac.authorization.k8s.io/v1
-                kind: Role
-                metadata:
-                  name: pulsar-operator-role-admin
-                  namespace: %s
-                rules:
-                  - apiGroups:
-                      - apps
-                    resources:
-                      - deployments
-                      - daemonsets
-                      - replicasets
-                      - statefulsets
-                    verbs:
-                      - "*"
-                  - apiGroups:
-                      - ""
-                    resources:
-                      - pods
-                      - configmaps
-                      - services
-                      - serviceaccounts
-                      - secrets
-                    verbs:
-                      - '*'
-                  - apiGroups:
-                      - ""
-                    resources:
-                      - pods/exec
-                    verbs:
-                      - 'get'
-                      - 'create'
-                  - apiGroups:
-                      - "batch"
-                    resources:
-                      - jobs
-                    verbs:
-                      - '*'
-                  - apiGroups:
-                      - policy
-                    resources:
-                      - poddisruptionbudgets
-                    verbs:
-                      - "*"
-                  - apiGroups:
-                      - "apiextensions.k8s.io"
-                    resources:
-                        - customresourcedefinitions
-                    verbs:
-                        - '*'
-                  - apiGroups:
-                      - "rbac.authorization.k8s.io"
-                    resources:
-                        - roles
-                        - rolebindings
-                    verbs:
-                        - '*'
-                  - apiGroups:
-                      - pulsar.oss.datastax.com
-                    resources:
-                        - pulsarclusters
-                        - pulsarclusters/status
-                        - zookeepers
-                        - zookeepers/status
-                        - bookkeepers
-                        - bookkeepers/status
-                        - brokers
-                        - brokers/status
-                        - proxies
-                        - proxies/status
-                        - autorecoveries
-                        - autorecoveries/status
-                        - bastions
-                        - bastions/status
-                        - functionsworkers
-                        - functionsworkers/status
-                    verbs:
-                        - "*"
-                ---
-                apiVersion: rbac.authorization.k8s.io/v1
-                kind: RoleBinding
-                metadata:
-                  name: pulsar-operator-role-admin-binding
-                  namespace: %s
-                roleRef:
-                  kind: Role
-                  apiGroup: rbac.authorization.k8s.io
-                  name: pulsar-operator-role-admin
-                subjects:
-                  - kind: ServiceAccount
-                    name: pulsar-operator
-                    namespace: %s
-                """.formatted(namespace, namespace, namespace, namespace, namespace, namespace, namespace);
+        this.rbacManifest = getRbacManifest();
+    }
+
+    private String getRbacManifest() throws IOException {
+        List<String> allRbac = new ArrayList<>();
+        allRbac.addAll(Files.readAllLines(
+                Paths.get("..", "helm", "pulsar-operator", "templates", "rbac.yaml")));
+        allRbac.add("---");
+        allRbac.addAll(Files.readAllLines(
+                Paths.get("..", "helm", "pulsar-operator", "templates", "serviceaccount.yaml")));
+
+        final Map<String, String> vars = Map.of(
+                ".Release.Namespace", namespace,
+                ".Chart.Name", "pulsar-operator",
+                ".Release.Name", "test-release",
+                ".Chart.AppVersion | quote", "v1",
+                ".Values.serviceAccount.name", "pulsar-operator"
+        );
+        String result = "";
+        // simulate go templating
+        for (String l : allRbac) {
+            if (l.contains("{{- if")) { // assume always true and no content other than the if
+                continue;
+            }
+            if (l.contains("{{- end }}")) { // assume no content other than the end
+                continue;
+            }
+            for (Map.Entry<String, String> entry : vars.entrySet()) {
+                l = l.replace("{{ %s }}".formatted(entry.getKey()), entry.getValue());
+            }
+            result += l + System.lineSeparator();
+        }
+        return result;
     }
 
     @SneakyThrows
@@ -361,10 +267,6 @@ public abstract class BaseK8sEnvTest {
         );
     }
 
-    private void printOperatorPodLogs() {
-        printPodLogs(operatorPodName);
-    }
-
     protected void printAllPodsLogs() {
         client.pods().inNamespace(namespace).list().getItems()
                 .forEach(pod -> printPodLogs(pod.getMetadata().getName()));
@@ -439,29 +341,15 @@ public abstract class BaseK8sEnvTest {
     }
 
 
-    @SneakyThrows
-    protected Path getHelmExampleFilePath(String name) {
-        return Paths.get("..", "helm", "examples", name);
-    }
-
-
     protected void awaitOperatorRunning() {
         Awaitility.await().untilAsserted(() -> {
             final List<Pod> pods = client.pods()
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
-            Assert.assertEquals(pods.size(), 1);
-            Assert.assertEquals(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
-                    .count(), 1);
+            Assert.assertTrue(pods.size() > 0);
+            Assert.assertTrue(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
+                    .count() > 0);
         });
-        operatorPodName = client.pods()
-                .inNamespace(namespace)
-                .withLabel("app.kubernetes.io/name", "pulsar-operator")
-                .list()
-                .getItems()
-                .get(0)
-                .getMetadata()
-                .getName();
     }
 
 
@@ -526,25 +414,4 @@ public abstract class BaseK8sEnvTest {
             data.complete(baos.toString());
         }
     }
-
-
-    private void awaitJobCompleted(String name) {
-        Awaitility.await()
-                .atMost(2, TimeUnit.MINUTES)
-                .untilAsserted(() -> {
-                    final Job job = client.batch().v1().jobs()
-                            .inNamespace(namespace)
-                            .withName(name)
-                            .get();
-                    Assert.assertNotNull(job);
-                    final JobStatus status = job.getStatus();
-                    Assert.assertNotNull(status);
-                    final Integer succeeded = status
-                            .getSucceeded();
-                    Assert.assertNotNull(succeeded);
-                    Assert.assertEquals(succeeded.intValue(), 1);
-                });
-
-    }
-
 }

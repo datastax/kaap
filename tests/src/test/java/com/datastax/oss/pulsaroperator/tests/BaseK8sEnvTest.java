@@ -1,6 +1,5 @@
 package com.datastax.oss.pulsaroperator.tests;
 
-import com.datastax.oss.pulsaroperator.LeaderElectionConfig;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
@@ -449,12 +448,6 @@ public abstract class BaseK8sEnvTest {
             Assert.assertTrue(pods.size() > 0);
             Assert.assertTrue(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
                     .count() > 0);
-        });
-        Awaitility.await().untilAsserted(() -> {
-            Assert.assertNotNull(client.leases()
-                    .inNamespace(namespace)
-                    .withName(LeaderElectionConfig.PULSAR_OPERATOR_LEASE_NAME)
-                    .get());
         });
     }
 

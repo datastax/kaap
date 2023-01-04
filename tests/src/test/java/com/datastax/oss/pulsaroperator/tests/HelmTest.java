@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.dajudge.kindcontainer.helm.Helm3Container;
+import com.datastax.oss.pulsaroperator.LeaderElectionConfig;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -32,6 +33,12 @@ public class HelmTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
             Assert.assertEquals(pods.size(), 2);
+            Awaitility.await().untilAsserted(() -> {
+                Assert.assertNotNull(client.leases()
+                        .inNamespace(namespace)
+                        .withName(LeaderElectionConfig.PULSAR_OPERATOR_LEASE_NAME)
+                        .get());
+            });
 
             final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
             applyPulsarCluster(specsToYaml(specs));

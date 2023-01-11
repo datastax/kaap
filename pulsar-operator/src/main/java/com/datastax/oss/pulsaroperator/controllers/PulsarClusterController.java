@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
+import com.datastax.oss.pulsaroperator.controllers.utils.TlsCertProvisioner;
 import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
@@ -17,6 +18,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
@@ -71,6 +73,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
 
         final List<OwnerReference> ownerReference = List.of(getOwnerReference(resource));
         generateSecretsIfAbsent(currentNamespace, clusterSpec);
+        setupTls(currentNamespace, clusterSpec);
 
         if (!checkReadyOrPatchZooKeeper(currentNamespace, clusterSpec, ownerReference)) {
             log.info("waiting for zookeeper to become ready");
@@ -379,6 +382,22 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             return;
         }
         getTokenAuthProvisioner(namespace).generateSecretsIfAbsent(auth.getToken());
+    }
+
+    @SneakyThrows
+    private void setupTls(String namespace, PulsarClusterSpec clusterSpec) {
+        final TlsConfig tls = clusterSpec.getGlobal().getTls();
+        if (tls == null || !tls.getEnabled()) {
+            return;
+        }
+        final TlsConfig.CertProvisionerConfig certProvisioner = tls.getCertProvisioner();
+        if (certProvisioner == null
+                || certProvisioner.getSelfSigned() == null
+                || !certProvisioner.getSelfSigned().getEnabled()) {
+            return;
+        }
+        new TlsCertProvisioner(client, namespace, clusterSpec.getGlobalSpec())
+                .generateCertificates();
     }
 
     protected TokenAuthProvisioner getTokenAuthProvisioner(String namespace) {

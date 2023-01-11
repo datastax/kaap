@@ -45,6 +45,10 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getFunctionsWorkerBaseName();
+    }
+
     private ConfigMap configMap;
     private ConfigMap extraConfigMap;
 
@@ -56,7 +60,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getFunctionsWorkerBaseName();
+        return getComponentBaseName(global);
     }
 
     @Override
@@ -211,6 +215,22 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                     "tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile())
             ));
         }
+        if (isTlsEnabledOnFunctionsWorker()) {
+            data.put("tlsEnabled", "true");
+            data.put("workerPortTls", "6751");
+            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
+            final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
+            if (enabledWithBroker) {
+                data.put("useTls", "true");
+                data.put("tlsEnabledWithKeyStore", "true");
+                data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
+                data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
+                data.put("tlsEnableHostnameVerification", "true");
+            }
+        }
         final String brokerServiceUrl = getBrokerServiceUrl();
         final String brokerWebServiceUrl = getBrokerWebServiceUrl();
 
@@ -302,7 +322,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForFunctionsWorker());
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
@@ -365,7 +385,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (isTlsEnabledGlobally()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + ". /pulsar/tools/certconverter.sh && ";
+                    + generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
                 + "cp -f funcconf/functions_worker.yml conf/functions_worker.yml && "

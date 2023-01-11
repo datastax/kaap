@@ -55,6 +55,14 @@ keycloak:
   # Note that this is the realm in the pre-configured realm that ships with this helm chart
   realm: "pulsar"
 
+# Deploy cert-manager
+cert-manager:
+  enabled: false
+  # namespaceOverride: cert-manager
+  installCRDs: false
+
+
+
 # Deploy Grafana dashboard for Pulsar.
 # These dashboards will be discovered by the kube-prometheus-stack
 # if it is running the same namespace as the stack

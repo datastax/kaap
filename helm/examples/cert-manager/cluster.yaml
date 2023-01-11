@@ -1,0 +1,71 @@
+apiVersion: pulsar.oss.datastax.com/v1alpha1
+kind: PulsarCluster
+metadata:
+  name: pulsar-cluster
+spec:
+  global:
+    name: pulsar
+    image: datastax/lunastreaming-all:2.10_2.4
+    restartOnConfigMapChange: true
+    tls:
+      enabled: true
+      defaultSecretName: pulsar-tls
+      certProvisioner:
+        selfSigned:
+          enabled: true
+      proxy:
+          enabled: true
+      broker:
+        enabled: true
+      functionsWorker:
+          enabled: true
+    storage:
+      existingStorageClassName:  default
+  zookeeper:
+    replicas: 1
+    dataVolume:
+      name: data
+      size: 100M
+    resources:
+      requests:
+        cpu: "0.2"
+        memory: "128Mi"
+  bookkeeper:
+    replicas: 1
+    volumes:
+      journal:
+        size: 1Gi
+      ledgers:
+        size: 1Gi
+    resources:
+      requests:
+        cpu: "0.2"
+        memory: "128Mi"
+  broker:
+    replicas: 1
+    config:
+      managedLedgerDefaultAckQuorum: "1"
+      managedLedgerDefaultEnsembleSize: "1"
+      managedLedgerDefaultWriteQuorum: "1"
+    resources:
+      requests:
+        cpu: "0.2"
+        memory: "128Mi"
+  proxy:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "0.2"
+        memory: "128Mi"
+  autorecovery:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "0.2"
+        memory: "128Mi"
+  bastion:
+    replicas: 1
+    resources:
+      requests:
+        cpu: "0.2"
+        memory: "128Mi"

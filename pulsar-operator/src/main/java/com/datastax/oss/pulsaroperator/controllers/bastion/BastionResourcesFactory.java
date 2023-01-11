@@ -59,6 +59,11 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
             data.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
             data.put("authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         }
+        boolean targetTlsEnabled = targetProxy ? isTlsEnabledOnProxy() : isTlsEnabledOnBroker();
+        if (targetTlsEnabled) {
+            data.put("tlsEnableHostnameVerification", "true");
+            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        }
 
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
@@ -92,7 +97,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSsCaSecretName());
         String mainArg = "";
 
         if (isAuthTokenEnabled()) {

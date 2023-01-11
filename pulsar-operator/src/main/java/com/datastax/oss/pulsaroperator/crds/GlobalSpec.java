@@ -2,6 +2,7 @@ package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
@@ -28,6 +29,22 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
             .defaultSecretName("pulsar-tls")
+            .zookeeper(TlsConfig.TlsEntryConfig.builder()
+                    .enabled(false)
+                    .build())
+            .bookkeeper(TlsConfig.TlsEntryConfig.builder()
+                    .enabled(false)
+                    .build())
+            .broker(TlsConfig.TlsEntryConfig.builder()
+                    .enabled(false)
+                    .build())
+            .proxy(TlsConfig.ProxyTlsEntryConfig.builder()
+                    .enabled(false)
+                    .enabledWithBroker(false)
+                    .build())
+            .ssCa(TlsConfig.TlsEntryConfig.builder()
+                    .enabled(false)
+                    .build())
             .build();
 
     private static final Supplier<AuthConfig> DEFAULT_AUTH_CONFIG = () -> AuthConfig.builder()
@@ -60,36 +77,6 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         private String bastionBaseName;
         @JsonPropertyDescription("Functions Worker base name. Default value is 'function'.")
         private String functionsWorkerBaseName;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class TlsConfig {
-        @JsonPropertyDescription("Global switch to turn on or off the TLS configurations.")
-        private Boolean enabled;
-        @JsonPropertyDescription("Default secret name.")
-        private String defaultSecretName;
-        @JsonPropertyDescription("TLS configurations related to the ZooKeeper component.")
-        TlsEntryConfig zookeeper;
-        @JsonPropertyDescription("TLS configurations related to the BookKeeper component.")
-        TlsEntryConfig bookkeeper;
-        @JsonPropertyDescription("TLS configurations related to the broker component.")
-        TlsEntryConfig broker;
-        @JsonPropertyDescription("TLS configurations related to the proxy component.")
-        TlsEntryConfig proxy;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class TlsEntryConfig {
-        @JsonPropertyDescription("Enable tls for this component.")
-        boolean enabled;
-        @JsonPropertyDescription("Enable certificates for this component.")
-        String tlsSecretName;
     }
 
     @Data
@@ -181,13 +168,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         if (tls == null) {
             tls = DEFAULT_TLS_CONFIG.get();
         } else {
-            tls.setEnabled(ObjectUtils.getFirstNonNull(
-                    () -> tls.getEnabled(),
-                    () -> DEFAULT_TLS_CONFIG.get().getEnabled())
-            );
-            tls.setDefaultSecretName(ObjectUtils.getFirstNonNull(
-                    () -> tls.getDefaultSecretName(),
-                    () -> DEFAULT_TLS_CONFIG.get().getDefaultSecretName())
+            tls = ConfigUtil.applyDefaultsWithReflection(
+                    tls, DEFAULT_TLS_CONFIG
             );
         }
     }

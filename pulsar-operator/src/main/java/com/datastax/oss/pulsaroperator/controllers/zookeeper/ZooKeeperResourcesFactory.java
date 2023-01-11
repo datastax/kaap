@@ -221,12 +221,12 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                         .build()
         );
         if (enableTls) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, global.getTls().getZookeeper().getTlsSecretName());
+            addTlsVolumesIfEnabled(volumeMounts, volumes, global.getTls().getZookeeper().getSecretName());
         }
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
         if (enableTls) {
-            command += "/pulsar/tools/certconverter.sh && ";
+            command += generateCertConverterScript() + " && ";
         }
         command += "bin/generate-zookeeper-config.sh conf/zookeeper.conf && ";
 
@@ -331,7 +331,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         String mainArgs = "";
         if (tlsEnabled) {
-            mainArgs += "/pulsar/tools/certconverter.sh &&";
+            mainArgs += generateCertConverterScript() + " && ";
         }
 
         final String clusterName = global.getName();

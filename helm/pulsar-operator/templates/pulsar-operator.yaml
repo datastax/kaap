@@ -1,3 +1,4 @@
+{{- if .Values.operator.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -64,3 +65,4 @@ spec:
             successThreshold: {{ .Values.operator.readinessProbe.successThreshold }}
             timeoutSeconds: {{ .Values.operator.readinessProbe.timeoutSeconds }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
+{{- end }}

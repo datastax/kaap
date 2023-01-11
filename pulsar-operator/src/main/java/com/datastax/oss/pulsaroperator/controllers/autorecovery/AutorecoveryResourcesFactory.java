@@ -96,7 +96,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         if (isTlsEnabledOnBookKeeper()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + ". /pulsar/tools/certconverter.sh && ";
+                    + generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/proxy.conf && ";
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/bookkeeper autorecovery";

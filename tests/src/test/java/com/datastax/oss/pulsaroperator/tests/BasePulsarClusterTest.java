@@ -57,7 +57,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .name("pulsar")
                 .persistence(true)
                 .image(PULSAR_IMAGE)
-                .imagePullPolicy("Never")
+                .imagePullPolicy("IfNotPresent")
                 .storage(GlobalSpec.GlobalStorageConfig.builder()
                         .existingStorageClassName(env.getStorageClass())
                         .build())

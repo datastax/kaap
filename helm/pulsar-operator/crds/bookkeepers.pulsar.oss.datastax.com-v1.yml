@@ -293,6 +293,105 @@ spec:
                         description: Proxy base name. Default value is 'proxy'.
                         type: string
                     type: object
+                  tls:
+                    description: TLS configuration for the cluster.
+                    properties:
+                      bookkeeper:
+                        description: TLS configurations related to the BookKeeper
+                          component.
+                        properties:
+                          secretName:
+                            description: Enable certificates for this component.
+                            type: string
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                        type: object
+                      defaultSecretName:
+                        description: Default secret name.
+                        type: string
+                      broker:
+                        description: TLS configurations related to the broker component.
+                        properties:
+                          secretName:
+                            description: Enable certificates for this component.
+                            type: string
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                        type: object
+                      functionsWorker:
+                        description: TLS configurations related to the proxy component.
+                        properties:
+                          enabledWithBroker:
+                            description: Enable tls for this component.
+                            type: boolean
+                          secretName:
+                            description: Enable certificates for this component.
+                            type: string
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                        type: object
+                      ssCa:
+                        description: TLS configurations related to the broker component.
+                        properties:
+                          secretName:
+                            description: Enable certificates for this component.
+                            type: string
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                        type: object
+                      enabled:
+                        description: Global switch to turn on or off the TLS configurations.
+                        type: boolean
+                      certProvisioner:
+                        description: Default secret name.
+                        properties:
+                          selfSigned:
+                            description: Enable tls for this component.
+                            properties:
+                              includeDns:
+                                description: Enable certificates for this component.
+                                type: boolean
+                              privateKey:
+                                additionalProperties:
+                                  type: object
+                                description: Enable certificates for this component.
+                                type: object
+                              enabled:
+                                description: Enable tls for this component.
+                                type: boolean
+                              mode:
+                                description: Enable certificates for this component.
+                                type: string
+                            type: object
+                        type: object
+                      zookeeper:
+                        description: TLS configurations related to the ZooKeeper component.
+                        properties:
+                          secretName:
+                            description: Enable certificates for this component.
+                            type: string
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                        type: object
+                      proxy:
+                        description: TLS configurations related to the proxy component.
+                        properties:
+                          enabledWithBroker:
+                            description: Enable tls for this component.
+                            type: boolean
+                          secretName:
+                            description: Enable certificates for this component.
+                            type: string
+                          enabled:
+                            description: Enable tls for this component.
+                            type: boolean
+                        type: object
+                    type: object
                   dnsConfig:
                     description: DNS config for each pod.
                     properties:
@@ -402,57 +501,6 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
-                  tls:
-                    description: TLS configuration for the cluster.
-                    properties:
-                      defaultSecretName:
-                        description: Default secret name.
-                        type: string
-                      broker:
-                        description: TLS configurations related to the broker component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                      proxy:
-                        description: TLS configurations related to the proxy component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                      enabled:
-                        description: Global switch to turn on or off the TLS configurations.
-                        type: boolean
-                      zookeeper:
-                        description: TLS configurations related to the ZooKeeper component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                      bookkeeper:
-                        description: TLS configurations related to the BookKeeper
-                          component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                    type: object
                   name:
                     description: Pulsar cluster name.
                     type: string

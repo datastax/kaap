@@ -12,15 +12,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Cert Manager implementation.
- */
-public class TlsCertProvisioner {
+public class CertManagerCertificatesProvisioner {
     private final KubernetesClient client;
     private final String namespace;
     private final GlobalSpec globalSpec;
 
-    public TlsCertProvisioner(KubernetesClient client, String namespace, GlobalSpec globalSpec) {
+    public CertManagerCertificatesProvisioner(KubernetesClient client, String namespace, GlobalSpec globalSpec) {
         this.client = client;
         this.namespace = namespace;
         this.globalSpec = globalSpec;

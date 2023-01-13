@@ -31,12 +31,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
@@ -84,7 +84,8 @@ public abstract class BaseK8sEnvTest {
     public void before() throws Exception {
         setDefaultAwaitilityTimings();
 
-        namespace = "pulsar-operator-test-" + UUID.randomUUID();
+        namespace = "pulsar-operator-test-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
+        log.info("Starting test using existing env: {}", USE_EXISTING_ENV);
 
         if (USE_EXISTING_ENV) {
             env = new ExistingK8sEnv();
@@ -413,5 +414,9 @@ public abstract class BaseK8sEnvTest {
         public void onClose(int code, String reason) {
             data.complete(baos.toString());
         }
+    }
+
+    protected String getPodNameByComponent(String component) {
+        return client.pods().withLabel("component", component).list().getItems().get(0).getMetadata().getName();
     }
 }

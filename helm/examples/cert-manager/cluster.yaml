@@ -9,7 +9,6 @@ spec:
     restartOnConfigMapChange: true
     tls:
       enabled: true
-      defaultSecretName: pulsar-tls
       certProvisioner:
         selfSigned:
           enabled: true

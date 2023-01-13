@@ -1,7 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
-import com.datastax.oss.pulsaroperator.controllers.utils.TlsCertProvisioner;
+import com.datastax.oss.pulsaroperator.controllers.utils.CertManagerCertificatesProvisioner;
 import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
@@ -396,7 +396,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 || !certProvisioner.getSelfSigned().getEnabled()) {
             return;
         }
-        new TlsCertProvisioner(client, namespace, clusterSpec.getGlobalSpec())
+        new CertManagerCertificatesProvisioner(client, namespace, clusterSpec.getGlobalSpec())
                 .generateCertificates();
     }
 

@@ -1,6 +1,6 @@
 pulsar-operator:
   operator:
-    image: nicoloboschi/pulsar-operator:latest
+    image: datastax/pulsar-operator:latest
     imagePullPolicy: Always
 
 cert-manager:

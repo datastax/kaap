@@ -2874,6 +2874,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioner">certProvisioner</a></b></td>
+        <td>object</td>
+        <td>
+          Default secret name.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>defaultSecretName</b></td>
         <td>string</td>
         <td>
@@ -2888,10 +2895,24 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlsfunctionsworker">functionsWorker</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlsproxy">proxy</a></b></td>
         <td>object</td>
         <td>
           TLS configurations related to the proxy component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlsssca">ssCa</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the broker component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2928,7 +2949,7 @@ TLS configurations related to the BookKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>tlsSecretName</b></td>
+        <td><b>secretName</b></td>
         <td>string</td>
         <td>
           Enable certificates for this component.<br/>
@@ -2961,7 +2982,120 @@ TLS configurations related to the broker component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>tlsSecretName</b></td>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner
+
+
+
+Default secret name.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsigned">selfSigned</a></b></td>
+        <td>object</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned
+
+
+
+Enable tls for this component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>includeDns</b></td>
+        <td>boolean</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>privateKey</b></td>
+        <td>map[string]object</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.functionsWorker
+
+
+
+TLS configurations related to the proxy component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabledWithBroker</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
         <td>string</td>
         <td>
           Enable certificates for this component.<br/>
@@ -2994,7 +3128,47 @@ TLS configurations related to the proxy component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>tlsSecretName</b></td>
+        <td><b>enabledWithBroker</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          Enable certificates for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.ssCa
+
+
+
+TLS configurations related to the broker component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable tls for this component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
         <td>string</td>
         <td>
           Enable certificates for this component.<br/>
@@ -3027,7 +3201,7 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>tlsSecretName</b></td>
+        <td><b>secretName</b></td>
         <td>string</td>
         <td>
           Enable certificates for this component.<br/>

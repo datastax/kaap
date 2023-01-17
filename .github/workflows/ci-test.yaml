@@ -65,6 +65,14 @@ jobs:
 
       - name: Build Helm charts
         run: |
+          set -e
+          add_repos() {
+            chart=$1
+            cat $chart/Chart.yaml | grep "repository:" | grep -e "https://" -e "http://" | awk '{print $2}' | xargs -n1 helm repo add
+          }
+          add_repos helm/pulsar-operator
+          add_repos helm/pulsar-stack
+          
           helm dependency build helm/pulsar-operator
           helm dependency build helm/pulsar-stack
         if: ${{ matrix.group == 'helm' }}

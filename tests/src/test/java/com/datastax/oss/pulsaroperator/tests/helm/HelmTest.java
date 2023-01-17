@@ -11,7 +11,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "misc")
+@Test(groups = "helm")
 public class HelmTest extends BaseHelmTest {
 
     @Test

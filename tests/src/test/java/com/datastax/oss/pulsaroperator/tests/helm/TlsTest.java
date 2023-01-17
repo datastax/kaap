@@ -3,28 +3,27 @@ package com.datastax.oss.pulsaroperator.tests.helm;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
+import java.io.InputStream;
 import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "misc")
+@Test(groups = "helm")
 public class TlsTest extends BaseHelmTest {
+
+    public static final String CERT_MANAGER_CRDS =
+            "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml";
 
     @Test
     public void test() throws Exception {
         try {
+            try (final InputStream in = new URL(CERT_MANAGER_CRDS)
+                    .openStream();) {
+                applyManifest(in.readAllBytes());
+            }
 
-            applyManifest(
-                    new URL("https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml")
-                            .openStream()
-                            .readAllBytes()
-            );
             helmInstall(Chart.STACK, """
-                    pulsar-operator:
-                      operator:
-                        image: nicoloboschi/pulsar-operator:latest
-                        imagePullPolicy: Always
                     cert-manager:
                       enabled: true
                       global:

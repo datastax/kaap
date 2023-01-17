@@ -58,9 +58,9 @@ jobs:
         uses: actions/checkout@v3
 
       - uses: azure/setup-helm@v3
-          with:
-            version: latest
-            token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ matrix.group == 'helm' }}
 
       - name: Build Helm charts

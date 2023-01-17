@@ -68,7 +68,7 @@ jobs:
           set -e
           add_repos() {
             chart=$1
-            cat $chart/Chart.yaml | grep "repository:" | grep -e "https://" -e "http://" | awk '{print $2}' | awk -F'/' '{print $NF} {print $0} | xargs -n2 helm repo add
+            cat $chart/Chart.yaml | grep "repository:" | grep -e "https://" -e "http://" | awk '{print $2}' | awk -F'/' '{print $NF} {print $0}' | xargs -n2 helm repo add
           }
           add_repos helm/pulsar-stack
           

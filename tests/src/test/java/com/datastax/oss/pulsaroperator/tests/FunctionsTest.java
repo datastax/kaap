@@ -7,8 +7,6 @@ import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j

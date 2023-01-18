@@ -2,9 +2,12 @@ package com.datastax.oss.pulsaroperator.tests.helm;
 
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
@@ -53,6 +56,24 @@ public class TlsTest extends BaseHelmTest {
                                             .enabledWithBroker(true)
                                             .build())
                                     .build());
+            specs.setFunctionsWorker(FunctionsWorkerSpec.builder()
+                    .replicas(1)
+                    .resources(RESOURCE_REQUIREMENTS)
+                    .runtime("kubernetes")
+                    .config(Map.of(
+                            "numFunctionPackageReplicas", 1,
+                            "functionInstanceMaxResources", Map.of(
+                                    "disk", 1000000000,
+                                    "ram", 12800000,
+                                    "cpu", 0.001d
+                            )
+                    ))
+                    .probe(ProbeConfig.builder()
+                            .initial(5)
+                            .period(5)
+                            .build())
+                    .build()
+            );
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
 

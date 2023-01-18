@@ -80,6 +80,7 @@ public class TlsTest extends BaseHelmTest {
             final String bastion = getPodNameByComponent("bastion");
             execInPod(bastion, "bin/pulsar-client produce -m test test-topic");
             execInPod(bastion, "bin/pulsar-client consume -s sub -p Earliest test-topic");
+            awaitFunctionsWorkerRunning();
 
             assertSourceInstalled();
 

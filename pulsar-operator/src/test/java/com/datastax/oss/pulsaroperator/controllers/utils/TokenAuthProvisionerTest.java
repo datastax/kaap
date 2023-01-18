@@ -1,6 +1,7 @@
 package com.datastax.oss.pulsaroperator.controllers.utils;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.MockResourcesResolver;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -51,7 +52,7 @@ public class TokenAuthProvisionerTest {
     public void testExistingSecrets() throws Exception {
         final KeyPair keyPair = TokenAuthProvisioner.genKeyPair();
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE,
-                new MockKubernetesClient.ResourcesResolver() {
+                new MockResourcesResolver() {
                     @Override
                     public Secret secretWithName(String name) {
                         switch (name) {

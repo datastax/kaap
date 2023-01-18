@@ -434,7 +434,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()

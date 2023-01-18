@@ -286,7 +286,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         return new ProbeBuilder()

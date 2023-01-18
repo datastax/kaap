@@ -26,9 +26,11 @@ import org.apache.commons.lang3.ObjectUtils;
 public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefaults {
 
 
+    public static final String DEFAULT_TLS_SECRET_NAME = "pulsar-tls";
+
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
-            .defaultSecretName("pulsar-tls")
+            .defaultSecretName(DEFAULT_TLS_SECRET_NAME)
             .zookeeper(TlsConfig.TlsEntryConfig.builder()
                     .enabled(false)
                     .build())

@@ -1,8 +1,12 @@
 package com.datastax.oss.pulsaroperator.controllers.broker;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.MockResourcesResolver;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -17,6 +21,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +37,8 @@ public class BrokerControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
+    private final ControllerTestUtil controllerTestUtil =
+            new ControllerTestUtil<BrokerFullSpec, Broker>(NAMESPACE, CLUSTER_NAME);
 
     @Test
     public void testDefaults() throws Exception {
@@ -298,6 +305,57 @@ public class BrokerControllerTest {
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
+
+
+        final Broker brokerCr =
+                (Broker) controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        brokerCr.setStatus(
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+        );
+        client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
+            @Override
+            public StatefulSet statefulSetWithName(String name) {
+                return baseStatefulSetBuilder(name, true).build();
+            }
+        });
+        invokeController(brokerCr, client);
+
+
+        Assert.assertEquals(client.getCreatedResource(Job.class).getResourceYaml(),
+                """
+                        ---
+                        apiVersion: batch/v1
+                        kind: Job
+                        metadata:
+                          labels:
+                            app: pul
+                            cluster: pul
+                            component: broker
+                          name: pul-broker
+                          namespace: ns
+                          ownerReferences:
+                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                            kind: Broker
+                            blockOwnerDeletion: true
+                            controller: true
+                            name: pulsarname-cr
+                        spec:
+                          template:
+                            spec:
+                              containers:
+                              - args:
+                                - |
+                                  bin/pulsar initialize-transaction-coordinator-metadata --cluster pul \\
+                                      --configuration-store pul-zookeeper-ca.ns.svc.cluster.local:2181 \\
+                                      --initial-num-transaction-coordinators 16
+                                command:
+                                - sh
+                                - -c
+                                image: apachepulsar/pulsar:global
+                                imagePullPolicy: IfNotPresent
+                                name: pul-broker
+                              restartPolicy: OnFailure
+                        """);
     }
 
 
@@ -376,12 +434,15 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedData.put("PULSAR_PREFIX_authorizationEnabled", "true");
         expectedData.put("PULSAR_PREFIX_authenticationEnabled", "true");
-        expectedData.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+        expectedData.put("PULSAR_PREFIX_authenticationProviders",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
         expectedData.put("PULSAR_PREFIX_proxyRoles", "proxy");
         expectedData.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
         expectedData.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin",
+                "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationParameters",
+                "file:///pulsar/token-superuser/superuser.jwt");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -395,14 +456,202 @@ public class BrokerControllerTest {
                 "public-key", "superuser");
         final String cmdArg = sts.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
                 .stream().collect(Collectors.joining(" "));
-        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
-                + ".jwt && "));
+        Assert.assertTrue(cmdArg.contains(
+                "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                        + ".jwt && "));
 
         Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getContainers().get(0)
                 .getLivenessProbe().getExec().getCommand()
                 .get(2), "curl -s --max-time 5 --fail -H \"Authorization: Bearer $(cat "
                 + "/pulsar/token-superuser/superuser.jwt | tr -d '\\r')\" "
                 + "http://localhost:8080/admin/v2/brokers/health > /dev/null");
+    }
+
+    @Test
+    public void testTlsEnabledOnBroker() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                broker:
+                    transactions:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
+        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(sts, GlobalSpec.DEFAULT_TLS_SECRET_NAME);
+        final String stsCommand = sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getArgs().get(0);
+        Assert.assertEquals(stsCommand, """
+                openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                echo '' && bin/apply-config-from-env.py conf/broker.conf && bin/apply-config-from-env.py conf/client.conf && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar broker""");
+
+
+        final Service service = client.getCreatedResource(Service.class).getResource();
+        final List<ServicePort> ports = service.getSpec().getPorts();
+        Assert.assertEquals(ports.size(), 4);
+        for (ServicePort port : ports) {
+            switch (port.getName()) {
+                case "http":
+                    Assert.assertEquals((int) port.getPort(), 8080);
+                    break;
+                case "pulsar":
+                    Assert.assertEquals((int) port.getPort(), 6650);
+                    break;
+                case "https":
+                    Assert.assertEquals((int) port.getPort(), 8443);
+                    break;
+                case "pulsarssl":
+                    Assert.assertEquals((int) port.getPort(), 6651);
+                    break;
+                default:
+                    Assert.fail("unexpected port " + port.getName());
+                    break;
+            }
+        }
+
+        final Broker brokerCr =
+                (Broker) controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        brokerCr.setStatus(
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+        );
+        client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
+            @Override
+            public StatefulSet statefulSetWithName(String name) {
+                return baseStatefulSetBuilder(name, true).build();
+            }
+        });
+        invokeController(brokerCr, client);
+
+        final Job job = client.getCreatedResource(Job.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(
+                job.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts(),
+                job.getSpec().getTemplate().getSpec().getVolumes(),
+                GlobalSpec.DEFAULT_TLS_SECRET_NAME
+        );
+        final String jobCommand = sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getArgs().get(0);
+        Assert.assertEquals(jobCommand, """
+                openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                echo '' && bin/apply-config-from-env.py conf/broker.conf && bin/apply-config-from-env.py conf/client.conf && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar broker""");
     }
 
 
@@ -880,7 +1129,8 @@ public class BrokerControllerTest {
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
         Assert.assertEquals(probe.getExec().getCommand(), List.of("sh", "-c",
-                "curl -s --max-time %d --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null".formatted(timeout)));
+                "curl -s --max-time %d --fail  http://localhost:8080/admin/v2/brokers/health > /dev/null".formatted(
+                        timeout)));
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);
@@ -890,7 +1140,7 @@ public class BrokerControllerTest {
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        new ControllerTestUtil<BrokerFullSpec, Broker>(NAMESPACE, CLUSTER_NAME)
+        controllerTestUtil
                 .invokeControllerAndAssertError(spec,
                         expectedErrorMessage,
                         Broker.class,
@@ -900,10 +1150,16 @@ public class BrokerControllerTest {
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        return new ControllerTestUtil<BrokerFullSpec, Broker>(NAMESPACE, CLUSTER_NAME)
+        return controllerTestUtil
                 .invokeController(spec,
                         Broker.class,
                         BrokerFullSpec.class,
                         BrokerController.class);
     }
+
+    @SneakyThrows
+    private void invokeController(Broker broker, MockKubernetesClient client) {
+        controllerTestUtil.invokeController(client, broker, BrokerController.class);
+    }
+
 }

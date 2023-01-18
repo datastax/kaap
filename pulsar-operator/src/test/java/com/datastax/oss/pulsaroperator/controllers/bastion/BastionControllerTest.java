@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers.bastion;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -182,6 +183,92 @@ public class BastionControllerTest {
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
     }
+
+
+    @Test
+    public void testTlsEnabledOnBroker() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                bastion:
+                    targetProxy: false
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_webServiceUrl", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_tlsEnableHostnameVerification", "true");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(
+                deployment,
+                GlobalSpec.DEFAULT_TLS_SECRET_NAME
+        );
+    }
+
+    @Test
+    public void testTlsEnabledOnProxy() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        proxy:
+                            enabled: true
+                bastion:
+                    targetProxy: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar+ssl://pul-proxy.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_webServiceUrl", "https://pul-proxy.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_tlsEnableHostnameVerification", "true");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(
+                deployment,
+                GlobalSpec.DEFAULT_TLS_SECRET_NAME
+        );
+    }
+
 
     @Test
     public void testReplicas() throws Exception {
@@ -494,8 +581,9 @@ public class BastionControllerTest {
                 "private-key", "public-key", "admin", "superuser");
         final String cmdArg = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
                 .stream().collect(Collectors.joining(" "));
-        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
-                + ".jwt && "));
+        Assert.assertTrue(cmdArg.contains(
+                "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                        + ".jwt && "));
     }
 
 

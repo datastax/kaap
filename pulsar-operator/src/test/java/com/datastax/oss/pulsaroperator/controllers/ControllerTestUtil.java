@@ -6,7 +6,7 @@ import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import io.fabric8.kubernetes.api.model.Condition;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
@@ -62,18 +62,29 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
             Class<R> crClass, Class<X> fullSpecClass,
             Class<? extends AbstractController<R>> controllerClass)
             throws Exception {
+        final R cr = createCustomResource(crClass, fullSpecClass, spec);
+        return invokeController(mockKubernetesClient, cr, controllerClass);
+    }
+
+    public UpdateControl<R> invokeController(MockKubernetesClient mockKubernetesClient,
+                                             R cr,
+                                             Class<? extends AbstractController<R>> controllerClass) throws Exception {
         final AbstractController<R> controller =
                 controllerClass.getConstructor(KubernetesClient.class).newInstance(mockKubernetesClient.getClient());
-
-        final R cr = crClass.getConstructor().newInstance();
-        ObjectMeta meta = new ObjectMeta();
-        meta.setName(clusterName + "-cr");
-        meta.setNamespace(namespace);
-        cr.setMetadata(meta);
-
-        final X fSpec = MockKubernetesClient.readYaml(spec, fullSpecClass);
-        cr.setSpec(fSpec);
-
         return controller.reconcile(cr, mock(Context.class));
     }
+
+
+    public R createCustomResource(Class<R> crClass, Class<X> fullSpecClass, String spec) throws Exception {
+        final R cr = crClass.getConstructor().newInstance();
+        cr.setMetadata(
+                new ObjectMetaBuilder()
+                .withName(clusterName + "-cr").withNamespace(namespace)
+                .build());
+        cr.setSpec(MockKubernetesClient.readYaml(spec, fullSpecClass));
+        cr.getSpec().getGlobalSpec().applyDefaults(null);
+        cr.getSpec().applyDefaults(cr.getSpec().getGlobalSpec());
+        return cr;
+    }
+
 }

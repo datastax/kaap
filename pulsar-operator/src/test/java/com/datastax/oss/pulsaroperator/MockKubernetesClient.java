@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.client.dsl.AppsAPIGroupDSL;
@@ -42,25 +41,17 @@ public class MockKubernetesClient {
     }
 
     final KubernetesClient client;
-    final ResourcesResolver resourcesResolver;
+    final MockResourcesResolver resourcesResolver;
     final List<ResourceInteraction> createdResources = new ArrayList<>();
-
-    public interface ResourcesResolver {
-
-        default Secret secretWithName(String name) {
-          return null;
-        }
-
-    }
 
     public MockKubernetesClient(String namespace) {
         this(namespace, null);
     }
 
-    public MockKubernetesClient(String namespace, ResourcesResolver resourcesResolver) {
+    public MockKubernetesClient(String namespace, MockResourcesResolver resourcesResolver) {
         client = mock(KubernetesClient.class);
         if (resourcesResolver == null) {
-            resourcesResolver = new ResourcesResolver(){};
+            resourcesResolver = new MockResourcesResolver(){};
         }
         this.resourcesResolver = resourcesResolver;
         final V1BatchAPIGroupDSL v1BatchAPIGroupDSL = mockBatchV1();
@@ -136,7 +127,14 @@ public class MockKubernetesClient {
         final MixedOperation statefulset = mock(MixedOperation.class);
         when(apps.statefulSets()).thenReturn(statefulset);
         when(statefulset.inNamespace(eq(namespace))).thenReturn(statefulset);
-        when(statefulset.withName(any())).thenReturn(mock(RollableScalableResource.class));
+        doAnswer(get -> {
+            final RollableScalableResource resource = mock(RollableScalableResource.class);
+            doAnswer(ignore -> {
+                final String name = get.getArgument(0);
+                return resourcesResolver.statefulSetWithName(name);
+            }).when(resource).get();
+            return resource;
+        }).when(statefulset).withName(any());
     }
 
     private AppsAPIGroupDSL mockApps() {

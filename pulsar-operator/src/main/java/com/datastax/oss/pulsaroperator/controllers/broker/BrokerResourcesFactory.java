@@ -357,7 +357,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         List<Volume> volumes = new ArrayList<>();
         final boolean tlsEnabled = isTlsEnabledOnBroker();
         if (tlsEnabled) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
         }
 
         String mainArgs = "";
@@ -410,7 +410,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()

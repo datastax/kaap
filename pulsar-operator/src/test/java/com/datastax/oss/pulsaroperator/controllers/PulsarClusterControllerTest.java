@@ -48,6 +48,17 @@ public class PulsarClusterControllerTest {
                 tls:
                   enabled: false
                   defaultSecretName: pulsar-tls
+                  zookeeper:
+                    enabled: false
+                  bookkeeper:
+                    enabled: false
+                  broker:
+                    enabled: false
+                  proxy:
+                    enabled: false
+                    enabledWithBroker: false
+                  ssCa:
+                    enabled: false
                 persistence: true
                 restartOnConfigMapChange: false
                 auth:

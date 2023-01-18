@@ -46,9 +46,11 @@ public class TlsTest extends BaseHelmTest {
                                             .build())
                                     .proxy(TlsConfig.ProxyTlsEntryConfig.builder()
                                             .enabled(true)
+                                            .enabledWithBroker(true)
                                             .build())
                                     .functionsWorker(TlsConfig.FunctionsWorkerTlsEntryConfig.builder()
                                             .enabled(true)
+                                            .enabledWithBroker(true)
                                             .build())
                                     .build());
             applyPulsarCluster(specsToYaml(specs));
@@ -57,6 +59,8 @@ public class TlsTest extends BaseHelmTest {
             final String bastion = getPodNameByComponent("bastion");
             execInPod(bastion, "bin/pulsar-client produce -m test test-topic");
             execInPod(bastion, "bin/pulsar-client consume -s sub -p Earliest test-topic");
+
+            assertSourceInstalled();
 
 
             client.resources(PulsarCluster.class)

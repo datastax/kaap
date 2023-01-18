@@ -193,11 +193,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("workerId", resourceName);
         data.put("workerHostname", resourceName);
         data.put("workerPort", "6750");
-        if (isTlsEnabledGlobally()) {
-            data.put("tlsEnabled", "true");
-            data.put("workerPortTls", "6751");
-            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        }
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
         }
@@ -223,7 +218,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
             final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
-            if (enabledWithBroker) {
+            if (enabledWithBroker != null && enabledWithBroker) {
                 data.put("useTls", "true");
                 data.put("tlsEnabledWithKeyStore", "true");
                 data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
@@ -500,7 +495,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     private Probe createReadinessProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         return new ProbeBuilder()
@@ -516,7 +511,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     private Probe createLivenessProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()

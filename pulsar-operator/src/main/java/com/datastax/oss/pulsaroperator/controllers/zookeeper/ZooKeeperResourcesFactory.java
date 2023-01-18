@@ -340,23 +340,17 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         final String zkServers = getZkServers();
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 
-        final String webService = getBrokerWebServiceUrl();
+        mainArgs +=
+                "bin/pulsar initialize-cluster-metadata --cluster %s --zookeeper %s --configuration-store %s"
+                        .formatted(clusterName, zkServers, zkServers);
 
-        final String brokerService = "%s://%s-%s.%s:%d/".formatted(
-                tlsEnabledOnBroker ? "pulsar+ssl" : "pulsar",
-                clusterName, "broker", serviceDnsSuffix, tlsEnabledOnBroker ? 6651 : 6650);
+        mainArgs += " --web-service-url %s --broker-service-url %s"
+                .formatted(getBrokerWebServiceUrlPlain(), getBrokerServiceUrlPlain());
 
-        mainArgs += """
-                bin/pulsar initialize-cluster-metadata --cluster %s \\
-                    --zookeeper %s \\
-                    --configuration-store %s \\
-                    %s %s \\
-                    %s %s
-                """.formatted(clusterName, zkServers, zkServers,
-                tlsEnabledOnBroker ? "--web-service-url-tls" : "--web-service-url",
-                webService,
-                tlsEnabledOnBroker ? "--broker-service-url-tls" : "--broker-service-url",
-                brokerService);
+        if (tlsEnabledOnBroker) {
+            mainArgs += " --web-service-url-tls %s --broker-service-url-tls %s"
+                    .formatted(getBrokerWebServiceUrlTls(), getBrokerServiceUrlTls());
+        }
 
         final Container container = new ContainerBuilder()
                 .withName(resourceName)

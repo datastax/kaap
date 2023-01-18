@@ -336,7 +336,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         final String clusterName = global.getName();
 
-        final String serviceDnsSuffix = getServiceDnsSuffix();
         final String zkServers = getZkServers();
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 

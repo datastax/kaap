@@ -7,6 +7,7 @@ spec:
     name: pulsar
     image: datastax/lunastreaming-all:2.10_2.11
     restartOnConfigMapChange: true
+    # dnsName: add here your public dns name
     tls:
       enabled: true
       certProvisioner:
@@ -58,6 +59,8 @@ spec:
       requests:
         cpu: "0.2"
         memory: "128Mi"
+    service:
+      # type: LoadBalancer -> enable load balancer on the proxy
   autorecovery:
     replicas: 1
     resources:

@@ -338,6 +338,10 @@ spec:
                           selfSigned:
                             description: Self signed certificate provisioner configuration.
                             properties:
+                              includeDns:
+                                description: Include dns name in the DNS names covered
+                                  by the certificate.
+                                type: boolean
                               privateKey:
                                 description: Cert-manager options for generating the
                                   private key.
@@ -452,6 +456,9 @@ spec:
                     description: |
                       If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
                     type: boolean
+                  dnsName:
+                    description: Public dns name for the cluster's load balancer.
+                    type: string
                   storage:
                     description: Storage configuration.
                     properties:

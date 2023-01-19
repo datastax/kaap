@@ -86,6 +86,8 @@ public class TlsConfig {
     public static class SelfSignedCertProvisionerConfig {
         @JsonPropertyDescription("Generate self signed certificates for broker, proxy and functions worker.")
         Boolean enabled;
+        @JsonPropertyDescription("Include dns name in the DNS names covered by the certificate.")
+        Boolean includeDns;
         @JsonPropertyDescription("Cert-manager options for generating the private key.")
         CertificatePrivateKey privateKey;
     }

@@ -2463,6 +2463,13 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>dnsName</b></td>
+        <td>string</td>
+        <td>
+          Public dns name for the cluster's load balancer.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>image</b></td>
         <td>string</td>
         <td>
@@ -3038,6 +3045,13 @@ Self signed certificate provisioner configuration.
         <td>boolean</td>
         <td>
           Generate self signed certificates for broker, proxy and functions worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>includeDns</b></td>
+        <td>boolean</td>
+        <td>
+          Include dns name in the DNS names covered by the certificate.<br/>
         </td>
         <td>false</td>
       </tr><tr>

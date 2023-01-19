@@ -2,7 +2,7 @@ package com.datastax.oss.pulsaroperator.controllers.utils;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.Issuer;
 import org.testng.Assert;
@@ -10,23 +10,21 @@ import org.testng.annotations.Test;
 
 public class CertManagerCertificatesProvisionerTest {
 
+    public static final String NAMESPACE = "ns";
+
     @Test
     public void testDefaults() throws Exception {
-        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient("ns");
-        final GlobalSpec spec = GlobalSpec.builder()
-                .name("pul")
-                .tls(TlsConfig.builder()
-                        .enabled(true)
-                        .certProvisioner(TlsConfig.CertProvisionerConfig.builder()
-                                .selfSigned(TlsConfig.SelfSignedCertProvisionerConfig.builder()
-                                        .enabled(true)
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-        spec.applyDefaults(null);
-        new CertManagerCertificatesProvisioner(mockKubernetesClient.getClient(), "ns", spec)
-                .generateCertificates();
+        final MockKubernetesClient mockKubernetesClient = generateCertificates(
+                """
+                        global:
+                            name: pul
+                            tls:
+                                enabled: true
+                                certProvisioner:
+                                    selfSigned:
+                                        enabled: true
+                        """
+        );
 
         Assert.assertEquals(
                 mockKubernetesClient.getCreatedResource(Certificate.class, "pul-ca-certificate").getResourceYaml(),
@@ -103,6 +101,63 @@ public class CertManagerCertificatesProvisionerTest {
                             secretName: pul-ss-ca
                         """);
 
+    }
+
+    @Test
+    public void testIncludeDns() throws Exception {
+        MockKubernetesClient mockKubernetesClient = generateCertificates(
+                """
+                        global:
+                            name: pul
+                            dnsName: example.localhost
+                            tls:
+                                enabled: true
+                                certProvisioner:
+                                    selfSigned:
+                                        enabled: true
+                                        includeDns: true
+                        """
+        );
+
+        Assert.assertTrue(mockKubernetesClient
+                .getCreatedResource(Certificate.class, "pul-server-tls")
+                .getResource()
+                .getSpec()
+                .getDnsNames()
+                .contains("example.localhost")
+        );
+
+        mockKubernetesClient = generateCertificates(
+                """
+                        global:
+                            name: pul
+                            dnsName: example.localhost
+                            tls:
+                                enabled: true
+                                certProvisioner:
+                                    selfSigned:
+                                        enabled: true
+                                        includeDns: false
+                        """
+        );
+
+        Assert.assertFalse(mockKubernetesClient
+                .getCreatedResource(Certificate.class, "pul-server-tls")
+                .getResource()
+                .getSpec()
+                .getDnsNames()
+                .contains("example.localhost"));
+
+    }
+
+    private MockKubernetesClient generateCertificates(String spec) {
+        final GlobalSpec globalSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class).getGlobalSpec();
+
+        final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
+        globalSpec.applyDefaults(null);
+        new CertManagerCertificatesProvisioner(mockKubernetesClient.getClient(), NAMESPACE, globalSpec)
+                .generateCertificates();
+        return mockKubernetesClient;
     }
 
 }

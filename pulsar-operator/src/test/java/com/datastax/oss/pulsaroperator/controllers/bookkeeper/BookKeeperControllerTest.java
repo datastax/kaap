@@ -186,6 +186,10 @@ public class BookKeeperControllerTest {
                           name: pulsarname-bookkeeper-journal
                         - mountPath: /pulsar/data/bookkeeper/ledgers
                           name: pulsarname-bookkeeper-ledgers
+                      dnsConfig:
+                        options:
+                        - name: ndots
+                          value: 4
                       initContainers:
                       - args:
                         - |

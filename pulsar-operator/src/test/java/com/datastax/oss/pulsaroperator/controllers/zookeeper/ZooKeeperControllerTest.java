@@ -161,6 +161,10 @@ public class ZooKeeperControllerTest {
                                 volumeMounts:
                                 - mountPath: /pulsar/data
                                   name: pulsarname-zookeeper-data
+                              dnsConfig:
+                                options:
+                                - name: ndots
+                                  value: 4
                               securityContext:
                                 fsGroup: 0
                               terminationGracePeriodSeconds: 60

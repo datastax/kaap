@@ -116,6 +116,10 @@ public class AutorecoveryControllerTest {
                           requests:
                             cpu: 0.3
                             memory: 512Mi
+                      dnsConfig:
+                        options:
+                        - name: ndots
+                          value: 4
                       terminationGracePeriodSeconds: 60
                 """);
 

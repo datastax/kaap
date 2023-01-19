@@ -280,6 +280,10 @@ public class FunctionsWorkerControllerTest {
                                   subPath: functions_worker.yml
                                 - mountPath: /pulsar/logs
                                   name: pulsarname-function-logs
+                              dnsConfig:
+                                options:
+                                - name: ndots
+                                  value: 4
                               securityContext:
                                 fsGroup: 0
                               serviceAccountName: pulsarname-function

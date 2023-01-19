@@ -5,7 +5,7 @@ metadata:
 spec:
   global:
     name: pulsar
-    image: datastax/lunastreaming-all:2.10_2.4
+    image: datastax/lunastreaming-all:2.10_2.11
     restartOnConfigMapChange: true
     tls:
       enabled: true
@@ -14,10 +14,12 @@ spec:
           enabled: true
       proxy:
           enabled: true
+          enabledWithBroker: true
       broker:
         enabled: true
       functionsWorker:
           enabled: true
+          enabledWithBroker: true
     storage:
       existingStorageClassName:  default
   zookeeper:
@@ -68,3 +70,15 @@ spec:
       requests:
         cpu: "0.2"
         memory: "128Mi"
+  functionsWorker:
+    replicas: 1
+    runtime: kubernetes
+    config:
+      numFunctionPackageReplicas: 1
+      functionInstanceMaxResources:
+        disk: 10000000000
+        ram: 500000000
+        cpu: 0.3
+    resources:
+      requests:
+        cpu: "0.3"

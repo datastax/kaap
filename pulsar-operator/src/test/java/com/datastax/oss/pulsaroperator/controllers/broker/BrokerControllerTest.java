@@ -511,6 +511,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
         expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
         expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_brokerClient_enableTlsHostnameVerification", "true");
         expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
 
 

@@ -92,6 +92,12 @@
             <version>${kubernetes-client.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>certmanager-client</artifactId>
+            <version>${kubernetes-client.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>

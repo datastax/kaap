@@ -2870,49 +2870,49 @@ TLS configuration for the cluster.
         <td><b><a href="#pulsarclusterspecglobaltlsbroker">broker</a></b></td>
         <td>object</td>
         <td>
-          TLS configurations related to the broker component.<br/>
+          TLS configurations related to the Broker component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisioner">certProvisioner</a></b></td>
         <td>object</td>
         <td>
-          Default secret name.<br/>
+          Certificate provisioner configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>defaultSecretName</b></td>
         <td>string</td>
         <td>
-          Default secret name.<br/>
+          Secret name used by each component to load TLS certificates. Each component can load a different secret by setting the 'secretName' entry in the tls component spec.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Global switch to turn on or off the TLS configurations.<br/>
+          Global switch to turn on or off the TLS configurations. Additionally, you have configure each component section.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlsfunctionsworker">functionsWorker</a></b></td>
         <td>object</td>
         <td>
-          TLS configurations related to the proxy component.<br/>
+          TLS configurations related to the Functions worker component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlsproxy">proxy</a></b></td>
         <td>object</td>
         <td>
-          TLS configurations related to the proxy component.<br/>
+          TLS configurations related to the Proxy component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlsssca">ssCa</a></b></td>
         <td>object</td>
         <td>
-          TLS configurations related to the broker component.<br/>
+          TLS configurations used by additional components, such as the Bastion component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2945,14 +2945,14 @@ TLS configurations related to the BookKeeper component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>secretName</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2963,7 +2963,7 @@ TLS configurations related to the BookKeeper component.
 
 
 
-TLS configurations related to the broker component.
+TLS configurations related to the Broker component.
 
 <table>
     <thead>
@@ -2978,14 +2978,14 @@ TLS configurations related to the broker component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>secretName</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2996,7 +2996,7 @@ TLS configurations related to the broker component.
 
 
 
-Default secret name.
+Certificate provisioner configuration.
 
 <table>
     <thead>
@@ -3011,7 +3011,7 @@ Default secret name.
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsigned">selfSigned</a></b></td>
         <td>object</td>
         <td>
-          Enable tls for this component.<br/>
+          Self signed certificate provisioner configuration.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3022,7 +3022,7 @@ Default secret name.
 
 
 
-Enable tls for this component.
+Self signed certificate provisioner configuration.
 
 <table>
     <thead>
@@ -3037,28 +3037,61 @@ Enable tls for this component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Generate self signed certificates for broker, proxy and functions worker.<br/>
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>includeDns</b></td>
-        <td>boolean</td>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedprivatekey">privateKey</a></b></td>
+        <td>object</td>
         <td>
-          Enable certificates for this component.<br/>
+          Cert-manager options for generating the private key.<br/>
         </td>
         <td>false</td>
-      </tr><tr>
-        <td><b>mode</b></td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          <br/>
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>privateKey</b></td>
-        <td>map[string]object</td>
+        <td><b>encoding</b></td>
+        <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3069,7 +3102,7 @@ Enable tls for this component.
 
 
 
-TLS configurations related to the proxy component.
+TLS configurations related to the Functions worker component.
 
 <table>
     <thead>
@@ -3084,21 +3117,21 @@ TLS configurations related to the proxy component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>enabledWithBroker</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS for the functions worker to broker connections.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>secretName</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3109,7 +3142,7 @@ TLS configurations related to the proxy component.
 
 
 
-TLS configurations related to the proxy component.
+TLS configurations related to the Proxy component.
 
 <table>
     <thead>
@@ -3124,21 +3157,21 @@ TLS configurations related to the proxy component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>enabledWithBroker</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS for the proxy to broker connections.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>secretName</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3149,7 +3182,7 @@ TLS configurations related to the proxy component.
 
 
 
-TLS configurations related to the broker component.
+TLS configurations used by additional components, such as the Bastion component.
 
 <table>
     <thead>
@@ -3164,14 +3197,14 @@ TLS configurations related to the broker component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>secretName</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3197,14 +3230,14 @@ TLS configurations related to the ZooKeeper component.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Enable tls for this component.<br/>
+          Enable TLS.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>secretName</b></td>
         <td>string</td>
         <td>
-          Enable certificates for this component.<br/>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>

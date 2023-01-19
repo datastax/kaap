@@ -1,7 +1,7 @@
 package com.datastax.oss.pulsaroperator.crds.configs.tls;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import java.util.Map;
+import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,23 +12,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class TlsConfig {
-    @JsonPropertyDescription("Global switch to turn on or off the TLS configurations.")
+    @JsonPropertyDescription("Global switch to turn on or off the TLS configurations. Additionally, you have configure each component section.")
     Boolean enabled;
-    @JsonPropertyDescription("Default secret name.")
+    @JsonPropertyDescription("Secret name used by each component to load TLS certificates. "
+            + "Each component can load a different secret by setting the 'secretName' entry in the tls component spec.")
     String defaultSecretName;
-    @JsonPropertyDescription("Default secret name.")
+    @JsonPropertyDescription("Certificate provisioner configuration.")
     CertProvisionerConfig certProvisioner;
     @JsonPropertyDescription("TLS configurations related to the ZooKeeper component.")
     TlsEntryConfig zookeeper;
     @JsonPropertyDescription("TLS configurations related to the BookKeeper component.")
     TlsEntryConfig bookkeeper;
-    @JsonPropertyDescription("TLS configurations related to the broker component.")
+    @JsonPropertyDescription("TLS configurations related to the Broker component.")
     TlsEntryConfig broker;
-    @JsonPropertyDescription("TLS configurations related to the proxy component.")
+    @JsonPropertyDescription("TLS configurations related to the Proxy component.")
     ProxyTlsEntryConfig proxy;
-    @JsonPropertyDescription("TLS configurations related to the proxy component.")
+    @JsonPropertyDescription("TLS configurations related to the Functions worker component.")
     FunctionsWorkerTlsEntryConfig functionsWorker;
-    @JsonPropertyDescription("TLS configurations related to the broker component.")
+    @JsonPropertyDescription("TLS configurations used by additional components, such as the Bastion component.")
     TlsEntryConfig ssCa;
 
     @Data
@@ -36,9 +37,9 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class TlsEntryConfig {
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Enable TLS.")
         Boolean enabled;
-        @JsonPropertyDescription("Enable certificates for this component.")
+        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
         String secretName;
     }
 
@@ -47,11 +48,11 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class ProxyTlsEntryConfig {
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Enable TLS.")
         Boolean enabled;
-        @JsonPropertyDescription("Enable certificates for this component.")
+        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
         String secretName;
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Enable TLS for the proxy to broker connections.")
         Boolean enabledWithBroker;
     }
 
@@ -60,11 +61,11 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class FunctionsWorkerTlsEntryConfig {
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Enable TLS.")
         Boolean enabled;
-        @JsonPropertyDescription("Enable certificates for this component.")
+        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
         String secretName;
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Enable TLS for the functions worker to broker connections.")
         Boolean enabledWithBroker;
     }
 
@@ -73,7 +74,7 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class CertProvisionerConfig {
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Self signed certificate provisioner configuration.")
         SelfSignedCertProvisionerConfig selfSigned;
 
     }
@@ -83,14 +84,10 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class SelfSignedCertProvisionerConfig {
-        @JsonPropertyDescription("Enable tls for this component.")
+        @JsonPropertyDescription("Generate self signed certificates for broker, proxy and functions worker.")
         Boolean enabled;
-        @JsonPropertyDescription("Enable certificates for this component.")
-        String mode;
-        @JsonPropertyDescription("Enable certificates for this component.")
-        Boolean includeDns;
-        @JsonPropertyDescription("Enable certificates for this component.")
-        Map<String, Object> privateKey;
+        @JsonPropertyDescription("Cert-manager options for generating the private key.")
+        CertificatePrivateKey privateKey;
     }
 }
 

@@ -369,25 +369,32 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void execInPodContainer(String podName, String containerName, String... cmds) {
         final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" && "));
-        log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        CompletableFuture<String> future = new CompletableFuture<>();
-        try (final ExecWatch exec = client
-                .pods()
-                .inNamespace(namespace)
-                .withName(podName)
-                .inContainer(containerName)
-                .writingOutput(baos)
-                .writingError(baos)
-                .usingListener(new SimpleListener(future, baos))
-                .exec("bash", "-c", cmd);) {
-            final String outputCmd = future.get(30, TimeUnit.SECONDS);
-            log.info("Output cmd: {}", outputCmd);
-            if (exec.exitCode().get().intValue() != 0) {
-                log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
-                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
+        int remainingAttempts = 3;
+        RuntimeException lastEx = null;
+        while (remainingAttempts-- > 0) {
+            log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            try (final ExecWatch exec = client
+                    .pods()
+                    .inNamespace(namespace)
+                    .withName(podName)
+                    .inContainer(containerName)
+                    .writingOutput(baos)
+                    .writingError(baos)
+                    .usingListener(new SimpleListener(future, baos))
+                    .exec("bash", "-c", cmd);) {
+                final String outputCmd = future.get(30, TimeUnit.SECONDS);
+                log.info("Output cmd: {}", outputCmd);
+                if (exec.exitCode().get().intValue() != 0) {
+                    log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
+                    lastEx = new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
+                } else {
+                    return;
+                }
             }
         }
+        throw lastEx;
     }
 
     static class SimpleListener implements ExecListener {

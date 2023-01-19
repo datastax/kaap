@@ -4,6 +4,7 @@ import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateBuilder;
 import io.fabric8.certmanager.api.model.v1.Issuer;
@@ -24,6 +25,19 @@ public class CertManagerCertificatesProvisioner {
     }
 
     public void generateCertificates() {
+        if (globalSpec.getTls() == null
+                || !globalSpec.getTls().getEnabled()
+                || globalSpec.getTls().getCertProvisioner() == null
+                || globalSpec.getTls().getCertProvisioner().getSelfSigned() == null) {
+            return;
+        }
+
+        final TlsConfig.SelfSignedCertProvisionerConfig selfSigned =
+                globalSpec.getTls().getCertProvisioner().getSelfSigned();
+
+        if (!selfSigned.getEnabled()) {
+            return;
+        }
         final String name = globalSpec.getName();
         final String ssIssuerName = "%s-self-signed-issuer".formatted(name);
         final String caIssuerName = "%s-ca-issuer".formatted(name);
@@ -54,6 +68,7 @@ public class CertManagerCertificatesProvisioner {
                 .withNewSpec()
                 .withSecretName(ssCaSecretName)
                 .withCommonName(serviceDnsSuffix)
+                .withPrivateKey(selfSigned.getPrivateKey())
                 .withUsages("server auth", "client auth")
                 .withIsCA(true)
                 .withNewIssuerRef()
@@ -113,6 +128,7 @@ public class CertManagerCertificatesProvisioner {
                 .withNamespace(namespace)
                 .endMetadata()
                 .withNewSpec()
+                .withPrivateKey(selfSigned.getPrivateKey())
                 .withSecretName(globalSpec.getTls().getDefaultSecretName())
                 .withNewIssuerRef()
                 .withName(caIssuerName)

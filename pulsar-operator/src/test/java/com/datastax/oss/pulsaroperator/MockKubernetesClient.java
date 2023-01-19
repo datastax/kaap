@@ -166,6 +166,15 @@ public class MockKubernetesClient {
         return res.isEmpty() ? null : res.get(0);
     }
 
+    public <T extends HasMetadata> ResourceInteraction<T> getCreatedResource(Class<T> castTo, String name) {
+        final List<ResourceInteraction<T>> res = getCreatedResources(castTo);
+        return res
+                .stream()
+                .filter(r -> r.getResource().getMetadata().getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
     public <T extends HasMetadata> List<ResourceInteraction<T>> getCreatedResources(Class<T> castTo) {
         List<ResourceInteraction<T>> res = new ArrayList<>();
         for (ResourceInteraction createdResource : createdResources) {

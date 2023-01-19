@@ -384,7 +384,7 @@ public abstract class BaseK8sEnvTest {
                     .writingError(baos)
                     .usingListener(new SimpleListener(future, baos))
                     .exec("bash", "-c", cmd);) {
-                final String outputCmd = future.get(30, TimeUnit.SECONDS);
+                final String outputCmd = future.get(5, TimeUnit.MINUTES);
                 log.info("Output cmd: {}", outputCmd);
                 if (exec.exitCode().get().intValue() != 0) {
                     log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);

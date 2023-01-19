@@ -10,6 +10,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
+import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -1126,6 +1127,36 @@ public class ProxyControllerTest {
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);
         Assert.assertEquals((int) probe.getTimeoutSeconds(), timeout);
         Assert.assertEquals((int) probe.getPeriodSeconds(), period);
+    }
+
+    @Test
+    public void testAdditionalVolumes() throws Exception {
+
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    additionalVolumes:
+                        volumes:
+                            - name: vol1
+                              secret:
+                                secretName: mysecret
+                        mounts:
+                            - name: vol1
+                              mountPath: /pulsar/custom
+                              readOnly: true
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+
+        final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
+        KubeTestUtil.assertVolumeFromSecret(podSpec.getVolumes(), "vol1", "mysecret");
+        KubeTestUtil.assertVolumeMount(podSpec.getContainers().get(0)
+                .getVolumeMounts(), "vol1", "/pulsar/custom", true);
     }
 
 

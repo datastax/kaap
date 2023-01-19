@@ -15,16 +15,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthConfig {
 
-    /*
-    .token(AuthConfig.TokenAuthenticationConfig.builder()
-                    .publicKeyFile("my-public.key")
-                    .privateKeyFile("my-private.key")
-                    .superUserRoles(new TreeSet<>(Set.of("superuser", "admin", "websocket", "proxy")))
-                    .proxyRoles(new TreeSet<>(Set.of("proxy")))
-                    .initialize(true)
-                    .build())
-            .build();
-     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

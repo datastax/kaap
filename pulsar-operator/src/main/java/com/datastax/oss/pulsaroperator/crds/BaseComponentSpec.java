@@ -1,5 +1,6 @@
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
@@ -32,6 +33,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private ProbeConfig probe;
     @JsonPropertyDescription("Pod disruption budget configuration.")
     private PodDisruptionBudgetConfig pdb;
+    @JsonPropertyDescription("Mount additional volumes to the pod.")
+    private AdditionalVolumesConfig additionalVolumes;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

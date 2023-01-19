@@ -1,6 +1,6 @@
 # Secure the cluster with TLS and cert-manager
 
-Install Pulsar Stack with prometheus stack enabled and Pulsar grafana dashboards.
+Install Pulsar Stack with cert manager enabled.
 ```
 helm install pcert -n pcert --create-namespace helm/pulsar-stack \
     --values helm/examples/cert-manager/values.yaml \

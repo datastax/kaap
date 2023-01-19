@@ -1047,6 +1047,36 @@ public class ZooKeeperControllerTest {
         Assert.assertNotEquals(checksum1, checksum2);
     }
 
+    @Test
+    public void testAdditionalVolumes() throws Exception {
+
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    additionalVolumes:
+                        volumes:
+                            - name: vol1
+                              secret:
+                                secretName: mysecret
+                        mounts:
+                            - name: vol1
+                              mountPath: /pulsar/custom
+                              readOnly: true
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+
+        final PodSpec podSpec = sts.getSpec().getTemplate().getSpec();
+        KubeTestUtil.assertVolumeFromSecret(podSpec.getVolumes(), "vol1", "mysecret");
+        KubeTestUtil.assertVolumeMount(podSpec.getContainers().get(0)
+                .getVolumeMounts(), "vol1", "/pulsar/custom", true);
+    }
+
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {

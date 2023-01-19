@@ -214,6 +214,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
+        addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
         volumeMounts.add(
                 new VolumeMountBuilder()
                         .withName(dataStorageVolumeName)

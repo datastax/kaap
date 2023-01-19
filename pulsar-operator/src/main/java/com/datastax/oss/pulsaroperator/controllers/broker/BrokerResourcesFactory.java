@@ -116,7 +116,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
         data.put("clusterName", global.getName());
-        // TODO: TLS config
 
         if (isAuthTokenEnabled()) {
             data.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
@@ -132,6 +131,18 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
         }
 
+        if (isTlsEnabledOnBroker()) {
+            data.put("tlsEnabled", "true");
+            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+            data.put("tlsKeyFilePath", " /pulsar/tls-pk8.key");
+            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerServicePortTls", "6651");
+            data.put("brokerClientTlsEnabled", "true");
+            data.put("webServicePortTls", "8443");
+            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerClient_tlsHostnameVerificationEnable", "true");
+            // TODO: tls vs bookkeeper
+        }
         if (spec.getFunctionsWorkerEnabled()) {
             data.put("functionsWorkerEnabled", "true");
             data.put("pulsarFunctionsCluster", global.getName());
@@ -234,10 +245,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
         final Probe probe = createProbe();
         String mainArg = "";
-        if (isTlsEnabledGlobally()) {
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+        if (tlsEnabledOnBroker) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + ". /pulsar/tools/certconverter.sh && ";
+                    + generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
                 + "bin/apply-config-from-env.py conf/client.conf && "
@@ -264,8 +276,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                         .withContainerPort(6650)
                         .build()
         );
-        if (isTlsEnabledGlobally()) {
-
+        if (tlsEnabledOnBroker) {
             containerPorts.add(new ContainerPortBuilder()
                     .withName("https")
                     .withContainerPort(8843)
@@ -344,14 +355,14 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        final boolean tlsEnabled = isTlsEnabledOnZooKeeper();
+        final boolean tlsEnabled = isTlsEnabledOnBroker();
         if (tlsEnabled) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
         }
 
         String mainArgs = "";
         if (tlsEnabled) {
-            mainArgs += "/pulsar/tools/certconverter.sh &&";
+            mainArgs += generateCertConverterScript() + " && ";
         }
 
         final String clusterName = global.getName();
@@ -399,7 +410,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()

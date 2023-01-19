@@ -7,8 +7,6 @@ import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
@@ -53,40 +51,19 @@ public class FunctionsTest extends BasePulsarClusterTest {
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
             awaitFunctionsWorkerRunning();
-            final String proxyPod =
-                    client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
             client.pods()
                     .inNamespace(namespace)
                     .withName("pulsar-function-0")
                     .waitUntilReady(30, TimeUnit.SECONDS);
 
-            Awaitility.await().until(() -> {
-                try {
-                    execInBastionPod(
-                            "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
-                                    + "--destinationTopicName generator_test --source-type data-generator "
-                                    + "--ram 12800000 --cpu 0.001 --disk 1000000000 "
-                                    + "--parallelism 2");
-                    return true;
-                } catch (Throwable t) {
-                    log.error("Cmd failed", t);
-                }
-                return false;
-            });
-
-            Awaitility.await().untilAsserted(() -> {
-                printRunningPods();
-                Assert.assertTrue(
-                        client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());
-                Assert.assertTrue(
-                        client.pods().inNamespace(namespace).withName("pf-public-default-generator-1").isReady());
-            });
+            assertSourceInstalled();
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }
+
 
 
 }

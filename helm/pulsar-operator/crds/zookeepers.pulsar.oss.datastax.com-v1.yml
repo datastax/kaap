@@ -241,6 +241,120 @@ spec:
                         description: Proxy base name. Default value is 'proxy'.
                         type: string
                     type: object
+                  tls:
+                    description: TLS configuration for the cluster.
+                    properties:
+                      bookkeeper:
+                        description: TLS configurations related to the BookKeeper
+                          component.
+                        properties:
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
+                        type: object
+                      defaultSecretName:
+                        description: Secret name used by each component to load TLS
+                          certificates. Each component can load a different secret
+                          by setting the 'secretName' entry in the tls component spec.
+                        type: string
+                      broker:
+                        description: TLS configurations related to the Broker component.
+                        properties:
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
+                        type: object
+                      functionsWorker:
+                        description: TLS configurations related to the Functions worker
+                          component.
+                        properties:
+                          enabledWithBroker:
+                            description: Enable TLS for the functions worker to broker
+                              connections.
+                            type: boolean
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
+                        type: object
+                      ssCa:
+                        description: "TLS configurations used by additional components,\
+                          \ such as the Bastion component."
+                        properties:
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
+                        type: object
+                      enabled:
+                        description: "Global switch to turn on or off the TLS configurations.\
+                          \ Additionally, you have configure each component section."
+                        type: boolean
+                      certProvisioner:
+                        description: Certificate provisioner configuration.
+                        properties:
+                          selfSigned:
+                            description: Self signed certificate provisioner configuration.
+                            properties:
+                              privateKey:
+                                description: Cert-manager options for generating the
+                                  private key.
+                                properties:
+                                  rotationPolicy:
+                                    type: string
+                                  encoding:
+                                    type: string
+                                  algorithm:
+                                    type: string
+                                  size:
+                                    type: integer
+                                type: object
+                              enabled:
+                                description: "Generate self signed certificates for\
+                                  \ broker, proxy and functions worker."
+                                type: boolean
+                            type: object
+                        type: object
+                      zookeeper:
+                        description: TLS configurations related to the ZooKeeper component.
+                        properties:
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
+                        type: object
+                      proxy:
+                        description: TLS configurations related to the Proxy component.
+                        properties:
+                          enabledWithBroker:
+                            description: Enable TLS for the proxy to broker connections.
+                            type: boolean
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
+                        type: object
+                    type: object
                   dnsConfig:
                     description: DNS config for each pod.
                     properties:
@@ -350,57 +464,6 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
-                  tls:
-                    description: TLS configuration for the cluster.
-                    properties:
-                      defaultSecretName:
-                        description: Default secret name.
-                        type: string
-                      broker:
-                        description: TLS configurations related to the broker component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                      proxy:
-                        description: TLS configurations related to the proxy component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                      enabled:
-                        description: Global switch to turn on or off the TLS configurations.
-                        type: boolean
-                      zookeeper:
-                        description: TLS configurations related to the ZooKeeper component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                      bookkeeper:
-                        description: TLS configurations related to the BookKeeper
-                          component.
-                        properties:
-                          enabled:
-                            description: Enable tls for this component.
-                            type: boolean
-                          tlsSecretName:
-                            description: Enable certificates for this component.
-                            type: string
-                        type: object
-                    type: object
                   name:
                     description: Pulsar cluster name.
                     type: string

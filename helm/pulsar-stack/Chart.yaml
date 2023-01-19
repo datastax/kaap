@@ -15,3 +15,7 @@ dependencies:
     version: 9.x.x
     repository: https://charts.bitnami.com/bitnami
     condition: keycloak.enabled
+  - name: cert-manager
+    version: v1.11.x
+    repository: https://charts.jetstack.io
+    condition: cert-manager.enabled

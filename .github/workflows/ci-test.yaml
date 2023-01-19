@@ -51,9 +51,30 @@ jobs:
             group: scaling
           - name: Misc
             group: misc
+          - name: Helm
+            group: helm
     steps:
       - name: checkout
         uses: actions/checkout@v3
+
+      - uses: azure/setup-helm@v3
+        with:
+          version: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ matrix.group == 'helm' }}
+
+      - name: Build Helm charts
+        run: |
+          set -e
+          add_repos() {
+            chart=$1
+            cat $chart/Chart.yaml | grep "repository:" | grep -e "https://" -e "http://" | awk '{print $2}' | awk -F'/' '{print $NF} {print $0}' | xargs -n2 helm repo add
+          }
+          add_repos helm/pulsar-stack
+          
+          helm dependency build helm/pulsar-operator
+          helm dependency build helm/pulsar-stack
+        if: ${{ matrix.group == 'helm' }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3

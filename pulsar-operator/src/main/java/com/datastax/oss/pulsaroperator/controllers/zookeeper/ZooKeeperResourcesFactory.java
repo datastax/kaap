@@ -221,12 +221,12 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                         .build()
         );
         if (enableTls) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, global.getTls().getZookeeper().getTlsSecretName());
+            addTlsVolumesIfEnabled(volumeMounts, volumes, global.getTls().getZookeeper().getSecretName());
         }
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
         if (enableTls) {
-            command += "/pulsar/tools/certconverter.sh && ";
+            command += generateCertConverterScript() + " && ";
         }
         command += "bin/generate-zookeeper-config.sh conf/zookeeper.conf && ";
 
@@ -331,32 +331,25 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         String mainArgs = "";
         if (tlsEnabled) {
-            mainArgs += "/pulsar/tools/certconverter.sh &&";
+            mainArgs += generateCertConverterScript() + " && ";
         }
 
         final String clusterName = global.getName();
 
-        final String serviceDnsSuffix = getServiceDnsSuffix();
         final String zkServers = getZkServers();
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 
-        final String webService = getBrokerWebServiceUrl();
+        mainArgs +=
+                "bin/pulsar initialize-cluster-metadata --cluster %s --zookeeper %s --configuration-store %s"
+                        .formatted(clusterName, zkServers, zkServers);
 
-        final String brokerService = "%s://%s-%s.%s:%d/".formatted(
-                tlsEnabledOnBroker ? "pulsar+ssl" : "pulsar",
-                clusterName, "broker", serviceDnsSuffix, tlsEnabledOnBroker ? 6651 : 6650);
+        mainArgs += " --web-service-url %s --broker-service-url %s"
+                .formatted(getBrokerWebServiceUrlPlain(), getBrokerServiceUrlPlain());
 
-        mainArgs += """
-                bin/pulsar initialize-cluster-metadata --cluster %s \\
-                    --zookeeper %s \\
-                    --configuration-store %s \\
-                    %s %s \\
-                    %s %s
-                """.formatted(clusterName, zkServers, zkServers,
-                tlsEnabledOnBroker ? "--web-service-url-tls" : "--web-service-url",
-                webService,
-                tlsEnabledOnBroker ? "--broker-service-url-tls" : "--broker-service-url",
-                brokerService);
+        if (tlsEnabledOnBroker) {
+            mainArgs += " --web-service-url-tls %s --broker-service-url-tls %s"
+                    .formatted(getBrokerWebServiceUrlTls(), getBrokerServiceUrlTls());
+        }
 
         final Container container = new ContainerBuilder()
                 .withName(resourceName)
@@ -394,7 +387,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         return new ProbeBuilder().withNewExec()

@@ -7,6 +7,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -181,25 +182,40 @@ public abstract class BaseResourcesFactory<T> {
     protected boolean isTlsEnabledOnZooKeeper() {
         return isTlsEnabledGlobally()
                 && global.getTls().getZookeeper() != null
-                && global.getTls().getZookeeper().isEnabled();
+                && global.getTls().getZookeeper().getEnabled();
     }
 
     protected boolean isTlsEnabledOnBookKeeper() {
         return isTlsEnabledGlobally()
                 && global.getTls().getBookkeeper() != null
-                && global.getTls().getBookkeeper().isEnabled();
+                && global.getTls().getBookkeeper().getEnabled();
     }
 
     protected boolean isTlsEnabledOnBroker() {
         return isTlsEnabledGlobally()
                 && global.getTls().getBroker() != null
-                && global.getTls().getBroker().isEnabled();
+                && global.getTls().getBroker().getEnabled();
     }
 
     protected boolean isTlsEnabledOnProxy() {
         return isTlsEnabledGlobally()
                 && global.getTls().getProxy() != null
-                && global.getTls().getProxy().isEnabled();
+                && global.getTls().getProxy().getEnabled();
+    }
+
+    protected boolean isTlsEnabledOnFunctionsWorker() {
+        return isTlsEnabledGlobally()
+                && global.getTls().getFunctionsWorker() != null
+                && global.getTls().getFunctionsWorker().getEnabled();
+    }
+
+    protected boolean isTlsGenerateSelfSignedCertEnabled() {
+        final TlsConfig tls = global.getTls();
+        return tls != null
+                && tls.getEnabled()
+                && tls.getCertProvisioner() != null
+                && tls.getCertProvisioner().getSelfSigned() != null
+                && tls.getCertProvisioner().getSelfSigned().getEnabled();
     }
 
     protected String getServiceDnsSuffix() {
@@ -299,16 +315,24 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected String getFunctionsWorkerServiceUrl() {
-        return "http://%s-%s-ca.%s:6750".formatted(
-                global.getName(),
-                global.getComponents().getFunctionsWorkerBaseName(),
-                getServiceDnsSuffix()
-        );
+        if (isTlsEnabledOnFunctionsWorker()) {
+            return "https://%s-%s-ca.%s:6751".formatted(
+                    global.getName(),
+                    global.getComponents().getFunctionsWorkerBaseName(),
+                    getServiceDnsSuffix()
+            );
+        } else {
+            return "http://%s-%s-ca.%s:6750".formatted(
+                    global.getName(),
+                    global.getComponents().getFunctionsWorkerBaseName(),
+                    getServiceDnsSuffix()
+            );
+        }
     }
 
     protected String getTlsSecretNameForZookeeper() {
         final String name = global.getTls().getZookeeper() == null
-                ? null : global.getTls().getZookeeper().getTlsSecretName();
+                ? null : global.getTls().getZookeeper().getSecretName();
         return ObjectUtils.firstNonNull(
                 name,
                 global.getTls().getDefaultSecretName());
@@ -316,7 +340,7 @@ public abstract class BaseResourcesFactory<T> {
 
     protected String getTlsSecretNameForBookkeeper() {
         final String name = global.getTls().getBookkeeper() == null
-                ? null : global.getTls().getBookkeeper().getTlsSecretName();
+                ? null : global.getTls().getBookkeeper().getSecretName();
         return ObjectUtils.firstNonNull(
                 name,
                 global.getTls().getDefaultSecretName());
@@ -324,7 +348,31 @@ public abstract class BaseResourcesFactory<T> {
 
     protected String getTlsSecretNameForBroker() {
         final String name = global.getTls().getBroker() == null
-                ? null : global.getTls().getBroker().getTlsSecretName();
+                ? null : global.getTls().getBroker().getSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected String getTlsSecretNameForProxy() {
+        final String name = global.getTls().getProxy() == null
+                ? null : global.getTls().getProxy().getSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected String getTlsSecretNameForFunctionsWorker() {
+        final String name = global.getTls().getFunctionsWorker() == null
+                ? null : global.getTls().getFunctionsWorker().getSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected String getTlsSsCaSecretName() {
+        final String name = global.getTls().getSsCa() == null
+                ? null : global.getTls().getSsCa().getSecretName();
         return ObjectUtils.firstNonNull(
                 name,
                 global.getTls().getDefaultSecretName());
@@ -342,25 +390,11 @@ public abstract class BaseResourcesFactory<T> {
                         .withMountPath("/pulsar/certs")
                         .build()
         );
-        volumeMounts.add(
-                new VolumeMountBuilder()
-                        .withName("certconverter")
-                        .withMountPath("/pulsar/tools")
-                        .build()
-        );
         volumes.add(
                 new VolumeBuilder()
                         .withName("certs")
                         .withNewSecret().withSecretName(secretName)
                         .endSecret()
-                        .build()
-        );
-
-        volumes.add(
-                new VolumeBuilder()
-                        .withName("certconverter")
-                        .withNewConfigMap().withName(global.getName() + "-certconverter-configmap")
-                        .withDefaultMode(0755).endConfigMap()
                         .build()
         );
     }
@@ -643,6 +677,62 @@ public abstract class BaseResourcesFactory<T> {
             newData.put(newKey, v);
         });
         return newData;
+    }
+
+    protected String generateCertConverterScript() {
+        String script = """
+                certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                """;
+        if (isTlsEnabledOnZooKeeper()) {
+            script += """
+                    passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && 
+                    echo $'\\n' >> conf/pulsar_env.sh &&
+                    echo "PULSAR_EXTRA_OPTS=\\"${PULSAR_EXTRA_OPTS} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.client.secure=true -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.keyStore.${passwordArg} -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.trustStore.${passwordArg} -Dzookeeper.sslQuorum=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.keyStore.${passwordArg} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.trustStore.${passwordArg} -Dzookeeper.ssl.hostnameVerification={{ .Values.tls.zookeeper.enableHostnameVerification }} -Dzookeeper.ssl.quorum.hostnameVerification={{ .Values.tls.zookeeper.enableHostnameVerification }}\\"" >> conf/pulsar_env.sh &&
+                    echo $'\\n' >> conf/bkenv.sh &&
+                    echo "BOOKIE_EXTRA_OPTS=\\"${BOOKIE_EXTRA_OPTS} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.client.secure=true -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.keyStore.${passwordArg} -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.trustStore.${passwordArg} -Dzookeeper.ssl.hostnameVerification={{ .Values.tls.zookeeper.enableHostnameVerification }}\\"" >> conf/bkenv.sh &&
+                    """;
+        }
+        script += "echo ''";
+        return script;
     }
 
 

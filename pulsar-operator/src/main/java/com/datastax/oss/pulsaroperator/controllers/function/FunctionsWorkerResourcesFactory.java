@@ -45,6 +45,10 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getFunctionsWorkerBaseName();
+    }
+
     private ConfigMap configMap;
     private ConfigMap extraConfigMap;
 
@@ -56,7 +60,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getFunctionsWorkerBaseName();
+        return getComponentBaseName(global);
     }
 
     @Override
@@ -189,11 +193,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("workerId", resourceName);
         data.put("workerHostname", resourceName);
         data.put("workerPort", "6750");
-        if (isTlsEnabledGlobally()) {
-            data.put("tlsEnabled", "true");
-            data.put("workerPortTls", "6751");
-            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        }
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
         }
@@ -210,6 +209,22 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("properties", Map.of(
                     "tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile())
             ));
+        }
+        if (isTlsEnabledOnFunctionsWorker()) {
+            data.put("tlsEnabled", "true");
+            data.put("workerPortTls", "6751");
+            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
+            final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
+            if (enabledWithBroker != null && enabledWithBroker) {
+                data.put("useTls", "true");
+                data.put("tlsEnabledWithKeyStore", "true");
+                data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
+                data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
+                data.put("tlsEnableHostnameVerification", "true");
+            }
         }
         final String brokerServiceUrl = getBrokerServiceUrl();
         final String brokerWebServiceUrl = getBrokerWebServiceUrl();
@@ -302,7 +317,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForFunctionsWorker());
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
@@ -365,7 +380,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (isTlsEnabledGlobally()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + ". /pulsar/tools/certconverter.sh && ";
+                    + generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
                 + "cp -f funcconf/functions_worker.yml conf/functions_worker.yml && "
@@ -480,7 +495,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     private Probe createReadinessProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         return new ProbeBuilder()
@@ -496,7 +511,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     private Probe createLivenessProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()

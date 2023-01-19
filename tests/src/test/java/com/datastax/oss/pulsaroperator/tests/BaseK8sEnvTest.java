@@ -31,12 +31,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
@@ -84,7 +84,8 @@ public abstract class BaseK8sEnvTest {
     public void before() throws Exception {
         setDefaultAwaitilityTimings();
 
-        namespace = "pulsar-operator-test-" + UUID.randomUUID();
+        namespace = "pulsar-operator-test-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
+        log.info("Starting test using existing env: {}", USE_EXISTING_ENV);
 
         if (USE_EXISTING_ENV) {
             env = new ExistingK8sEnv();
@@ -368,25 +369,32 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void execInPodContainer(String podName, String containerName, String... cmds) {
         final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" && "));
-        log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        CompletableFuture<String> future = new CompletableFuture<>();
-        try (final ExecWatch exec = client
-                .pods()
-                .inNamespace(namespace)
-                .withName(podName)
-                .inContainer(containerName)
-                .writingOutput(baos)
-                .writingError(baos)
-                .usingListener(new SimpleListener(future, baos))
-                .exec("bash", "-c", cmd);) {
-            final String outputCmd = future.get(30, TimeUnit.SECONDS);
-            log.info("Output cmd: {}", outputCmd);
-            if (exec.exitCode().get().intValue() != 0) {
-                log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
-                throw new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
+        int remainingAttempts = 3;
+        RuntimeException lastEx = null;
+        while (remainingAttempts-- > 0) {
+            log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            try (final ExecWatch exec = client
+                    .pods()
+                    .inNamespace(namespace)
+                    .withName(podName)
+                    .inContainer(containerName)
+                    .writingOutput(baos)
+                    .writingError(baos)
+                    .usingListener(new SimpleListener(future, baos))
+                    .exec("bash", "-c", cmd);) {
+                final String outputCmd = future.get(30, TimeUnit.SECONDS);
+                log.info("Output cmd: {}", outputCmd);
+                if (exec.exitCode().get().intValue() != 0) {
+                    log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
+                    lastEx = new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
+                } else {
+                    return;
+                }
             }
         }
+        throw lastEx;
     }
 
     static class SimpleListener implements ExecListener {
@@ -413,5 +421,9 @@ public abstract class BaseK8sEnvTest {
         public void onClose(int code, String reason) {
             data.complete(baos.toString());
         }
+    }
+
+    protected String getPodNameByComponent(String component) {
+        return client.pods().withLabel("component", component).list().getItems().get(0).getMetadata().getName();
     }
 }

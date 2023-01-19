@@ -77,8 +77,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             annotations = serviceSpec.getAnnotations();
         }
         List<ServicePort> ports = new ArrayList<>();
-        final boolean tlsEnabledGlobally = isTlsEnabledGlobally();
-        if (tlsEnabledGlobally) {
+        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxy();
+        if (tlsEnabledOnProxy) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
                     .withPort(8443)
@@ -89,7 +89,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                     .build());
 
         }
-        if (!tlsEnabledGlobally || serviceSpec.getEnablePlainTextWithTLS()) {
+        if (!tlsEnabledOnProxy || serviceSpec.getEnablePlainTextWithTLS()) {
             ports.add(new ServicePortBuilder()
                     .withName("http")
                     .withPort(8080)
@@ -134,8 +134,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         data.put("clusterName", global.getName());
         boolean isStandaloneFunctionsWorker = spec.getStandaloneFunctionsWorker() != null
                 && spec.getStandaloneFunctionsWorker();
+        final String functionsWorkerServiceUrl = getFunctionsWorkerServiceUrl();
         if (isStandaloneFunctionsWorker) {
-            data.put("functionWorkerWebServiceURL", getFunctionsWorkerServiceUrl());
+            data.put("functionWorkerWebServiceURL", functionsWorkerServiceUrl);
         }
 
         data.putAll(DEFAULT_CONFIG_MAP);
@@ -149,6 +150,27 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             data.put("tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile()));
             data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
+        }
+        if (isTlsEnabledOnProxy()) {
+            data.put("tlsEnabledWithKeyStore", "true");
+            data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
+            data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
+            data.put("brokerClientTlsTrustStore", "/pulsar/tls.truststore.jks");
+            data.put("tlsEnabledInProxy", "true");
+            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+            data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
+            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerServicePortTls", "6651");
+            data.put("webServicePortTls", "8443");
+            data.put("servicePortTls", "6651");
+            if (global.getTls().getProxy().getEnabledWithBroker()) {
+                data.put("tlsEnabledWithBroker", "true");
+                data.put("tlsHostnameVerificationEnabled", "true");
+            }
+            if (isTlsEnabledOnFunctionsWorker()) {
+                data.put("functionWorkerWebServiceURLTLS", functionsWorkerServiceUrl);
+            }
         }
 
         if (spec.getConfig() != null) {
@@ -196,6 +218,20 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
         }
+        if (isTlsEnabledOnProxy()) {
+            data.put("webServicePortTls", "8001");
+            data.put("tlsEnabled", "true");
+            data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+            data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
+            data.put("tlsEnabledWithKeyStore", "true");
+            data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
+            data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
+            if (global.getTls().getProxy().getEnabledWithBroker()) {
+                data.put("brokerClientTlsEnabled", "true");
+                data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+                data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            }
+        }
 
 
         if (spec.getConfig() != null) {
@@ -237,7 +273,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxy());
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
             addSecretTokenVolume(volumeMounts, volumes, "private-key");
@@ -283,7 +319,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (isTlsEnabledGlobally()) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + ". /pulsar/tools/certconverter.sh && ";
+                    + generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/proxy.conf && ";
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar proxy";
@@ -334,7 +370,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             if (isTlsEnabledGlobally()) {
                 wsArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                         + "-out /pulsar/tls-pk8.key -nocrypt && "
-                        + ". /pulsar/tools/certconverter.sh && ";
+                        + generateCertConverterScript() + " && ";
             }
             wsArg += "bin/apply-config-from-env.py conf/websocket.conf && ";
             wsArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar websocket";
@@ -398,7 +434,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()

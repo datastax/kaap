@@ -465,6 +465,77 @@ public class FunctionsWorkerControllerTest {
 
     }
 
+
+    @Test
+    public void testTlsEnabledOnFunctionsWorker() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                        proxy:
+                            enabled: true
+                        functionsWorker:
+                            enabled: true
+                            enabledWithBroker: true
+                functionsWorker:
+                    replicas: 1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("zooKeeperSessionTimeoutMillis", 30000);
+        expectedData.put("pulsarFunctionsCluster", "pul");
+        expectedData.put("workerId", "pul-function");
+        expectedData.put("workerHostname", "pul-function");
+        expectedData.put("workerPort", 6750);
+
+        expectedData.put("pulsarServiceUrl", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("pulsarWebServiceUrl", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("downloadDirectory", "/tmp/pulsar_functions");
+        expectedData.put("pulsarFunctionsNamespace", "public/functions");
+        expectedData.put("functionMetadataTopicName", "metadata");
+        expectedData.put("clusterCoordinationTopicName", "coordinate");
+        expectedData.put("numHttpServerThreads", 16);
+        expectedData.put("schedulerClassName", "org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler");
+        expectedData.put("functionAssignmentTopicName", "assignments");
+        expectedData.put("failureCheckFreqMs", 30000);
+        expectedData.put("rescheduleTimeoutMs", 60000);
+        expectedData.put("initialBrokerReconnectMaxRetries", 60);
+        expectedData.put("assignmentWriteMaxRetries", 60);
+        expectedData.put("instanceLivenessCheckFreqMs", 30000);
+        expectedData.put("topicCompactionFrequencySec", 1800);
+        expectedData.put("includeStandardPrometheusMetrics", "true");
+        expectedData.put("connectorsDirectory", "./connectors");
+        expectedData.put("numFunctionPackageReplicas", 2);
+        expectedData.put("functionRuntimeFactoryClassName",
+                "org.apache.pulsar.functions.runtime.process.ProcessRuntimeFactory");
+        expectedData.put("functionRuntimeFactoryConfigs", Map.of());
+        expectedData.put("tlsEnabled", "true");
+        expectedData.put("workerPortTls", 6751);
+        expectedData.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("useTls", "true");
+        expectedData.put("tlsEnabledWithKeyStore", "true");
+        expectedData.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
+        expectedData.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
+        expectedData.put("tlsEnableHostnameVerification", "true");
+
+        final Map<String, Object> data = (Map<String, Object>) SerializationUtil
+                .readYaml(createdResource.getResource().getData().get("functions_worker.yml"), Map.class);
+        Assert.assertEquals(data, expectedData);
+    }
+
     @Test
     public void testReplicas() throws Exception {
         String spec = """

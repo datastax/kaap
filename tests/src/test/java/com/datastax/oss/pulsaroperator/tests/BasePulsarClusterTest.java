@@ -57,7 +57,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .name("pulsar")
                 .persistence(true)
                 .image(PULSAR_IMAGE)
-                .imagePullPolicy("Never")
+                .imagePullPolicy("IfNotPresent")
                 .storage(GlobalSpec.GlobalStorageConfig.builder()
                         .existingStorageClassName(env.getStorageClass())
                         .build())
@@ -388,6 +388,30 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
             Assert.assertEquals(client.batch().v1().jobs()
                     .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
+        });
+    }
+
+    protected void assertSourceInstalled() {
+        Awaitility.await().until(() -> {
+            try {
+                execInBastionPod(
+                        "bin/pulsar-admin sources create --name generator --tenant public --namespace default "
+                                + "--destinationTopicName generator_test --source-type data-generator "
+                                + "--ram 12800000 --cpu 0.001 --disk 1000000000 "
+                                + "--parallelism 2");
+                return true;
+            } catch (Throwable t) {
+                log.error("Cmd failed", t);
+            }
+            return false;
+        });
+
+        Awaitility.await().untilAsserted(() -> {
+            printRunningPods();
+            Assert.assertTrue(
+                    client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());
+            Assert.assertTrue(
+                    client.pods().inNamespace(namespace).withName("pf-public-default-generator-1").isReady());
         });
     }
 }

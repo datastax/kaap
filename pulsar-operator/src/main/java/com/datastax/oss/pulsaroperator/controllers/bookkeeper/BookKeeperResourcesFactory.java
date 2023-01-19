@@ -176,7 +176,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                             + " -nocrypt && ";
         }
         if (isTlsEnabledOnZooKeeper()) {
-            mainArg += "/pulsar/tools/certconverter.sh && ";
+            mainArg += generateCertConverterScript() + " && ";
         }
 
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar bookie";
@@ -286,7 +286,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null) {
+        if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         return new ProbeBuilder()

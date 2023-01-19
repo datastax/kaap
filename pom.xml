@@ -26,7 +26,7 @@
         <lombok.version>1.18.24</lombok.version>
         <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
         <spotbugs.version>4.7.2</spotbugs.version>
-        <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.2.1</maven-checkstyle-plugin.version>
         <commons-codec.version>1.15</commons-codec.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <jjwt.version>0.11.5</jjwt.version>
@@ -188,6 +188,13 @@
                         <suppressionsLocation>src/suppressions.xml</suppressionsLocation>
                         <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>10.6.0</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -45,6 +45,9 @@ public class ConfigUtil {
 
     @SneakyThrows
     private static Object readField(Object object, String fieldName) {
+        if (object == null) {
+            return null;
+        }
         return FieldUtils.readField(object, fieldName, true);
     }
 }

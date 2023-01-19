@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -453,6 +454,164 @@ public class ProxyControllerTest {
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
+    }
+
+
+    @Test
+    public void testTlsEnabledOnProxy() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                        proxy:
+                            enabled: true
+                            enabledWithBroker: true
+                        functionsWorker:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+        expectedData.put("PULSAR_PREFIX_tlsEnabledWithKeyStore", "true");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls.keystore.jks");
+        expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/tls.truststore.jks");
+        expectedData.put("PULSAR_PREFIX_brokerClientTlsTrustStore", "/pulsar/tls.truststore.jks");
+        expectedData.put("PULSAR_PREFIX_tlsEnabledInProxy", "true");
+        expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
+        expectedData.put("PULSAR_PREFIX_servicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_tlsEnabledWithBroker", "true");
+        expectedData.put("PULSAR_PREFIX_tlsHostnameVerificationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_functionWorkerWebServiceURLTLS", "https://pul-function-ca.ns.svc.cluster.local:6751");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+
+        final ConfigMap wsConfigMap = client.getCreatedResources(ConfigMap.class).get(1).getResource();
+        Map<String, String> wsExpectedData = new HashMap<>();
+
+        wsExpectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        wsExpectedData.put("PULSAR_PREFIX_brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        wsExpectedData.put("PULSAR_PREFIX_serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
+        wsExpectedData.put("PULSAR_PREFIX_serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
+        wsExpectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        wsExpectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        wsExpectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        wsExpectedData.put("PULSAR_PREFIX_webServicePort", "8000");
+
+        wsExpectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        wsExpectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        wsExpectedData.put("PULSAR_LOG_LEVEL", "info");
+        wsExpectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        wsExpectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        wsExpectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+        wsExpectedData.put("PULSAR_PREFIX_webServicePort", "8000");
+
+        wsExpectedData.put("PULSAR_PREFIX_webServicePortTls", "8001");
+        wsExpectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
+        wsExpectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        wsExpectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        wsExpectedData.put("PULSAR_PREFIX_tlsEnabledWithKeyStore", "true");
+        wsExpectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls.keystore.jks");
+        wsExpectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/tls.truststore.jks");
+        wsExpectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
+        wsExpectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        wsExpectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+
+        Assert.assertEquals(wsConfigMap.getData(), wsExpectedData);
+
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(deployment, GlobalSpec.DEFAULT_TLS_SECRET_NAME);
+        final String command = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getArgs().get(0);
+        Assert.assertEquals(command, """
+                openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                echo '' && bin/apply-config-from-env.py conf/proxy.conf && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar proxy""");
+
+
+        final Service service = client.getCreatedResource(Service.class).getResource();
+        final List<ServicePort> ports = service.getSpec().getPorts();
+        Assert.assertEquals(ports.size(), 2);
+        for (ServicePort port : ports) {
+            switch (port.getName()) {
+                case "https":
+                    Assert.assertEquals((int) port.getPort(), 8443);
+                    break;
+                case "pulsarssl":
+                    Assert.assertEquals((int) port.getPort(), 6651);
+                    break;
+                default:
+                    Assert.fail("unexpected port " + port.getName());
+                    break;
+            }
+        }
     }
 
 

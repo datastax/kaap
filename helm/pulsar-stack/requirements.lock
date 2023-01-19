@@ -8,5 +8,8 @@ dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 9.8.1
-digest: sha256:84a78fae650335481c406e2878b323ac5a34271032f1cd655861523338654bc4
-generated: "2023-01-02T16:28:40.079351+01:00"
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.11.0
+digest: sha256:b06b68ebdd772b5d7e918ab2d5674062d2fbcdeb96b871748e821eab82b6b267
+generated: "2023-01-13T23:30:05.353752+01:00"

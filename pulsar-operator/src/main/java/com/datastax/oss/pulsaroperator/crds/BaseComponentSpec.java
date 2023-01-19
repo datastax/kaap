@@ -54,9 +54,12 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
             boolean enabled = probe.getEnabled() == null
                     ? defaultProbe.getEnabled() : probe.getEnabled();
             if (!enabled) {
-                probe = null;
+                probe = ProbeConfig.builder()
+                        .enabled(false)
+                        .build();
             } else {
                 probe = ProbeConfig.builder()
+                        .enabled(true)
                         .initial(ObjectUtils.firstNonNull(probe.getInitial(),
                                 defaultProbe.getInitial()))
                         .period(ObjectUtils.firstNonNull(probe.getPeriod(),

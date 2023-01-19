@@ -1,0 +1,4 @@
+pulsar-operator:
+  operator:
+    image: datastax/pulsar-operator:latest
+    imagePullPolicy: Always

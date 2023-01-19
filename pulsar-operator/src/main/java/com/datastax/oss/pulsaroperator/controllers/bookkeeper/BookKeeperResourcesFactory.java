@@ -184,6 +184,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
+        addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBookkeeper());
 
         final String journalVolumeName = "%s%s-%s".formatted(

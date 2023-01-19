@@ -3,6 +3,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
@@ -72,11 +73,15 @@ public abstract class BaseResourcesFactory<T> {
 
     public static String getResourceName(String clusterName, String baseName) {
         return "%s-%s".formatted(clusterName, baseName);
-    };
+    }
+
+    ;
 
     protected String getResourceName() {
         return getResourceName(global.getName(), getComponentBaseName());
-    };
+    }
+
+    ;
 
     protected abstract String getComponentBaseName();
 
@@ -575,7 +580,8 @@ public abstract class BaseResourcesFactory<T> {
         return deploymentStatus.getReplicas().intValue() == deploymentStatus.getReadyReplicas().intValue();
     }
 
-    protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules, String serviceAccountName) {
+    protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules,
+                                                 String serviceAccountName) {
         final ServiceAccount serviceAccount = new ServiceAccountBuilder()
                 .withNewMetadata()
                 .withName(serviceAccountName)
@@ -733,6 +739,18 @@ public abstract class BaseResourcesFactory<T> {
         }
         script += "echo ''";
         return script;
+    }
+
+    protected void addAdditionalVolumes(AdditionalVolumesConfig additionalVolumesConfig,
+                                        List<VolumeMount> volumeMounts, List<Volume> volumes) {
+        if (additionalVolumesConfig != null) {
+            if (additionalVolumesConfig.getVolumes() != null) {
+                volumes.addAll(additionalVolumesConfig.getVolumes());
+            }
+            if (additionalVolumesConfig.getMounts() != null) {
+                volumeMounts.addAll(additionalVolumesConfig.getMounts());
+            }
+        }
     }
 
 

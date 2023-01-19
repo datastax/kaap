@@ -273,6 +273,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
+        addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxy());
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");

@@ -292,7 +292,8 @@ public class BookKeeperControllerTest {
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
-        expectedData.put("PULSAR_PREFIX_statsProviderClass", "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
+        expectedData.put("PULSAR_PREFIX_statsProviderClass",
+                "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
         expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
 
@@ -620,11 +621,13 @@ public class BookKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-jname").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-jname").getMountPath(),
                 "/pulsar/data/bookkeeper/journal");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-jname"));
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-lname").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-lname").getMountPath(),
                 "/pulsar/data/bookkeeper/ledgers");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-lname"));
 
@@ -684,11 +687,13 @@ public class BookKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-journal").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-journal").getMountPath(),
                 "/pulsar/data/bookkeeper/journal");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-journal"));
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-ledgers").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-ledgers").getMountPath(),
                 "/pulsar/data/bookkeeper/ledgers");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-ledgers"));
 
@@ -766,11 +771,13 @@ public class BookKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-journal").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-journal").getMountPath(),
                 "/pulsar/data/bookkeeper/journal");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-journal"));
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-ledgers").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-bookkeeper-ledgers").getMountPath(),
                 "/pulsar/data/bookkeeper/ledgers");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-bookkeeper-ledgers"));
 
@@ -811,7 +818,6 @@ public class BookKeeperControllerTest {
             Assert.assertEquals(storageClass.getParameters().get("iopsPerGB"), "10");
         }
     }
-
 
 
     @Test
@@ -1028,6 +1034,36 @@ public class BookKeeperControllerTest {
                 .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bookkeeper");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
+    }
+
+    @Test
+    public void testAdditionalVolumes() throws Exception {
+
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    additionalVolumes:
+                        volumes:
+                            - name: vol1
+                              secret:
+                                secretName: mysecret
+                        mounts:
+                            - name: vol1
+                              mountPath: /pulsar/custom
+                              readOnly: true
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+
+        final PodSpec podSpec = sts.getSpec().getTemplate().getSpec();
+        KubeTestUtil.assertVolumeFromSecret(podSpec.getVolumes(), "vol1", "mysecret");
+        KubeTestUtil.assertVolumeMount(podSpec.getContainers().get(0)
+                .getVolumeMounts(), "vol1", "/pulsar/custom", true);
     }
 
 

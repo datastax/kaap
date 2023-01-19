@@ -44,6 +44,10 @@ public class PulsarClusterControllerTest {
                   autorecoveryBaseName: autorecovery
                   bastionBaseName: bastion
                   functionsWorkerBaseName: function
+                dnsConfig:
+                  options:
+                  - name: ndots
+                    value: 4
                 kubernetesClusterDomain: cluster.local
                 tls:
                   enabled: false

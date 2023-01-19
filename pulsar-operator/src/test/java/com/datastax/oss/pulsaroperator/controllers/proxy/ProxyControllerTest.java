@@ -242,6 +242,10 @@ public class ProxyControllerTest {
                           requests:
                             cpu: 1
                             memory: 1Gi
+                      dnsConfig:
+                        options:
+                        - name: ndots
+                          value: 4
                       terminationGracePeriodSeconds: 60
                 """);
 

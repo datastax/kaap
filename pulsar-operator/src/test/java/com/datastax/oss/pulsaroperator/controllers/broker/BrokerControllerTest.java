@@ -194,6 +194,10 @@ public class BrokerControllerTest {
                           requests:
                             cpu: 1
                             memory: 2Gi
+                      dnsConfig:
+                        options:
+                        - name: ndots
+                          value: 4
                       terminationGracePeriodSeconds: 60
                 """);
 
@@ -355,6 +359,10 @@ public class BrokerControllerTest {
                                 image: apachepulsar/pulsar:global
                                 imagePullPolicy: IfNotPresent
                                 name: pul-broker
+                              dnsConfig:
+                                options:
+                                - name: ndots
+                                  value: 4
                               restartPolicy: OnFailure
                         """);
     }

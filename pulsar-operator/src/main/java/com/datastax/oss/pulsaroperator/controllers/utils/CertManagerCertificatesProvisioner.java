@@ -32,8 +32,9 @@ public class CertManagerCertificatesProvisioner {
             return;
         }
 
+        final TlsConfig.CertProvisionerConfig certProvisioner = globalSpec.getTls().getCertProvisioner();
         final TlsConfig.SelfSignedCertProvisionerConfig selfSigned =
-                globalSpec.getTls().getCertProvisioner().getSelfSigned();
+                certProvisioner.getSelfSigned();
 
         if (!selfSigned.getEnabled()) {
             return;
@@ -122,6 +123,12 @@ public class CertManagerCertificatesProvisioner {
         dnsNames.add("%s-ca.%s".formatted(functionsWorkerBase, serviceDnsSuffix));
         dnsNames.add("%s-ca.%s".formatted(functionsWorkerBase, namespace));
         dnsNames.add("%s-ca".formatted(functionsWorkerBase));
+
+        if (globalSpec.getDnsName() != null
+                && selfSigned.getIncludeDns() != null
+                && selfSigned.getIncludeDns()) {
+            dnsNames.add(globalSpec.getDnsName());
+        }
         final Certificate ssCertificate = new CertificateBuilder()
                 .withNewMetadata()
                 .withName("%s-server-tls".formatted(name))

@@ -7,6 +7,8 @@ import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
+import io.fabric8.kubernetes.api.model.PodDNSConfigBuilder;
+import io.fabric8.kubernetes.api.model.PodDNSConfigOptionBuilder;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -60,6 +62,14 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
                     .build())
             .build();
 
+    private static final Supplier<PodDNSConfig> DEFAULT_DNS_CONFIG = () -> new PodDNSConfigBuilder()
+            .withOptions(new PodDNSConfigOptionBuilder()
+                    .withName("ndots")
+                    .withValue("4")
+                    .build())
+            .build();
+
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -109,6 +119,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             The default value is 'cluster.local'.
             """)
     private String kubernetesClusterDomain;
+    @JsonPropertyDescription("Public dns name for the cluster's load balancer.")
+    private String dnsName;
     @JsonPropertyDescription("Global node selector. If set, this will apply to all the components.")
     protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription("TLS configuration for the cluster.")
@@ -161,6 +173,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         }
         if (storage.getStorageClass() != null && storage.getStorageClass().getReclaimPolicy() == null) {
             storage.getStorageClass().setReclaimPolicy("Retain");
+        }
+        if (dnsConfig == null) {
+            dnsConfig = DEFAULT_DNS_CONFIG.get();
         }
         applyTlsDefaults();
         applyAuthDefaults();

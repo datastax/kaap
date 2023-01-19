@@ -119,6 +119,10 @@ public class BastionControllerTest {
                           requests:
                             cpu: 0.25
                             memory: 256Mi
+                      dnsConfig:
+                        options:
+                        - name: ndots
+                          value: 4
                       terminationGracePeriodSeconds: 60
                 """);
 

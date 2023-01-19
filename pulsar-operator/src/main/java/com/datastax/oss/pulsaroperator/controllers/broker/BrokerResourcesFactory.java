@@ -140,7 +140,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("brokerClientTlsEnabled", "true");
             data.put("webServicePortTls", "8443");
             data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
-            data.put("brokerClient_enableTlsHostnameVerification", "true");
+            data.put("brokerClient_tlsHostnameVerificationEnable", "true");
             // TODO: tls vs bookkeeper
         }
         if (spec.getFunctionsWorkerEnabled()) {

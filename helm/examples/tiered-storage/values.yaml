@@ -1,0 +1,4 @@
+pulsar-operator:
+  operator:
+    image: nicoloboschi/pulsar-operator:latest
+    imagePullPolicy: Always

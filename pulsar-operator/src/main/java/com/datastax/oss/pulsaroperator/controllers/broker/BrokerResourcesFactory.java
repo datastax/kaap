@@ -209,6 +209,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
+        addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
+
         addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");

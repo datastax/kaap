@@ -30,7 +30,7 @@ pulsar-operator:
     create: true
 
   operator:
-    image: datastax/pulsar-operator:latest
+    image: datastax/lunastreaming-operator:latest
     imagePullPolicy: IfNotPresent
     livenessProbe:
       failureThreshold: 3

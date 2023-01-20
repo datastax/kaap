@@ -34,6 +34,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -960,6 +961,77 @@ public class BrokerControllerTest {
         Assert.assertEquals(dnsConfig.getNameservers(), List.of("1.2.3.4"));
         Assert.assertEquals(dnsConfig.getSearches(), List.of("ns1.svc.cluster-domain.example", "my.dns.search.suffix"));
     }
+
+    @Test
+    public void testTolerations() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                broker:
+                    tolerations:
+                        - key: "app"
+                          operator: "Equal"
+                          value: "pulsar"
+                          effect: "NoSchedule"
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
+                client.getCreatedResource(StatefulSet.class);
+        final List<Toleration> tolerations = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getTolerations();
+        Assert.assertEquals(tolerations.size(), 1);
+        final Toleration toleration = tolerations.get(0);
+        Assert.assertEquals(toleration.getKey(), "app");
+        Assert.assertEquals(toleration.getOperator(), "Equal");
+        Assert.assertEquals(toleration.getValue(), "pulsar");
+        Assert.assertEquals(toleration.getEffect(), "NoSchedule");
+    }
+
+    @Test
+    public void testTransactionsJobTolerations() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                broker:
+                    transactions:
+                        enabled: true
+                    tolerations:
+                        - key: "app"
+                          operator: "Equal"
+                          value: "pulsar"
+                          effect: "NoSchedule"
+                """;
+
+        final Broker brokerCr =
+                (Broker) controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        brokerCr.setStatus(
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+        );
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
+            @Override
+            public StatefulSet statefulSetWithName(String name) {
+                return baseStatefulSetBuilder(name, true).build();
+            }
+        });
+        invokeController(brokerCr, client);
+
+        MockKubernetesClient.ResourceInteraction<Job> createdResource =
+                client.getCreatedResource(Job.class);
+        final List<Toleration> tolerations = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getTolerations();
+        Assert.assertEquals(tolerations.size(), 1);
+        final Toleration toleration = tolerations.get(0);
+        Assert.assertEquals(toleration.getKey(), "app");
+        Assert.assertEquals(toleration.getOperator(), "Equal");
+        Assert.assertEquals(toleration.getValue(), "pulsar");
+        Assert.assertEquals(toleration.getEffect(), "NoSchedule");
+    }
+
 
 
     @Test

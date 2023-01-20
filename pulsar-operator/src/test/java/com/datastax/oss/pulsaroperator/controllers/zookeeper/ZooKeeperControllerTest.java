@@ -16,8 +16,11 @@
 package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.MockResourcesResolver;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -31,7 +34,9 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import java.util.HashMap;
@@ -637,6 +642,76 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(dnsConfig.getSearches(), List.of("ns1.svc.cluster-domain.example", "my.dns.search.suffix"));
     }
 
+    @Test
+    public void testTolerations() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    tolerations:
+                        - key: "app"
+                          operator: "Equal"
+                          value: "pulsar"
+                          effect: "NoSchedule"
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
+                client.getCreatedResource(StatefulSet.class);
+        final List<Toleration> tolerations = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getTolerations();
+        Assert.assertEquals(tolerations.size(), 1);
+        final Toleration toleration = tolerations.get(0);
+        Assert.assertEquals(toleration.getKey(), "app");
+        Assert.assertEquals(toleration.getOperator(), "Equal");
+        Assert.assertEquals(toleration.getValue(), "pulsar");
+        Assert.assertEquals(toleration.getEffect(), "NoSchedule");
+    }
+
+
+    @Test
+    public void testInitMetadataJobTolerations() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    tolerations:
+                        - key: "app"
+                          operator: "Equal"
+                          value: "pulsar"
+                          effect: "NoSchedule"
+                """;
+
+        final ZooKeeper zkCr =
+                new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
+                        .createCustomResource(ZooKeeper.class, ZooKeeperFullSpec.class, spec);
+        zkCr.setStatus(
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(zkCr.getSpec()))
+        );
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
+            @Override
+            public StatefulSet statefulSetWithName(String name) {
+                return baseStatefulSetBuilder(name, true).build();
+            }
+        });
+        invokeController(zkCr, client);
+
+        MockKubernetesClient.ResourceInteraction<Job> createdResource =
+                client.getCreatedResource(Job.class);
+        final List<Toleration> tolerations = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getTolerations();
+        Assert.assertEquals(tolerations.size(), 1);
+        final Toleration toleration = tolerations.get(0);
+        Assert.assertEquals(toleration.getKey(), "app");
+        Assert.assertEquals(toleration.getOperator(), "Equal");
+        Assert.assertEquals(toleration.getValue(), "pulsar");
+        Assert.assertEquals(toleration.getEffect(), "NoSchedule");
+    }
+
 
     @Test
     public void testProbe() throws Exception {
@@ -1114,5 +1189,11 @@ public class ZooKeeperControllerTest {
                         ZooKeeper.class,
                         ZooKeeperFullSpec.class,
                         ZooKeeperController.class);
+    }
+
+    @SneakyThrows
+    private void invokeController(ZooKeeper zooKeeper, MockKubernetesClient client) {
+        new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(client, zooKeeper, ZooKeeperController.class);
     }
 }

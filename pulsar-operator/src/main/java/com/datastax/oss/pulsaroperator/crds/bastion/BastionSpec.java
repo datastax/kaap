@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.Toleration;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
@@ -65,6 +67,8 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
     private ResourceRequirements resources;
     @JsonPropertyDescription("Indicates to connect to proxy or the broker. The default value depends whether Proxy is deployed or not.")
     private Boolean targetProxy;
+    @JsonPropertyDescription(CRDConstants.DOC_TOLERATIONS)
+    private List<Toleration> tolerations;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

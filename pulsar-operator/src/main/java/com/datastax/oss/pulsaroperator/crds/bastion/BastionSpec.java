@@ -21,6 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -69,6 +70,8 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
     private Boolean targetProxy;
     @JsonPropertyDescription(CRDConstants.DOC_TOLERATIONS)
     private List<Toleration> tolerations;
+    @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)
+    private NodeAffinity nodeAffinity;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

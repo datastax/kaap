@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Toleration;
 import java.util.HashMap;
 import java.util.List;
@@ -52,8 +53,10 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private PodDisruptionBudgetConfig pdb;
     @JsonPropertyDescription("Mount additional volumes to the pod.")
     private AdditionalVolumesConfig additionalVolumes;
-    @JsonPropertyDescription("Pod tolerations.")
+    @JsonPropertyDescription(CRDConstants.DOC_TOLERATIONS)
     private List<Toleration> tolerations;
+    @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)
+    private NodeAffinity nodeAffinity;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

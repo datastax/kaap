@@ -438,6 +438,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
                 .withNodeSelector(spec.getNodeSelectors())
+                .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withInitContainers(initContainers)
                 .withContainers(containers)

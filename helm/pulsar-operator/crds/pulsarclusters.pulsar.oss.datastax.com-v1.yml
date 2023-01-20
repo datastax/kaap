@@ -899,6 +899,80 @@ spec:
                         description: Enable Pdb policy.
                         type: boolean
                     type: object
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -1824,6 +1898,80 @@ spec:
                         description: Enable Pdb policy.
                         type: boolean
                     type: object
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -1861,6 +2009,80 @@ spec:
                   replicas:
                     description: Number of desired replicas.
                     type: integer
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -2794,6 +3016,80 @@ spec:
                         description: Enable Pdb policy.
                         type: boolean
                     type: object
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -3667,6 +3963,80 @@ spec:
                         description: Enable Pdb policy.
                         type: boolean
                     type: object
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -4535,6 +4905,80 @@ spec:
                         description: Enable Pdb policy.
                         type: boolean
                     type: object
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -4572,6 +5016,80 @@ spec:
                   replicas:
                     description: Number of desired replicas.
                     type: integer
+                  nodeAffinity:
+                    description: Node affinity configuration.
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        items:
+                          properties:
+                            weight:
+                              type: integer
+                            preference:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        properties:
+                          nodeSelectorTerms:
+                            items:
+                              properties:
+                                matchFields:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                                matchExpressions:
+                                  items:
+                                    properties:
+                                      key:
+                                        type: string
+                                      values:
+                                        items:
+                                          type: string
+                                        type: array
+                                      operator:
+                                        type: string
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                    type: object
                   image:
                     description: Override Pulsar image.
                     type: string
@@ -4884,6 +5402,31 @@ spec:
                       can be configured to use a different image pull policy. Default
                       value is 'IfNotPresent'.
                     type: string
+                  antiAffinity:
+                    description: Pod anti affinity configuration.
+                    properties:
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
+                        properties:
+                          enabled:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
+                        type: object
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
+                        properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
+                          enabled:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
+                        type: object
+                    type: object
                 required:
                 - name
                 type: object

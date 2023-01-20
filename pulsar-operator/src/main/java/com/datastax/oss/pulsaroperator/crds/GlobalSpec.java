@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -81,6 +82,16 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             .withOptions(new PodDNSConfigOptionBuilder()
                     .withName("ndots")
                     .withValue("4")
+                    .build())
+            .build();
+
+    private static final Supplier<AntiAffinityConfig> DEFAULT_ANTI_AFFINITY_CONFIG = () -> AntiAffinityConfig.builder()
+            .host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                    .enabled(true)
+                    .required(true)
+                    .build())
+            .zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
+                    .enabled(false)
                     .build())
             .build();
 
@@ -163,6 +174,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @JsonPropertyDescription("Storage configuration.")
     private GlobalStorageConfig storage;
 
+    @JsonPropertyDescription("Pod anti affinity configuration.")
+    private AntiAffinityConfig antiAffinity;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -194,6 +207,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         }
         applyTlsDefaults();
         applyAuthDefaults();
+        applyAntiAffinityDefaults();
     }
 
     private void applyTlsDefaults() {
@@ -226,6 +240,14 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             auth = DEFAULT_AUTH_CONFIG.get();
         } else {
             auth = ConfigUtil.applyDefaultsWithReflection(auth, DEFAULT_AUTH_CONFIG);
+        }
+    }
+
+    private void applyAntiAffinityDefaults() {
+        if (antiAffinity == null) {
+            antiAffinity = DEFAULT_ANTI_AFFINITY_CONFIG.get();
+        } else {
+            antiAffinity = ConfigUtil.applyDefaultsWithReflection(antiAffinity, DEFAULT_ANTI_AFFINITY_CONFIG);
         }
     }
 

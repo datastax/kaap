@@ -19,17 +19,23 @@ import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
+import io.fabric8.kubernetes.api.model.Affinity;
+import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.PodAffinityTerm;
+import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -37,6 +43,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
+import io.fabric8.kubernetes.api.model.WeightedPodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -58,6 +66,7 @@ import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -766,6 +775,65 @@ public abstract class BaseResourcesFactory<T> {
                 volumeMounts.addAll(additionalVolumesConfig.getMounts());
             }
         }
+    }
+
+    protected Affinity getAffinity(NodeAffinity nodeAffinity) {
+        final AffinityBuilder builder = new AffinityBuilder()
+                .withNodeAffinity(nodeAffinity);
+
+        if (global.getAntiAffinity() != null) {
+            final AntiAffinityConfig.HostAntiAffinityConfig host = global.getAntiAffinity().getHost();
+
+            List<PodAffinityTerm> podAffinityTerms = new ArrayList<>();
+            List<WeightedPodAffinityTerm> weightedPodAffinityTerms = new ArrayList<>();
+
+            if (host != null
+                    && host.getEnabled() != null
+                    && host.getEnabled()) {
+
+                final PodAffinityTerm podAffinityTerm = createPodAffinityTerm("kubernetes.io/hostname");
+                if (host.getRequired() != null && host.getRequired()) {
+                    podAffinityTerms.add(podAffinityTerm);
+                } else {
+                    weightedPodAffinityTerms.add(createWeightedPodAffinityTerm("kubernetes.io/hostname"));
+                }
+            }
+            final AntiAffinityConfig.ZoneAntiAffinityConfig zone = global.getAntiAffinity().getZone();
+            if (zone != null
+                    && zone.getEnabled() != null
+                    && zone.getEnabled()) {
+                final WeightedPodAffinityTerm weightedPodAffinityTerm =
+                        createWeightedPodAffinityTerm("failure-domain.beta.kubernetes.io/zone");
+                weightedPodAffinityTerms.add(weightedPodAffinityTerm);
+            }
+
+            builder.withNewPodAntiAffinity()
+                    .withPreferredDuringSchedulingIgnoredDuringExecution(weightedPodAffinityTerms)
+                    .withRequiredDuringSchedulingIgnoredDuringExecution(podAffinityTerms)
+                    .endPodAntiAffinity()
+                    .build();
+
+        }
+
+        return builder.build();
+    }
+
+    private PodAffinityTerm createPodAffinityTerm(String topologyKey) {
+        final PodAffinityTerm podAffinityTerm = new PodAffinityTermBuilder()
+                .withNewLabelSelector()
+                .withMatchLabels(getMatchLabels())
+                .endLabelSelector()
+                .withTopologyKey(topologyKey)
+                .build();
+        return podAffinityTerm;
+    }
+
+    private WeightedPodAffinityTerm createWeightedPodAffinityTerm(String topologyKey) {
+        final PodAffinityTerm podAffinityTerm = createPodAffinityTerm(topologyKey);
+        return new WeightedPodAffinityTermBuilder()
+                .withWeight(100)
+                .withPodAffinityTerm(podAffinityTerm)
+                .build();
     }
 
 

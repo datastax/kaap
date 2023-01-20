@@ -319,6 +319,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(dnsConfig)
                 .withNodeSelector(nodeSelectors)
+                .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(gracePeriod)
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
                 .withContainers(containers)

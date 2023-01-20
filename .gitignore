@@ -20,3 +20,5 @@ target
 Chart.lock
 
 **/.DS_Store
+
+*.versionsBackup

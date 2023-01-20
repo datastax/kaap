@@ -23,7 +23,7 @@
     <groupId>com.datastax.oss</groupId>
     <artifactId>pulsar-operator-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2</version>
     <modules>
         <module>pulsar-operator</module>
         <module>tests</module>
@@ -212,6 +212,15 @@
                             <version>10.6.0</version>
                         </dependency>
                     </dependencies>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                    <configuration>
+                        <tagNameFormat>operator-@{project.version}</tagNameFormat>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <useReleaseProfile>false</useReleaseProfile>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

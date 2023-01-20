@@ -1,0 +1,54 @@
+name: Release Stack Chart
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'stack-chart-*'
+
+jobs:
+  release-stack-chart:
+    name: Release Stack Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # needed by the helm releaser to compare diffs
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Install Helm releaser
+        run: |
+          #!/bin/bash
+          chart=helm/pulsar-stack
+          helm dependency update "$chart"
+          helm package "$chart" --destination .cr-release-packages
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        with:
+          charts_dir: helm/pulsar-stack
+          skip_packaging: true
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Update doc
+        run: |
+          cd helm/pulsar-stack
+          docker run --rm --volume "$(pwd):/helm-docs" -u $(id -u) jnorwood/helm-docs:latest
+          mv README.md /tmp/README.md
+          cd ../..
+          git reset --hard
+          git checkout gh-pages
+          mkdir -p pulsar-stack
+          mv /tmp/README.md pulsar-stack/README.md 
+          git add pulsar-stack/README.md
+          git commit -m "pulsar-stack/README.md"
+          git pull --rebase origin/gh-pages
+          git push origin gh-pages

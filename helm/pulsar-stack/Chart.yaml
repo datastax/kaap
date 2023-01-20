@@ -19,10 +19,10 @@
 apiVersion: v2
 name: pulsar-stack
 description: Apache Pulsar stack on Kubernetes
-version: 0.0.1-alpha
+version: 0.0.2
 dependencies:
   - name: pulsar-operator
-    version: 0.0.1-alpha
+    version: 0.0.x
     repository: file://../pulsar-operator
   - name: kube-prometheus-stack
     version: 41.x.x

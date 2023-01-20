@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -515,6 +516,36 @@ public class BastionControllerTest {
                 .getSpec().getDnsConfig();
         Assert.assertEquals(dnsConfig.getNameservers(), List.of("1.2.3.4"));
         Assert.assertEquals(dnsConfig.getSearches(), List.of("ns1.svc.cluster-domain.example", "my.dns.search.suffix"));
+    }
+
+
+    @Test
+    public void testTolerations() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                bastion:
+                    tolerations:
+                        - key: "app"
+                          operator: "Equal"
+                          value: "pulsar"
+                          effect: "NoSchedule"
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
+        final List<Toleration> tolerations = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getTolerations();
+        Assert.assertEquals(tolerations.size(), 1);
+        final Toleration toleration = tolerations.get(0);
+        Assert.assertEquals(toleration.getKey(), "app");
+        Assert.assertEquals(toleration.getOperator(), "Equal");
+        Assert.assertEquals(toleration.getValue(), "pulsar");
+        Assert.assertEquals(toleration.getEffect(), "NoSchedule");
     }
 
     @Test

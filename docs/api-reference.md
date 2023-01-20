@@ -213,6 +213,13 @@ Resource Types:
           Resources requirements.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverytolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -242,6 +249,60 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -330,6 +391,13 @@ Resources requirements.
           Indicates to connect to proxy or the broker. The default value depends whether Proxy is deployed or not.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastiontolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -359,6 +427,60 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -487,6 +609,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepertolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3874,6 +4003,60 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.updateStrategy
 
 
@@ -4309,6 +4492,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>string</td>
         <td>
           Service account name for the Broker StatefulSet.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokertolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -7764,6 +7954,60 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.broker.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.transactions
 
 
@@ -8070,6 +8314,13 @@ Update strategy for the StatefulSet.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkertolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -11580,6 +11831,60 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.updateStrategy
 
 
@@ -12599,6 +12904,13 @@ TLS configurations related to the ZooKeeper component.
         <td>boolean</td>
         <td>
           Whether or not the functions worker is in standalone mode.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxytolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -15970,6 +16282,60 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.proxy.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.updateStrategy
 
 
@@ -16222,6 +16588,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepertolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Pod tolerations.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -19670,6 +20043,60 @@ Service configuration.
       </tr><tr>
         <td><b>targetPort</b></td>
         <td>int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.tolerations[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>

@@ -490,6 +490,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withAnnotations(allAnnotations)
                 .endMetadata()
                 .withNewSpec()
+                .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(resourceName)

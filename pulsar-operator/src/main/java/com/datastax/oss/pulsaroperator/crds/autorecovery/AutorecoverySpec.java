@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.Toleration;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
@@ -63,6 +65,8 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     private Integer gracePeriod;
     @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
+    @JsonPropertyDescription(CRDConstants.DOC_TOLERATIONS)
+    private List<Toleration> tolerations;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

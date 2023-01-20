@@ -870,6 +870,22 @@ spec:
                           type: object
                         type: array
                     type: object
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer
@@ -1779,6 +1795,22 @@ spec:
                           type: object
                         type: array
                     type: object
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer
@@ -1810,6 +1842,22 @@ spec:
                     description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer
@@ -2717,6 +2765,22 @@ spec:
                           type: object
                         type: array
                     type: object
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer
@@ -3574,6 +3638,22 @@ spec:
                           type: object
                         type: array
                     type: object
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer
@@ -4426,6 +4506,22 @@ spec:
                           type: object
                         type: array
                     type: object
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer
@@ -4457,6 +4553,22 @@ spec:
                     description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
+                  tolerations:
+                    description: Pod tolerations.
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        tolerationSeconds:
+                          type: integer
+                        value:
+                          type: string
+                        effect:
+                          type: string
+                      type: object
+                    type: array
                   replicas:
                     description: Number of desired replicas.
                     type: integer

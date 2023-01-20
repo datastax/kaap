@@ -63,7 +63,7 @@ import org.testng.annotations.BeforeMethod;
 public abstract class BaseK8sEnvTest {
 
     public static final String OPERATOR_IMAGE = System.getProperty("pulsaroperator.tests.operator.image",
-            "datastax/pulsar-operator:latest");
+            "datastax/lunastreaming-operator:latest-dev");
 
     public static final String PULSAR_IMAGE = System.getProperty("pulsaroperator.tests.pulsar.image",
             "datastax/lunastreaming-all:2.10_2.4");

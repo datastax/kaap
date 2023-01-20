@@ -42,12 +42,16 @@ public class TlsTest extends BaseHelmTest {
             }
 
             helmInstall(Chart.STACK, """
+                    pulsar-operator:
+                        operator:
+                            image: %s
+                            imagePullPolicy: Never
                     cert-manager:
                       enabled: true
                       global:
                         leaderElection:
                             namespace: %s
-                    """.formatted(namespace));
+                    """.formatted(OPERATOR_IMAGE, namespace));
             awaitOperatorRunning();
 
             final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();

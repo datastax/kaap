@@ -34,9 +34,10 @@ public class HelmTest extends BaseHelmTest {
         try {
             helmInstall(Chart.OPERATOR, """
                     operator:
+                        image: %s
                         imagePullPolicy: Never
                         replicas: 2
-                    """);
+                    """.formatted(OPERATOR_IMAGE));
             awaitOperatorRunning();
             final List<Pod> pods = getOperatorPods();
             Assert.assertEquals(pods.size(), 2);

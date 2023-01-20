@@ -33,6 +33,6 @@ mvn_or_mvnd -f $this_dir/../../../pom.xml test-compile exec:java -Dexec.classpat
 container="pulsaroperator-local-k3s"
 docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin
 echo "image digest copied into container $container"
-docker exec -it $container ctr -a /run/k3s/containerd/containerd.sock image rm docker.io/datastax/pulsar-operator:latest
+docker exec -it $container ctr -a /run/k3s/containerd/containerd.sock image rm docker.io/datastax/lunastreaming-operator:latest-dev
 docker exec -it $container ctr -a /run/k3s/containerd/containerd.sock image import /tmp/pulsar-operator.bin
 echo "image imported in $container"

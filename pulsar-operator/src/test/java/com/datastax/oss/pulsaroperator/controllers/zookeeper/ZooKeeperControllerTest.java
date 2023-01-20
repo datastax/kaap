@@ -25,8 +25,12 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
@@ -35,6 +39,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Toleration;
+import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -134,6 +139,14 @@ public class ZooKeeperControllerTest {
                                 cluster: pulsarname
                                 component: zookeeper
                             spec:
+                              affinity:
+                                podAntiAffinity:
+                                  requiredDuringSchedulingIgnoredDuringExecution:
+                                  - labelSelector:
+                                      matchLabels:
+                                        app: pulsarname
+                                        component: zookeeper
+                                    topologyKey: kubernetes.io/hostname
                               containers:
                               - args:
                                 - "bin/apply-config-from-env.py conf/zookeeper.conf && bin/generate-zookeeper-config.sh conf/zookeeper.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar zookeeper"
@@ -710,6 +723,169 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(toleration.getOperator(), "Equal");
         Assert.assertEquals(toleration.getValue(), "pulsar");
         Assert.assertEquals(toleration.getEffect(), "NoSchedule");
+    }
+
+
+    @Test
+    public void testNodeAffinity() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    nodeAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                            nodeSelectorTerms:
+                                - matchExpressions:
+                                    - key: nodepool
+                                      operator: In
+                                      values:
+                                      - pulsar
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
+                client.getCreatedResource(StatefulSet.class);
+        final NodeAffinity nodeAffinity = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getNodeAffinity();
+
+        final List<NodeSelectorTerm> nodeSelectorTerms =
+                nodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution().getNodeSelectorTerms();
+        Assert.assertEquals(nodeSelectorTerms.size(), 1);
+
+        final NodeSelectorRequirement nodeSelectorRequirement = nodeSelectorTerms.get(0).getMatchExpressions().get(0);
+        Assert.assertEquals(nodeSelectorRequirement.getKey(), "nodepool");
+        Assert.assertEquals(nodeSelectorRequirement.getOperator(), "In");
+        Assert.assertEquals(nodeSelectorRequirement.getValues(), List.of("pulsar"));
+    }
+
+    @Test
+    public void testPodAntiAffinityHost() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final PodAffinityTerm term = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
+        Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "zookeeper"
+        ));
+
+        spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        host:
+                            required: false
+                """;
+        client = invokeController(spec);
+        final WeightedPodAffinityTerm weightedPodAffinityTerm = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "zookeeper"
+        ));
+
+        spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        host:
+                            enabled: false
+                """;
+        client = invokeController(spec);
+        Assert.assertTrue(client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .isEmpty());
+
+        Assert.assertTrue(client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .isEmpty());
+    }
+
+    @Test
+    public void testPodAntiAffinityZone() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        host:
+                            enabled: false
+                        zone:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final WeightedPodAffinityTerm weightedPodAffinityTerm = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
+        Assert.assertEquals(weightedPodAffinityTerm
+                .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "zookeeper"
+        ));
+    }
+
+
+
+    @Test
+    public void testPodAntiAffinityHostAndZone() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        zone:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final PodAffinityTerm term = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
+        Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "zookeeper"
+        ));
+
+        final WeightedPodAffinityTerm weightedPodAffinityTerm = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
+        Assert.assertEquals(weightedPodAffinityTerm
+                .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "zookeeper"
+        ));
     }
 
 

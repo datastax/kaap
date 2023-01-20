@@ -96,7 +96,13 @@ public class PulsarClusterControllerTest {
                 image: apachepulsar/pulsar:2.10.2
                 imagePullPolicy: IfNotPresent
                 storage:
-                  existingStorageClassName: default""";
+                  existingStorageClassName: default
+                antiAffinity:
+                  host:
+                    enabled: true
+                    required: true
+                  zone:
+                    enabled: false""";
     static final String NAMESPACE = "ns";
 
     TokenAuthProvisioner tokenAuthProvisioner;

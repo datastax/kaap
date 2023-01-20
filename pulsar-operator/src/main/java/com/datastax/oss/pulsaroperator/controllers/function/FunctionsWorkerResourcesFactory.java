@@ -495,6 +495,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(resourceName)
                 .withNodeSelector(spec.getNodeSelectors())
+                .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withInitContainers(initContainers)
                 .withNewSecurityContext()

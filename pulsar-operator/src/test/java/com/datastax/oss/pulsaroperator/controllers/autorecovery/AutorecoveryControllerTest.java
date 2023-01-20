@@ -20,10 +20,15 @@ import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
+import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Toleration;
+import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import java.util.HashMap;
 import java.util.List;
@@ -113,6 +118,14 @@ public class AutorecoveryControllerTest {
                         cluster: pulsarname
                         component: autorecovery
                     spec:
+                      affinity:
+                        podAntiAffinity:
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchLabels:
+                                app: pulsarname
+                                component: autorecovery
+                            topologyKey: kubernetes.io/hostname
                       containers:
                       - args:
                         - "bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/proxy.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/bookkeeper autorecovery"
@@ -428,6 +441,168 @@ public class AutorecoveryControllerTest {
         Assert.assertEquals(toleration.getOperator(), "Equal");
         Assert.assertEquals(toleration.getValue(), "pulsar");
         Assert.assertEquals(toleration.getEffect(), "NoSchedule");
+    }
+
+    @Test
+    public void testNodeAffinity() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                autorecovery:
+                    nodeAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                            nodeSelectorTerms:
+                                - matchExpressions:
+                                    - key: nodepool
+                                      operator: In
+                                      values:
+                                      - pulsar
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+
+
+        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
+                client.getCreatedResource(Deployment.class);
+        final NodeAffinity nodeAffinity = createdResource.getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getNodeAffinity();
+
+        final List<NodeSelectorTerm> nodeSelectorTerms =
+                nodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution().getNodeSelectorTerms();
+        Assert.assertEquals(nodeSelectorTerms.size(), 1);
+
+        final NodeSelectorRequirement nodeSelectorRequirement = nodeSelectorTerms.get(0).getMatchExpressions().get(0);
+        Assert.assertEquals(nodeSelectorRequirement.getKey(), "nodepool");
+        Assert.assertEquals(nodeSelectorRequirement.getOperator(), "In");
+        Assert.assertEquals(nodeSelectorRequirement.getValues(), List.of("pulsar"));
+    }
+
+    @Test
+    public void testPodAntiAffinityHost() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final PodAffinityTerm term = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
+        Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "autorecovery"
+        ));
+
+        spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        host:
+                            required: false
+                """;
+        client = invokeController(spec);
+        final WeightedPodAffinityTerm weightedPodAffinityTerm = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "autorecovery"
+        ));
+
+        spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        host:
+                            enabled: false
+                """;
+        client = invokeController(spec);
+        Assert.assertTrue(client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .isEmpty());
+
+        Assert.assertTrue(client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .isEmpty());
+    }
+
+    @Test
+    public void testPodAntiAffinityZone() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        host:
+                            enabled: false
+                        zone:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final WeightedPodAffinityTerm weightedPodAffinityTerm = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
+        Assert.assertEquals(weightedPodAffinityTerm
+                .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "autorecovery"
+        ));
+    }
+
+
+
+    @Test
+    public void testPodAntiAffinityHostAndZone() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                    antiAffinity:
+                        zone:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final PodAffinityTerm term = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
+        Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "autorecovery"
+        ));
+
+        final WeightedPodAffinityTerm weightedPodAffinityTerm = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getAffinity().getPodAntiAffinity()
+                .getPreferredDuringSchedulingIgnoredDuringExecution()
+                .get(0);
+        Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
+        Assert.assertEquals(weightedPodAffinityTerm
+                .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
+                "app", "pul",
+                "component", "autorecovery"
+        ));
     }
 
     @Test

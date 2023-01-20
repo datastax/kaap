@@ -351,6 +351,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withDnsConfig(global.getDnsConfig())
                 .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
+                .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withInitContainers(initContainers)
                 .withContainers(containers)

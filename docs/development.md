@@ -6,7 +6,7 @@ It requires JDK17+.
 ## Creates the operator docker image
 ```
 mvn package -DskipTests -pl pulsar-operator
-docker tag datastax/lunastreaming-operator:latest $dockerhub_repo/lunastreaming-operator:latest
+docker tag datastax/lunastreaming-operator:latest-dev $dockerhub_repo/lunastreaming-operator:latest
 docker push $dockerhub_repo/lunastreaming-operator:latest
 ```
 ## Local deployment

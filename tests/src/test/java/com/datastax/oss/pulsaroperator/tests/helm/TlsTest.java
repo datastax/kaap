@@ -43,8 +43,9 @@ public class TlsTest extends BaseHelmTest {
 
             helmInstall(Chart.STACK, """
                     pulsar-operator:
-                        image: %s
-                        imagePullPolicy: Never
+                        operator:
+                            image: %s
+                            imagePullPolicy: Never
                     cert-manager:
                       enabled: true
                       global:

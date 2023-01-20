@@ -252,6 +252,9 @@
                     <licenseSets>
                         <licenseSet>
                             <header>src/license-header.txt</header>
+                            <excludes>
+                                <exclude>helm/pulsar-operator/crds/**</exclude>
+                            </excludes>
                         </licenseSet>
                     </licenseSets>
                     <mapping>

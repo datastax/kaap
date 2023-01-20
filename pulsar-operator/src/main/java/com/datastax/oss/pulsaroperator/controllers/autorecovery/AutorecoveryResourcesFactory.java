@@ -163,6 +163,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
+                .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)
                 .withVolumes(volumes)
                 .endSpec()

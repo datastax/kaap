@@ -288,6 +288,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
+                .withPriorityClassName(global.getPriorityClassName())
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
                 .withInitContainers(initContainers)
                 .withContainers(containers)

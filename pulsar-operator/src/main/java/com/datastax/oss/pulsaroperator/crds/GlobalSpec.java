@@ -176,6 +176,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     @JsonPropertyDescription("Pod anti affinity configuration.")
     private AntiAffinityConfig antiAffinity;
+    @JsonPropertyDescription("Priority class name to attach to each pod.")
+    private String priorityClassName;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

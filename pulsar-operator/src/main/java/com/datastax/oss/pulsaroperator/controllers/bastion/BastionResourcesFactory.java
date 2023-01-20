@@ -167,6 +167,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
+                .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)
                 .withVolumes(volumes)
                 .endSpec()

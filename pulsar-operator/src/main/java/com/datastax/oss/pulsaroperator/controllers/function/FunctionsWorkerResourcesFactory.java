@@ -497,6 +497,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
+                .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
                 .withNewSecurityContext()
                 .withFsGroup(0L)

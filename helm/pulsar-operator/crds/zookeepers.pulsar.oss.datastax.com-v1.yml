@@ -1224,6 +1224,9 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
+                  priorityClassName:
+                    description: Priority class name to attach to each pod.
+                    type: string
                   name:
                     description: Pulsar cluster name.
                     type: string

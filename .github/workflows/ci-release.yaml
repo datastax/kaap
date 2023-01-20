@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    # TODO -> REMOVE!!
+    branches:
+      - release-process
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Push Operator docker image
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+#      - name: Log in to Docker Hub
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            datastax/riptano/lunastreaming-operator
+            ghcr.io/riptano/lunastreaming-operator
+
+      - name: Build and push
+        run: |
+            mvn clean install -DskipTests -pl pulsar-operator
+            docker tag datastax/lunastreaming-operator:latest-dev ghcr.io/riptano/lunastreaming-operator:$GITHUB_REF
+            docker tag datastax/lunastreaming-operator:latest-dev datastax/lunastreaming-operator:$GITHUB_REF
+            
+            docker push ghcr.io/riptano/lunastreaming-operator:$GITHUB_REF
+            #docker push datastax/lunastreaming-operator:$GITHUB_REF
+
+      - uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
+          prerelease: true
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        with:
+          charts_dir: helm
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

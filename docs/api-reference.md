@@ -13675,6 +13675,13 @@ The default value is 'cluster.local'.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>priorityClassName</b></td>
+        <td>string</td>
+        <td>
+          Priority class name to attach to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>restartOnConfigMapChange</b></td>
         <td>boolean</td>
         <td>

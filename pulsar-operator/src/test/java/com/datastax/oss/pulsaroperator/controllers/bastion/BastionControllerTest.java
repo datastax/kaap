@@ -506,6 +506,22 @@ public class BastionControllerTest {
     }
 
     @Test
+    public void testPriorityClassName() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    priorityClassName: pulsar-priority
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+        Assert.assertEquals(client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getPriorityClassName(), "pulsar-priority");
+    }
+
+    @Test
     public void testDNSConfig() throws Exception {
         String spec = """
                 global:

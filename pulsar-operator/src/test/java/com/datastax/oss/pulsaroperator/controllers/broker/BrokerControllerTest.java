@@ -59,8 +59,8 @@ public class BrokerControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
-    private final ControllerTestUtil controllerTestUtil =
-            new ControllerTestUtil<BrokerFullSpec, Broker>(NAMESPACE, CLUSTER_NAME);
+    private final ControllerTestUtil<BrokerFullSpec, Broker> controllerTestUtil =
+            new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME);
 
     @Test
     public void testDefaults() throws Exception {
@@ -342,7 +342,7 @@ public class BrokerControllerTest {
 
 
         final Broker brokerCr =
-                (Broker) controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+                controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
         brokerCr.setStatus(
                 new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
         );
@@ -629,7 +629,7 @@ public class BrokerControllerTest {
         }
 
         final Broker brokerCr =
-                (Broker) controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+                controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
         brokerCr.setStatus(
                 new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
         );
@@ -949,6 +949,38 @@ public class BrokerControllerTest {
         Assert.assertEquals(nodeSelectors.get("overridelabel"), "overridden");
     }
 
+
+    @Test
+    public void testPriorityClassNameOnJob() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    priorityClassName: pulsar-priority
+                broker:
+                    transactions:
+                        enabled: true
+                """;
+
+        final Broker brokerCr =
+                controllerTestUtil
+                        .createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        brokerCr.setStatus(
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+        );
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
+            @Override
+            public StatefulSet statefulSetWithName(String name) {
+                return baseStatefulSetBuilder(name, true).build();
+            }
+        });
+        invokeController(brokerCr, client);
+        Assert.assertEquals(client.getCreatedResource(Job.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getPriorityClassName(), "pulsar-priority");
+    }
+
     @Test
     public void testDNSConfig() throws Exception {
         String spec = """
@@ -1129,7 +1161,6 @@ public class BrokerControllerTest {
     }
 
 
-
     @Test
     public void testPodAntiAffinityHostAndZone() throws Exception {
         String spec = """
@@ -1183,7 +1214,7 @@ public class BrokerControllerTest {
                 """;
 
         final Broker brokerCr =
-                (Broker) controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+                controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
         brokerCr.setStatus(
                 new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
         );
@@ -1206,7 +1237,6 @@ public class BrokerControllerTest {
         Assert.assertEquals(toleration.getValue(), "pulsar");
         Assert.assertEquals(toleration.getEffect(), "NoSchedule");
     }
-
 
 
     @Test

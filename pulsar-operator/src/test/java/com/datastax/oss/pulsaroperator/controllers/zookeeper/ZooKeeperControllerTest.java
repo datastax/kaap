@@ -628,6 +628,50 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(nodeSelectors.get("overridelabel"), "overridden");
     }
 
+    @Test
+    public void testPriorityClassName() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    priorityClassName: pulsar-priority
+                """;
+
+        MockKubernetesClient client = invokeController(spec);
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getPriorityClassName(), "pulsar-priority");
+    }
+
+    @Test
+    public void testPriorityClassNameOnJob() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    priorityClassName: pulsar-priority
+                """;
+
+        final ZooKeeper zkCr =
+                new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
+                        .createCustomResource(ZooKeeper.class, ZooKeeperFullSpec.class, spec);
+        zkCr.setStatus(
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(zkCr.getSpec()))
+        );
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
+            @Override
+            public StatefulSet statefulSetWithName(String name) {
+                return baseStatefulSetBuilder(name, true).build();
+            }
+        });
+        invokeController(zkCr, client);
+        Assert.assertEquals(client.getCreatedResource(Job.class)
+                .getResource().getSpec().getTemplate()
+                .getSpec().getPriorityClassName(), "pulsar-priority");
+    }
+
 
     @Test
     public void testDNSConfig() throws Exception {

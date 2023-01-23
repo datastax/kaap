@@ -1,4 +1,4 @@
-# Pulsar operator Helm charts
+## Charts
 
 - [Pulsar Operator](pulsar-operator/README.md)
-- [Pulsar Stack](pulsar-operator/README.md)
+- [Pulsar Stack](pulsar-stack/README.md)

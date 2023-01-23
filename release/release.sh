@@ -14,7 +14,7 @@ validate_new_version() {
 }
 validate_artifact() {
   local v=$1
-  [[ "$v1" == "operator" || "$v1" == "operator-chart" || "$v1" == "stack-chart" ]] || (echo "artifact must be one of operator,operator-chart,stack-chart."; exit 1)
+  [[ "$v" == "operator" || "$v" == "operator-chart" || "$v" == "stack-chart" ]] || (echo "artifact must be one of operator,operator-chart,stack-chart."; exit 1)
 }
 check_current_version_in_chart() {
   local v=$1

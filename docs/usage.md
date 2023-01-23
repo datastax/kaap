@@ -1,33 +1,4 @@
 # Usage
-#### Helm deployment (tested with K8s 1.25)
-
-Install the stack operator:
-```
-export ns=mypulsar
-helm dependency build helm/pulsar-stack
-helm install -n $ns --create-namespace pulsar helm/pulsar-stack
-```
-
-Install a Pulsar cluster Custom Resource
-```
-kubectl -n $ns apply -f helm/examples/cluster.yaml
-
-```
-
-Wait for the cluster to be up and running
-```
-kubectl wait pulsar -n $ns pulsar-cluster --for condition=Ready=True --timeout=240s
-```
-
-Uninstall the cluster
-```
-kubectl -n $ns delete PulsarCluster pulsar-cluster
-```
-
-Uninstall the operator and the CRDs
-```
-helm delete pulsar -n $ns
-```
 
 ### Setup token authentication
 
@@ -46,11 +17,6 @@ kubectl exec deployment/pulsar-bastion -- bin/pulsar-shell -e 'admin namespaces 
 kubectl exec deployment/pulsar-bastion -- bin/pulsar-shell -e "client --auth-params \"token:$PULSAR_TOKEN\" produce -m hello public/default/topic"
 ```
 
-### Grafana
+### Examples
 
-See the [Grafana example](../helm/examples/grafana).
-
-
-### Keycloak
-
-See the [Keycloak example](../helm/examples/keycloak).
+See some examples in the [docs](https://github.com/riptano/pulsar-operator/tree/main/helm/examples).

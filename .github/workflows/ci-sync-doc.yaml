@@ -1,0 +1,28 @@
+name: Sync docs
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-gh-pages-doc:
+    name: Sync pages
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Update doc
+        run: |
+          cp -R docs /tmp/docs
+          git checkout gh-pages
+          mv /tmp/docs docs 
+          git add -A
+          git commit -m "Update docs"
+          git pull --rebase origin gh-pages
+          git push origin gh-pages

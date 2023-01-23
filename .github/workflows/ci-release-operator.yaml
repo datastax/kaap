@@ -45,8 +45,8 @@ jobs:
             
             docker push ghcr.io/riptano/pulsar-operator:$docker_tag
             docker push ghcr.io/riptano/pulsar-operator:latest
-            #docker push datastax/lunastreaming-operator:$docker_tag
-            #docker push datastax/lunastreaming-operator:latest
+            docker push datastax/lunastreaming-operator:$docker_tag
+            docker push datastax/lunastreaming-operator:latest
 
       - uses: ncipollo/release-action@v1
         with:

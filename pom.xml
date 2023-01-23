@@ -29,6 +29,11 @@
         <module>tests</module>
     </modules>
     <name>pulsar-operator-parent</name>
+    <scm>
+        <developerConnection>
+            scm:git:git@github.com:riptano/pulsar-operator.git
+        </developerConnection>
+    </scm>
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>17</maven.compiler.source>

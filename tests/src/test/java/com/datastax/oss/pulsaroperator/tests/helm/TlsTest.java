@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @Slf4j
@@ -33,8 +34,13 @@ public class TlsTest extends BaseHelmTest {
     public static final String CERT_MANAGER_CRDS =
             "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml";
 
-    @Test
-    public void test() throws Exception {
+    @DataProvider(name = "perComponentCerts")
+    public Object[][] perComponentCerts() {
+        return new Object[][] { new Object[] { true }, { false } };
+    }
+
+    @Test(dataProvider = "perComponentCerts")
+    public void test(boolean perComponentCerts) throws Exception {
         try {
             try (final InputStream in = new URL(CERT_MANAGER_CRDS)
                     .openStream();) {
@@ -55,26 +61,65 @@ public class TlsTest extends BaseHelmTest {
             awaitOperatorRunning();
 
             final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-            specs.getGlobal()
-                            .setTls(TlsConfig.builder()
-                                    .enabled(true)
-                                    .certProvisioner(TlsConfig.CertProvisionerConfig.builder()
-                                            .selfSigned(TlsConfig.SelfSignedCertProvisionerConfig.builder()
-                                                    .enabled(true)
-                                                    .build())
-                                            .build())
-                                    .broker(TlsConfig.TlsEntryConfig.builder()
-                                            .enabled(true)
-                                            .build())
-                                    .proxy(TlsConfig.ProxyTlsEntryConfig.builder()
-                                            .enabled(true)
-                                            .enabledWithBroker(true)
-                                            .build())
-                                    .functionsWorker(TlsConfig.FunctionsWorkerTlsEntryConfig.builder()
-                                            .enabled(true)
-                                            .enabledWithBroker(true)
-                                            .build())
-                                    .build());
+            if (perComponentCerts) {
+                specs.getGlobal()
+                        .setTls(TlsConfig.builder()
+                                .enabled(true)
+                                .certProvisioner(TlsConfig.CertProvisionerConfig.builder()
+                                        .selfSigned(TlsConfig.SelfSignedCertProvisionerConfig.builder()
+                                                .enabled(true)
+                                                .perComponent(true)
+                                                .functionsWorker(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                        .builder()
+                                                        .generate(true)
+                                                        .build())
+                                                .proxy(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                        .builder()
+                                                        .generate(true)
+                                                        .build())
+                                                .broker(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                        .builder()
+                                                        .generate(true)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .broker(TlsConfig.TlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .secretName("broker-tls")
+                                        .build())
+                                .proxy(TlsConfig.ProxyTlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .enabledWithBroker(true)
+                                        .secretName("proxy-tls")
+                                        .build())
+                                .functionsWorker(TlsConfig.FunctionsWorkerTlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .enabledWithBroker(true)
+                                        .secretName("fn-worker-tls")
+                                        .build())
+                                .build());
+            } else {
+                specs.getGlobal()
+                        .setTls(TlsConfig.builder()
+                                .enabled(true)
+                                .certProvisioner(TlsConfig.CertProvisionerConfig.builder()
+                                        .selfSigned(TlsConfig.SelfSignedCertProvisionerConfig.builder()
+                                                .enabled(true)
+                                                .build())
+                                        .build())
+                                .broker(TlsConfig.TlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .build())
+                                .proxy(TlsConfig.ProxyTlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .enabledWithBroker(true)
+                                        .build())
+                                .functionsWorker(TlsConfig.FunctionsWorkerTlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .enabledWithBroker(true)
+                                        .build())
+                                .build());
+            }
             specs.setFunctionsWorker(FunctionsWorkerSpec.builder()
                     .replicas(1)
                     .resources(RESOURCE_REQUIREMENTS)

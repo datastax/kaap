@@ -19,4 +19,4 @@
 apiVersion: v2
 name: pulsar-operator
 description: Operator for managing Apache Pulsar on Kubernetes
-version: 0.0.2
+version: 0.0.1

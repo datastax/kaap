@@ -19,11 +19,11 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-#      - name: Log in to Docker Hub
-#        uses: docker/login-action@v2
-#        with:
-#          username: ${{ secrets.DOCKER_USERNAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2
@@ -31,14 +31,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-#      - name: Extract metadata (tags, labels) for Docker
-#        id: meta
-#        uses: docker/metadata-action@v4
-#        with:
-#          images: |
-#            datastax/riptano/lunastreaming-operator
-#            ghcr.io/riptano/lunastreaming-operator
 
       - name: Build and push
         run: |
@@ -60,4 +52,3 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
-          prerelease: true

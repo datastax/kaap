@@ -50,5 +50,5 @@ jobs:
           mv /tmp/README.md pulsar-stack/README.md 
           git add pulsar-stack/README.md
           git commit -m "pulsar-stack/README.md"
-          git pull --rebase origin/gh-pages
+          git pull --rebase origin gh-pages
           git push origin gh-pages

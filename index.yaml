@@ -9,4 +9,29 @@ entries:
     urls:
     - https://github.com/riptano/pulsar-operator/releases/download/pulsar-operator-0.0.2/pulsar-operator-0.0.2.tgz
     version: 0.0.2
-generated: "2023-01-23T09:40:35.669501178Z"
+  pulsar-stack:
+  - apiVersion: v2
+    created: "2023-01-23T10:12:49.439638948Z"
+    dependencies:
+    - name: pulsar-operator
+      repository: file://../pulsar-operator
+      version: 0.0.x
+    - condition: kube-prometheus-stack.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 41.x.x
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.x.x
+    - condition: cert-manager.enabled
+      name: cert-manager
+      repository: https://charts.jetstack.io
+      version: v1.11.x
+    description: Apache Pulsar stack on Kubernetes
+    digest: 6a332ff49e481a9182d61101b5cacf620e9e9b35d10cf551ac9d5d2e499e477d
+    name: pulsar-stack
+    urls:
+    - https://github.com/riptano/pulsar-operator/releases/download/pulsar-stack-0.0.2/pulsar-stack-0.0.2.tgz
+    version: 0.0.2
+generated: "2023-01-23T10:12:49.439647848Z"

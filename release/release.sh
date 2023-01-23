@@ -14,7 +14,7 @@ validate_new_version() {
 }
 validate_artifact() {
   local v=$1
-  [[ "$v" == "operator" || "$v" == "operator-chart" || "$v" == "stack-chart" ]] || (echo "artifact must be one of operator,operator-chart,stack-chart."; exit 1)
+  [[ "$v" == "operator" || "$v" == "operator-chart" || "$v" == "stack-chart" ]] || (echo "artifact must be one of operator,operator-chart,stack-chart. got $v"; exit 1)
 }
 check_current_version_in_chart() {
   local v=$1
@@ -34,7 +34,7 @@ replace_version_in_chart() {
   sed -i '' -- "${line_number}s/.*/version: $new_version/" $file
 }
 
-artifact=$2
+artifact=$1
 new_version=$2
 
 usage="./release.sh <artifact> <new-version>

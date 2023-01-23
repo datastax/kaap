@@ -9,6 +9,14 @@ entries:
     urls:
     - https://github.com/riptano/pulsar-operator/releases/download/pulsar-operator-0.0.2/pulsar-operator-0.0.2.tgz
     version: 0.0.2
+  - apiVersion: v2
+    created: "2023-01-23T10:57:50.929549587Z"
+    description: Operator for managing Apache Pulsar on Kubernetes
+    digest: 211dc14ba2447258bbb7ac4d75da6f33d7167b24d6749c7ddec9913b8ad68c3e
+    name: pulsar-operator
+    urls:
+    - https://github.com/riptano/pulsar-operator/releases/download/pulsar-operator-0.0.1/pulsar-operator-0.0.1.tgz
+    version: 0.0.1
   pulsar-stack:
   - apiVersion: v2
     created: "2023-01-23T10:12:49.439638948Z"
@@ -34,4 +42,4 @@ entries:
     urls:
     - https://github.com/riptano/pulsar-operator/releases/download/pulsar-stack-0.0.2/pulsar-stack-0.0.2.tgz
     version: 0.0.2
-generated: "2023-01-23T10:12:49.439647848Z"
+generated: "2023-01-23T10:57:50.929557187Z"

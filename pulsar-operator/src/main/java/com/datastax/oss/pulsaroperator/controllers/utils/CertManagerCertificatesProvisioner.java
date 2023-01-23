@@ -30,8 +30,10 @@ import io.fabric8.certmanager.api.model.v1.IssuerBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
 
+@JBossLog
 public class CertManagerCertificatesProvisioner {
     private final KubernetesClient client;
     private final String namespace;
@@ -221,6 +223,7 @@ public class CertManagerCertificatesProvisioner {
         client.resource(ssCertificate)
                 .inNamespace(namespace)
                 .createOrReplace();
+        log.infof("Created self-signed certificate %s mapped to secret %s", name, secretName);
     }
 
     private void createRootCACertificate() {
@@ -277,6 +280,7 @@ public class CertManagerCertificatesProvisioner {
         client.resource(caIssuer)
                 .inNamespace(namespace)
                 .createOrReplace();
+        log.infof("Created self-signed root CA certificate");
     }
 
 

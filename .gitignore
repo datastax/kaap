@@ -22,3 +22,5 @@ Chart.lock
 **/.DS_Store
 
 *.versionsBackup
+*.releaseBackup
+release.properties

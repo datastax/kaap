@@ -44,6 +44,8 @@ public class TlsConfig {
     ProxyTlsEntryConfig proxy;
     @JsonPropertyDescription("TLS configurations related to the Functions worker component.")
     FunctionsWorkerTlsEntryConfig functionsWorker;
+    @JsonPropertyDescription("TLS configurations related to the Autorecovery component.")
+    TlsEntryConfig autorecovery;
     @JsonPropertyDescription("TLS configurations used by additional components, such as the Bastion component.")
     TlsEntryConfig ssCa;
 

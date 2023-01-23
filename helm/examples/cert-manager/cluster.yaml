@@ -30,6 +30,10 @@ spec:
       certProvisioner:
         selfSigned:
           enabled: true
+      bookkeeper:
+          enabled: true
+      autorecovery:
+        enabled: true
       proxy:
           enabled: true
           enabledWithBroker: true

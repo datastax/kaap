@@ -134,7 +134,17 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         data.put("statsProviderClass", "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
 
         data.put("zkServers", getZkServers());
-        // TODO: TLS config
+        if (isTlsEnabledOnBookKeeper()) {
+            data.put("tlsProvider", "OpenSSL");
+            data.put("tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
+            data.put("tlsCertificatePath", "/pulsar/certs/tls.crt");
+            data.put("tlsKeyStoreType", "PEM");
+            data.put("tlsKeyStore", "/pulsar/tls-pk8.key");
+            data.put("tlsTrustStoreType", "PEM");
+            data.put("tlsHostnameVerificationEnabled", "true");
+            data.put("bookkeeperTLSClientAuthentication", "true");
+            data.put("bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        }
 
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());

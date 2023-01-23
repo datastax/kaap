@@ -238,6 +238,12 @@ public abstract class BaseResourcesFactory<T> {
                 && global.getTls().getFunctionsWorker().getEnabled();
     }
 
+    protected boolean isTlsEnabledOnAutorecovery() {
+        return isTlsEnabledGlobally()
+                && global.getTls().getFunctionsWorker() != null
+                && global.getTls().getFunctionsWorker().getEnabled();
+    }
+
     protected boolean isTlsGenerateSelfSignedCertEnabled() {
         final TlsConfig tls = global.getTls();
         return tls != null
@@ -409,6 +415,14 @@ public abstract class BaseResourcesFactory<T> {
 
     protected String getTlsSsCaSecretName() {
         return getTlsSsCaSecretName(global);
+    }
+
+    protected String getTlsSecretNameForAutorecovery() {
+        final String name = global.getTls().getAutorecovery() == null
+                ? null : global.getTls().getAutorecovery().getSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
     }
 
     protected void addTlsVolumesIfEnabled(List<VolumeMount> volumeMounts, List<Volume> volumes,

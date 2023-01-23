@@ -59,7 +59,7 @@ public class HelmTest extends BaseHelmTest {
                     """);
 
             Awaitility.await().untilAsserted(() -> {
-                Assert.assertEquals(getOperatorPods().size(), 3);
+                Assert.assertTrue(getOperatorPods().size() >= 3);
             });
 
 

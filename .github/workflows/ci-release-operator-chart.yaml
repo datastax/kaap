@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'operator-chart-*'
+      - 'pulsar-operator-*'
 
 jobs:
   release-operator-chart:

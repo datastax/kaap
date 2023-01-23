@@ -14,7 +14,7 @@ validate_new_version() {
 }
 validate_artifact() {
   local v=$1
-  [[ "$v" == "operator" || "$v" == "operator-chart" || "$v" == "stack-chart" ]] || (echo "artifact must be one of operator,operator-chart,stack-chart. got $v"; exit 1)
+  [[ "$v" == "pulsar-operator" || "$v" == "pulsar-stack" || "$v" == "operator-image" ]] || (echo "artifact must be one of pulsar-operator,pulsar-stack,operator-image. got $v"; exit 1)
 }
 check_current_version_in_chart() {
   local v=$1
@@ -39,9 +39,9 @@ new_version=$2
 
 usage="./release.sh <artifact> <new-version>
   artifact:
-      - operator (docker image)
-      - operator-chart (operator Helm chart)
-      - stack-chart (stack Helm chart)
+      - operator-image (docker image)
+      - pulsar-operator (operator Helm chart)
+      - pulsar-stack (stack Helm chart)
   new-version: new version in format MAJOR.MINOR.PATCH"
 if [[ -z $artifact ]]; then
     echo "Required argument artifact is missing"
@@ -58,21 +58,21 @@ check_clean
 validate_new_version $new_version
 validate_artifact $artifact
 
-if [[ "$artifact" == "operator" ]]; then
+if [[ "$artifact" == "operator-image" ]]; then
   current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 
   mvn release:prepare -DreleaseVersion=$new_version
   echo "$new_version released."
-elif [[ "$artifact" == "operator-chart" ]]; then
+elif [[ "$artifact" == "pulsar-operator" ]]; then
   replace_version_in_chart helm/pulsar-operator/Chart.yaml $new_version
-  git commit -am "Release operator-chart $new_version"
-  git tag operator-chart-$new_version
+  git commit -am "Release pulsar-operator chart $new_version"
+  git tag pulsar-operator-$new_version
   git push
   git push --tags
-elif [[ "$artifact" == "stack-chart" ]]; then
+elif [[ "$artifact" == "pulsar-stack" ]]; then
   replace_version_in_chart helm/pulsar-stack/Chart.yaml $new_version
-  git commit -am "Release stack-chart $new_version"
-  git tag stack-chart-$new_version
+  git commit -am "Release pulsar-stack chart $new_version"
+  git tag pulsar-stack-$new_version
   git push
   git push --tags
 fi

@@ -1,4 +1,4 @@
 ## Charts
 
-- [Pulsar Operator](pulsar-operator/README.md)
-- [Pulsar Stack](pulsar-stack/README.md)
+- [Pulsar Operator](pulsar-operator/)
+- [Pulsar Stack](pulsar-stack/)

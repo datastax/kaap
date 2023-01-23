@@ -21,7 +21,7 @@
     <groupId>com.datastax.oss</groupId>
     <artifactId>pulsar-operator-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
     <modules>
         <module>pulsar-operator</module>
         <module>tests</module>
@@ -31,7 +31,7 @@
         <developerConnection>
             scm:git:git@github.com:riptano/pulsar-operator.git
         </developerConnection>
-      <tag>operator-0.0.1</tag>
+      <tag>HEAD</tag>
   </scm>
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>

@@ -52,6 +52,14 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class TlsEntryConfig {
+        public static boolean isEnabled(TlsEntryConfig tlsEntryConfig) {
+            if (tlsEntryConfig != null
+                    && tlsEntryConfig.getEnabled() != null
+                    && tlsEntryConfig.getEnabled()) {
+                return true;
+            }
+            return false;
+        }
         @JsonPropertyDescription("Enable TLS.")
         Boolean enabled;
         @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
@@ -63,6 +71,14 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class ProxyTlsEntryConfig {
+        public static boolean isEnabled(ProxyTlsEntryConfig tlsEntryConfig) {
+            if (tlsEntryConfig != null
+                    && tlsEntryConfig.getEnabled() != null
+                    && tlsEntryConfig.getEnabled()) {
+                return true;
+            }
+            return false;
+        }
         @JsonPropertyDescription("Enable TLS.")
         Boolean enabled;
         @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
@@ -76,6 +92,14 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder
     public static class FunctionsWorkerTlsEntryConfig {
+        public static boolean isEnabled(FunctionsWorkerTlsEntryConfig tlsEntryConfig) {
+            if (tlsEntryConfig != null
+                    && tlsEntryConfig.getEnabled() != null
+                    && tlsEntryConfig.getEnabled()) {
+                return true;
+            }
+            return false;
+        }
         @JsonPropertyDescription("Enable TLS.")
         Boolean enabled;
         @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
@@ -103,6 +127,32 @@ public class TlsConfig {
         Boolean enabled;
         @JsonPropertyDescription("Include dns name in the DNS names covered by the certificate.")
         Boolean includeDns;
+        @JsonPropertyDescription("Cert-manager options for generating the private key.")
+        CertificatePrivateKey privateKey;
+        @JsonPropertyDescription("Generate a different certificate for each component.")
+        Boolean perComponent;
+        @JsonPropertyDescription("Secret where to store the root CA certificate.")
+        String caSecretName;
+
+        @JsonPropertyDescription("Zookeeper self signed certificate config.")
+        SelfSignedCertificatePerComponentConfig zookeeper;
+        @JsonPropertyDescription("Bookkeeper self signed certificate config.")
+        SelfSignedCertificatePerComponentConfig bookkeeper;
+        @JsonPropertyDescription("Broker self signed certificate config.")
+        SelfSignedCertificatePerComponentConfig broker;
+        @JsonPropertyDescription("Proxy self signed certificate config.")
+        SelfSignedCertificatePerComponentConfig proxy;
+        @JsonPropertyDescription("Functions worker self signed certificate config.")
+        SelfSignedCertificatePerComponentConfig functionsWorker;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SelfSignedCertificatePerComponentConfig {
+        @JsonPropertyDescription("Generate self signed certificates for the component.")
+        Boolean generate;
         @JsonPropertyDescription("Cert-manager options for generating the private key.")
         CertificatePrivateKey privateKey;
     }

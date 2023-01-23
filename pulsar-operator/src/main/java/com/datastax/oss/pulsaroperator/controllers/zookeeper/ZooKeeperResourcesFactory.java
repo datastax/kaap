@@ -58,6 +58,11 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpec> {
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getZookeeperBaseName();
+    }
+
+
     private ConfigMap configMap;
 
     public ZooKeeperResourcesFactory(KubernetesClient client, String namespace,
@@ -68,7 +73,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getZookeeperBaseName();
+        return getComponentBaseName(global);
     }
 
     @Override

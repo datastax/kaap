@@ -56,6 +56,11 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName());
     }
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getBookkeeperBaseName();
+    }
+
+
     private ConfigMap configMap;
 
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
@@ -66,7 +71,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getBookkeeperBaseName();
+        return getComponentBaseName(global);
     }
 
     @Override

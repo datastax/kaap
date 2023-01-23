@@ -273,10 +273,123 @@ spec:
                                   size:
                                     type: integer
                                 type: object
+                              functionsWorker:
+                                description: Functions worker self signed certificate
+                                  config.
+                                properties:
+                                  privateKey:
+                                    description: Cert-manager options for generating
+                                      the private key.
+                                    properties:
+                                      rotationPolicy:
+                                        type: string
+                                      encoding:
+                                        type: string
+                                      algorithm:
+                                        type: string
+                                      size:
+                                        type: integer
+                                    type: object
+                                  generate:
+                                    description: Generate self signed certificates
+                                      for the component.
+                                    type: boolean
+                                type: object
+                              perComponent:
+                                description: Generate a different certificate for
+                                  each component.
+                                type: boolean
+                              proxy:
+                                description: Proxy self signed certificate config.
+                                properties:
+                                  privateKey:
+                                    description: Cert-manager options for generating
+                                      the private key.
+                                    properties:
+                                      rotationPolicy:
+                                        type: string
+                                      encoding:
+                                        type: string
+                                      algorithm:
+                                        type: string
+                                      size:
+                                        type: integer
+                                    type: object
+                                  generate:
+                                    description: Generate self signed certificates
+                                      for the component.
+                                    type: boolean
+                                type: object
                               enabled:
                                 description: "Generate self signed certificates for\
                                   \ broker, proxy and functions worker."
                                 type: boolean
+                              zookeeper:
+                                description: Zookeeper self signed certificate config.
+                                properties:
+                                  privateKey:
+                                    description: Cert-manager options for generating
+                                      the private key.
+                                    properties:
+                                      rotationPolicy:
+                                        type: string
+                                      encoding:
+                                        type: string
+                                      algorithm:
+                                        type: string
+                                      size:
+                                        type: integer
+                                    type: object
+                                  generate:
+                                    description: Generate self signed certificates
+                                      for the component.
+                                    type: boolean
+                                type: object
+                              bookkeeper:
+                                description: Bookkeeper self signed certificate config.
+                                properties:
+                                  privateKey:
+                                    description: Cert-manager options for generating
+                                      the private key.
+                                    properties:
+                                      rotationPolicy:
+                                        type: string
+                                      encoding:
+                                        type: string
+                                      algorithm:
+                                        type: string
+                                      size:
+                                        type: integer
+                                    type: object
+                                  generate:
+                                    description: Generate self signed certificates
+                                      for the component.
+                                    type: boolean
+                                type: object
+                              broker:
+                                description: Broker self signed certificate config.
+                                properties:
+                                  privateKey:
+                                    description: Cert-manager options for generating
+                                      the private key.
+                                    properties:
+                                      rotationPolicy:
+                                        type: string
+                                      encoding:
+                                        type: string
+                                      algorithm:
+                                        type: string
+                                      size:
+                                        type: integer
+                                    type: object
+                                  generate:
+                                    description: Generate self signed certificates
+                                      for the component.
+                                    type: boolean
+                                type: object
+                              caSecretName:
+                                description: Secret where to store the root CA certificate.
+                                type: string
                             type: object
                         type: object
                       zookeeper:

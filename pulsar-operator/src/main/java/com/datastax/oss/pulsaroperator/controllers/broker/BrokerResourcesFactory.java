@@ -156,7 +156,16 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("webServicePortTls", "8443");
             data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
             data.put("brokerClient_tlsHostnameVerificationEnable", "true");
-            // TODO: tls vs bookkeeper
+        }
+        if (isTlsEnabledOnBookKeeper()) {
+            data.put("bookkeeperTLSClientAuthentication", "true");
+            data.put("bookkeeperTLSKeyFileType", "PEM");
+            data.put("bookkeeperTLSKeyFilePath", "/pulsar/tls-pk8.key");
+            data.put("bookkeeperTLSCertificateFilePath", "/pulsar/certs/tls.crt");
+            data.put("bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("bookkeeperTLSTrustCertTypes", "PEM");
+            // See this BookKeeper PR for why this is necessary: https://github.com/apache/bookkeeper/pull/2300
+            data.put("bookkeeperUseV2WireProtocol", "false");
         }
         if (spec.getFunctionsWorkerEnabled()) {
             data.put("functionsWorkerEnabled", "true");

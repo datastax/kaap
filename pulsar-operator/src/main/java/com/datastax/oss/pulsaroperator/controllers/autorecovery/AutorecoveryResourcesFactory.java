@@ -74,6 +74,18 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
 
+        if (isTlsEnabledOnBookKeeper()) {
+            data.put("tlsHostnameVerificationEnabled", "true");
+            data.put("tlsProvider", "OpenSSL");
+            data.put("tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
+            data.put("tlsCertificatePath", "/pulsar/certs/tls.crt");
+            data.put("tlsKeyStoreType", "PEM");
+            data.put("tlsKeyStore", "/pulsar/tls-pk8.key");
+            data.put("tlsTrustStoreType", "PEM");
+            data.put("tlsClientAuthentication", "true");
+            data.put("tlsTrustStore", "/pulsar/certs/ca.crt");
+        }
+
         if (spec.getConfig() != null) {
             data.putAll(spec.getConfig());
         }
@@ -106,14 +118,18 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        if (isTlsEnabledOnZooKeeper()) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+        final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
+        final boolean tlsEnabledOnBookKeeper = isTlsEnabledOnBookKeeper();
+        if (tlsEnabledOnZooKeeper || tlsEnabledOnBookKeeper) {
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForAutorecovery());
         }
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
-        if (isTlsEnabledOnBookKeeper()) {
+        if (tlsEnabledOnBookKeeper) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
-                    + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + generateCertConverterScript() + " && ";
+                    + "-out /pulsar/tls-pk8.key -nocrypt && ";
+        }
+        if (tlsEnabledOnZooKeeper) {
+            mainArg += generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/proxy.conf && ";
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/bookkeeper autorecovery";

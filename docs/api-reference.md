@@ -14131,6 +14131,13 @@ TLS configuration for the cluster.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlsautorecovery">autorecovery</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the Autorecovery component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlsbookkeeper">bookkeeper</a></b></td>
         <td>object</td>
         <td>
@@ -14191,6 +14198,39 @@ TLS configuration for the cluster.
         <td>object</td>
         <td>
           TLS configurations related to the ZooKeeper component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.autorecovery
+
+
+
+TLS configurations related to the Autorecovery component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable TLS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -14305,6 +14345,13 @@ Self signed certificate provisioner configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedautorecovery">autorecovery</a></b></td>
+        <td>object</td>
+        <td>
+          Autorecovery self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedbookkeeper">bookkeeper</a></b></td>
         <td>object</td>
         <td>
@@ -14372,6 +14419,86 @@ Self signed certificate provisioner configuration.
         <td>object</td>
         <td>
           Zookeeper self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.autorecovery
+
+
+
+Autorecovery self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedautorecoveryprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.autorecovery.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>

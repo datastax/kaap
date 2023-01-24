@@ -240,6 +240,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
                 data.put("tlsEnableHostnameVerification", "true");
             }
+            if (isTlsEnabledOnBookKeeper()) {
+                data.put("bookkeeperTLSClientAuthentication", "true");
+            }
         }
         final String brokerServiceUrl = getBrokerServiceUrl();
         final String brokerWebServiceUrl = getBrokerWebServiceUrl();

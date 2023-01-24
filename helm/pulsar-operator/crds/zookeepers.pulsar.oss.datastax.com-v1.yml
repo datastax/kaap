@@ -1102,6 +1102,28 @@ spec:
                                       for the component.
                                     type: boolean
                                 type: object
+                              autorecovery:
+                                description: Autorecovery self signed certificate
+                                  config.
+                                properties:
+                                  privateKey:
+                                    description: Cert-manager options for generating
+                                      the private key.
+                                    properties:
+                                      rotationPolicy:
+                                        type: string
+                                      encoding:
+                                        type: string
+                                      algorithm:
+                                        type: string
+                                      size:
+                                        type: integer
+                                    type: object
+                                  generate:
+                                    description: Generate self signed certificates
+                                      for the component.
+                                    type: boolean
+                                type: object
                               perComponent:
                                 description: Generate a different certificate for
                                   each component.
@@ -1198,6 +1220,18 @@ spec:
                                 description: Secret where to store the root CA certificate.
                                 type: string
                             type: object
+                        type: object
+                      autorecovery:
+                        description: TLS configurations related to the Autorecovery
+                          component.
+                        properties:
+                          secretName:
+                            description: Override the default secret name from where
+                              to load the certificates.
+                            type: string
+                          enabled:
+                            description: Enable TLS.
+                            type: boolean
                         type: object
                       zookeeper:
                         description: TLS configurations related to the ZooKeeper component.

@@ -693,6 +693,63 @@ public class BrokerControllerTest {
                 echo '' && bin/apply-config-from-env.py conf/broker.conf && bin/apply-config-from-env.py conf/client.conf && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar broker""");
     }
 
+    @Test
+    public void testTlsEnabledOnBookKeeper() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                        bookkeeper:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
+        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_brokerClient_tlsHostnameVerificationEnable", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSClientAuthentication", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSKeyFileType", "PEM");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertTypes", "PEM");
+        expectedData.put("PULSAR_PREFIX_bookkeeperUseV2WireProtocol", "false");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+    }
+
 
     @Test
     public void testReplicas() throws Exception {

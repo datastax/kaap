@@ -14131,6 +14131,13 @@ TLS configuration for the cluster.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlsautorecovery">autorecovery</a></b></td>
+        <td>object</td>
+        <td>
+          TLS configurations related to the Autorecovery component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlsbookkeeper">bookkeeper</a></b></td>
         <td>object</td>
         <td>
@@ -14191,6 +14198,39 @@ TLS configuration for the cluster.
         <td>object</td>
         <td>
           TLS configurations related to the ZooKeeper component.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.autorecovery
+
+
+
+TLS configurations related to the Autorecovery component.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable TLS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          Override the default secret name from where to load the certificates.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -14305,10 +14345,45 @@ Self signed certificate provisioner configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedautorecovery">autorecovery</a></b></td>
+        <td>object</td>
+        <td>
+          Autorecovery self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedbookkeeper">bookkeeper</a></b></td>
+        <td>object</td>
+        <td>
+          Bookkeeper self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedbroker">broker</a></b></td>
+        <td>object</td>
+        <td>
+          Broker self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>caSecretName</b></td>
+        <td>string</td>
+        <td>
+          Secret where to store the root CA certificate.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
           Generate self signed certificates for broker, proxy and functions worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedfunctionsworker">functionsWorker</a></b></td>
+        <td>object</td>
+        <td>
+          Functions worker self signed certificate config.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -14319,7 +14394,61 @@ Self signed certificate provisioner configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>perComponent</b></td>
+        <td>boolean</td>
+        <td>
+          Generate a different certificate for each component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          Proxy self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedzookeeper">zookeeper</a></b></td>
+        <td>object</td>
+        <td>
+          Zookeeper self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.autorecovery
+
+
+
+Autorecovery self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedautorecoveryprivatekey">privateKey</a></b></td>
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
@@ -14329,7 +14458,454 @@ Self signed certificate provisioner configuration.
 </table>
 
 
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.autorecovery.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.bookkeeper
+
+
+
+Bookkeeper self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedbookkeeperprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.bookkeeper.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.broker
+
+
+
+Broker self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedbrokerprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.broker.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.functionsWorker
+
+
+
+Functions worker self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedfunctionsworkerprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.functionsWorker.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.proxy
+
+
+
+Proxy self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedproxyprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.proxy.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.zookeeper
+
+
+
+Zookeeper self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedzookeeperprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.zookeeper.privateKey
 
 
 

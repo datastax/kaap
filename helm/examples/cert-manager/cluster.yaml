@@ -22,26 +22,42 @@ metadata:
 spec:
   global:
     name: pulsar
-    image: datastax/lunastreaming-all:2.10_2.11
+    image: datastax/lunastreaming-all:2.10_2.4
     restartOnConfigMapChange: true
     # dnsName: add here your public dns name
     tls:
       enabled: true
-      certProvisioner:
-        selfSigned:
-          enabled: true
       bookkeeper:
           enabled: true
+          secretName: bk-tls
       autorecovery:
         enabled: true
+        secretName: autorecovery-tls
       proxy:
           enabled: true
           enabledWithBroker: true
+          secretName: proxy-tls
       broker:
         enabled: true
+        secretName: broker-tls
       functionsWorker:
           enabled: true
           enabledWithBroker: true
+          secretName: fnw-tls
+      certProvisioner:
+        selfSigned:
+          enabled: true
+          perComponent: true
+          broker:
+            generate: true
+          bookkeeper:
+            generate: true
+          autorecovery:
+            generate: true
+          proxy:
+            generate: true
+          functionsWorker:
+            generate: true
     storage:
       existingStorageClassName:  default
   zookeeper:

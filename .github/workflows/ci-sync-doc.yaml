@@ -23,6 +23,7 @@ jobs:
         run: |
           cp -R docs /tmp/docs
           git checkout gh-pages
+          rm -rf docs
           mv /tmp/docs docs 
           git add -A
           git commit -m "Update docs"

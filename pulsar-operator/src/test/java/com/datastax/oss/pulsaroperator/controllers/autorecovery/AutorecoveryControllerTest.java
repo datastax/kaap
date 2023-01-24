@@ -186,6 +186,59 @@ public class AutorecoveryControllerTest {
         Assert.assertEquals(data, expectedData);
     }
 
+
+
+    @Test
+    public void testTlsEnabledOnBookKeeper() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        bookkeeper:
+                            enabled: true
+                        autorecovery:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
+                "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
+        expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("BOOKIE_MEM", "-Xms512m -Xmx512m -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("BOOKIE_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_tlsHostnameVerificationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_tlsProvider", "OpenSSL");
+        expectedData.put("PULSAR_PREFIX_tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
+        expectedData.put("PULSAR_PREFIX_tlsCertificatePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStoreType", "PEM");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustStoreType", "PEM");
+        expectedData.put("PULSAR_PREFIX_tlsClientAuthentication", "true");
+        expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/certs/ca.crt");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        final Deployment depl = client.getCreatedResource(Deployment.class).getResource();
+        final String stsCommand = depl.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getArgs().get(0);
+        Assert.assertEquals(stsCommand, "bin/apply-config-from-env.py conf/bookkeeper.conf && openssl pkcs8 -topk8 "
+                + "-inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && "
+                + "bin/apply-config-from-env.py conf/proxy.conf && OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" "
+                + "exec bin/bookkeeper autorecovery");
+    }
+
     @Test
     public void testReplicas() throws Exception {
         String spec = """

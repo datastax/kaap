@@ -76,6 +76,8 @@ public class PulsarClusterControllerTest {
                   proxy:
                     enabled: false
                     enabledWithBroker: false
+                  autorecovery:
+                    enabled: false
                   ssCa:
                     enabled: false
                 persistence: true

@@ -18,6 +18,7 @@ package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -333,6 +334,63 @@ public class BookKeeperControllerTest {
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
+    }
+
+
+    @Test
+    public void testTlsEnabledOnBookKeeper() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        bookkeeper:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_autoRecoveryDaemonEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_useHostNameAsBookieID", "true");
+        expectedData.put("PULSAR_PREFIX_httpServerEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
+                "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
+        expectedData.put("BOOKIE_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled "
+                        + "-Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("BOOKIE_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_statsProviderClass",
+                "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
+        expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_tlsProvider", "OpenSSL");
+        expectedData.put("PULSAR_PREFIX_tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
+        expectedData.put("PULSAR_PREFIX_tlsCertificatePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStoreType", "PEM");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustStoreType", "PEM");
+        expectedData.put("PULSAR_PREFIX_tlsHostnameVerificationEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSClientAuthentication", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(sts, GlobalSpec.DEFAULT_TLS_SECRET_NAME);
+        final String stsCommand = sts.getSpec().getTemplate().getSpec().getContainers().get(0)
+                .getArgs().get(0);
+        Assert.assertEquals(stsCommand, "bin/apply-config-from-env.py conf/bookkeeper.conf && openssl pkcs8 -topk8 "
+                        + "-inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && "
+                        + "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar bookie");
     }
 
 

@@ -146,6 +146,8 @@ public class TlsConfig {
         SelfSignedCertificatePerComponentConfig proxy;
         @JsonPropertyDescription("Functions worker self signed certificate config.")
         SelfSignedCertificatePerComponentConfig functionsWorker;
+        @JsonPropertyDescription("Autorecovery self signed certificate config.")
+        SelfSignedCertificatePerComponentConfig autorecovery;
     }
 
     @Data

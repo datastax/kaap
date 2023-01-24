@@ -105,6 +105,9 @@ public class CertManagerCertificatesProvisioner {
                         globalSpec.getTls().getBookkeeper().getSecretName(),
                         getBookKeeperDNSNames());
             }
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getAutorecovery())) {
+                createAutorecoveryCertificate();
+            }
             if (TlsConfig.ProxyTlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
                 createCertificatePerComponent(selfSigned.getProxy(),
                         globalSpec.getComponents().getProxyBaseName(),
@@ -125,6 +128,36 @@ public class CertManagerCertificatesProvisioner {
                         getFunctionsWorkerDNSNames());
             }
         }
+    }
+
+    private void createAutorecoveryCertificate() {
+        // autorecovery only need to be accessed via the client tls auth, no dns names needed
+        final TlsConfig.SelfSignedCertificatePerComponentConfig autorecoveryConfig = selfSigned.getAutorecovery();
+
+        final CertificatePrivateKey privateKey = ObjectUtils
+                .firstNonNull(autorecoveryConfig == null ? null : autorecoveryConfig.getPrivateKey(),
+                        selfSigned.getPrivateKey());
+
+        final Certificate caCertificate = new CertificateBuilder()
+                .withNewMetadata()
+                .withName("%s-%s-tls"
+                        .formatted(clusterName, globalSpec.getComponents().getAutorecoveryBaseName()))
+                .withNamespace(namespace)
+                .endMetadata()
+                .withNewSpec()
+                .withSecretName(globalSpec.getTls().getAutorecovery().getSecretName())
+                .withCommonName(globalSpec.getComponents().getAutorecoveryBaseName())
+                .withPrivateKey(privateKey)
+                .withUsages("client auth")
+                .withNewIssuerRef()
+                .withName(caIssuerName)
+                .endIssuerRef()
+                .endSpec()
+                .build();
+
+        client.resource(caCertificate)
+                .inNamespace(namespace)
+                .createOrReplace();
     }
 
     private void createCertificatePerComponent(final TlsConfig.SelfSignedCertificatePerComponentConfig componentConfig,

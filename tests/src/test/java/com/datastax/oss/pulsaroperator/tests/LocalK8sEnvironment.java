@@ -31,9 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.Network;
 import org.testng.annotations.Test;
 
 @Slf4j
@@ -46,6 +48,7 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
 
     private static final List<String> PROMETHEUS_OPERATOR_IMAGES = List.of("quay.io/prometheus/prometheus:v2.39.1",
             "quay.io/kiwigrid/k8s-sidecar:1.19.2");
+
     @Test
     public void testMain() throws Exception {
         main(null);
@@ -55,10 +58,16 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         final KubernetesImageSpec<K3sContainerVersion> k3sImage =
                 new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
                         .withImage("rancher/k3s:v1.25.3-k3s1");
+
+        @Cleanup
+        final Network network = Network.builder()
+                .createNetworkCmdModifier(cmd -> cmd.withName("pulsaroperator-local-k3s-network"))
+                .build();
         try (final K3sContainer container = new K3sContainer(k3sImage)) {
             container.withCreateContainerCmdModifier(
                     (Consumer<CreateContainerCmd>)
                             createContainerCmd -> createContainerCmd.withName("pulsaroperator-local-k3s"));
+            container.withNetwork(network);
             createAndMountImages(container);
 
             container.start();

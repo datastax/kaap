@@ -17,14 +17,10 @@ package com.datastax.oss.pulsaroperator.tests.helm;
 
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
-import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @Slf4j
@@ -34,13 +30,18 @@ public class TlsTest extends BaseHelmTest {
     public static final String CERT_MANAGER_CRDS =
             "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml";
 
-    @DataProvider(name = "perComponentCerts")
-    public Object[][] perComponentCerts() {
-        return new Object[][] { new Object[] { true }, { false } };
+    @Test
+    public void testPerComponents() throws Exception {
+        test(true);
     }
 
-    @Test(dataProvider = "perComponentCerts")
-    public void test(boolean perComponentCerts) throws Exception {
+    @Test
+    public void testGlobal() throws Exception {
+        test(false);
+
+    }
+
+    private void test(boolean perComponentCerts) throws Exception {
         try {
             try (final InputStream in = new URL(CERT_MANAGER_CRDS)
                     .openStream();) {
@@ -120,24 +121,8 @@ public class TlsTest extends BaseHelmTest {
                                         .build())
                                 .build());
             }
-            specs.setFunctionsWorker(FunctionsWorkerSpec.builder()
-                    .replicas(1)
-                    .resources(RESOURCE_REQUIREMENTS)
-                    .runtime("kubernetes")
-                    .config(Map.of(
-                            "numFunctionPackageReplicas", 1,
-                            "functionInstanceMaxResources", Map.of(
-                                    "disk", 1000000000,
-                                    "ram", 12800000,
-                                    "cpu", 0.001d
-                            )
-                    ))
-                    .probe(ProbeConfig.builder()
-                            .initial(5)
-                            .period(5)
-                            .build())
-                    .build()
-            );
+
+            specs.getFunctionsWorker().setReplicas(1);
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
 

@@ -243,6 +243,7 @@ public abstract class BaseK8sEnvTest {
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
+            log.info("cleaning up namespace {}", namespace);
             if (client != null) {
                 deleteRBACManifests();
                 deleteOperatorDeploymentAndCRDs();

@@ -37,10 +37,12 @@ wait_image() {
 }
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 
-wait_image pulsar-operator
+wait_image lunastreaming-operator
 wait_image lunastreaming
 
 export KUBECONFIG=/tmp/pulsaroperator-local-k3s-kube-config
 mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dpulsaroperator.tests.env.existing \
   -Dpulsaroperator.tests.existingenv.kubeconfig.context=default \
+  -Dpulsaroperator.tests.existingenv.helmcontainer.network=pulsaroperator-local-k3s-network \
+  -Dpulsaroperator.tests.existingenv.kubeconfig.overrideserver="https://pulsaroperator-local-k3s:6443" \
   -Dpulsaroperator.tests.existingenv.storageclass=local-path "$@"

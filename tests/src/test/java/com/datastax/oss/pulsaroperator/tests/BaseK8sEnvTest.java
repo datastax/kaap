@@ -125,7 +125,10 @@ public abstract class BaseK8sEnvTest {
                 } else {
                     log.info("[{}/{}]: {}", resource.getRegarding().getKind(),
                             resource.getRegarding().getName(), resource.getReason());
-
+                }
+                if ("FailedMount".equals(resource.getReason())) {
+                    log.error("ERROR {} on {}: {}", resource.getKind(), resource.getRegarding().getName(),
+                            resource.getNote());
                 }
             }
 

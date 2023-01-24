@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.utils;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
@@ -61,8 +62,7 @@ public class CertManagerCertificatesProvisioner {
             this.selfSigned = globalSpec.getTls().getCertProvisioner().getSelfSigned();
             this.clusterName = globalSpec.getName();
             this.caIssuerName = "%s-ca-issuer".formatted(clusterName);
-            this.ssCaSecretName = ObjectUtils
-                    .firstNonNull(selfSigned.getCaSecretName(), "%s-ss-ca".formatted(clusterName));
+            this.ssCaSecretName = BaseResourcesFactory.getTlsSsCaSecretName(globalSpec);
             this.serviceDnsSuffix = "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
         }
 

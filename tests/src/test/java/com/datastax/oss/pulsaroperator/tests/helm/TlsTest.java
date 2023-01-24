@@ -139,7 +139,6 @@ public class TlsTest extends BaseHelmTest {
                     .withName("pulsar-cluster")
                     .delete();
             awaitUninstalled();
-            helmUninstall();
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();

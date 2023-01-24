@@ -18,7 +18,6 @@ package com.datastax.oss.pulsaroperator.controllers.bastion;
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
-import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -256,7 +255,7 @@ public class BastionControllerTest {
         final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
         KubeTestUtil.assertTlsVolumesMounted(
                 deployment,
-                GlobalSpec.DEFAULT_TLS_SECRET_NAME
+                "pul-ss-ca"
         );
     }
 
@@ -298,7 +297,7 @@ public class BastionControllerTest {
         final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
         KubeTestUtil.assertTlsVolumesMounted(
                 deployment,
-                GlobalSpec.DEFAULT_TLS_SECRET_NAME
+                "pul-ss-ca"
         );
     }
 

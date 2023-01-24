@@ -399,12 +399,16 @@ public abstract class BaseResourcesFactory<T> {
                 global.getTls().getDefaultSecretName());
     }
 
-    protected String getTlsSsCaSecretName() {
+    public static String getTlsSsCaSecretName(GlobalSpec global) {
         final String name = global.getTls().getSsCa() == null
                 ? null : global.getTls().getSsCa().getSecretName();
         return ObjectUtils.firstNonNull(
                 name,
-                global.getTls().getDefaultSecretName());
+                "%s-ss-ca".formatted(global.getName()));
+    }
+
+    protected String getTlsSsCaSecretName() {
+        return getTlsSsCaSecretName(global);
     }
 
     protected void addTlsVolumesIfEnabled(List<VolumeMount> volumeMounts, List<Volume> volumes,

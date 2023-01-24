@@ -23,6 +23,7 @@ import com.dajudge.kindcontainer.KubernetesImageSpec;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.exception.NotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,9 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.Network;
 import org.testng.annotations.Test;
 
 @Slf4j
@@ -46,6 +49,9 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
 
     private static final List<String> PROMETHEUS_OPERATOR_IMAGES = List.of("quay.io/prometheus/prometheus:v2.39.1",
             "quay.io/kiwigrid/k8s-sidecar:1.19.2");
+    public static final String NETWORK = "pulsaroperator-local-k3s-network";
+    public static final String CONTAINER_NAME = "pulsaroperator-local-k3s";
+
     @Test
     public void testMain() throws Exception {
         main(null);
@@ -55,10 +61,18 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         final KubernetesImageSpec<K3sContainerVersion> k3sImage =
                 new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
                         .withImage("rancher/k3s:v1.25.3-k3s1");
+
+
+        cleanupOldRuns();
+
+        @Cleanup final Network network = Network.builder()
+                .createNetworkCmdModifier(cmd -> cmd.withName(NETWORK))
+                .build();
         try (final K3sContainer container = new K3sContainer(k3sImage)) {
             container.withCreateContainerCmdModifier(
                     (Consumer<CreateContainerCmd>)
-                            createContainerCmd -> createContainerCmd.withName("pulsaroperator-local-k3s"));
+                            createContainerCmd -> createContainerCmd.withName(CONTAINER_NAME));
+            container.withNetwork(network);
             createAndMountImages(container);
 
             container.start();
@@ -84,6 +98,29 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
 
             restoreImages(container);
             Thread.sleep(Integer.MAX_VALUE);
+        }
+    }
+
+    private static void cleanupOldRuns() {
+        final DockerClient client = DockerClientFactory.lazyClient();
+        client.listContainersCmd()
+                .exec()
+                .stream()
+                .filter(c -> c.getNetworkSettings().getNetworks().containsKey(NETWORK))
+                .forEach(c -> cleanupContainer(c.getId(), client));
+        cleanupContainer(CONTAINER_NAME, client);
+        try {
+            client.removeNetworkCmd(NETWORK).exec();
+        } catch (NotFoundException notFoundException) {
+            log.info(notFoundException.getMessage());
+        }
+    }
+
+    private static void cleanupContainer(String name, DockerClient client) {
+        try {
+            client.removeContainerCmd(name).withForce(true).withRemoveVolumes(true).exec();
+        } catch (NotFoundException notFoundException) {
+            log.info(notFoundException.getMessage());
         }
     }
 

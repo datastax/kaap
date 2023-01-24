@@ -333,7 +333,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForFunctionsWorker());
+        if (isTlsEnabledOnFunctionsWorker()) {
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForFunctionsWorker());
+        }
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
             addSecretTokenVolume(volumeMounts, volumes, "public-key");

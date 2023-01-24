@@ -15,51 +15,219 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.utils;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateBuilder;
+import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
 import io.fabric8.certmanager.api.model.v1.Issuer;
 import io.fabric8.certmanager.api.model.v1.IssuerBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.jbosslog.JBossLog;
+import org.apache.commons.lang3.ObjectUtils;
 
+@JBossLog
 public class CertManagerCertificatesProvisioner {
     private final KubernetesClient client;
     private final String namespace;
     private final GlobalSpec globalSpec;
+    private final TlsConfig.SelfSignedCertProvisionerConfig selfSigned;
+    private final String clusterName;
+    private final String ssCaSecretName;
+    private final String caIssuerName;
+    private final String serviceDnsSuffix;
 
     public CertManagerCertificatesProvisioner(KubernetesClient client, String namespace, GlobalSpec globalSpec) {
         this.client = client;
         this.namespace = namespace;
         this.globalSpec = globalSpec;
-    }
-
-    public void generateCertificates() {
         if (globalSpec.getTls() == null
                 || !globalSpec.getTls().getEnabled()
                 || globalSpec.getTls().getCertProvisioner() == null
                 || globalSpec.getTls().getCertProvisioner().getSelfSigned() == null) {
+            this.selfSigned = null;
+            this.clusterName = null;
+            this.caIssuerName = null;
+            this.ssCaSecretName = null;
+            this.serviceDnsSuffix = null;
+        } else {
+            this.selfSigned = globalSpec.getTls().getCertProvisioner().getSelfSigned();
+            this.clusterName = globalSpec.getName();
+            this.caIssuerName = "%s-ca-issuer".formatted(clusterName);
+            this.ssCaSecretName = BaseResourcesFactory.getTlsSsCaSecretName(globalSpec);
+            this.serviceDnsSuffix = "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
+        }
+
+    }
+
+    public void generateCertificates() {
+        if (selfSigned == null) {
             return;
         }
 
-        final TlsConfig.CertProvisionerConfig certProvisioner = globalSpec.getTls().getCertProvisioner();
-        final TlsConfig.SelfSignedCertProvisionerConfig selfSigned =
-                certProvisioner.getSelfSigned();
+        createRootCACertificate();
+        if (selfSigned.getPerComponent() == null || !selfSigned.getPerComponent()) {
+            List<String> dnsNames = new ArrayList<>();
+            dnsNames.addAll(getBrokerDNSNames());
+            dnsNames.addAll(getProxyDNSNames());
+            dnsNames.addAll(getFunctionsWorkerDNSNames());
 
-        if (!selfSigned.getEnabled()) {
+            if (globalSpec.getDnsName() != null
+                    && selfSigned.getIncludeDns() != null
+                    && selfSigned.getIncludeDns()) {
+                dnsNames.add(globalSpec.getDnsName());
+            }
+            final String certName = "%s-server-tls".formatted(clusterName);
+            createCertificate(
+                    certName,
+                    globalSpec.getTls().getDefaultSecretName(),
+                    selfSigned.getPrivateKey(),
+                    dnsNames
+            );
+        } else {
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
+                createCertificatePerComponent(selfSigned.getBroker(),
+                        globalSpec.getComponents().getBrokerBaseName(),
+                        globalSpec.getTls().getBroker().getSecretName(),
+                        getBrokerDNSNames());
+            }
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBookkeeper())) {
+                createCertificatePerComponent(selfSigned.getBookkeeper(),
+                        globalSpec.getComponents().getBookkeeperBaseName(),
+                        globalSpec.getTls().getBookkeeper().getSecretName(),
+                        getBookKeeperDNSNames());
+            }
+            if (TlsConfig.ProxyTlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
+                createCertificatePerComponent(selfSigned.getProxy(),
+                        globalSpec.getComponents().getProxyBaseName(),
+                        globalSpec.getTls().getProxy().getSecretName(),
+                        getProxyDNSNames());
+            }
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getZookeeper())) {
+                createCertificatePerComponent(selfSigned.getZookeeper(),
+                        globalSpec.getComponents().getZookeeperBaseName(),
+                        globalSpec.getTls().getZookeeper().getSecretName(),
+                        getZookeeperDNSNames());
+            }
+
+            if (TlsConfig.FunctionsWorkerTlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
+                createCertificatePerComponent(selfSigned.getFunctionsWorker(),
+                        globalSpec.getComponents().getFunctionsWorkerBaseName(),
+                        globalSpec.getTls().getFunctionsWorker().getSecretName(),
+                        getFunctionsWorkerDNSNames());
+            }
+        }
+    }
+
+    private void createCertificatePerComponent(final TlsConfig.SelfSignedCertificatePerComponentConfig componentConfig,
+                                               final String baseName,
+                                               final String secretName,
+                                               List<String> dnsNames) {
+        if (componentConfig == null || !componentConfig.getGenerate()) {
             return;
         }
-        final String name = globalSpec.getName();
-        final String ssIssuerName = "%s-self-signed-issuer".formatted(name);
-        final String caIssuerName = "%s-ca-issuer".formatted(name);
-        final String ssCaSecretName = "%s-ss-ca".formatted(name);
-        final String serviceDnsSuffix = "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
 
+        createCertificate(
+                "%s-%s-tls".formatted(clusterName, baseName),
+                secretName,
+                ObjectUtils.firstNonNull(componentConfig.getPrivateKey(), selfSigned.getPrivateKey()),
+                dnsNames
+        );
+    }
+
+    private List<String> getBookKeeperDNSNames() {
+        final String bkBase =
+                BookKeeperResourcesFactory.getResourceName(clusterName,
+                        BookKeeperResourcesFactory.getComponentBaseName(globalSpec));
+        return enumerateDnsNames(bkBase, true);
+    }
+
+    private List<String> getFunctionsWorkerDNSNames() {
+        final String functionsWorkerBase =
+                FunctionsWorkerResourcesFactory.getResourceName(clusterName,
+                        FunctionsWorkerResourcesFactory.getComponentBaseName(globalSpec));
+        List<String> dnsNames = new ArrayList<>();
+        // The DNS names ending in "-ca" are meant for client access. The wildcard names are used for zookeeper to
+        // zookeeper networking.
+        dnsNames.addAll(enumerateDnsNames(functionsWorkerBase, true));
+        dnsNames.addAll(enumerateDnsNames(functionsWorkerBase + "-ca", false));
+        return dnsNames;
+    }
+
+    private List<String> getZookeeperDNSNames() {
+        final String zookeeperDNSNames =
+                ZooKeeperResourcesFactory.getResourceName(clusterName,
+                        ZooKeeperResourcesFactory.getComponentBaseName(globalSpec));
+        List<String> dnsNames = new ArrayList<>();
+        // The DNS names ending in "-ca" are meant for client access. The wildcard names are used for zookeeper to
+        // zookeeper networking.
+        dnsNames.addAll(enumerateDnsNames(zookeeperDNSNames, true));
+        dnsNames.addAll(enumerateDnsNames(zookeeperDNSNames + "-ca", false));
+        return dnsNames;
+    }
+
+    private List<String> getProxyDNSNames() {
+        final String proxyBase =
+                ProxyResourcesFactory.getResourceName(clusterName,
+                        ProxyResourcesFactory.getComponentBaseName(globalSpec));
+        return enumerateDnsNames(proxyBase, false);
+    }
+
+    private List<String> getBrokerDNSNames() {
+        final String brokerBase =
+                BrokerResourcesFactory.getResourceName(clusterName,
+                        BrokerResourcesFactory.getComponentBaseName(globalSpec));
+        return enumerateDnsNames(brokerBase, true);
+    }
+
+    private List<String> enumerateDnsNames(final String serviceName, boolean wildcard) {
+        List<String> dnsNames = new ArrayList<>();
+        if (wildcard) {
+            dnsNames.add("*.%s.%s".formatted(serviceName, serviceDnsSuffix));
+            dnsNames.add("*.%s.%s".formatted(serviceName, namespace));
+            dnsNames.add("*.%s".formatted(serviceName));
+        }
+        dnsNames.add("%s.%s".formatted(serviceName, serviceDnsSuffix));
+        dnsNames.add("%s.%s".formatted(serviceName, namespace));
+        dnsNames.add(serviceName);
+        return dnsNames;
+    }
+
+    private void createCertificate(String name,
+                                   String secretName,
+                                   CertificatePrivateKey privateKey,
+                                   List<String> dnsNames) {
+        final Certificate ssCertificate = new CertificateBuilder()
+                .withNewMetadata()
+                .withName(name)
+                .withNamespace(namespace)
+                .endMetadata()
+                .withNewSpec()
+                .withPrivateKey(privateKey)
+                .withSecretName(secretName)
+                .withNewIssuerRef()
+                .withName(caIssuerName)
+                .endIssuerRef()
+                .withDnsNames(dnsNames)
+                .endSpec()
+                .build();
+
+        client.resource(ssCertificate)
+                .inNamespace(namespace)
+                .createOrReplace();
+        log.infof("Created self-signed certificate %s mapped to secret %s", name, secretName);
+    }
+
+    private void createRootCACertificate() {
+        final String ssIssuerName = "%s-self-signed-issuer".formatted(clusterName);
 
         final Issuer ssIssuer = new IssuerBuilder()
                 .withNewMetadata()
@@ -78,7 +246,7 @@ public class CertManagerCertificatesProvisioner {
 
         final Certificate caCertificate = new CertificateBuilder()
                 .withNewMetadata()
-                .withName("%s-ca-certificate".formatted(name))
+                .withName("%s-ca-certificate".formatted(clusterName))
                 .withNamespace(namespace)
                 .endMetadata()
                 .withNewSpec()
@@ -112,57 +280,7 @@ public class CertManagerCertificatesProvisioner {
         client.resource(caIssuer)
                 .inNamespace(namespace)
                 .createOrReplace();
-
-
-        List<String> dnsNames = new ArrayList<>();
-        final String brokerBase =
-                BrokerResourcesFactory.getResourceName(name, BrokerResourcesFactory.getComponentBaseName(globalSpec));
-        dnsNames.add("*.%s.%s".formatted(brokerBase, serviceDnsSuffix));
-        dnsNames.add("*.%s.%s".formatted(brokerBase, namespace));
-        dnsNames.add("*.%s".formatted(brokerBase));
-        dnsNames.add("%s.%s".formatted(brokerBase, serviceDnsSuffix));
-        dnsNames.add("%s.%s".formatted(brokerBase, namespace));
-        dnsNames.add(brokerBase);
-
-        final String proxyBase =
-                ProxyResourcesFactory.getResourceName(name, ProxyResourcesFactory.getComponentBaseName(globalSpec));
-
-        dnsNames.add("%s.%s".formatted(proxyBase, serviceDnsSuffix));
-        dnsNames.add("%s.%s".formatted(proxyBase, namespace));
-        dnsNames.add(proxyBase);
-
-        final String functionsWorkerBase =
-                FunctionsWorkerResourcesFactory.getResourceName(name,
-                        FunctionsWorkerResourcesFactory.getComponentBaseName(globalSpec));
-
-        dnsNames.add("%s-ca.%s".formatted(functionsWorkerBase, serviceDnsSuffix));
-        dnsNames.add("%s-ca.%s".formatted(functionsWorkerBase, namespace));
-        dnsNames.add("%s-ca".formatted(functionsWorkerBase));
-
-        if (globalSpec.getDnsName() != null
-                && selfSigned.getIncludeDns() != null
-                && selfSigned.getIncludeDns()) {
-            dnsNames.add(globalSpec.getDnsName());
-        }
-        final Certificate ssCertificate = new CertificateBuilder()
-                .withNewMetadata()
-                .withName("%s-server-tls".formatted(name))
-                .withNamespace(namespace)
-                .endMetadata()
-                .withNewSpec()
-                .withPrivateKey(selfSigned.getPrivateKey())
-                .withSecretName(globalSpec.getTls().getDefaultSecretName())
-                .withNewIssuerRef()
-                .withName(caIssuerName)
-                .endIssuerRef()
-                .withDnsNames(dnsNames)
-                .endSpec()
-                .build();
-
-        client.resource(ssCertificate)
-                .inNamespace(namespace)
-                .createOrReplace();
-
+        log.infof("Created self-signed root CA certificate");
     }
 
 

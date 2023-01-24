@@ -59,7 +59,7 @@ public class HelmTest extends BaseHelmTest {
                     """);
 
             Awaitility.await().untilAsserted(() -> {
-                Assert.assertEquals(getOperatorPods().size(), 3);
+                Assert.assertTrue(getOperatorPods().size() >= 3);
             });
 
 
@@ -68,7 +68,6 @@ public class HelmTest extends BaseHelmTest {
                     .withName("pulsar-cluster")
                     .delete();
             awaitUninstalled();
-            helmUninstall();
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();

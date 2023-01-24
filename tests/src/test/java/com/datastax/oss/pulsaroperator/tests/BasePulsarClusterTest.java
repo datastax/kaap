@@ -27,6 +27,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
+import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -159,6 +160,23 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         defaultSpecs.setBastion(BastionSpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
+                .build());
+        defaultSpecs.setFunctionsWorker(FunctionsWorkerSpec.builder()
+                .resources(RESOURCE_REQUIREMENTS)
+                .runtime("kubernetes")
+                .config(Map.of(
+                        "numFunctionPackageReplicas", 1,
+                        "functionInstanceMaxResources", Map.of(
+                                "disk", 1000000000,
+                                "ram", 12800000,
+                                "cpu", 0.001d
+                        )
+                ))
+                .probe(ProbeConfig.builder()
+                        .initial(15)
+                        .period(5)
+                        .timeout(90)
+                        .build())
                 .build());
         return defaultSpecs;
     }

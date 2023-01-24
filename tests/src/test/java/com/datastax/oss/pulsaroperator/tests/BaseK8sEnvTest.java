@@ -125,7 +125,10 @@ public abstract class BaseK8sEnvTest {
                 } else {
                     log.info("[{}/{}]: {}", resource.getRegarding().getKind(),
                             resource.getRegarding().getName(), resource.getReason());
-
+                }
+                if ("FailedMount".equals(resource.getReason())) {
+                    log.error("ERROR {} on {}: {}", resource.getKind(), resource.getRegarding().getName(),
+                            resource.getNote());
                 }
             }
 
@@ -243,6 +246,7 @@ public abstract class BaseK8sEnvTest {
     @AfterMethod(alwaysRun = true)
     public void after() throws Exception {
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
+            log.info("cleaning up namespace {}", namespace);
             if (client != null) {
                 deleteRBACManifests();
                 deleteOperatorDeploymentAndCRDs();

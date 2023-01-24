@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.tests.env;
 
+import com.dajudge.kindcontainer.client.KubeConfigUtils;
 import com.dajudge.kindcontainer.helm.Helm3Container;
 import io.fabric8.kubernetes.client.Config;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +24,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 import lombok.SneakyThrows;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
+import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
 
 public class ExistingK8sEnv implements K8sEnv {
@@ -32,6 +36,10 @@ public class ExistingK8sEnv implements K8sEnv {
             System.getProperty("pulsaroperator.tests.existingenv.kubeconfig.context");
     private static final String STORAGECLASS =
             System.getProperty("pulsaroperator.tests.existingenv.storageclass", "default");
+    private static final String KUBECONFIG_OVERRIDE_SERVER =
+            System.getProperty("pulsaroperator.tests.existingenv.kubeconfig.overrideserver", null);
+    private static final String HELM_NETWORK =
+            System.getProperty("pulsaroperator.tests.existingenv.helmcontainer.network", null);
 
     private final Config config;
     private Helm3Container helm3Container;
@@ -67,12 +75,46 @@ public class ExistingK8sEnv implements K8sEnv {
         if (helm3Container != null) {
             throw new IllegalStateException("Helm container already initialized");
         }
-        final Path localKubeConfig = Paths.get(System.getProperty("user.home"), ".kube", "config");
-        final String kubeConfigContent = Files.readString(localKubeConfig, StandardCharsets.UTF_8);
+
+        final String kubeConfigContent;
+        final String kubeRawContent;
+        final String kubeconfigEnv = System.getenv("KUBECONFIG");
+
+        if (kubeconfigEnv != null) {
+            kubeRawContent = Files.readString(Paths.get(kubeconfigEnv), StandardCharsets.UTF_8);
+        } else {
+            final Path config = Paths.get(System.getProperty("user.home"), ".kube", "config");
+            kubeRawContent = Files.readString(config, StandardCharsets.UTF_8);
+        }
+        if (KUBECONFIG_OVERRIDE_SERVER != null) {
+            kubeConfigContent = KubeConfigUtils
+                    .replaceServerInKubeconfig(KUBECONFIG_OVERRIDE_SERVER, kubeRawContent);
+        } else {
+            kubeConfigContent = kubeRawContent;
+        }
 
         helm3Container = new Helm3Container<>(HELM_DOCKER_IMAGE, () -> kubeConfigContent);
         if (preInit != null) {
             preInit.accept(helm3Container);
+        }
+        if (HELM_NETWORK != null) {
+            helm3Container.withNetwork(
+                    new Network() {
+                        @Override
+                        public String getId() {
+                            return HELM_NETWORK;
+                        }
+
+                        @Override
+                        public void close() {
+                        }
+
+                        @Override
+                        public Statement apply(Statement statement, Description description) {
+                            return null;
+                        }
+                    }
+            );
         }
         helm3Container.start();
         return helm3Container;

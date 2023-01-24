@@ -56,6 +56,11 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName());
     }
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getBookkeeperBaseName();
+    }
+
+
     private ConfigMap configMap;
 
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
@@ -66,7 +71,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getBookkeeperBaseName();
+        return getComponentBaseName(global);
     }
 
     @Override
@@ -185,7 +190,8 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
         final Probe probe = createProbe();
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
-        if (isTlsEnabledOnBookKeeper()) {
+        final boolean tlsEnabledOnBookKeeper = isTlsEnabledOnBookKeeper();
+        if (tlsEnabledOnBookKeeper) {
             mainArg +=
                     "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key"
                             + " -nocrypt && ";
@@ -200,7 +206,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBookkeeper());
+        if (tlsEnabledOnBookKeeper) {
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBookkeeper());
+        }
 
         final String journalVolumeName = "%s%s-%s".formatted(
                 ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),

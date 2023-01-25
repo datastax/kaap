@@ -70,6 +70,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -430,6 +432,7 @@ public abstract class BaseResourcesFactory<T> {
         if (!isTlsEnabledGlobally()) {
             return;
         }
+        Objects.requireNonNull("secretName cannot be null", secretName);
         volumeMounts.add(
                 new VolumeMountBuilder()
                         .withName("certs")
@@ -771,13 +774,51 @@ public abstract class BaseResourcesFactory<T> {
                 certconverter &&
                 """;
         if (isTlsEnabledOnZooKeeper()) {
+            final Map<String, String> pulsarOpts = new HashMap<>();
+            pulsarOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
+            pulsarOpts.put("zookeeper.client.secure", "true");
+            pulsarOpts.put("zookeeper.ssl.keyStore.location", "${keyStoreFile}");
+            pulsarOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            pulsarOpts.put("zookeeper.ssl.trustStore.location", "${keyStoreFile}");
+            pulsarOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            pulsarOpts.put("zookeeper.ssl.hostnameVerification", "true");
+            pulsarOpts.put("zookeeper.sslQuorum", "true");
+            pulsarOpts.put("zookeeper.serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
+            pulsarOpts.put("zookeeper.ssl.quorum.keyStore.location", "${keyStoreFile}");
+            pulsarOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            pulsarOpts.put("zookeeper.ssl.quorum.trustStore.location", "${keyStoreFile}");
+            pulsarOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            pulsarOpts.put("zookeeper.ssl.quorum.hostnameVerification", "true");
+            final String pulsarOptsStr = pulsarOpts.entrySet()
+                    .stream()
+                    .map(e -> "-D%s=%s".formatted(e.getKey(), e.getValue()))
+                    .collect(Collectors.joining(" "));
+
+
+            final Map<String, String> bkOpts = new HashMap<>();
+            bkOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
+            bkOpts.put("zookeeper.client.secure", "true");
+            bkOpts.put("zookeeper.ssl.keyStore.location", "${keyStoreFile}");
+            bkOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            bkOpts.put("zookeeper.ssl.trustStore.location", "${keyStoreFile}");
+            bkOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            bkOpts.put("zookeeper.ssl.hostnameVerification", "true");
+
+            final String bkOptsStr = bkOpts.entrySet()
+                    .stream()
+                    .map(e -> "-D%s=%s".formatted(e.getKey(), e.getValue()))
+                    .collect(Collectors.joining(" "));
             script += """
-                    passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && 
-                    echo $'\\n' >> conf/pulsar_env.sh &&
-                    echo "PULSAR_EXTRA_OPTS=\\"${PULSAR_EXTRA_OPTS} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.client.secure=true -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.keyStore.${passwordArg} -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.trustStore.${passwordArg} -Dzookeeper.sslQuorum=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.keyStore.${passwordArg} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.trustStore.${passwordArg} -Dzookeeper.ssl.hostnameVerification={{ .Values.tls.zookeeper.enableHostnameVerification }} -Dzookeeper.ssl.quorum.hostnameVerification={{ .Values.tls.zookeeper.enableHostnameVerification }}\\"" >> conf/pulsar_env.sh &&
-                    echo $'\\n' >> conf/bkenv.sh &&
-                    echo "BOOKIE_EXTRA_OPTS=\\"${BOOKIE_EXTRA_OPTS} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.client.secure=true -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.keyStore.${passwordArg} -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.trustStore.${passwordArg} -Dzookeeper.ssl.hostnameVerification={{ .Values.tls.zookeeper.enableHostnameVerification }}\\"" >> conf/bkenv.sh &&
-                    """;
+                    passwordArg="passwordPath=/pulsar/keystoreSecret.txt" &&
+                    cat >> conf/pulsar_env.sh << EOF
+                    
+                    PULSAR_EXTRA_OPTS="${PULSAR_EXTRA_OPTS} %s"
+                    EOF &&
+                    cat >> conf/bkenv.sh << EOF
+
+                    BOOKIE_EXTRA_OPTS="${BOOKIE_EXTRA_OPTS} %s"
+                    EOF
+                    """.formatted(pulsarOptsStr, bkOptsStr);
         }
         script += "echo ''";
         return script;

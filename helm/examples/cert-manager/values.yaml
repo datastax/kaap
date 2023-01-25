@@ -17,8 +17,8 @@
 
 pulsar-operator:
   operator:
-    image: datastax/pulsar-operator:latest
-    imagePullPolicy: Always
+    image: datastax/lunastreaming-operator:latest-dev
+    imagePullPolicy: Never
 
 cert-manager:
   enabled: true

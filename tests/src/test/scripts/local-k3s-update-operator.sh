@@ -28,7 +28,8 @@ mvn_or_mvnd() {
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 tmp_dir=$(mktemp -d)
 mvn_or_mvnd -f $this_dir/../../../../pulsar-operator/pom.xml package -Dcheckstyle.skip -Dspotbugs.skip -DskipTests
-mvn_or_mvnd -f $this_dir/../../../pom.xml test-compile exec:java -Dexec.classpathScope=test  -Dexec.mainClass="com.datastax.oss.pulsaroperator.tests.LocalK8sEnvironment\$GenerateImageDigest" -Dexec.args="$tmp_dir/pulsar-operator.bin"
+GENERATE_IMAGE_DIGEST_TARGET=$tmp_dir/pulsar-operator.bin mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dtest="LocalK8sEnvironment#updateImage"
+echo "image digest generated: $tmp_dir/pulsar-operator.bin"
 
 container="pulsaroperator-local-k3s"
 docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin

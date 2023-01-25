@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.MockResourcesResolver;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
@@ -443,6 +444,109 @@ public class ZooKeeperControllerTest {
     }
 
     @Test
+    public void testConfigTlsOnZookeeper() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        zookeeper:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS",
+                "-Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log"
+                        + ".root.level=info");
+        expectedData.put("PULSAR_PREFIX_serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
+        expectedData.put("PULSAR_PREFIX_secureClientPort", "2281");
+        expectedData.put("PULSAR_PREFIX_sslQuorum", "true");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pul-zookeeper").getResource()
+                .getSpec().getPorts().stream().filter(p -> p.getName().equals("client-tls")).findFirst()
+                .get()
+                .getPort().intValue(), 2281);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pul-zookeeper-ca").getResource()
+                .getSpec().getPorts().stream().filter(p -> p.getName().equals("client-tls")).findFirst()
+                .get()
+                .getPort().intValue(), 2281);
+
+        final StatefulSet sts = client.getCreatedResource(StatefulSet.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(sts, GlobalSpec.DEFAULT_TLS_SECRET_NAME);
+
+        Assert.assertEquals(sts.getSpec().getTemplate()
+                .getSpec()
+                .getContainers()
+                .get(0)
+                .getArgs()
+                .get(0), """
+                bin/apply-config-from-env.py conf/zookeeper.conf && certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                passwordArg="passwordPath=/pulsar/keystoreSecret.txt" &&
+                cat >> conf/pulsar_env.sh << EOF
+                
+                PULSAR_EXTRA_OPTS="${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${keyStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
+                EOF &&
+                cat >> conf/bkenv.sh << EOF
+                
+                BOOKIE_EXTRA_OPTS="${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${keyStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
+                EOF
+                echo '' && bin/generate-zookeeper-config.sh conf/zookeeper.conf && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar zookeeper""");
+    }
+
+    @Test
     public void testUpdateStrategy() throws Exception {
         String spec = """
                 global:
@@ -696,7 +800,8 @@ public class ZooKeeperControllerTest {
         final PodDNSConfig dnsConfig = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getDnsConfig();
         Assert.assertEquals(dnsConfig.getNameservers(), List.of("1.2.3.4"));
-        Assert.assertEquals(dnsConfig.getSearches(), List.of("ns1.svc.cluster-domain.example", "my.dns.search.suffix"));
+        Assert.assertEquals(dnsConfig.getSearches(),
+                List.of("ns1.svc.cluster-domain.example", "my.dns.search.suffix"));
     }
 
     @Test
@@ -799,7 +904,8 @@ public class ZooKeeperControllerTest {
                 nodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution().getNodeSelectorTerms();
         Assert.assertEquals(nodeSelectorTerms.size(), 1);
 
-        final NodeSelectorRequirement nodeSelectorRequirement = nodeSelectorTerms.get(0).getMatchExpressions().get(0);
+        final NodeSelectorRequirement nodeSelectorRequirement =
+                nodeSelectorTerms.get(0).getMatchExpressions().get(0);
         Assert.assertEquals(nodeSelectorRequirement.getKey(), "nodepool");
         Assert.assertEquals(nodeSelectorRequirement.getOperator(), "In");
         Assert.assertEquals(nodeSelectorRequirement.getValues(), List.of("pulsar"));
@@ -839,11 +945,13 @@ public class ZooKeeperControllerTest {
                 .getPreferredDuringSchedulingIgnoredDuringExecution()
                 .get(0);
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
-        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
-        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
-                "component", "zookeeper"
-        ));
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(),
+                "kubernetes.io/hostname");
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(),
+                Map.of(
+                        "app", "pul",
+                        "component", "zookeeper"
+                ));
 
         spec = """
                 global:
@@ -888,12 +996,12 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
-        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
-                "component", "zookeeper"
-        ));
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(),
+                Map.of(
+                        "app", "pul",
+                        "component", "zookeeper"
+                ));
     }
-
 
 
     @Test
@@ -926,10 +1034,11 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
-        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
-                "component", "zookeeper"
-        ));
+        Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(),
+                Map.of(
+                        "app", "pul",
+                        "component", "zookeeper"
+                ));
     }
 
 
@@ -1038,9 +1147,11 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol")
+                        .getMountPath(),
                 "/pulsar/data");
-        Assert.assertNotNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol").getEmptyDir());
+        Assert.assertNotNull(
+                KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol").getEmptyDir());
         Assert.assertNull(client.getCreatedResource(StorageClass.class));
 
     }
@@ -1069,7 +1180,8 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol")
+                        .getMountPath(),
                 "/pulsar/data");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
 
@@ -1125,7 +1237,8 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol")
+                        .getMountPath(),
                 "/pulsar/data");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
 
@@ -1191,7 +1304,8 @@ public class ZooKeeperControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol").getMountPath(),
+        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-zookeeper-myvol")
+                        .getMountPath(),
                 "/pulsar/data");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-myvol"));
 
@@ -1285,7 +1399,8 @@ public class ZooKeeperControllerTest {
                 Assert.assertNull(service.getResource().getSpec().getPublishNotReadyAddresses());
             } else {
                 Assert.assertEquals(annotations.size(), 2);
-                Assert.assertEquals(annotations.get("service.alpha.kubernetes.io/tolerate-unready-endpoints"), "true");
+                Assert.assertEquals(annotations.get("service.alpha.kubernetes.io/tolerate-unready-endpoints"),
+                        "true");
                 Assert.assertEquals(annotations.get("myann"), "myann-value");
 
                 Assert.assertEquals(service.getResource().getSpec().getClusterIP(), "None");

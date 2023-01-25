@@ -70,6 +70,10 @@ public class TlsTest extends BaseHelmTest {
                                         .selfSigned(TlsConfig.SelfSignedCertProvisionerConfig.builder()
                                                 .enabled(true)
                                                 .perComponent(true)
+                                                .zookeeper(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                        .builder()
+                                                        .generate(true)
+                                                        .build())
                                                 .functionsWorker(TlsConfig.SelfSignedCertificatePerComponentConfig
                                                         .builder()
                                                         .generate(true)
@@ -91,6 +95,10 @@ public class TlsTest extends BaseHelmTest {
                                                         .generate(true)
                                                         .build())
                                                 .build())
+                                        .build())
+                                .zookeeper(TlsConfig.TlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .secretName("zk-tls")
                                         .build())
                                 .autorecovery(TlsConfig.TlsEntryConfig.builder()
                                         .enabled(true)
@@ -124,6 +132,7 @@ public class TlsTest extends BaseHelmTest {
                                                 .enabled(true)
                                                 .build())
                                         .build())
+                                
                                 .autorecovery(TlsConfig.TlsEntryConfig.builder()
                                         .enabled(true)
                                         .build())

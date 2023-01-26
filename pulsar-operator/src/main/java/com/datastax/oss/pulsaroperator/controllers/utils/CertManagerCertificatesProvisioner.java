@@ -76,10 +76,21 @@ public class CertManagerCertificatesProvisioner {
         createRootCACertificate();
         if (selfSigned.getPerComponent() == null || !selfSigned.getPerComponent()) {
             List<String> dnsNames = new ArrayList<>();
-            dnsNames.addAll(getBrokerDNSNames());
-            dnsNames.addAll(getProxyDNSNames());
-            dnsNames.addAll(getFunctionsWorkerDNSNames());
-
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBookkeeper())) {
+                dnsNames.addAll(getBookKeeperDNSNames());
+            }
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getZookeeper())) {
+                dnsNames.addAll(getZookeeperDNSNames());
+            }
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
+                dnsNames.addAll(getBrokerDNSNames());
+            }
+            if (TlsConfig.ProxyTlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
+                dnsNames.addAll(getProxyDNSNames());
+            }
+            if (TlsConfig.FunctionsWorkerTlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
+                dnsNames.addAll(getFunctionsWorkerDNSNames());
+            }
             if (globalSpec.getDnsName() != null
                     && selfSigned.getIncludeDns() != null
                     && selfSigned.getIncludeDns()) {

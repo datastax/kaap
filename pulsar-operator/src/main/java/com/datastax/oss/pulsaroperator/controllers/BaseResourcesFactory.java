@@ -433,13 +433,7 @@ public abstract class BaseResourcesFactory<T> {
             return;
         }
         Objects.requireNonNull("secretName cannot be null", secretName);
-        volumeMounts.add(
-                new VolumeMountBuilder()
-                        .withName("certs")
-                        .withReadOnly(true)
-                        .withMountPath("/pulsar/certs")
-                        .build()
-        );
+        volumeMounts.add(createTlsCertsVolumeMount());
         volumes.add(
                 new VolumeBuilder()
                         .withName("certs")
@@ -447,6 +441,14 @@ public abstract class BaseResourcesFactory<T> {
                         .endSecret()
                         .build()
         );
+    }
+
+    protected VolumeMount createTlsCertsVolumeMount() {
+        return new VolumeMountBuilder()
+                .withName("certs")
+                .withReadOnly(true)
+                .withMountPath("/pulsar/certs")
+                .build();
     }
 
     protected boolean createStorageClassIfNeeded(VolumeConfig volumeConfig) {

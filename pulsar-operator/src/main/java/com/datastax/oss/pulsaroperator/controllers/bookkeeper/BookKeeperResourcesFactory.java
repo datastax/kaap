@@ -183,7 +183,10 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
         List<Container> initContainers = new ArrayList<>();
         String metaformatArg = "";
-        if (isTlsEnabledOnZooKeeper()) {
+        final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
+        List<VolumeMount> initContainerVolumeMounts = new ArrayList<>();
+        if (tlsEnabledOnZooKeeper) {
+            initContainerVolumeMounts.add(createTlsCertsVolumeMount());
             metaformatArg += generateCertConverterScript() + " && ";
         }
         metaformatArg += "bin/apply-config-from-env.py conf/bookkeeper.conf "
@@ -200,6 +203,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                         .withName(resourceName)
                         .endConfigMapRef()
                         .build())
+                .withVolumeMounts(initContainerVolumeMounts)
                 .build()
         );
 
@@ -211,7 +215,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                     "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key"
                             + " -nocrypt && ";
         }
-        if (isTlsEnabledOnZooKeeper()) {
+        if (tlsEnabledOnZooKeeper) {
             mainArg += generateCertConverterScript() + " && ";
         }
 
@@ -221,7 +225,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        if (tlsEnabledOnBookKeeper) {
+        if (tlsEnabledOnBookKeeper || tlsEnabledOnZooKeeper) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBookkeeper());
         }
 

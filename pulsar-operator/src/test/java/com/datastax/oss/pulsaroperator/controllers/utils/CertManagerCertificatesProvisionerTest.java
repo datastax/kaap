@@ -71,7 +71,110 @@ public class CertManagerCertificatesProvisionerTest {
                           name: pul-server-tls
                           namespace: ns
                         spec:
+                          issuerRef:
+                            name: pul-ca-issuer
+                          secretName: pulsar-tls
+                          """);
+
+        Assert.assertEquals(
+                mockKubernetesClient.getCreatedResource(Issuer.class, "pul-self-signed-issuer").getResourceYaml(),
+                """
+                        ---
+                        apiVersion: cert-manager.io/v1
+                        kind: Issuer
+                        metadata:
+                          name: pul-self-signed-issuer
+                          namespace: ns
+                        spec:
+                          selfSigned: {}
+                        """);
+
+        Assert.assertEquals(
+                mockKubernetesClient.getCreatedResource(Issuer.class, "pul-ca-issuer").getResourceYaml(),
+                """
+                        ---
+                        apiVersion: cert-manager.io/v1
+                        kind: Issuer
+                        metadata:
+                          name: pul-ca-issuer
+                          namespace: ns
+                        spec:
+                          ca:
+                            secretName: pul-ss-ca
+                        """);
+
+    }
+
+    @Test
+    public void testAllTls() throws Exception {
+        final MockKubernetesClient mockKubernetesClient = generateCertificates(
+                """
+                        global:
+                            name: pul
+                            tls:
+                                enabled: true
+                                broker:
+                                    enabled: true
+                                bookkeeper:
+                                    enabled: true
+                                zookeeper:
+                                    enabled: true
+                                proxy:
+                                    enabled: true
+                                functionsWorker:
+                                    enabled: true
+                                certProvisioner:
+                                    selfSigned:
+                                        enabled: true
+                        """
+        );
+
+        Assert.assertEquals(
+                mockKubernetesClient.getCreatedResource(Certificate.class, "pul-ca-certificate").getResourceYaml(),
+                """
+                        ---
+                        apiVersion: cert-manager.io/v1
+                        kind: Certificate
+                        metadata:
+                          name: pul-ca-certificate
+                          namespace: ns
+                        spec:
+                          commonName: ns.svc.cluster.local
+                          isCA: true
+                          issuerRef:
+                            name: pul-self-signed-issuer
+                          secretName: pul-ss-ca
+                          usages:
+                          - server auth
+                          - client auth
+                        """);
+
+        Assert.assertEquals(
+                mockKubernetesClient.getCreatedResource(Certificate.class, "pul-server-tls").getResourceYaml(),
+                """
+                        ---
+                        apiVersion: cert-manager.io/v1
+                        kind: Certificate
+                        metadata:
+                          name: pul-server-tls
+                          namespace: ns
+                        spec:
                           dnsNames:
+                          - '*.pul-bookkeeper.ns.svc.cluster.local'
+                          - '*.pul-bookkeeper.ns'
+                          - '*.pul-bookkeeper'
+                          - pul-bookkeeper.ns.svc.cluster.local
+                          - pul-bookkeeper.ns
+                          - pul-bookkeeper
+                          - '*.pul-zookeeper.ns.svc.cluster.local'
+                          - '*.pul-zookeeper.ns'
+                          - '*.pul-zookeeper'
+                          - pul-zookeeper.ns.svc.cluster.local
+                          - pul-zookeeper.ns
+                          - pul-zookeeper
+                          - pul-zookeeper-ca.ns.svc.cluster.local
+                          - pul-zookeeper-ca.ns
+                          - pul-zookeeper-ca
                           - '*.pul-broker.ns.svc.cluster.local'
                           - '*.pul-broker.ns'
                           - '*.pul-broker'

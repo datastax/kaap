@@ -242,7 +242,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                         .build()
         );
         if (enableTls) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, global.getTls().getZookeeper().getSecretName());
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
         }
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";

@@ -53,8 +53,14 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     public static final String CONTAINER_NAME = "pulsaroperator-local-k3s";
 
     @Test
-    public void testMain() throws Exception {
+    public void main() throws Exception {
         main(null);
+    }
+
+    @Test
+    public void updateImage() throws Exception {
+        new GenerateImageDigest()
+                .main(null);
     }
 
     public static void main(String[] args) throws Exception {
@@ -163,9 +169,13 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     }
 
     public static class GenerateImageDigest {
+
+        public static final String GENERATE_IMAGE_DIGEST_TARGET = System.getenv("GENERATE_IMAGE_DIGEST_TARGET");
+
         @SneakyThrows
+        @Test
         public static void main(String[] args) {
-            final Path target = Path.of(args[0]);
+            final Path target = Path.of(GENERATE_IMAGE_DIGEST_TARGET);
             long start = System.currentTimeMillis();
             final DockerClient dockerClient = DockerClientFactory.lazyClient();
             final InputStream saved = dockerClient.saveImageCmd(OPERATOR_IMAGE).exec();

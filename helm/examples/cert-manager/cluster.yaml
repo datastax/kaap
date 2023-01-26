@@ -27,6 +27,9 @@ spec:
     # dnsName: add here your public dns name
     tls:
       enabled: true
+      zookeeper:
+        enabled: true
+        secretName: zk-tls
       bookkeeper:
           enabled: true
           secretName: bk-tls
@@ -48,6 +51,8 @@ spec:
         selfSigned:
           enabled: true
           perComponent: true
+          zookeeper:
+            generate: true
           broker:
             generate: true
           bookkeeper:

@@ -443,6 +443,13 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected String getPodNameByComponent(String component) {
-        return client.pods().withLabel("component", component).list().getItems().get(0).getMetadata().getName();
+        return client.pods()
+                .inNamespace(namespace)
+                .withLabel("component", component)
+                .list()
+                .getItems()
+                .get(0)
+                .getMetadata()
+                .getName();
     }
 }

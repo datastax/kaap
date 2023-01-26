@@ -305,9 +305,9 @@ public class BookKeeperAutoscaler implements Runnable {
         */
         JsonNode node = MAPPER.readTree(bkStateOutput);
         long total = node.get("totalSpace").asLong(0);
-        long used = node.get("freeSpace").asLong(Long.MAX_VALUE);
+        long free = node.get("freeSpace").asLong(Long.MAX_VALUE);
         diskInfo.setMaxBytes(total);
-        diskInfo.setUsedBytes(used);
+        diskInfo.setUsedBytes(total - free);
     }
 
     private boolean isBkReadyToScale(String clusterName, String bkBaseName, String bkName,

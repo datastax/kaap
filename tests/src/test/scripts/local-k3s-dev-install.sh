@@ -18,4 +18,10 @@
 
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 export KUBECONFIG=/tmp/pulsaroperator-local-k3s-kube-config
-kubectl apply -f $this_dir/../../../../helm/examples/local-k3s.yaml
+helm install -n ns dev $this_dir/../../../../helm/pulsar-stack \
+  --set pulsar-operator.operator.enabled=false \
+  --set pulsar-operator.rbac.create=false \
+  --set pulsar-operator.serviceAccount.create=false \
+  --set cert-manager.enabled=true \
+  --set cert-manager.installCRDs=true
+# kubectl apply -f $this_dir/../../../../helm/examples/local-k3s.yaml

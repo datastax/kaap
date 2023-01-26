@@ -774,50 +774,47 @@ public abstract class BaseResourcesFactory<T> {
                 certconverter &&
                 """;
         if (isTlsEnabledOnZooKeeper()) {
-            final Map<String, String> pulsarOpts = new HashMap<>();
-            pulsarOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
-            pulsarOpts.put("zookeeper.client.secure", "true");
-            pulsarOpts.put("zookeeper.ssl.keyStore.location", "${keyStoreFile}");
-            pulsarOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
-            pulsarOpts.put("zookeeper.ssl.trustStore.location", "${keyStoreFile}");
-            pulsarOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
-            pulsarOpts.put("zookeeper.ssl.hostnameVerification", "true");
-            pulsarOpts.put("zookeeper.sslQuorum", "true");
-            pulsarOpts.put("zookeeper.serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
-            pulsarOpts.put("zookeeper.ssl.quorum.keyStore.location", "${keyStoreFile}");
-            pulsarOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
-            pulsarOpts.put("zookeeper.ssl.quorum.trustStore.location", "${keyStoreFile}");
-            pulsarOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
-            pulsarOpts.put("zookeeper.ssl.quorum.hostnameVerification", "true");
-            final String pulsarOptsStr = pulsarOpts.entrySet()
+            final String keyStoreLocation = "${keyStoreFile}";
+            final String trustStoreLocation = "${trustStoreFile}";
+
+            final Map<String, String> sslClientOpts = new HashMap<>();
+            sslClientOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
+            sslClientOpts.put("zookeeper.client.secure", "true");
+            sslClientOpts.put("zookeeper.ssl.keyStore.location", keyStoreLocation);
+            sslClientOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            sslClientOpts.put("zookeeper.ssl.trustStore.location", trustStoreLocation);
+            sslClientOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            sslClientOpts.put("zookeeper.ssl.hostnameVerification", "true");
+
+            final Map<String, String> sslClientAndQuorumOpts = new HashMap<>(sslClientOpts);
+            sslClientAndQuorumOpts.put("zookeeper.sslQuorum", "true");
+            sslClientAndQuorumOpts.put("zookeeper.serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
+            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.location", keyStoreLocation);
+            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.location", trustStoreLocation);
+            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.hostnameVerification", "true");
+            final String pulsarOptsStr = sslClientAndQuorumOpts.entrySet()
                     .stream()
                     .map(e -> "-D%s=%s".formatted(e.getKey(), e.getValue()))
                     .collect(Collectors.joining(" "));
 
-
-            final Map<String, String> bkOpts = new HashMap<>();
-            bkOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
-            bkOpts.put("zookeeper.client.secure", "true");
-            bkOpts.put("zookeeper.ssl.keyStore.location", "${keyStoreFile}");
-            bkOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
-            bkOpts.put("zookeeper.ssl.trustStore.location", "${keyStoreFile}");
-            bkOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
-            bkOpts.put("zookeeper.ssl.hostnameVerification", "true");
-
-            final String bkOptsStr = bkOpts.entrySet()
+            final String bkOptsStr = sslClientOpts.entrySet()
                     .stream()
                     .map(e -> "-D%s=%s".formatted(e.getKey(), e.getValue()))
                     .collect(Collectors.joining(" "));
             script += """
-                    passwordArg="passwordPath=/pulsar/keystoreSecret.txt" &&
+                    passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && (
                     cat >> conf/pulsar_env.sh << EOF
-                    
-                    PULSAR_EXTRA_OPTS="${PULSAR_EXTRA_OPTS} %s"
-                    EOF &&
-                    cat >> conf/bkenv.sh << EOF
-
-                    BOOKIE_EXTRA_OPTS="${BOOKIE_EXTRA_OPTS} %s"
+                                        
+                    PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} %s"
                     EOF
+                    ) && (
+                    cat >> conf/bkenv.sh << EOF
+                                        
+                    BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} %s"
+                    EOF
+                    ) &&
                     """.formatted(pulsarOptsStr, bkOptsStr);
         }
         script += "echo ''";

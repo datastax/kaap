@@ -132,7 +132,9 @@ public class TlsTest extends BaseHelmTest {
                                                 .enabled(true)
                                                 .build())
                                         .build())
-                                
+                                .zookeeper(TlsConfig.TlsEntryConfig.builder()
+                                        .enabled(true)
+                                        .build())
                                 .autorecovery(TlsConfig.TlsEntryConfig.builder()
                                         .enabled(true)
                                         .build())

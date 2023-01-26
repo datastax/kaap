@@ -182,14 +182,19 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
 
         List<Container> initContainers = new ArrayList<>();
+        String metaformatArg = "";
+        if (isTlsEnabledOnZooKeeper()) {
+            metaformatArg += generateCertConverterScript() + " && ";
+        }
+        metaformatArg += "bin/apply-config-from-env.py conf/bookkeeper.conf "
+                + "&& bin/bookkeeper shell metaformat --nonInteractive || true;";
+
         initContainers.add(new ContainerBuilder()
                 .withName("pulsar-bookkeeper-metaformat")
                 .withImage(spec.getImage())
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withCommand("sh", "-c")
-                .withArgs("""
-                        bin/apply-config-from-env.py conf/bookkeeper.conf && bin/bookkeeper shell metaformat --nonInteractive || true;
-                        """)
+                .withArgs(metaformatArg)
                 .withEnvFrom(new EnvFromSourceBuilder()
                         .withNewConfigMapRef()
                         .withName(resourceName)

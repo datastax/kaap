@@ -3,7 +3,6 @@
 Install Pulsar Stack and a cluster:
 ```
 helm install pstack -n pstack --create-namespace helm/pulsar-stack --values helm/examples/keycloak/values.yaml 
-kubectl apply -f helm/examples/keycloak/cluster.yaml -n pstack
 ```
 
 Get the client secret from the Keycloak UI:

@@ -16,35 +16,11 @@
 #
 
 pulsar-operator:
-  ## Whether to create the Operator RBAC.
-  rbac:
-    create: true
-
-  ## Service account name and whether to create it.
-  serviceAccount:
-    create: true
-    name: pulsar-operator
-
-  ## Whether to create the CRD.
-  crd:
-    create: true
-
-  operator:
-    image: datastax/lunastreaming-operator:latest
-    imagePullPolicy: IfNotPresent
-    livenessProbe:
-      failureThreshold: 3
-      periodSeconds: 30
-      timeoutSeconds: 10
-      successThreshold: 1
-      initialDelaySeconds: 0
-
-    readinessProbe:
-      failureThreshold: 3
-      timeoutSeconds: 10
-      periodSeconds: 30
-      successThreshold: 1
-      initialDelaySeconds: 0
+  enabled: true
+# create a new pulsar cluster coupled with this Helm release
+#  cluster:
+#    create: true
+#    spec: {}
 
 
 # Deploy Keycloak

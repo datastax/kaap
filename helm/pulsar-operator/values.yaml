@@ -48,7 +48,11 @@ operator:
     successThreshold: 1
     initialDelaySeconds: 0
 
-# Deploy Grafana dashboard for Pulsar.
-# These dashboards will be discovered by the kube-prometheus-stack
-# if it is running the same namespace as the stack
-
+cluster:
+  create: false
+  spec:
+    global:
+      name: pulsar
+      image: datastax/lunastreaming-all:2.10_3.1
+      storage:
+        existingStorageClassName: default

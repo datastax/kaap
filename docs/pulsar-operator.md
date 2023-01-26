@@ -16,7 +16,6 @@ helm install -n stack --create-namespace pulsar-operator pulsar-operator-0.0.1.t
 Install a Pulsar cluster Custom Resource
 ```
 kubectl -n stack apply -f helm/examples/cluster.yaml
-
 ```
 
 Wait for the cluster to be up and running

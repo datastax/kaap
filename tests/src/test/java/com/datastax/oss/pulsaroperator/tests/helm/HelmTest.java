@@ -16,10 +16,12 @@
 package com.datastax.oss.pulsaroperator.tests.helm;
 
 import com.datastax.oss.pulsaroperator.LeaderElectionConfig;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
-import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.api.model.Pod;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
@@ -32,12 +34,16 @@ public class HelmTest extends BaseHelmTest {
     @Test
     public void testHelm() throws Exception {
         try {
-            helmInstall(Chart.OPERATOR, """
-                    operator:
-                        image: %s
-                        imagePullPolicy: Never
-                        replicas: 2
-                    """.formatted(OPERATOR_IMAGE));
+            final Map<String, Map<String, Object>> specs = new HashMap<>(
+                    Map.of("operator", new HashMap<>(Map.of("image", OPERATOR_IMAGE,
+                                    "imagePullPolicy", "Never",
+                                    "replicas", 1
+                            )),
+                            "cluster", Map.of("create", "true",
+                                    "spec", getDefaultPulsarClusterSpecs()))
+            );
+            final String yaml = SerializationUtil.writeAsYaml(specs);
+            helmInstall(Chart.OPERATOR, yaml);
             awaitOperatorRunning();
             final List<Pod> pods = getOperatorPods();
             Assert.assertEquals(pods.size(), 2);
@@ -48,15 +54,10 @@ public class HelmTest extends BaseHelmTest {
                         .get());
             });
 
-            final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-            applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
 
-            helmUpgrade("""
-                    operator:
-                        imagePullPolicy: Never
-                        replicas: 3
-                    """);
+            specs.get("operator").put("replicas", 2);
+            helmUpgrade(SerializationUtil.writeAsYaml(specs));
 
             Awaitility.await().untilAsserted(() -> {
                 Assert.assertTrue(getOperatorPods().size() >= 3);

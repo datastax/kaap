@@ -1,13 +1,8 @@
 # Grafana integration
 
-Install Pulsar Stack with prometheus stack enabled and Pulsar grafana dashboards.
+Install a Pulsar cluster with prometheus stack enabled and Pulsar grafana dashboards.
 ```
 helm install pstack -n pstack --create-namespace helm/pulsar-stack --values helm/examples/grafana/values.yaml 
-```
-
-Create a simple cluster:
-```
-kubectl apply -f helm/examples/grafana/cluster.yaml -n pstack
 ```
 
 Login to grafana UI:

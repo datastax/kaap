@@ -222,8 +222,7 @@ public class BookKeeperControllerTest {
                           value: 4
                       initContainers:
                       - args:
-                        - |
-                          bin/apply-config-from-env.py conf/bookkeeper.conf && bin/bookkeeper shell metaformat --nonInteractive || true;
+                        - bin/apply-config-from-env.py conf/bookkeeper.conf && bin/bookkeeper shell metaformat --nonInteractive || true;
                         command:
                         - sh
                         - -c
@@ -391,6 +390,151 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(stsCommand, "bin/apply-config-from-env.py conf/bookkeeper.conf && openssl pkcs8 -topk8 "
                         + "-inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && "
                         + "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar bookie");
+    }
+
+
+    @Test
+    public void testTlsEnabledOnZookeeper() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        zookeeper:
+                            enabled: true
+                        bookkeeper:
+                            enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(client
+                .getCreatedResource(StatefulSet.class)
+                .getResource()
+                .getSpec()
+                .getTemplate()
+                .getSpec()
+                .getContainers()
+                .get(0)
+                .getArgs()
+                .get(0), """
+                bin/apply-config-from-env.py conf/bookkeeper.conf && openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && (
+                cat >> conf/pulsar_env.sh << EOF
+                                
+                PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
+                EOF
+                ) && (
+                cat >> conf/bkenv.sh << EOF
+                                
+                BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
+                EOF
+                ) &&
+                echo '' && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar bookie""");
+
+        Assert.assertEquals(client
+                .getCreatedResource(StatefulSet.class)
+                .getResource()
+                .getSpec()
+                .getTemplate()
+                .getSpec()
+                .getInitContainers()
+                .get(0)
+                .getArgs()
+                .get(0), """
+                certconverter() {
+                    local name=pulsar
+                    local crtFile=/pulsar/certs/tls.crt
+                    local keyFile=/pulsar/certs/tls.key
+                    caFile=/pulsar/certs/ca.crt
+                    p12File=/pulsar/tls.p12
+                    keyStoreFile=/pulsar/tls.keystore.jks
+                    trustStoreFile=/pulsar/tls.truststore.jks
+                                
+                    head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
+                    export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                    export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
+                                
+                    openssl pkcs12 \\
+                        -export \\
+                        -in ${crtFile} \\
+                        -inkey ${keyFile} \\
+                        -out ${p12File} \\
+                        -name ${name} \\
+                        -passout "file:/pulsar/keystoreSecret.txt"
+                                
+                    keytool -importkeystore \\
+                        -srckeystore ${p12File} \\
+                        -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
+                        -alias ${name} \\
+                        -destkeystore ${keyStoreFile} \\
+                        -deststorepass:file "/pulsar/keystoreSecret.txt"
+                                
+                    keytool -import \\
+                        -file ${caFile} \\
+                        -storetype JKS \\
+                        -alias ${name} \\
+                        -keystore ${trustStoreFile} \\
+                        -storepass:file "/pulsar/keystoreSecret.txt" \\
+                        -trustcacerts -noprompt
+                } &&
+                certconverter &&
+                passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && (
+                cat >> conf/pulsar_env.sh << EOF
+                                
+                PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
+                EOF
+                ) && (
+                cat >> conf/bkenv.sh << EOF
+                                
+                BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
+                EOF
+                ) &&
+                echo '' && bin/apply-config-from-env.py conf/bookkeeper.conf && bin/bookkeeper shell metaformat --nonInteractive || true;""");
+
     }
 
 

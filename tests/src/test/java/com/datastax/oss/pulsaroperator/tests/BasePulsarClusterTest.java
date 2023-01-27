@@ -138,9 +138,9 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .resources(RESOURCE_REQUIREMENTS)
                 .config(
                         Map.of(
-                                "managedLedgerDefaultAckQuorum", 1,
-                                "managedLedgerDefaultEnsembleSize", 1,
-                                "managedLedgerDefaultWriteQuorum", 1
+                                "managedLedgerDefaultAckQuorum", "1",
+                                "managedLedgerDefaultEnsembleSize", "1",
+                                "managedLedgerDefaultWriteQuorum", "1"
                         )
                 )
                 .probe(probe)

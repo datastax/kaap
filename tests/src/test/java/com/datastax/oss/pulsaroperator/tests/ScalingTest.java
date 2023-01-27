@@ -49,9 +49,9 @@ public class ScalingTest extends BasePulsarClusterTest {
                     BaseComponentSpec.mergeMaps(
                             specs.getBroker().getConfig(),
                             Map.of(
-                                    "managedLedgerDefaultAckQuorum", "2",
-                                    "managedLedgerDefaultEnsembleSize", "2",
-                                    "managedLedgerDefaultWriteQuorum", "2"
+                                    "managedLedgerDefaultAckQuorum", 2,
+                                    "managedLedgerDefaultEnsembleSize", 2,
+                                    "managedLedgerDefaultWriteQuorum", 2
                             )
                     )
             );

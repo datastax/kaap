@@ -175,9 +175,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
             data.put("secureClientPort", "2281");
             data.put("sslQuorum", "true");
         }
-        if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
-        }
+        appendConfigData(data, spec.getConfig());
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()

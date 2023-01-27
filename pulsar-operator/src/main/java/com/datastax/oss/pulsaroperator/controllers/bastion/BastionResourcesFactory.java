@@ -80,9 +80,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
             data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
         }
 
-        if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
-        }
+        appendConfigData(data, spec.getConfig());
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()

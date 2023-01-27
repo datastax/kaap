@@ -22,6 +22,8 @@ import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -100,7 +102,9 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     }
 
     @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
-    protected Map<String, String> config;
+    // workaround to generate CRD spec that accepts any type as key
+    @SchemaFrom(type = JsonNode.class)
+    protected Map<String, Object> config;
     @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")
     private String podManagementPolicy;
     @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")

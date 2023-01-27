@@ -193,9 +193,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         data.put("exposeConsumerLevelMetricsInPrometheus", "false");
         data.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
 
-        if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
-        }
+        appendConfigData(data, spec.getConfig());
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()

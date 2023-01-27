@@ -22,6 +22,8 @@ import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -116,7 +118,9 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     }
 
     @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
-    protected Map<String, String> config;
+    // workaround to generate CRD spec that accepts any type as key
+    @SchemaFrom(type = JsonNode.class)
+    protected Map<String, Object> config;
     @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
     @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)

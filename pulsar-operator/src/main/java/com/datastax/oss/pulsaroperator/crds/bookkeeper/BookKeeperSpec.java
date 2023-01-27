@@ -22,6 +22,8 @@ import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -114,8 +116,10 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     }
 
 
-    @JsonPropertyDescription(CRDConstants.DOC_IMAGE)
-    protected Map<String, String> config;
+    @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
+    // workaround to generate CRD spec that accepts any type as key
+    @SchemaFrom(type = JsonNode.class)
+    protected Map<String, Object> config;
     @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")

@@ -37,7 +37,7 @@ public class HelmTest extends BaseHelmTest {
             final Map<String, Map<String, Object>> specs = new HashMap<>(
                     Map.of("operator", new HashMap<>(Map.of("image", OPERATOR_IMAGE,
                                     "imagePullPolicy", "Never",
-                                    "replicas", 1
+                                    "replicas", 2
                             )),
                             "cluster", Map.of("create", "true",
                                     "spec", getDefaultPulsarClusterSpecs()))
@@ -56,7 +56,7 @@ public class HelmTest extends BaseHelmTest {
 
             awaitInstalled();
 
-            specs.get("operator").put("replicas", 2);
+            specs.get("operator").put("replicas", 3);
             helmUpgrade(SerializationUtil.writeAsYaml(specs));
 
             Awaitility.await().untilAsserted(() -> {

@@ -164,7 +164,7 @@ Resource Types:
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>JSON</td>
         <td>
           Configuration.<br/>
         </td>
@@ -660,7 +660,7 @@ Resources requirements.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>JSON</td>
         <td>
           Configuration.<br/>
         </td>
@@ -1177,9 +1177,9 @@ Resources requirements.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>JSON</td>
         <td>
-          Override Pulsar image.<br/>
+          Configuration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5371,7 +5371,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>JSON</td>
         <td>
           Configuration.<br/>
         </td>
@@ -15129,7 +15129,7 @@ TLS configurations related to the ZooKeeper component.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>JSON</td>
         <td>
           Configuration.<br/>
         </td>
@@ -19131,7 +19131,7 @@ Resources requirements.
         <td>false</td>
       </tr><tr>
         <td><b>config</b></td>
-        <td>map[string]string</td>
+        <td>JSON</td>
         <td>
           Configuration.<br/>
         </td>

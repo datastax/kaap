@@ -65,6 +65,9 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -165,11 +168,6 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
-                    type: object
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.

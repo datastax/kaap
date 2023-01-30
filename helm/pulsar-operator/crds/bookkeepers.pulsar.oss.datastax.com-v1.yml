@@ -126,6 +126,9 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -218,11 +221,6 @@ spec:
                   pvcPrefix:
                     description: Prefix for each PVC created.
                     type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Override Pulsar image.
-                    type: object
                   probe:
                     description: Liveness and readiness probe values.
                     properties:

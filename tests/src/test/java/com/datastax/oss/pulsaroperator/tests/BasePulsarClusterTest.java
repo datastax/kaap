@@ -53,6 +53,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     public static final ResourceRequirements RESOURCE_REQUIREMENTS = new ResourceRequirementsBuilder()
             .withRequests(Map.of("memory", SINGLE_POD_MEM, "cpu", SINGLE_POD_CPU))
             .build();
+    public static final String DEFAULT_PULSAR_CLUSTER_NAME = "pulsar";
 
     @SneakyThrows
     protected String specsToYaml(PulsarClusterSpec spec) {
@@ -71,7 +72,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     protected PulsarClusterSpec getDefaultPulsarClusterSpecs() {
         final PulsarClusterSpec defaultSpecs = new PulsarClusterSpec();
         defaultSpecs.setGlobal(GlobalSpec.builder()
-                .name("pulsar")
+                .name(DEFAULT_PULSAR_CLUSTER_NAME)
                 .persistence(true)
                 .image(PULSAR_IMAGE)
                 .imagePullPolicy("IfNotPresent")
@@ -409,24 +410,24 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         Awaitility.await().untilAsserted(() -> {
             final List<Pod> pods = client.pods()
                     .inNamespace(namespace)
-                    .withLabel("app", "pulsar").list().getItems();
+                    .withLabel("app", DEFAULT_PULSAR_CLUSTER_NAME).list().getItems();
             log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
                     Collectors.toList()));
             Assert.assertEquals(pods.size(), 0);
             Assert.assertEquals(
                     client.policy().v1().podDisruptionBudget()
                             .inNamespace(namespace)
-                            .withLabel("app", "pulsar").list().getItems().size(), 0);
+                            .withLabel("app", DEFAULT_PULSAR_CLUSTER_NAME).list().getItems().size(), 0);
             Assert.assertEquals(client.configMaps()
                     .inNamespace(namespace)
-                    .withLabel("app", "pulsar").list().getItems().size(), 0);
+                    .withLabel("app", DEFAULT_PULSAR_CLUSTER_NAME).list().getItems().size(), 0);
             Assert.assertEquals(client.services()
                     .inNamespace(namespace)
-                    .withLabel("app", "pulsar").list().getItems().size(), 0);
+                    .withLabel("app", DEFAULT_PULSAR_CLUSTER_NAME).list().getItems().size(), 0);
             Assert.assertEquals(client.apps().statefulSets()
-                    .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
+                    .inNamespace(namespace).withLabel("app", DEFAULT_PULSAR_CLUSTER_NAME).list().getItems().size(), 0);
             Assert.assertEquals(client.batch().v1().jobs()
-                    .inNamespace(namespace).withLabel("app", "pulsar").list().getItems().size(), 0);
+                    .inNamespace(namespace).withLabel("app", DEFAULT_PULSAR_CLUSTER_NAME).list().getItems().size(), 0);
         });
     }
 

@@ -16,9 +16,71 @@
 #
 
 pulsar-operator:
-  operator:
-    image: datastax/pulsar-operator:latest
-    imagePullPolicy: Always
+  cluster:
+    create: true
+    spec:
+      global:
+        name: pulsar
+        image: datastax/lunastreaming-all:2.10_2.4
+        auth:
+          enabled: true
+        storage:
+          existingStorageClassName: default
+        zookeeper:
+          replicas: 1
+          dataVolume:
+            name: data
+            size: 100M
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+        bookkeeper:
+          replicas: 1
+          volumes:
+            journal:
+              size: 1Gi
+            ledgers:
+              size: 1Gi
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+        broker:
+          replicas: 1
+          config:
+            managedLedgerDefaultAckQuorum: "1"
+            managedLedgerDefaultEnsembleSize: "1"
+            managedLedgerDefaultWriteQuorum: "1"
+            authenticationProviders: com.datastax.oss.pulsar.auth.AuthenticationProviderOpenID
+            PULSAR_PREFIX_openIDAllowedTokenIssuers: "http://pstack-keycloak/realms/pulsar"
+            PULSAR_PREFIX_openIDRequireHttps: "false"
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+        proxy:
+          replicas: 1
+          config:
+            authenticationProviders: com.datastax.oss.pulsar.auth.AuthenticationProviderOpenID
+            PULSAR_PREFIX_openIDAllowedTokenIssuers: "http://pstack-keycloak/realms/pulsar"
+            PULSAR_PREFIX_openIDRequireHttps: "false"
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+        autorecovery:
+          replicas: 1
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+        bastion:
+          replicas: 1
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
 
 keycloak:
   enabled: true

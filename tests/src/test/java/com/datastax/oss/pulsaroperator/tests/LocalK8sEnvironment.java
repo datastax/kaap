@@ -24,10 +24,20 @@ import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
+import io.fabric8.kubernetes.api.model.Config;
+import io.fabric8.kubernetes.api.model.NamedAuthInfo;
+import io.fabric8.kubernetes.api.model.NamedAuthInfoBuilder;
+import io.fabric8.kubernetes.api.model.NamedCluster;
+import io.fabric8.kubernetes.api.model.NamedClusterBuilder;
+import io.fabric8.kubernetes.api.model.NamedContext;
+import io.fabric8.kubernetes.api.model.NamedContextBuilder;
+import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,25 +98,73 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
             log.info("To see k3s logs: docker logs {}", container.getContainerName());
             log.info("You can now access the K8s cluster, namespace 'ns'.");
             final String tmpKubeConfig = getTmpKubeConfig(container);
-            log.info(
-                    "Now paste this in a new terminal:\nexport KUBECONFIG={} && kubectl config set-context --current "
-                            + "--namespace=ns "
-                            + "&& mvn quarkus:dev -pl pulsar-operator", tmpKubeConfig);
-
-            log.info(
-                    "To install a sample cluster open another terminal and paste:\nexport KUBECONFIG={} && kubectl "
-                            + "config set-context --current --namespace=ns "
-                            + "&& kubectl apply -f helm/examples/local-k3s.yaml", tmpKubeConfig);
-            log.info("You can even run the integration test using this cluster:\n"
-                    + "export KUBECONFIG={} && mvn test -pl tests -Dpulsaroperator.tests.env.existing "
-                    + "-Dpulsaroperator.tests.existingenv"
-                    + ".kubeconfig.context=default -Dpulsaroperator.tests.existingenv.storageclass=local-path "
-                    + "-Dtest='PulsarClusterTest'\n", tmpKubeConfig);
-
-
+            final Config containerKubeConfig = KubeConfigUtils.parseConfigFromString(container.getKubeconfig());
+            addClusterToUserKubeConfig(containerKubeConfig);
+            log.info("Checkout 'local-k3s-*' scripts at tests/src/test/scripts.");
             restoreImages(container);
             Thread.sleep(Integer.MAX_VALUE);
         }
+    }
+
+    @SneakyThrows
+    private static void addClusterToUserKubeConfig(Config containerKubeConfig) {
+        final File defaultKubeConfigPath = Paths.get(System.getProperty("user.home"), ".kube", "config")
+                .toFile();
+        final Config currentKubeConfig = KubeConfigUtils.parseConfig(defaultKubeConfigPath);
+
+        final String clusterName = CONTAINER_NAME;
+        boolean foundCluster = false;
+        for (NamedCluster cluster : currentKubeConfig.getClusters()) {
+            if (cluster.getName().equals(clusterName)) {
+                cluster.setCluster(containerKubeConfig.getClusters().get(0).getCluster());
+                foundCluster = true;
+                break;
+            }
+        }
+        if (!foundCluster) {
+            currentKubeConfig.getClusters().add(new NamedClusterBuilder()
+                    .withName(clusterName)
+                    .withCluster(containerKubeConfig.getClusters().get(0).getCluster())
+                    .build());
+
+        }
+        boolean foundContext = false;
+        for (NamedContext context : currentKubeConfig.getContexts()) {
+            if (context.getName().equals(clusterName)) {
+                foundContext = true;
+            }
+        }
+        if (!foundContext) {
+            currentKubeConfig.getContexts().add(new NamedContextBuilder()
+                    .withName(clusterName)
+                    .withNewContext()
+                    .withCluster(clusterName)
+                    .withNamespace("ns")
+                    .withUser(clusterName)
+                    .endContext()
+                    .build()
+            );
+        }
+        boolean foundUser = false;
+        for (NamedAuthInfo user : currentKubeConfig.getUsers()) {
+            if (user.equals(clusterName)) {
+                foundUser = true;
+                user.setUser(containerKubeConfig.getUsers().get(0).getUser());
+                break;
+            }
+        }
+        if (!foundUser) {
+            currentKubeConfig.getUsers().add(new NamedAuthInfoBuilder()
+                    .withName(clusterName)
+                    .withUser(containerKubeConfig.getUsers().get(0).getUser())
+                    .build());
+        }
+        currentKubeConfig.setCurrentContext(clusterName);
+        KubeConfigUtils.persistKubeConfigIntoFile(currentKubeConfig, defaultKubeConfigPath.getAbsolutePath());
+        log.info("Persisted new cluster {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());
+        log.info("Persisted new context {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());
+        log.info("Persisted new user {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());
+        log.info("Persisted current context {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());
     }
 
     private static void cleanupOldRuns() {

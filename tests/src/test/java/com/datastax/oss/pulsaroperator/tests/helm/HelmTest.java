@@ -66,7 +66,7 @@ public class HelmTest extends BaseHelmTest {
 
             client.resources(PulsarCluster.class)
                     .inNamespace(namespace)
-                    .withName("pulsar-cluster")
+                    .withName(DEFAULT_PULSAR_CLUSTER_NAME)
                     .delete();
             awaitUninstalled();
         } catch (Throwable t) {

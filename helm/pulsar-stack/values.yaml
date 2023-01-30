@@ -22,6 +22,8 @@ pulsar-operator:
 #    create: true
 #    spec: {}
 
+pulsar-admin-console:
+  enabled: false
 
 # Deploy Keycloak
 keycloak:

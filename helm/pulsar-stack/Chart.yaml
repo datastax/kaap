@@ -40,3 +40,7 @@ dependencies:
     version: v6.13.x
     repository: https://charts.bitnami.com/bitnami
     condition: external-dns.enabled
+  - name: pulsar-admin-console
+    version: 0.0.x
+    repository: https://datastax.github.io/charts
+    condition: pulsar-admin-console.enabled

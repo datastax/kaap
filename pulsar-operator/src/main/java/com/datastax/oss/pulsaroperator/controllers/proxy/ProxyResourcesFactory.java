@@ -159,7 +159,10 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                     .withName("wss")
                     .withPort(DEFAULT_WSS_PORT)
                     .build());
-
+            ports.add(new ServicePortBuilder()
+                    .withName("wss")
+                    .withPort(8001)
+                    .build());
         }
         if (!tlsEnabledOnProxy || serviceSpec.getEnablePlainTextWithTLS()) {
             ports.add(new ServicePortBuilder()
@@ -173,6 +176,10 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             ports.add(new ServicePortBuilder()
                     .withName("ws")
                     .withPort(DEFAULT_WS_PORT)
+                    .build());
+            ports.add(new ServicePortBuilder()
+                    .withName("ws")
+                    .withPort(8000)
                     .build());
         }
         if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getExposePorts()) {

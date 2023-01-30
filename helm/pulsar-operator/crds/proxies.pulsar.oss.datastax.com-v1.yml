@@ -21,6 +21,9 @@ spec:
             properties:
               proxy:
                 properties:
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   service:
                     description: Service configuration.
                     properties:
@@ -160,11 +163,6 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
-                    type: object
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.

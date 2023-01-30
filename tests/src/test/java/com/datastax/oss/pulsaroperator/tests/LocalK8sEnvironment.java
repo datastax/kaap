@@ -24,6 +24,7 @@ import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +37,8 @@ import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testng.annotations.Test;
 
@@ -44,11 +47,10 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
 
     // not needed if you use quarkus dev mode
     private static final boolean DEPLOY_OPERATOR_IMAGE = true;
-    // not needed if you use quarkus dev mode
-    private static final boolean HELM_MODE = false;
 
-    private static final List<String> PROMETHEUS_OPERATOR_IMAGES = List.of("quay.io/prometheus/prometheus:v2.39.1",
-            "quay.io/kiwigrid/k8s-sidecar:1.19.2");
+    // not needed if you use quarkus dev mode
+    private static final boolean DEPLOY_PULSAR_IMAGE = false;
+
     public static final String NETWORK = "pulsaroperator-local-k3s-network";
     public static final String CONTAINER_NAME = "pulsaroperator-local-k3s";
 
@@ -133,14 +135,11 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void createAndMountImages(K3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
-        all.add(createAndMountImageDigest(PULSAR_IMAGE, container));
+        if (DEPLOY_PULSAR_IMAGE) {
+            all.add(createAndMountImageDigest(PULSAR_IMAGE, container));
+        }
         if (DEPLOY_OPERATOR_IMAGE) {
             all.add(createAndMountImageDigest(OPERATOR_IMAGE, container));
-        }
-        if (HELM_MODE) {
-            PROMETHEUS_OPERATOR_IMAGES.forEach(i -> {
-                all.add(createAndMountImageDigest(i, container));
-            });
         }
         CompletableFuture.allOf(all.toArray(new CompletableFuture[]{}))
                 .exceptionally(throwable -> {
@@ -152,14 +151,13 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void restoreImages(K3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
-        all.add(restoreDockerImageInK3s(PULSAR_IMAGE, container));
+        if (DEPLOY_PULSAR_IMAGE) {
+            all.add(restoreDockerImageInK3s(PULSAR_IMAGE, container));
+        } else {
+            all.add(downloadDockerImageInK3s(PULSAR_IMAGE, container));
+        }
         if (DEPLOY_OPERATOR_IMAGE) {
             all.add(restoreDockerImageInK3s(OPERATOR_IMAGE, container));
-        }
-        if (HELM_MODE) {
-            PROMETHEUS_OPERATOR_IMAGES.forEach(i -> {
-                all.add(restoreDockerImageInK3s(i, container));
-            });
         }
         CompletableFuture.allOf(all.toArray(new CompletableFuture[]{}))
                 .exceptionally(throwable -> {
@@ -167,6 +165,35 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
                 })
                 .join();
     }
+
+
+    @SneakyThrows
+    protected static CompletableFuture<Void> downloadDockerImageInK3s(String imageName, GenericContainer container) {
+        return CompletableFuture.runAsync(new Runnable() {
+            @Override
+            @SneakyThrows
+            public void run() {
+                log.info("Downloading docker image {} in k3s", imageName);
+                long start = System.currentTimeMillis();
+                final Container.ExecResult execResult;
+                try {
+                    if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
+                        log.info("Image {} already exists in the k3s", imageName);
+                        return;
+                    }
+                    execResult = container.execInContainer("ctr", "images", "pull", "docker.io/" + imageName);
+                    if (execResult.getExitCode() != 0) {
+                        throw new RuntimeException("ctr images download failed: " + execResult.getStderr());
+                    }
+                    log.info("Downloaded docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+    }
+
 
     public static class GenerateImageDigest {
 

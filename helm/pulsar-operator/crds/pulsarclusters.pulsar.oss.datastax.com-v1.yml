@@ -1092,6 +1092,9 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -1184,11 +1187,6 @@ spec:
                   pvcPrefix:
                     description: Prefix for each PVC created.
                     type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Override Pulsar image.
-                    type: object
                   probe:
                     description: Liveness and readiness probe values.
                     properties:
@@ -1986,6 +1984,9 @@ spec:
                 type: object
               bastion:
                 properties:
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -2121,11 +2122,6 @@ spec:
                   imagePullPolicy:
                     description: Override image pull policy.
                     type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
-                    type: object
                 type: object
               broker:
                 properties:
@@ -2178,6 +2174,9 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -2298,11 +2297,6 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
-                    type: object
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
                     type: object
                   serviceAccountName:
                     description: Service account name for the Broker StatefulSet.
@@ -3148,6 +3142,9 @@ spec:
                             type: integer
                         type: object
                     type: object
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -3248,11 +3245,6 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
-                    type: object
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.
@@ -4051,6 +4043,9 @@ spec:
                 type: object
               proxy:
                 properties:
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   service:
                     description: Service configuration.
                     properties:
@@ -4190,11 +4185,6 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
-                    type: object
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
                     type: object
                   probe:
                     description: Liveness and readiness probe values.
@@ -4993,6 +4983,9 @@ spec:
                 type: object
               autorecovery:
                 properties:
+                  config:
+                    description: Configuration.
+                    x-kubernetes-preserve-unknown-fields: true
                   gracePeriod:
                     description: Termination grace period in seconds.
                     minimum: 0.0
@@ -5124,11 +5117,6 @@ spec:
                   imagePullPolicy:
                     description: Override image pull policy.
                     type: string
-                  config:
-                    additionalProperties:
-                      type: string
-                    description: Configuration.
-                    type: object
                 type: object
               global:
                 properties:

@@ -21,6 +21,8 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -55,7 +57,9 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
     @JsonPropertyDescription(CRDConstants.DOC_NODE_SELECTORS)
     protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
-    protected Map<String, String> config;
+    // workaround to generate CRD spec that accepts any type as key
+    @SchemaFrom(type = JsonNode.class)
+    protected Map<String, Object> config;
     @JsonPropertyDescription(CRDConstants.DOC_REPLICAS)
     protected Integer replicas;
     @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)

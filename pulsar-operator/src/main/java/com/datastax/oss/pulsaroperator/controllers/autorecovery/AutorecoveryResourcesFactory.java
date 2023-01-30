@@ -86,9 +86,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
             data.put("tlsTrustStore", "/pulsar/certs/ca.crt");
         }
 
-        if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
-        }
+        appendConfigData(data, spec.getConfig());
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()

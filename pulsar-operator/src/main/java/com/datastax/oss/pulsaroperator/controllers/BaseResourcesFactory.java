@@ -732,6 +732,17 @@ public abstract class BaseResourcesFactory<T> {
         return newData;
     }
 
+    protected void appendConfigData(Map<String, String> data, Map<String, Object> config) {
+        if (config == null) {
+            return;
+        }
+        config.forEach((k, v) -> {
+            if (v != null) {
+                data.put(k, v.toString());
+            }
+        });
+    }
+
     protected String generateCertConverterScript() {
         String script = """
                 certconverter() {

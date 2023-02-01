@@ -276,6 +276,11 @@ spec:
                                 type: string
                             type: object
                         type: object
+                      caPath:
+                        description: Path in the container filesystem where the TLS
+                          CA certificates are retrieved. It has to point to a certificate
+                          file. The default value is /etc/ssl/certs/ca-certificates.crt.
+                        type: string
                       autorecovery:
                         description: TLS configurations related to the Autorecovery
                           component.

@@ -48,6 +48,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
+            .caPath("/etc/ssl/certs/ca-certificates.crt")
             .defaultSecretName(DEFAULT_TLS_SECRET_NAME)
             .zookeeper(TlsConfig.TlsEntryConfig.builder()
                     .enabled(false)

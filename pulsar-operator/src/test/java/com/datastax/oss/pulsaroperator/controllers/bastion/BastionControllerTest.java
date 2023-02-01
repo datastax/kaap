@@ -245,7 +245,7 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("PULSAR_PREFIX_tlsEnableHostnameVerification", "true");
-        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -287,7 +287,7 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("PULSAR_PREFIX_tlsEnableHostnameVerification", "true");
-        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
 
 
         final Map<String, String> data = createdResource.getResource().getData();

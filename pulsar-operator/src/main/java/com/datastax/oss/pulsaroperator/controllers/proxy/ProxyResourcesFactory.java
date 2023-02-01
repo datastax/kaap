@@ -174,8 +174,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             data.put("tlsEnabledInProxy", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
-            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            final String fullCaPath = getFullCaPath();
+            data.put("tlsTrustCertsFilePath", fullCaPath);
+            data.put("brokerClientTrustCertsFilePath", fullCaPath);
             data.put("brokerServicePortTls", "6651");
             data.put("webServicePortTls", "8443");
             data.put("servicePortTls", "6651");
@@ -241,8 +242,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
             if (global.getTls().getProxy().getEnabledWithBroker()) {
                 data.put("brokerClientTlsEnabled", "true");
-                data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-                data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+                final String fullCaPath = getFullCaPath();
+                data.put("tlsTrustCertsFilePath", fullCaPath);
+                data.put("brokerClientTrustCertsFilePath", fullCaPath);
             }
         }
 

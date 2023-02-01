@@ -83,7 +83,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
             data.put("tlsKeyStore", "/pulsar/tls-pk8.key");
             data.put("tlsTrustStoreType", "PEM");
             data.put("tlsClientAuthentication", "true");
-            data.put("tlsTrustStore", "/pulsar/certs/ca.crt");
+            data.put("tlsTrustStore", getFullCaPath());
         }
 
         appendConfigData(data, spec.getConfig());

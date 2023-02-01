@@ -150,11 +150,12 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("tlsEnabled", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
             data.put("tlsKeyFilePath", " /pulsar/tls-pk8.key");
-            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            final String fullCaPath = getFullCaPath();
+            data.put("tlsTrustCertsFilePath", fullCaPath);
             data.put("brokerServicePortTls", "6651");
             data.put("brokerClientTlsEnabled", "true");
             data.put("webServicePortTls", "8443");
-            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("brokerClientTrustCertsFilePath", fullCaPath);
             data.put("brokerClient_tlsHostnameVerificationEnable", "true");
         }
         if (isTlsEnabledOnBookKeeper()) {
@@ -162,7 +163,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             data.put("bookkeeperTLSKeyFileType", "PEM");
             data.put("bookkeeperTLSKeyFilePath", "/pulsar/tls-pk8.key");
             data.put("bookkeeperTLSCertificateFilePath", "/pulsar/certs/tls.crt");
-            data.put("bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("bookkeeperTLSTrustCertsFilePath", getFullCaPath());
             data.put("bookkeeperTLSTrustCertTypes", "PEM");
             // See this BookKeeper PR for why this is necessary: https://github.com/apache/bookkeeper/pull/2300
             data.put("bookkeeperUseV2WireProtocol", "false");

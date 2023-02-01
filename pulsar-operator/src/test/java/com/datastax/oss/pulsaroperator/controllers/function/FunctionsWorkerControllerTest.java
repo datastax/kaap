@@ -555,8 +555,8 @@ public class FunctionsWorkerControllerTest {
         expectedData.put("tlsEnabled", "true");
         expectedData.put("workerPortTls", 6751);
         expectedData.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-        expectedData.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
         expectedData.put("useTls", "true");
         expectedData.put("tlsEnabledWithKeyStore", "true");
@@ -625,8 +625,8 @@ public class FunctionsWorkerControllerTest {
         expectedData.put("tlsEnabled", "true");
         expectedData.put("workerPortTls", 6751);
         expectedData.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-        expectedData.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
         expectedData.put("useTls", "true");
         expectedData.put("tlsEnabledWithKeyStore", "true");

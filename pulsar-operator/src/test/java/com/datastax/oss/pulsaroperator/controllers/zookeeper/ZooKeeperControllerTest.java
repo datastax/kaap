@@ -498,7 +498,7 @@ public class ZooKeeperControllerTest {
                     local name=pulsar
                     local crtFile=/pulsar/certs/tls.crt
                     local keyFile=/pulsar/certs/tls.key
-                    caFile=/pulsar/certs/ca.crt
+                    caFile=/etc/ssl/certs/ca-certificates.crt
                     p12File=/pulsar/tls.p12
                     keyStoreFile=/pulsar/tls.keystore.jks
                     trustStoreFile=/pulsar/tls.truststore.jks

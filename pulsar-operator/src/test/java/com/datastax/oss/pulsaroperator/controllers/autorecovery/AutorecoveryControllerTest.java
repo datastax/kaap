@@ -224,7 +224,7 @@ public class AutorecoveryControllerTest {
         expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls-pk8.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustStoreType", "PEM");
         expectedData.put("PULSAR_PREFIX_tlsClientAuthentication", "true");
-        expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/etc/ssl/certs/ca-certificates.crt");
 
 
         final Map<String, String> data = createdResource.getResource().getData();

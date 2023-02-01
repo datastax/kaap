@@ -77,7 +77,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         boolean targetTlsEnabled = targetProxy ? isTlsEnabledOnProxy() : isTlsEnabledOnBroker();
         if (targetTlsEnabled) {
             data.put("tlsEnableHostnameVerification", "true");
-            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("tlsTrustCertsFilePath", getFullCaPath());
         }
 
         appendConfigData(data, spec.getConfig());

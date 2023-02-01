@@ -71,6 +71,8 @@ pulsar-operator:
             memory: "128Mi"
         service:
           type: LoadBalancer
+          annotations:
+            external-dns.alpha.kubernetes.io/hostname: <DOMAIN>
       autorecovery:
         replicas: 1
         resources:
@@ -99,3 +101,11 @@ pulsar-operator:
 cert-manager:
   enabled: true
   installCRDs: true
+
+external-dns:
+  provider: google
+  domainFilter: <DOMAIN>
+  google:
+    project: <GCP_PROJECT>
+    serviceAccountSecret: clouddns-secret
+    serviceAccountSecretKey: <SECRET_KEY>

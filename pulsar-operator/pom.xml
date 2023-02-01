@@ -213,6 +213,12 @@
                 <quarkus.container-image.build>false</quarkus.container-image.build>
             </properties>
         </profile>
+        <profile>
+            <id>skip-quarkus</id>
+            <properties>
+                <quarkus.build.skip>true</quarkus.build.skip>
+            </properties>
+        </profile>
     </profiles>
 
 </project>

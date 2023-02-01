@@ -40,7 +40,7 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class TokenAuthProvisioner {
 
-    public static final Base64.Encoder ENCODER = Base64.getEncoder().withoutPadding();
+    public static final Base64.Encoder ENCODER = Base64.getEncoder();
     private final KubernetesClient client;
     private final String namespace;
 
@@ -139,7 +139,7 @@ public class TokenAuthProvisioner {
     }
 
     @SneakyThrows
-    static PrivateKey parsePrivateKeyFromSecretValue(String privateKeyStr) {
+    public static PrivateKey parsePrivateKeyFromSecretValue(String privateKeyStr) {
         final byte[] decoded = java.util.Base64.getDecoder().decode(privateKeyStr.getBytes(StandardCharsets.UTF_8));
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decoded);
         final KeyFactory rsa = KeyFactory.getInstance("RSA");
@@ -155,11 +155,11 @@ public class TokenAuthProvisioner {
     }
 
     static String encodePrivateKey(PrivateKey privateKey) {
-        return ENCODER.encodeToString(privateKey.getEncoded());
+        return new String(ENCODER.encode(privateKey.getEncoded()), StandardCharsets.UTF_8);
     }
 
     static String encodePublicKey(PublicKey publicKey) {
-        return ENCODER.encodeToString(publicKey.getEncoded());
+        return new String(ENCODER.encode(publicKey.getEncoded()), StandardCharsets.UTF_8);
     }
 
     private void createSecret(KubernetesClient client, String namespace, String secretName, Map<String, String> data) {

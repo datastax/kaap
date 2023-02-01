@@ -46,12 +46,6 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     public static final String DEFAULT_TLS_SECRET_NAME = "pulsar-tls";
 
-    public static GlobalSpec buildDefault() {
-        final GlobalSpec spec = GlobalSpec.builder().build();
-        spec.applyDefaults(null);
-        return spec;
-    }
-
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
             .defaultSecretName(DEFAULT_TLS_SECRET_NAME)

@@ -749,7 +749,7 @@ public abstract class BaseResourcesFactory<T> {
                     local name=pulsar
                     local crtFile=/pulsar/certs/tls.crt
                     local keyFile=/pulsar/certs/tls.key
-                    caFile=/pulsar/certs/ca.crt
+                    caFile=%s
                     p12File=/pulsar/tls.p12
                     keyStoreFile=/pulsar/tls.keystore.jks
                     trustStoreFile=/pulsar/tls.truststore.jks
@@ -785,7 +785,7 @@ public abstract class BaseResourcesFactory<T> {
                         -trustcacerts -noprompt
                 } &&
                 certconverter &&
-                """;
+                """.formatted(getFullCaPath());
         if (isTlsEnabledOnZooKeeper()) {
             final String keyStoreLocation = "${keyStoreFile}";
             final String trustStoreLocation = "${trustStoreFile}";
@@ -905,5 +905,14 @@ public abstract class BaseResourcesFactory<T> {
                 .build();
     }
 
-
+    protected String getFullCaPath() {
+        if (!isTlsEnabledGlobally()) {
+            return null;
+        }
+        if (isTlsGenerateSelfSignedCertEnabled()) {
+            return "/pulsar/certs/ca.crt";
+        } else {
+            return global.getTls().getCaPath();
+        }
+    }
 }

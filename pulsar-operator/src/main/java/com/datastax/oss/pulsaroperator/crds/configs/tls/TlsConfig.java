@@ -32,6 +32,9 @@ public class TlsConfig {
     @JsonPropertyDescription("Secret name used by each component to load TLS certificates. "
             + "Each component can load a different secret by setting the 'secretName' entry in the tls component spec.")
     String defaultSecretName;
+    @JsonPropertyDescription("Path in the container filesystem where the TLS CA certificates are retrieved. "
+            + "It has to point to a certificate file. The default value is /etc/ssl/certs/ca-certificates.crt.")
+    String caPath;
     @JsonPropertyDescription("Certificate provisioner configuration.")
     CertProvisionerConfig certProvisioner;
     @JsonPropertyDescription("TLS configurations related to the ZooKeeper component.")

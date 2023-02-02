@@ -36,3 +36,7 @@ dependencies:
     version: v1.11.x
     repository: https://charts.jetstack.io
     condition: cert-manager.enabled
+  - name: external-dns
+    version: v6.13.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: external-dns.enabled

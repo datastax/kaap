@@ -535,8 +535,8 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_tlsEnabledInProxy", "true");
         expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
         expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
-        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
         expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
         expectedData.put("PULSAR_PREFIX_servicePortTls", "6651");
@@ -576,8 +576,8 @@ public class ProxyControllerTest {
         wsExpectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls.keystore.jks");
         wsExpectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/tls.truststore.jks");
         wsExpectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
-        wsExpectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-        wsExpectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        wsExpectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        wsExpectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
 
         Assert.assertEquals(wsConfigMap.getData(), wsExpectedData);
 
@@ -591,7 +591,7 @@ public class ProxyControllerTest {
                     local name=pulsar
                     local crtFile=/pulsar/certs/tls.crt
                     local keyFile=/pulsar/certs/tls.key
-                    caFile=/pulsar/certs/ca.crt
+                    caFile=/etc/ssl/certs/ca-certificates.crt
                     p12File=/pulsar/tls.p12
                     keyStoreFile=/pulsar/tls.keystore.jks
                     trustStoreFile=/pulsar/tls.truststore.jks

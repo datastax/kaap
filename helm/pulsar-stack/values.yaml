@@ -55,6 +55,13 @@ cert-manager:
   installCRDs: false
 
 
+external-dns:
+  enabled: false
+  provider: ""
+  txtOwnerId: pulsar-stack
+  sources:
+    - service
+
 
 # Deploy Grafana dashboard for Pulsar.
 # These dashboards will be discovered by the kube-prometheus-stack

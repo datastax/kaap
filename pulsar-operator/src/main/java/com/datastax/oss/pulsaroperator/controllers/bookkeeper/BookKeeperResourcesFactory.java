@@ -143,7 +143,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
             data.put("tlsTrustStoreType", "PEM");
             data.put("tlsHostnameVerificationEnabled", "true");
             data.put("bookkeeperTLSClientAuthentication", "true");
-            data.put("bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            data.put("bookkeeperTLSTrustCertsFilePath", getFullCaPath());
         }
 
         appendConfigData(data, spec.getConfig());

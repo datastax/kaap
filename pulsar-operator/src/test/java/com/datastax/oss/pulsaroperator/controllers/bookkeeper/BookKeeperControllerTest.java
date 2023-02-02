@@ -377,7 +377,7 @@ public class BookKeeperControllerTest {
         expectedData.put("PULSAR_PREFIX_tlsTrustStoreType", "PEM");
         expectedData.put("PULSAR_PREFIX_tlsHostnameVerificationEnabled", "true");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSClientAuthentication", "true");
-        expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertsFilePath", "/pulsar/certs/ca.crt");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -423,7 +423,7 @@ public class BookKeeperControllerTest {
                     local name=pulsar
                     local crtFile=/pulsar/certs/tls.crt
                     local keyFile=/pulsar/certs/tls.key
-                    caFile=/pulsar/certs/ca.crt
+                    caFile=/etc/ssl/certs/ca-certificates.crt
                     p12File=/pulsar/tls.p12
                     keyStoreFile=/pulsar/tls.keystore.jks
                     trustStoreFile=/pulsar/tls.truststore.jks
@@ -486,7 +486,7 @@ public class BookKeeperControllerTest {
                     local name=pulsar
                     local crtFile=/pulsar/certs/tls.crt
                     local keyFile=/pulsar/certs/tls.key
-                    caFile=/pulsar/certs/ca.crt
+                    caFile=/etc/ssl/certs/ca-certificates.crt
                     p12File=/pulsar/tls.p12
                     keyStoreFile=/pulsar/tls.keystore.jks
                     trustStoreFile=/pulsar/tls.truststore.jks

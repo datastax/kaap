@@ -67,6 +67,7 @@ public class PulsarClusterControllerTest {
                 tls:
                   enabled: false
                   defaultSecretName: pulsar-tls
+                  caPath: /etc/ssl/certs/ca-certificates.crt
                   zookeeper:
                     enabled: false
                   bookkeeper:

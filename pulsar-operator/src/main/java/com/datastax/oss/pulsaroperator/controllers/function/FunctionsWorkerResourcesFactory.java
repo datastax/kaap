@@ -229,8 +229,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("tlsEnabled", "true");
             data.put("workerPortTls", "6751");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-            data.put("tlsTrustCertsFilePath", "/pulsar/certs/ca.crt");
-            data.put("brokerClientTrustCertsFilePath", "/pulsar/certs/ca.crt");
+            final String fullCaPath = getFullCaPath();
+            data.put("tlsTrustCertsFilePath", fullCaPath);
+            data.put("brokerClientTrustCertsFilePath", fullCaPath);
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
             final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
             if (enabledWithBroker != null && enabledWithBroker) {

@@ -65,6 +65,12 @@ public class AutorecoveryController extends AbstractController<Autorecovery> {
 
     private ReconciliationResult checkReady(Autorecovery resource,
                                             AutorecoveryResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final Deployment deployment = resourcesFactory.getDeployment();
         if (deployment == null) {
             patchAll(resourcesFactory);

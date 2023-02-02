@@ -21,6 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
+import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -299,8 +300,11 @@ public abstract class BaseK8sEnvTest {
         log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
                 Collectors.toList()));
     }
-
     protected void printPodLogs(String podName) {
+        printPodLogs(podName, 300);
+    }
+
+    protected void printPodLogs(String podName, int tailingLines) {
         if (podName != null) {
             try {
                 client.pods().inNamespace(namespace)
@@ -310,15 +314,15 @@ public abstract class BaseK8sEnvTest {
                             final String containerLog = client.pods().inNamespace(namespace)
                                     .withName(podName)
                                     .inContainer(container.getName())
-                                    .tailingLines(300)
+                                    .tailingLines(tailingLines)
                                     .getLog();
-                            log.info("{}\n{}\n{}/{} pod logs:\n{}\n{}\n{}", sep, sep, podName, container.getName(),
-                                    containerLog, sep, sep);
+                            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName, container.getName(),
+                                    tailingLines, containerLog, sep, sep);
                         });
 
 
             } catch (Throwable t) {
-                log.error("failed to get operator pod logs: {}", t.getMessage());
+                log.error("failed to get pod {} logs: {}", podName, t.getMessage());
             }
         }
     }
@@ -339,10 +343,32 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void applyPulsarCluster(String content) {
-        client.resources(PulsarCluster.class)
+        final PulsarCluster pulsarCluster = client.resources(PulsarCluster.class)
                 .inNamespace(namespace)
                 .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
                 .createOrReplace();
+
+        Awaitility.await("waiting for pulsar cluster to be ready")
+                .until(() -> {
+                    final List<Condition> conditions = client.resources(PulsarCluster.class)
+                            .inNamespace(namespace)
+                            .withName(pulsarCluster.getMetadata().getName())
+                            .get().getStatus()
+                            .getConditions();
+                    final Condition readyCondition =
+                            conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
+                                    .findAny().orElse(null);
+                    if (readyCondition == null) {
+                        return false;
+                    }
+                    if (readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
+                        return true;
+                    }
+                    log.info("Pulsar cluster not ready, reason: {}", readyCondition.getReason());
+                    printPodLogs(getOperatorPodName(), 5);
+                    return false;
+                });
+
     }
 
     @SneakyThrows
@@ -360,6 +386,14 @@ public abstract class BaseK8sEnvTest {
         client.resourceList(resources).inNamespace(namespace).delete();
     }
 
+    protected String getOperatorPodName() {
+        return client.pods()
+                .inNamespace(namespace)
+                .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems()
+                .get(0)
+                .getMetadata()
+                .getName();
+    }
 
     protected void awaitOperatorRunning() {
         Awaitility.await().untilAsserted(() -> {

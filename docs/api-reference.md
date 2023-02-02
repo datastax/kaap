@@ -14152,6 +14152,13 @@ TLS configuration for the cluster.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>caPath</b></td>
+        <td>string</td>
+        <td>
+          Path in the container filesystem where the TLS CA certificates are retrieved. It has to point to a certificate file. The default value is /etc/ssl/certs/ca-certificates.crt.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisioner">certProvisioner</a></b></td>
         <td>object</td>
         <td>

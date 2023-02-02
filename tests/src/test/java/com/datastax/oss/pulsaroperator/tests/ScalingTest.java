@@ -73,6 +73,16 @@ public class ScalingTest extends BasePulsarClusterTest {
                             && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             assertProduceConsume();
+
+            specs.getBroker().setReplicas(0);
+            specs.getFunctionsWorker().setReplicas(0);
+            specs.getZookeeper().setReplicas(0);
+            specs.getBookkeeper().setReplicas(0);
+            specs.getBastion().setReplicas(0);
+            specs.getProxy().setReplicas(0);
+            specs.getAutorecovery().setReplicas(0);
+            applyPulsarCluster(specsToYaml(specs));
+
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();

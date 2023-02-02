@@ -67,6 +67,12 @@ public class BrokerController extends AbstractController<Broker> {
 
     private ReconciliationResult checkReady(Broker resource,
                                             BrokerResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final StatefulSet sts = resourcesFactory.getStatefulSet();
         if (sts == null) {
             patchAll(resourcesFactory);

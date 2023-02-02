@@ -71,6 +71,12 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
 
     private ReconciliationResult checkReady(ZooKeeper resource,
                                             ZooKeeperResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final StatefulSet sts = resourcesFactory.getStatefulSet();
         if (sts == null) {
             patchAll(resourcesFactory);

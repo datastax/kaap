@@ -68,6 +68,12 @@ public class ProxyController extends AbstractController<Proxy> {
 
     private ReconciliationResult checkReady(Proxy resource,
                                             ProxyResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final Deployment deployment = resourcesFactory.getDeployment();
         if (deployment == null) {
             patchAll(resourcesFactory);

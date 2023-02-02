@@ -64,6 +64,12 @@ public class BastionController extends AbstractController<Bastion> {
 
     private ReconciliationResult checkReady(Bastion resource,
                                             BastionResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final Deployment deployment = resourcesFactory.getDeployment();
         if (deployment == null) {
             patchAll(resourcesFactory);

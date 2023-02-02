@@ -58,6 +58,12 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
 
     private ReconciliationResult checkReady(BookKeeper resource,
                                             BookKeeperResourcesFactory resourcesFactory) {
+        if (!resourcesFactory.isComponentEnabled()) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyConditionDisabled(resource))
+            );
+        }
         final StatefulSet statefulSet = resourcesFactory.getStatefulSet();
         if (statefulSet == null) {
             patchAll(resourcesFactory);

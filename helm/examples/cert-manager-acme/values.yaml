@@ -103,6 +103,7 @@ cert-manager:
   installCRDs: true
 
 external-dns:
+  enabled: true
   provider: google
   domainFilter: <DOMAIN>
   google:

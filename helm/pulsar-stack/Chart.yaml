@@ -39,4 +39,4 @@ dependencies:
   - name: external-dns
     version: v6.13.x
     repository: https://charts.bitnami.com/bitnami
-    condition: external-dns.provider != ""
+    condition: external-dns.enabled

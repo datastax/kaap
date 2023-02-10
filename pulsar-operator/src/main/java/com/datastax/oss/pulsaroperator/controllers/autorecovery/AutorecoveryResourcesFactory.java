@@ -93,7 +93,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels(spec.getLabels()))
-                .withAnnotations(getLabels(spec.getAnnotations()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
                 .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();

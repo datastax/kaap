@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
@@ -74,7 +75,7 @@ public class ProxyControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: proxy
                           name: pulsarname-proxy
@@ -109,7 +110,7 @@ public class ProxyControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: proxy
                           name: pulsarname-proxy-ws
@@ -145,7 +146,7 @@ public class ProxyControllerTest {
                 kind: Service
                 metadata:
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: proxy
                   name: pulsarname-proxy
@@ -163,7 +164,8 @@ public class ProxyControllerTest {
                   - name: pulsar
                     port: 6650
                   selector:
-                    app: pulsarname
+                    app: pulsar
+                    cluster: pulsarname
                     component: proxy
                   type: LoadBalancer
                 """);
@@ -176,7 +178,7 @@ public class ProxyControllerTest {
                 kind: Deployment
                 metadata:
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: proxy
                   name: pulsarname-proxy
@@ -191,7 +193,8 @@ public class ProxyControllerTest {
                   replicas: 3
                   selector:
                     matchLabels:
-                      app: pulsarname
+                      app: pulsar
+                      cluster: pulsarname
                       component: proxy
                   strategy:
                     rollingUpdate:
@@ -204,7 +207,7 @@ public class ProxyControllerTest {
                         prometheus.io/port: 8080
                         prometheus.io/scrape: "true"
                       labels:
-                        app: pulsarname
+                        app: pulsar
                         cluster: pulsarname
                         component: proxy
                     spec:
@@ -213,7 +216,8 @@ public class ProxyControllerTest {
                           requiredDuringSchedulingIgnoredDuringExecution:
                           - labelSelector:
                               matchLabels:
-                                app: pulsarname
+                                app: pulsar
+                                cluster: pulsarname
                                 component: proxy
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -288,7 +292,7 @@ public class ProxyControllerTest {
                         kind: PodDisruptionBudget
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: proxy
                           name: pulsarname-proxy
@@ -303,7 +307,8 @@ public class ProxyControllerTest {
                           maxUnavailable: 1
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: proxy
                             """);
 
@@ -379,19 +384,21 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_authenticationEnabled", "true");
         expectedData.put("PULSAR_PREFIX_authorizationEnabled", "true");
         expectedData.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
-        expectedData.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
+        expectedData.put("PULSAR_PREFIX_authenticationProviders",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderToken");
         expectedData.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin",
+                "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedData.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(0).getResource().getData(),
                 expectedData);
 
 
-
         Map<String, Object> expectedDataForWs = new HashMap<>();
         expectedDataForWs.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
-        expectedDataForWs.put("PULSAR_PREFIX_brokerServiceUrlTls", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerServiceUrlTls",
+                "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
         expectedDataForWs.put("PULSAR_PREFIX_serviceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
         expectedDataForWs.put("PULSAR_PREFIX_serviceUrlTls", "https://pul-broker.ns.svc.cluster.local:8443/");
         expectedDataForWs.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
@@ -406,16 +413,20 @@ public class ProxyControllerTest {
         expectedDataForWs.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedDataForWs.put("PULSAR_PREFIX_numHttpServerThreads", "10");
         expectedDataForWs.put("PULSAR_PREFIX_webServicePort", "8000");
-        expectedDataForWs.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
-                + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        expectedDataForWs.put("PULSAR_PREFIX_authenticationProviders",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                        + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
         expectedDataForWs.put("PULSAR_PREFIX_authenticationEnabled", "true");
         expectedDataForWs.put("PULSAR_PREFIX_authorizationEnabled", "true");
         expectedDataForWs.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
-        expectedDataForWs.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
-                + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        expectedDataForWs.put("PULSAR_PREFIX_authenticationProviders",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                        + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
         expectedDataForWs.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedDataForWs.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedDataForWs.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin",
+                "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedDataForWs.put("PULSAR_PREFIX_brokerClientAuthenticationParameters",
+                "file:///pulsar/token-websocket/websocket.jwt");
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),
                 expectedDataForWs);
@@ -430,8 +441,9 @@ public class ProxyControllerTest {
                 "private-key", "public-key", "superuser", "websocket", "proxy");
         final String cmdArg = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
                 .stream().collect(Collectors.joining(" "));
-        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
-                + ".jwt && "));
+        Assert.assertTrue(cmdArg.contains(
+                "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                        + ".jwt && "));
 
         final String cmdArgWs = deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getArgs()
                 .stream().collect(Collectors.joining(" "));
@@ -542,7 +554,8 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_servicePortTls", "6651");
         expectedData.put("PULSAR_PREFIX_tlsEnabledWithBroker", "true");
         expectedData.put("PULSAR_PREFIX_tlsHostnameVerificationEnabled", "true");
-        expectedData.put("PULSAR_PREFIX_functionWorkerWebServiceURLTLS", "https://pul-function-ca.ns.svc.cluster.local:6751");
+        expectedData.put("PULSAR_PREFIX_functionWorkerWebServiceURLTLS",
+                "https://pul-function-ca.ns.svc.cluster.local:6751");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -748,6 +761,7 @@ public class ProxyControllerTest {
         );
     }
 
+
     @Test
     public void testAnnotations() throws Exception {
         String spec = """
@@ -758,19 +772,89 @@ public class ProxyControllerTest {
                 proxy:
                     annotations:
                         annotation-1: ann1-value
+                    podAnnotations:
+                        annotation-2: ann2-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
-                client.getCreatedResource(Deployment.class);
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
+                Map.of(
+                        "prometheus.io/scrape", "true",
+                        "prometheus.io/port", "8080",
+                        "annotation-2", "ann2-value"
+                )
+        );
+        client.getCreatedResources().forEach(resource -> {
+            if (resource.getResource() instanceof Service) {
+                return;
+            }
+            Assert.assertEquals(
+                    resource.getResource().getMetadata().getAnnotations(),
+                    Map.of(
+                            "annotation-1", "ann1-value"
+                    )
+            );
+        });
+    }
 
-        final Map<String, String> annotations =
-                createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
 
-        Assert.assertEquals(annotations.size(), 3);
-        Assert.assertEquals(annotations.get("prometheus.io/scrape"), "true");
-        Assert.assertEquals(annotations.get("prometheus.io/port"), "8080");
-        Assert.assertEquals(annotations.get("annotation-1"), "ann1-value");
+    @Test
+    public void testLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    labels:
+                        label-1: label1-value
+                    podLabels:
+                        label-2: label2-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "proxy",
+                        "label-2", "label2-value"
+                )
+        );
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class).getResource().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "proxy",
+                        "label-1", "label1-value"
+                )
+        );
+    }
+
+    @Test
+    public void testImagePullSecrets() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    imagePullSecrets:
+                        - secret1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
+                List.of(new LocalObjectReference("secret1"))
+        );
     }
 
     @Test
@@ -1023,7 +1107,8 @@ public class ProxyControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "proxy"
         ));
 
@@ -1044,7 +1129,8 @@ public class ProxyControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "proxy"
         ));
 
@@ -1092,11 +1178,11 @@ public class ProxyControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "proxy"
         ));
     }
-
 
 
     @Test
@@ -1117,7 +1203,8 @@ public class ProxyControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "proxy"
         ));
 
@@ -1130,7 +1217,8 @@ public class ProxyControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "proxy"
         ));
     }

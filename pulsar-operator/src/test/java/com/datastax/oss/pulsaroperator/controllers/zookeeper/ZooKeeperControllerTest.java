@@ -26,6 +26,7 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
@@ -81,7 +82,7 @@ public class ZooKeeperControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: zookeeper
                           name: pulsarname-zookeeper
@@ -111,7 +112,7 @@ public class ZooKeeperControllerTest {
                         kind: StatefulSet
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: zookeeper
                           name: pulsarname-zookeeper
@@ -127,7 +128,8 @@ public class ZooKeeperControllerTest {
                           replicas: 3
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: zookeeper
                           serviceName: pulsarname-zookeeper
                           template:
@@ -136,7 +138,7 @@ public class ZooKeeperControllerTest {
                                 prometheus.io/port: 8080
                                 prometheus.io/scrape: "true"
                               labels:
-                                app: pulsarname
+                                app: pulsar
                                 cluster: pulsarname
                                 component: zookeeper
                             spec:
@@ -145,7 +147,8 @@ public class ZooKeeperControllerTest {
                                   requiredDuringSchedulingIgnoredDuringExecution:
                                   - labelSelector:
                                       matchLabels:
-                                        app: pulsarname
+                                        app: pulsar
+                                        cluster: pulsarname
                                         component: zookeeper
                                     topologyKey: kubernetes.io/hostname
                               containers:
@@ -229,7 +232,7 @@ public class ZooKeeperControllerTest {
                           annotations:
                             service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: zookeeper
                           name: pulsarname-zookeeper
@@ -251,7 +254,8 @@ public class ZooKeeperControllerTest {
                             port: 2181
                           publishNotReadyAddresses: true
                           selector:
-                            app: pulsarname
+                            app: pulsar
+                            cluster: pulsarname
                             component: zookeeper
                         """);
 
@@ -265,7 +269,7 @@ public class ZooKeeperControllerTest {
                         kind: Service
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: zookeeper
                           name: pulsarname-zookeeper-ca
@@ -285,7 +289,8 @@ public class ZooKeeperControllerTest {
                           - name: client
                             port: 2181
                           selector:
-                            app: pulsarname
+                            app: pulsar
+                            cluster: pulsarname
                             component: zookeeper
                             """);
 
@@ -299,7 +304,7 @@ public class ZooKeeperControllerTest {
                         kind: PodDisruptionBudget
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: zookeeper
                           name: pulsarname-zookeeper
@@ -314,7 +319,8 @@ public class ZooKeeperControllerTest {
                           maxUnavailable: 1
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: zookeeper
                             """);
     }
@@ -609,19 +615,88 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     annotations:
                         annotation-1: ann1-value
+                    podAnnotations:
+                        annotation-2: ann2-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
+                Map.of(
+                        "prometheus.io/scrape", "true",
+                        "prometheus.io/port", "8080",
+                        "annotation-2", "ann2-value"
+                )
+        );
+        client.getCreatedResources().forEach(resource -> {
+            if (resource.getResource() instanceof Service) {
+                return;
+            }
+            Assert.assertEquals(
+                    resource.getResource().getMetadata().getAnnotations(),
+                    Map.of(
+                            "annotation-1", "ann1-value"
+                    )
+            );
+        });
+    }
 
-        final Map<String, String> annotations =
-                createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
+    @Test
+    public void testLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    labels:
+                        label-1: label1-value
+                    podLabels:
+                        label-2: label2-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
 
-        Assert.assertEquals(annotations.size(), 3);
-        Assert.assertEquals(annotations.get("prometheus.io/scrape"), "true");
-        Assert.assertEquals(annotations.get("prometheus.io/port"), "8080");
-        Assert.assertEquals(annotations.get("annotation-1"), "ann1-value");
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getLabels(),
+                Map.of(
+                    "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "zookeeper",
+                        "label-2", "label2-value"
+                )
+        );
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class).getResource().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "zookeeper",
+                        "label-1", "label1-value"
+                )
+        );
+    }
+
+    @Test
+    public void testImagePullSecrets() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    imagePullSecrets:
+                        - secret1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
+                List.of(new LocalObjectReference("secret1"))
+        );
     }
 
     @Test
@@ -928,7 +1003,8 @@ public class ZooKeeperControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "zookeeper"
         ));
 
@@ -951,7 +1027,8 @@ public class ZooKeeperControllerTest {
                 "kubernetes.io/hostname");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(),
                 Map.of(
-                        "app", "pul",
+                        "app", "pulsar",
+                        "cluster", "pul",
                         "component", "zookeeper"
                 ));
 
@@ -1000,7 +1077,8 @@ public class ZooKeeperControllerTest {
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(),
                 Map.of(
-                        "app", "pul",
+                        "app", "pulsar",
+                        "cluster", "pul",
                         "component", "zookeeper"
                 ));
     }
@@ -1024,7 +1102,8 @@ public class ZooKeeperControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "zookeeper"
         ));
 
@@ -1038,7 +1117,8 @@ public class ZooKeeperControllerTest {
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(),
                 Map.of(
-                        "app", "pul",
+                        "app", "pulsar",
+                        "cluster", "pul",
                         "component", "zookeeper"
                 ));
     }

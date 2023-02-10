@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
@@ -27,6 +28,7 @@ import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -62,7 +64,7 @@ public class AutorecoveryControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: autorecovery
                           name: pulsarname-autorecovery
@@ -91,7 +93,7 @@ public class AutorecoveryControllerTest {
                 kind: Deployment
                 metadata:
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: autorecovery
                   name: pulsarname-autorecovery
@@ -106,7 +108,8 @@ public class AutorecoveryControllerTest {
                   replicas: 1
                   selector:
                     matchLabels:
-                      app: pulsarname
+                      app: pulsar
+                      cluster: pulsarname
                       component: autorecovery
                   template:
                     metadata:
@@ -114,7 +117,7 @@ public class AutorecoveryControllerTest {
                         prometheus.io/port: 8080
                         prometheus.io/scrape: "true"
                       labels:
-                        app: pulsarname
+                        app: pulsar
                         cluster: pulsarname
                         component: autorecovery
                     spec:
@@ -123,7 +126,8 @@ public class AutorecoveryControllerTest {
                           requiredDuringSchedulingIgnoredDuringExecution:
                           - labelSelector:
                               matchLabels:
-                                app: pulsarname
+                                app: pulsar
+                                cluster: pulsarname
                                 component: autorecovery
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -185,7 +189,6 @@ public class AutorecoveryControllerTest {
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
     }
-
 
 
     @Test
@@ -307,6 +310,7 @@ public class AutorecoveryControllerTest {
 
     }
 
+
     @Test
     public void testAnnotations() throws Exception {
         String spec = """
@@ -317,19 +321,89 @@ public class AutorecoveryControllerTest {
                 autorecovery:
                     annotations:
                         annotation-1: ann1-value
+                    podAnnotations:
+                        annotation-2: ann2-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<Deployment> createdResource =
-                client.getCreatedResource(Deployment.class);
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
+                Map.of(
+                        "prometheus.io/scrape", "true",
+                        "prometheus.io/port", "8080",
+                        "annotation-2", "ann2-value"
+                )
+        );
+        client.getCreatedResources().forEach(resource -> {
+            if (resource.getResource() instanceof Service) {
+                return;
+            }
+            Assert.assertEquals(
+                    resource.getResource().getMetadata().getAnnotations(),
+                    Map.of(
+                            "annotation-1", "ann1-value"
+                    )
+            );
+        });
+    }
 
-        final Map<String, String> annotations =
-                createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
 
-        Assert.assertEquals(annotations.size(), 3);
-        Assert.assertEquals(annotations.get("prometheus.io/scrape"), "true");
-        Assert.assertEquals(annotations.get("prometheus.io/port"), "8080");
-        Assert.assertEquals(annotations.get("annotation-1"), "ann1-value");
+    @Test
+    public void testLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                autorecovery:
+                    labels:
+                        label-1: label1-value
+                    podLabels:
+                        label-2: label2-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "autorecovery",
+                        "label-2", "label2-value"
+                )
+        );
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class).getResource().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "autorecovery",
+                        "label-1", "label1-value"
+                )
+        );
+    }
+
+    @Test
+    public void testImagePullSecrets() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                autorecovery:
+                    imagePullSecrets:
+                        - secret1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
+                List.of(new LocalObjectReference("secret1"))
+        );
     }
 
     @Test
@@ -562,7 +636,8 @@ public class AutorecoveryControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "autorecovery"
         ));
 
@@ -583,7 +658,8 @@ public class AutorecoveryControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "autorecovery"
         ));
 
@@ -631,11 +707,11 @@ public class AutorecoveryControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "autorecovery"
         ));
     }
-
 
 
     @Test
@@ -656,7 +732,8 @@ public class AutorecoveryControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "autorecovery"
         ));
 
@@ -669,7 +746,8 @@ public class AutorecoveryControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "autorecovery"
         ));
     }

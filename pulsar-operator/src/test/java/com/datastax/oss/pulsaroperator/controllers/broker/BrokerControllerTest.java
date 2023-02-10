@@ -26,6 +26,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
@@ -81,7 +82,7 @@ public class BrokerControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: broker
                           name: pulsarname-broker
@@ -116,7 +117,7 @@ public class BrokerControllerTest {
                 kind: Service
                 metadata:
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: broker
                   name: pulsarname-broker
@@ -135,7 +136,8 @@ public class BrokerControllerTest {
                   - name: pulsar
                     port: 6650
                   selector:
-                    app: pulsarname
+                    app: pulsar
+                    cluster: pulsarname
                     component: broker
                   type: ClusterIP
                 """);
@@ -148,7 +150,7 @@ public class BrokerControllerTest {
                 kind: StatefulSet
                 metadata:
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: broker
                   name: pulsarname-broker
@@ -163,7 +165,8 @@ public class BrokerControllerTest {
                   replicas: 3
                   selector:
                     matchLabels:
-                      app: pulsarname
+                      app: pulsar
+                      cluster: pulsarname
                       component: broker
                   serviceName: pulsarname-broker
                   template:
@@ -172,7 +175,7 @@ public class BrokerControllerTest {
                         prometheus.io/port: 8080
                         prometheus.io/scrape: "true"
                       labels:
-                        app: pulsarname
+                        app: pulsar
                         cluster: pulsarname
                         component: broker
                     spec:
@@ -181,7 +184,8 @@ public class BrokerControllerTest {
                           requiredDuringSchedulingIgnoredDuringExecution:
                           - labelSelector:
                               matchLabels:
-                                app: pulsarname
+                                app: pulsar
+                                cluster: pulsarname
                                 component: broker
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -240,7 +244,7 @@ public class BrokerControllerTest {
                         kind: PodDisruptionBudget
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: broker
                           name: pulsarname-broker
@@ -255,7 +259,8 @@ public class BrokerControllerTest {
                           maxUnavailable: 1
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: broker
                             """);
 
@@ -362,7 +367,7 @@ public class BrokerControllerTest {
                         kind: Job
                         metadata:
                           labels:
-                            app: pul
+                            app: pulsar
                             cluster: pul
                             component: broker
                           name: pul-broker
@@ -375,6 +380,14 @@ public class BrokerControllerTest {
                             name: pulsarname-cr
                         spec:
                           template:
+                            metadata:
+                              annotations:
+                                prometheus.io/port: 8080
+                                prometheus.io/scrape: "true"
+                              labels:
+                                app: pulsar
+                                cluster: pul
+                                component: broker
                             spec:
                               containers:
                               - args:
@@ -881,19 +894,89 @@ public class BrokerControllerTest {
                 broker:
                     annotations:
                         annotation-1: ann1-value
+                    podAnnotations:
+                        annotation-2: ann2-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
+                Map.of(
+                        "prometheus.io/scrape", "true",
+                        "prometheus.io/port", "8080",
+                        "annotation-2", "ann2-value"
+                )
+        );
+        client.getCreatedResources().forEach(resource -> {
+            if (resource.getResource() instanceof Service) {
+                return;
+            }
+            Assert.assertEquals(
+                    resource.getResource().getMetadata().getAnnotations(),
+                    Map.of(
+                            "annotation-1", "ann1-value"
+                    )
+            );
+        });
+    }
 
-        final Map<String, String> annotations =
-                createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
 
-        Assert.assertEquals(annotations.size(), 3);
-        Assert.assertEquals(annotations.get("prometheus.io/scrape"), "true");
-        Assert.assertEquals(annotations.get("prometheus.io/port"), "8080");
-        Assert.assertEquals(annotations.get("annotation-1"), "ann1-value");
+    @Test
+    public void testLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    labels:
+                        label-1: label1-value
+                    podLabels:
+                        label-2: label2-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "broker",
+                        "label-2", "label2-value"
+                )
+        );
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class).getResource().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "broker",
+                        "label-1", "label1-value"
+                )
+        );
+    }
+
+    @Test
+    public void testImagePullSecrets() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    imagePullSecrets:
+                        - secret1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
+                List.of(new LocalObjectReference("secret1"))
+        );
     }
 
     @Test
@@ -1143,7 +1226,8 @@ public class BrokerControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "broker"
         ));
 
@@ -1164,7 +1248,8 @@ public class BrokerControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "broker"
         ));
 
@@ -1212,7 +1297,8 @@ public class BrokerControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "broker"
         ));
     }
@@ -1236,7 +1322,8 @@ public class BrokerControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "broker"
         ));
 
@@ -1249,7 +1336,8 @@ public class BrokerControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "broker"
         ));
     }

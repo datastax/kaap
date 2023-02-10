@@ -201,7 +201,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(getLabels(spec.getLabels()))
-                .withLabels(getAnnotations(spec.getAnnotations()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
                 .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();

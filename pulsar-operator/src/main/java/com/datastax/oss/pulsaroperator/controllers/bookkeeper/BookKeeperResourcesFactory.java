@@ -99,7 +99,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels()))
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
@@ -151,7 +151,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -169,14 +171,11 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
     public StatefulSet generateStatefulSet() {
-        Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
-
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        final Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
         List<Container> initContainers = new ArrayList<>();
         String metaformatArg = "";
@@ -291,6 +290,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
+                .withAnnotations(annotations)
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
@@ -303,12 +303,13 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
@@ -345,12 +346,15 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
     public void patchStorageClasses() {
-        createStorageClassIfNeeded(spec.getVolumes().getJournal());
-        createStorageClassIfNeeded(spec.getVolumes().getLedgers());
+        createStorageClassIfNeeded(spec.getVolumes().getJournal(), spec.getAnnotations(), spec.getLabels());
+        createStorageClassIfNeeded(spec.getVolumes().getLedgers(), spec.getAnnotations(), spec.getLabels());
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(),
+                spec.getAnnotations(),
+                spec.getLabels()
+        );
     }
 
 }

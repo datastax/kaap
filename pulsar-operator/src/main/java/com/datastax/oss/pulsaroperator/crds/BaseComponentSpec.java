@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Toleration;
 import java.util.HashMap;
@@ -57,6 +58,16 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private List<Toleration> tolerations;
     @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)
     private NodeAffinity nodeAffinity;
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
+    private Map<String, String> annotations;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_ANNOTATIONS)
+    private Map<String, String> podAnnotations;
+    @JsonPropertyDescription(CRDConstants.DOC_LABELS)
+    private Map<String, String> labels;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_LABELS)
+    private Map<String, String> podLabels;
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_SECRETS)
+    private List<LocalObjectReference> imagePullSecrets;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

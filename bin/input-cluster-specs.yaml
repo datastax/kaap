@@ -1,0 +1,3 @@
+context: gke_datastax-astrastreaming-dev_us-east4_astra-streaming-dp-dev-us-east4
+namespace: pulsar
+clusterName: pulsar-gcp-useast4-dev

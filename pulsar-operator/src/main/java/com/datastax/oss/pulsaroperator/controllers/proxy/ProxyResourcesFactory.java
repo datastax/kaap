@@ -122,7 +122,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels()))
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
@@ -195,7 +195,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -258,7 +260,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withNewMetadata()
                 .withName("%s-ws".formatted(resourceName))
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -272,18 +276,14 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             deleteDeployment();
             return;
         }
-        Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
-        Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
+        Map<String, String> annotations = getAnnotations(spec.getAnnotations());
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
         if (spec.getWebSocket().getEnabled()) {
             Objects.requireNonNull(wsConfigMap, "WsConfigMap should have been created at this point");
-            addConfigMapChecksumAnnotation(wsConfigMap, allAnnotations);
+            addConfigMapChecksumAnnotation(wsConfigMap, podAnnotations);
         }
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
-
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
@@ -422,6 +422,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
+                .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withReplicas(spec.getReplicas())
@@ -431,12 +432,13 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withStrategy(spec.getUpdateStrategy())
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
@@ -470,7 +472,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
     }
 
 }

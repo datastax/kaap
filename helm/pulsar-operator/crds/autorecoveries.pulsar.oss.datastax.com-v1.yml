@@ -29,6 +29,32 @@ spec:
                     description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
+                  imagePullSecrets:
+                    description: Image pull secrets.
+                    items:
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                    type: array
+                  image:
+                    description: Override Pulsar image.
+                    type: string
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each resource (except pods).
+                    type: object
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to pod.
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Labels to add to each resource (except pods).
+                    type: object
                   tolerations:
                     description: Pod tolerations.
                     items:
@@ -122,18 +148,10 @@ spec:
                             type: array
                         type: object
                     type: object
-                  image:
-                    description: Override Pulsar image.
-                    type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
                     description: Additional node selectors.
-                    type: object
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Annotations to add to each resource.
                     type: object
                   resources:
                     description: Resources requirements.
@@ -156,6 +174,11 @@ spec:
                   imagePullPolicy:
                     description: Override image pull policy.
                     type: string
+                  podLabels:
+                    additionalProperties:
+                      type: string
+                    description: Labels to add to each pod.
+                    type: object
                 type: object
               global:
                 properties:

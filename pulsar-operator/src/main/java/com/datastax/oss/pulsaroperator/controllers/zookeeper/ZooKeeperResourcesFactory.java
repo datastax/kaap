@@ -93,7 +93,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels())              )
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
@@ -149,7 +149,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withNewMetadata()
                 .withName(resourceName + "-ca")
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels())              )
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
@@ -181,7 +181,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels())              ).endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -189,11 +189,11 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
     public void patchStorageClass() {
-        createStorageClassIfNeeded(spec.getDataVolume());
+        createStorageClassIfNeeded(spec.getDataVolume(), spec.getAnnotations(), spec.getLabels());
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
     }
 
 
@@ -204,14 +204,13 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
             return;
         }
 
-        Map<String, String> labels = getLabels();
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Map<String, String> matchLabels = getMatchLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Map<String, String> annotations = getAnnotations(spec.getAnnotations());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+
         PodDNSConfig dnsConfig = global.getDnsConfig();
         Map<String, String> nodeSelectors = spec.getNodeSelectors();
 
@@ -304,6 +303,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
+                .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
@@ -315,12 +315,13 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(dnsConfig)
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(nodeSelectors)
                 .withAffinity(getAffinity(spec.getNodeAffinity()))
                 .withTerminationGracePeriodSeconds(gracePeriod)
@@ -388,13 +389,14 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels())              )
                 .endMetadata()
                 .withNewSpec()
                 .withNewTemplate()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withVolumes(volumes)

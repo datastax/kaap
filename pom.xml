@@ -25,6 +25,7 @@
     <modules>
         <module>pulsar-operator</module>
         <module>tests</module>
+      <module>migration-tool</module>
     </modules>
     <name>pulsar-operator-parent</name>
     <scm>

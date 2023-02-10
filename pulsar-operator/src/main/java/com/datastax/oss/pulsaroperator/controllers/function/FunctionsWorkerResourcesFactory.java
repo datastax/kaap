@@ -104,7 +104,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels())              )
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
@@ -142,7 +142,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName("%s-ca".formatted(resourceName))
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels())              )
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
@@ -189,7 +189,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName("%s-extra".formatted(resourceName))
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -301,7 +303,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(Map.of("functions_worker.yml", SerializationUtil.writeAsYaml(data)))
                 .build();
         patchResource(configMap);
@@ -324,15 +328,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             return null;
         }
 
-        Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
+        Map<String, String> annotations = getAnnotations(spec.getAnnotations());
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
         Objects.requireNonNull(extraConfigMap, "ConfigMap (extra) should have been created at this point");
-        addConfigMapChecksumAnnotation(extraConfigMap, allAnnotations);
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
+        addConfigMapChecksumAnnotation(extraConfigMap, podAnnotations);
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
@@ -481,6 +483,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
+                .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
@@ -492,8 +495,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
@@ -553,11 +556,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
     }
 
     public void patchStorageClass() {
-        createStorageClassIfNeeded(spec.getLogsVolume());
+        createStorageClassIfNeeded(spec.getLogsVolume(), spec.getAnnotations(), spec.getLabels());
     }
 
     public void patchRBAC() {

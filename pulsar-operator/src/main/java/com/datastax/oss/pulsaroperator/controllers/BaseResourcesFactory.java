@@ -174,20 +174,30 @@ public abstract class BaseResourcesFactory<T> {
                 .delete();
     }
 
-    protected Map<String, String> getLabels() {
-        return Map.of(
-                CRDConstants.LABEL_APP, global.getName(),
-                CRDConstants.LABEL_COMPONENT, getComponentBaseName(),
-                CRDConstants.LABEL_CLUSTER, global.getName()
-        );
+    protected Map<String, String> getLabels(Map<String, String> customLabels) {
+        Map<String, String> labels = new HashMap<>();
+        labels.put(CRDConstants.LABEL_APP, CRDConstants.LABEL_APP_VALUE);
+        labels.put(CRDConstants.LABEL_COMPONENT, getComponentBaseName());
+        labels.put(CRDConstants.LABEL_CLUSTER, global.getName());
+        if (customLabels != null) {
+            labels.putAll(customLabels);
+        }
+        return labels;
+    }
+
+    protected Map<String, String> getPodLabels(Map<String, String> customLabels) {
+        Map<String, String> labels = new HashMap<>();
+        labels.put(CRDConstants.LABEL_APP, CRDConstants.LABEL_APP_VALUE);
+        labels.put(CRDConstants.LABEL_COMPONENT, getComponentBaseName());
+        labels.put(CRDConstants.LABEL_CLUSTER, global.getName());
+        if (customLabels != null) {
+            labels.putAll(customLabels);
+        }
+        return labels;
     }
 
     protected Map<String, String> getMatchLabels() {
-        Map<String, String> matchLabels = Map.of(
-                "app", global.getName(),
-                "component", getComponentBaseName()
-        );
-        return matchLabels;
+        return getPodLabels(null);
     }
 
     protected boolean isPdbSupported() {
@@ -451,7 +461,9 @@ public abstract class BaseResourcesFactory<T> {
                 .build();
     }
 
-    protected boolean createStorageClassIfNeeded(VolumeConfig volumeConfig) {
+    protected boolean createStorageClassIfNeeded(VolumeConfig volumeConfig,
+                                                 Map<String, String> customAnnotations,
+                                                 Map<String, String> customLabels) {
         if (!global.getPersistence()) {
             return false;
         }
@@ -482,7 +494,8 @@ public abstract class BaseResourcesFactory<T> {
                 .withNewMetadata()
                 .withName(volumeFullName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withAnnotations(getAnnotations(customAnnotations))
+                .withLabels(getLabels(customLabels))
                 .endMetadata()
                 .withAllowVolumeExpansion(true)
                 .withVolumeBindingMode("WaitForFirstConsumer")
@@ -494,7 +507,9 @@ public abstract class BaseResourcesFactory<T> {
         return true;
     }
 
-    protected void createPodDisruptionBudgetIfEnabled(PodDisruptionBudgetConfig pdb) {
+    protected void createPodDisruptionBudgetIfEnabled(PodDisruptionBudgetConfig pdb,
+                                                      Map<String, String> customAnnotations,
+                                                      Map<String, String> customLabels) {
         if (!pdb.getEnabled()) {
             return;
         }
@@ -504,7 +519,8 @@ public abstract class BaseResourcesFactory<T> {
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withAnnotations(getAnnotations(customAnnotations))
+                .withLabels(getLabels(customLabels))
                 .endMetadata()
                 .withNewSpec()
                 .withNewSelector()
@@ -521,10 +537,26 @@ public abstract class BaseResourcesFactory<T> {
         patchResource(pdbResource);
     }
 
-    protected Map<String, String> getDefaultAnnotations() {
+    protected Map<String, String> getAnnotations(Map<String, String> customAnnotations) {
+        Map<String, String> annotations = new HashMap<>();
+        if (customAnnotations != null) {
+            annotations.putAll(customAnnotations);
+        }
+        return annotations;
+    }
+
+    protected Map<String, String> getPodAnnotations(
+            Map<String, String> customPodAnnotations,
+            ConfigMap configMap) {
         Map<String, String> annotations = new HashMap<>();
         annotations.put("prometheus.io/scrape", "true");
         annotations.put("prometheus.io/port", "8080");
+        if (customPodAnnotations != null) {
+            annotations.putAll(customPodAnnotations);
+        }
+        if (configMap != null) {
+            addConfigMapChecksumAnnotation(configMap, annotations);
+        }
         return annotations;
     }
 

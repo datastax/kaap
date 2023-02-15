@@ -29,10 +29,22 @@ public class Main {
 
     private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder().build());
 
+    @Parameters
+    static class MainParams {
+
+        @Parameter(names = { "-h", "--help", }, help = true, description = "Show this help.")
+        boolean help;
+    }
+
+
     public static void main(String[] args) {
         final GenerateCmd generateCmd = new GenerateCmd();
+        final DiffCmd diffCmd = new DiffCmd();
+        final MainParams mainParams = new MainParams();
         JCommander commander = JCommander.newBuilder()
+                .addObject(mainParams)
                 .addCommand(generateCmd)
+                .addCommand(diffCmd)
                 .build();
 
         commander.parse(args);
@@ -41,10 +53,17 @@ public class Main {
             exit1(commander);
             return;
         }
+        if (mainParams.help) {
+            commander.usage();
+            return;
+        }
         final Runnable cmd;
         switch (command) {
             case "generate":
                 cmd = generateCmd;
+                break;
+            case "diff":
+                cmd = diffCmd;
                 break;
             default:
                 exit1(commander);
@@ -86,6 +105,22 @@ public class Main {
             return yamlMapper.readValue(new File(inputSpecsFile), InputClusterSpecs.class);
         }
 
+    }
+
+    @Parameters(
+            commandNames = { "diff" },
+            commandDescription = "Check diffs between a Pulsar cluster and a generated PulsarCluster CRD"
+    )
+    static class DiffCmd implements Runnable {
+
+        @Parameter(names = {"-d", "--dir"}, required = true, description = "Output directory of the generate command.")
+        String outputDir;
+
+        @Override
+        @SneakyThrows
+        public void run() {
+            DiffChecker.diffFromDirectory(new File(outputDir));
+        }
     }
 }
 

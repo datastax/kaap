@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool;
 
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
@@ -22,9 +23,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class BaseSpecGenerator<T> {
     protected final InputClusterSpecs inputSpecs;
@@ -54,6 +53,8 @@ public abstract class BaseSpecGenerator<T> {
     public abstract T generateSpec();
 
     public abstract PodDNSConfig getPodDnsConfig();
+
+    public abstract AntiAffinityConfig getAntiAffinityConfig();
 
     protected PodDisruptionBudget getPodDisruptionBudget(String name) {
         return client.policy()
@@ -121,15 +122,5 @@ public abstract class BaseSpecGenerator<T> {
             throw new IllegalStateException("Expected StatefulSet with name " + name + " not found");
         }
         return sts;
-    }
-
-    protected Map<String, String> addHelmPolicyAnnotation(Map<String, String> annotations) {
-        if (annotations == null) {
-            annotations = new HashMap<>();
-        } else {
-            annotations = new HashMap<>(annotations);
-        }
-        annotations.put("meta.helm.sh/policy", "keep");
-        return annotations;
     }
 }

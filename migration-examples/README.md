@@ -6,7 +6,7 @@
    - Edit the file `bin/input-cluster-specs.yaml` with the coordinates of the cluster you want to migrate.
    - Run the CLI with the following command:
     ```bash
-    bin/migration-tool.sh
+    bin/migration-tool.sh generate
     ```
    - Check the output for the comparisons between the existing chart and the operator.
    - If OK, proceed with the migration.
@@ -20,7 +20,7 @@
 4. Wait for the operator to take control of the cluster. Check the PulsarCluster status to be ready.
 5. Delete the existing chart release.
     ```
-    helm delete <release-name>
+    kubectl delete secret -l name=<release-name>,owner=helm
     ```
 6. Cleanup helm annotations and labels from the Pulsar CRD. 
 
@@ -34,4 +34,8 @@
    - release
    - heritage
 
+
+
+## Examples
+Run a simple migration example with `install-and-migrate.sh` script.
 

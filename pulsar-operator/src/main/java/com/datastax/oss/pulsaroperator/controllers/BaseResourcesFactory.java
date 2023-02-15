@@ -75,6 +75,7 @@ import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @JBossLog
 public abstract class BaseResourcesFactory<T> {
@@ -101,13 +102,9 @@ public abstract class BaseResourcesFactory<T> {
         return "%s-%s".formatted(clusterName, baseName);
     }
 
-    ;
-
     protected String getResourceName() {
         return getResourceName(global.getName(), getComponentBaseName());
     }
-
-    ;
 
     protected abstract String getComponentBaseName();
 
@@ -191,13 +188,32 @@ public abstract class BaseResourcesFactory<T> {
         labels.put(CRDConstants.LABEL_COMPONENT, getComponentBaseName());
         labels.put(CRDConstants.LABEL_CLUSTER, global.getName());
         if (customLabels != null) {
-            labels.putAll(customLabels);
+            for (Map.Entry<String, String> customLabel : customLabels.entrySet()) {
+                if (StringUtils.isBlank(customLabel.getValue())) {
+                    labels.remove(customLabel.getKey());
+                } else {
+                    labels.put(customLabel.getKey(), customLabel.getValue());
+                }
+            }
         }
         return labels;
     }
 
-    protected Map<String, String> getMatchLabels() {
-        return getPodLabels(null);
+    protected Map<String, String> getMatchLabels(Map<String, String> customMatchLabels) {
+        Map<String, String> matchLabels = new HashMap<>();
+        matchLabels.put(CRDConstants.LABEL_APP, CRDConstants.LABEL_APP_VALUE);
+        matchLabels.put(CRDConstants.LABEL_COMPONENT, getComponentBaseName());
+        matchLabels.put(CRDConstants.LABEL_CLUSTER, global.getName());
+        if (customMatchLabels != null) {
+            for (Map.Entry<String, String> customMatchLabel : customMatchLabels.entrySet()) {
+                if (StringUtils.isBlank(customMatchLabel.getValue())) {
+                    matchLabels.remove(customMatchLabel.getKey());
+                } else {
+                    matchLabels.put(customMatchLabel.getKey(), customMatchLabel.getValue());
+                }
+            }
+        }
+        return matchLabels;
     }
 
     protected boolean isPdbSupported() {
@@ -509,7 +525,8 @@ public abstract class BaseResourcesFactory<T> {
 
     protected void createPodDisruptionBudgetIfEnabled(PodDisruptionBudgetConfig pdb,
                                                       Map<String, String> customAnnotations,
-                                                      Map<String, String> customLabels) {
+                                                      Map<String, String> customLabels,
+                                                      Map<String, String> customMatchLabels) {
         if (!pdb.getEnabled()) {
             return;
         }
@@ -524,7 +541,7 @@ public abstract class BaseResourcesFactory<T> {
                 .endMetadata()
                 .withNewSpec()
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(customMatchLabels))
                 .endSelector()
                 .withNewMaxUnavailable(pdb.getMaxUnavailable())
                 .endSpec()
@@ -878,7 +895,7 @@ public abstract class BaseResourcesFactory<T> {
         }
     }
 
-    protected Affinity getAffinity(NodeAffinity nodeAffinity) {
+    protected Affinity getAffinity(NodeAffinity nodeAffinity, Map<String, String> customMatchLabels) {
         final AffinityBuilder builder = new AffinityBuilder()
                 .withNodeAffinity(nodeAffinity);
 
@@ -892,11 +909,15 @@ public abstract class BaseResourcesFactory<T> {
                     && host.getEnabled() != null
                     && host.getEnabled()) {
 
-                final PodAffinityTerm podAffinityTerm = createPodAffinityTerm("kubernetes.io/hostname");
+                final PodAffinityTerm podAffinityTerm = createPodAffinityTerm(
+                        "kubernetes.io/hostname",
+                        customMatchLabels);
                 if (host.getRequired() != null && host.getRequired()) {
                     podAffinityTerms.add(podAffinityTerm);
                 } else {
-                    weightedPodAffinityTerms.add(createWeightedPodAffinityTerm("kubernetes.io/hostname"));
+                    weightedPodAffinityTerms.add(createWeightedPodAffinityTerm(
+                            "kubernetes.io/hostname",
+                            customMatchLabels));
                 }
             }
             final AntiAffinityConfig.ZoneAntiAffinityConfig zone = global.getAntiAffinity().getZone();
@@ -904,7 +925,9 @@ public abstract class BaseResourcesFactory<T> {
                     && zone.getEnabled() != null
                     && zone.getEnabled()) {
                 final WeightedPodAffinityTerm weightedPodAffinityTerm =
-                        createWeightedPodAffinityTerm("failure-domain.beta.kubernetes.io/zone");
+                        createWeightedPodAffinityTerm(
+                                "failure-domain.beta.kubernetes.io/zone",
+                                customMatchLabels);
                 weightedPodAffinityTerms.add(weightedPodAffinityTerm);
             }
 
@@ -919,18 +942,19 @@ public abstract class BaseResourcesFactory<T> {
         return builder.build();
     }
 
-    private PodAffinityTerm createPodAffinityTerm(String topologyKey) {
+    private PodAffinityTerm createPodAffinityTerm(String topologyKey, Map<String, String> customMatchLabels) {
         final PodAffinityTerm podAffinityTerm = new PodAffinityTermBuilder()
                 .withNewLabelSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(customMatchLabels))
                 .endLabelSelector()
                 .withTopologyKey(topologyKey)
                 .build();
         return podAffinityTerm;
     }
 
-    private WeightedPodAffinityTerm createWeightedPodAffinityTerm(String topologyKey) {
-        final PodAffinityTerm podAffinityTerm = createPodAffinityTerm(topologyKey);
+    private WeightedPodAffinityTerm createWeightedPodAffinityTerm(String topologyKey,
+                                                                  Map<String, String> customMatchLabels) {
+        final PodAffinityTerm podAffinityTerm = createPodAffinityTerm(topologyKey, customMatchLabels);
         return new WeightedPodAffinityTermBuilder()
                 .withWeight(100)
                 .withPodAffinityTerm(podAffinityTerm)

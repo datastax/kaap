@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
+CP=$(cat $this_dir/../migration-tool/target/classpath.txt)
+exec java -cp "$CP:$this_dir/../migration-tool/target/*" com.datastax.oss.pulsaroperator.migrationtool.Main "$@"

@@ -100,7 +100,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withPorts(ports)
                 .withClusterIP("None")
                 .withPublishNotReadyAddresses(true)
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -154,7 +154,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -195,7 +195,11 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
+        createPodDisruptionBudgetIfEnabled(
+                spec.getPdb(),
+                spec.getAnnotations(),
+                spec.getLabels(),
+                spec.getMatchLabels());
     }
 
 
@@ -208,7 +212,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         Map<String, String> labels = getLabels(spec.getLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
-        Map<String, String> matchLabels = getMatchLabels();
+        Map<String, String> matchLabels = getMatchLabels(spec.getMatchLabels());
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
         Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
@@ -325,7 +329,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withDnsConfig(dnsConfig)
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(nodeSelectors)
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(gracePeriod)
                 .withPriorityClassName(global.getPriorityClassName())
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()

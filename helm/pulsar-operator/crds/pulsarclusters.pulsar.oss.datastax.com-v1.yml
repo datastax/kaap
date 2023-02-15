@@ -999,6 +999,11 @@ spec:
                       type: string
                     description: Labels to add to each pod.
                     type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
               bookkeeper:
                 properties:
@@ -2019,6 +2024,11 @@ spec:
                       type: string
                     description: Labels to add to each pod.
                     type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
               bastion:
                 properties:
@@ -2182,6 +2192,11 @@ spec:
                     additionalProperties:
                       type: string
                     description: Labels to add to each pod.
+                    type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
                     type: object
                 type: object
               broker:
@@ -3179,6 +3194,11 @@ spec:
                       type: string
                     description: Labels to add to each pod.
                     type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
               zookeeper:
                 properties:
@@ -4147,6 +4167,11 @@ spec:
                       type: string
                     description: Labels to add to each pod.
                     type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
               proxy:
                 properties:
@@ -5110,6 +5135,11 @@ spec:
                       type: string
                     description: Labels to add to each pod.
                     type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
               autorecovery:
                 properties:
@@ -5269,6 +5299,11 @@ spec:
                     additionalProperties:
                       type: string
                     description: Labels to add to each pod.
+                    type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
                     type: object
                 type: object
               global:

@@ -106,7 +106,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withPorts(ports)
                 .withClusterIP("None")
                 .withPublishNotReadyAddresses(true)
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -297,7 +297,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withUpdateStrategy(spec.getUpdateStrategy())
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
@@ -311,7 +311,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
@@ -353,7 +353,8 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     public void patchPodDisruptionBudget() {
         createPodDisruptionBudgetIfEnabled(spec.getPdb(),
                 spec.getAnnotations(),
-                spec.getLabels()
+                spec.getLabels(),
+                spec.getMatchLabels()
         );
     }
 

@@ -17,7 +17,7 @@ package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -58,13 +58,13 @@ public class SpecGenerator {
         final File fullOut = new File(outputDirectory, inputSpecs.context);
         fullOut.mkdirs();
 
-        final PulsarClusterSpec pulsarClusterSpec =
+        final PulsarCluster pulsarCluster =
                 generatePulsarClusterSpec(client, fullOut);
-        dumpGeneratedResources(fullOut, pulsarClusterSpec);
+        dumpGeneratedResources(fullOut, pulsarCluster);
 
     }
 
-    private void dumpGeneratedResources(File fullOut, PulsarClusterSpec pulsarClusterSpec) {
+    private void dumpGeneratedResources(File fullOut, PulsarCluster pulsarClusterSpec) {
         final MockKubernetesClient local = new MockKubernetesClient(inputSpecs.getNamespace());
         generateZkResources(pulsarClusterSpec, local);
 
@@ -73,21 +73,22 @@ public class SpecGenerator {
         }
     }
 
-    private PulsarClusterSpec generatePulsarClusterSpec(KubernetesClient client, File fullOut) {
-        final PulsarClusterSpecGenerator pulsarClusterSpecGenerator = new PulsarClusterSpecGenerator(inputSpecs, client);
-        final PulsarClusterSpec pulsarClusterSpec = pulsarClusterSpecGenerator.generateSpec();
-        dumpToFile(fullOut.getAbsolutePath(), pulsarClusterSpec);
+    private PulsarCluster generatePulsarClusterSpec(KubernetesClient client, File fullOut) {
+        final PulsarClusterResourceGenerator
+                pulsarClusterSpecGenerator = new PulsarClusterResourceGenerator(inputSpecs, client);
+        final PulsarCluster pulsarCluster = pulsarClusterSpecGenerator.generatePulsarClusterCustomResource();
+        dumpToFile(fullOut.getAbsolutePath(), pulsarCluster);
         for (HasMetadata resource : pulsarClusterSpecGenerator.getAllResources()) {
             dumpToFile(fullOut.getAbsolutePath(), "original", resource);
         }
-        return pulsarClusterSpec;
+        return pulsarCluster;
     }
 
-    private void generateZkResources(PulsarClusterSpec pulsarClusterSpec, MockKubernetesClient local) {
+    private void generateZkResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
         final ZooKeeperResourcesFactory zooKeeperResourcesFactory =
                 new ZooKeeperResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), pulsarClusterSpec.getZookeeper(),
-                        pulsarClusterSpec.getGlobal(), null);
+                        getNamespace(), pulsarCluster.getSpec().getZookeeper(),
+                        pulsarCluster.getSpec().getGlobal(), null);
 
         zooKeeperResourcesFactory.patchPodDisruptionBudget();
         zooKeeperResourcesFactory.patchConfigMap();
@@ -112,10 +113,10 @@ public class SpecGenerator {
     }
 
     @SneakyThrows
-    private static void dumpToFile(String directory, PulsarClusterSpec spec) {
+    private static void dumpToFile(String directory, PulsarCluster spec) {
         final Map<String, Object> asJson = MAPPER.convertValue(spec, Map.class);
         final File resultFile = new File(directory,
-                "crd-generated-pulsar-cluster-%s.json".formatted(spec.getGlobal().getName())
+                "crd-generated-pulsar-cluster-%s.json".formatted(spec.getMetadata().getName())
         );
         MAPPER.writeValue(resultFile, asJson);
         log.info("Resource PulsarClusterSpec exported to {}", resultFile.getAbsolutePath());

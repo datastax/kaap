@@ -387,6 +387,32 @@ public class AutorecoveryControllerTest {
     }
 
     @Test
+    public void testMatchLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                autorecovery:
+                    matchLabels:
+                        cluster: ""
+                        app: another-app
+                        custom: customvalue
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getSelector().getMatchLabels(),
+                Map.of(
+                        "app", "another-app",
+                        "component", "autorecovery",
+                        "custom", "customvalue"
+                )
+        );
+    }
+
+    @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
                 global:

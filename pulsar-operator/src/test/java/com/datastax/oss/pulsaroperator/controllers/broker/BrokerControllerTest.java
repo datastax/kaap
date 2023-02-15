@@ -960,6 +960,32 @@ public class BrokerControllerTest {
     }
 
     @Test
+    public void testMatchLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    matchLabels:
+                        cluster: ""
+                        app: another-app
+                        custom: customvalue
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getSelector().getMatchLabels(),
+                Map.of(
+                        "app", "another-app",
+                        "component", "broker",
+                        "custom", "customvalue"
+                )
+        );
+    }
+
+    @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
                 global:

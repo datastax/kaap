@@ -71,6 +71,8 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
     private Map<String, String> labels;
     @JsonPropertyDescription(CRDConstants.DOC_POD_LABELS)
     private Map<String, String> podLabels;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_MATCH_LABELS)
+    private Map<String, String> matchLabels;
     @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_SECRETS)
     private List<LocalObjectReference> imagePullSecrets;
     @Min(0)

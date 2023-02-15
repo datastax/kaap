@@ -129,7 +129,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withPorts(ports)
                 .withLoadBalancerIP(serviceSpec.getLoadBalancerIP())
                 .withType(serviceSpec.getType())
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -427,7 +427,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withNewSpec()
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withStrategy(spec.getUpdateStrategy())
                 .withNewTemplate()
@@ -440,7 +440,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -472,7 +472,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels(),
+                spec.getMatchLabels());
     }
 
 }

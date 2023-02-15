@@ -1456,6 +1456,11 @@ spec:
                       type: string
                     description: Labels to add to each pod.
                     type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
             type: object
           status:

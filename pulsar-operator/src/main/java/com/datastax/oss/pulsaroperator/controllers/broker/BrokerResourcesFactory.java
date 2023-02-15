@@ -117,7 +117,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withPorts(ports)
                 .withClusterIP("None")
                 .withType(serviceSpec.getType())
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -348,7 +348,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withUpdateStrategy(spec.getUpdateStrategy())
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
@@ -363,7 +363,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -468,7 +468,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
+        createPodDisruptionBudgetIfEnabled(
+                spec.getPdb(),
+                spec.getAnnotations(),
+                spec.getLabels(),
+                spec.getMatchLabels());
     }
 
 }

@@ -110,7 +110,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withPorts(ports)
                 .withClusterIP("None")
                 .withType(serviceSpec.getType())
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -147,7 +147,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -218,8 +218,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("authenticationEnabled", "true");
             data.put("authorizationEnabled", "true");
             data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
-            data.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
-                    "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
+            data.put("authenticationProviders",
+                    List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                            "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
             data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
             data.put("superUserRoles", new TreeSet<>(tokenConfig.getSuperUserRoles()));
@@ -489,7 +490,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withUpdateStrategy(spec.getUpdateStrategy())
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
@@ -504,7 +505,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(resourceName)
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -556,7 +557,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels(),
+                spec.getMatchLabels());
     }
 
     public void patchStorageClass() {

@@ -16,18 +16,24 @@
 package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
+import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PodAffinityTerm;
+import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -45,6 +51,8 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     private final String resourceName;
     private List<HasMetadata> resources = new ArrayList<>();
     private ZooKeeperSpec generatedSpec;
+    private AntiAffinityConfig antiAffinityConfig;
+    private PodDNSConfig podDNSConfig;
 
     public ZooKeeperSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
@@ -103,17 +111,23 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
         final PersistentVolumeClaim persistentVolumeClaim = statefulSetSpec.getVolumeClaimTemplates()
                 .get(0);
 
+        podDNSConfig = spec.getDnsConfig();
+        antiAffinityConfig = createAntiAffinityConfig(spec);
+        final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
+        final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
         generatedSpec = ZooKeeperSpec.builder()
-                .annotations(addHelmPolicyAnnotation(statefulSet.getMetadata().getAnnotations()))
+                .annotations(statefulSet.getMetadata().getAnnotations())
                 .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
                 .image(container.getImage())
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
                 .probe(readinessProbeConfig)
+                .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
                 .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
+                .matchLabels(matchLabels)
                 .config(configMapData)
                 .podManagementPolicy(statefulSetSpec.getPodManagementPolicy())
                 .updateStrategy(statefulSetSpec.getUpdateStrategy())
@@ -126,15 +140,91 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .build();
     }
 
+
+    private Map<String, String> getMatchLabels(StatefulSetSpec statefulSetSpec) {
+        Map<String, String> matchLabels = statefulSetSpec.getSelector().getMatchLabels();
+        if (matchLabels == null) {
+            matchLabels = new HashMap<>();
+        }
+        if (!matchLabels.containsKey("cluster")) {
+            matchLabels.put("cluster", "");
+        }
+        return matchLabels;
+    }
+
     @Override
     public PodDNSConfig getPodDnsConfig() {
-        return getStatefulSet(resourceName).getSpec().getTemplate().getSpec().getDnsConfig();
+        return podDNSConfig;
+    }
+
+    @Override
+    public AntiAffinityConfig getAntiAffinityConfig() {
+        return antiAffinityConfig;
     }
 
     private ZooKeeperSpec.ServiceConfig createServiceConfig(Service mainService) {
+        Map<String, String> annotations = mainService.getMetadata().getAnnotations();
+        if (annotations == null) {
+            annotations = new HashMap<>();
+        }
+        annotations.remove("service.alpha.kubernetes.io/tolerate-unready-endpoints");
         return ZooKeeperSpec.ServiceConfig.builder()
-                .annotations(addHelmPolicyAnnotation(mainService.getMetadata().getAnnotations()))
+                .annotations(annotations)
                 .build();
+    }
+
+    private AntiAffinityConfig createAntiAffinityConfig(PodSpec podSpec) {
+        final AntiAffinityConfig.AntiAffinityConfigBuilder builder = AntiAffinityConfig.builder()
+                .host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                        .enabled(false)
+                        .build())
+                .zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
+                        .enabled(false)
+                        .build());
+
+        final Affinity affinity = podSpec.getAffinity();
+        if (affinity == null || affinity.getPodAntiAffinity() == null) {
+            return builder.build();
+        }
+
+        final PodAntiAffinity podAntiAffinity = affinity.getPodAntiAffinity();
+        final List<PodAffinityTerm> required =
+                podAntiAffinity.getRequiredDuringSchedulingIgnoredDuringExecution();
+        final List<WeightedPodAffinityTerm> preferred =
+                podAntiAffinity.getPreferredDuringSchedulingIgnoredDuringExecution();
+        if (required != null) {
+            for (PodAffinityTerm podAffinityTerm : required) {
+                if (podAffinityTerm.getTopologyKey().equals("kubernetes.io/hostname")) {
+                    builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                            .enabled(true)
+                            .required(true)
+                            .build());
+                } else {
+                    throw new IllegalArgumentException("Unsupported "
+                            + "topology key in podAntiAffinity " + podAffinityTerm.getTopologyKey());
+                }
+
+            }
+        }
+        if (preferred != null) {
+            for (WeightedPodAffinityTerm weightedPodAffinityTerm : preferred) {
+                if (weightedPodAffinityTerm.getPodAffinityTerm().equals("kubernetes.io/hostname")) {
+                    builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                            .enabled(true)
+                            .required(false)
+                            .build());
+                } else if (weightedPodAffinityTerm.getPodAffinityTerm().equals("failure-domain.beta.kubernetes.io/zone")) {
+                    builder.zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
+                            .enabled(true)
+                            .build());
+                } else {
+                    throw new IllegalArgumentException("Unsupported "
+                            + "topology key in podAntiAffinity " + weightedPodAffinityTerm
+                            .getPodAffinityTerm().getTopologyKey());
+                }
+            }
+        }
+        return builder.build();
     }
 
     private VolumeConfig createDataVolumeConfig(String resourceName, PersistentVolumeClaim persistentVolumeClaim) {

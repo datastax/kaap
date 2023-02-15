@@ -159,7 +159,7 @@ Resource Types:
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -193,6 +193,27 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryimagepullsecretsindex">imagePullSecrets</a></b></td>
+        <td>[]object</td>
+        <td>
+          Image pull secrets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverynodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -204,6 +225,20 @@ Resource Types:
         <td>map[string]string</td>
         <td>
           Additional node selectors.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -225,6 +260,32 @@ Resource Types:
         <td>[]object</td>
         <td>
           Pod tolerations.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.imagePullSecrets[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -655,7 +716,7 @@ Resources requirements.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -689,6 +750,27 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionimagepullsecretsindex">imagePullSecrets</a></b></td>
+        <td>[]object</td>
+        <td>
+          Image pull secrets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionnodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -700,6 +782,20 @@ Resources requirements.
         <td>map[string]string</td>
         <td>
           Additional node selectors.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -728,6 +824,32 @@ Resources requirements.
         <td>[]object</td>
         <td>
           Pod tolerations.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.imagePullSecrets[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1165,7 +1287,7 @@ Resources requirements.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1206,6 +1328,27 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperimagepullsecretsindex">imagePullSecrets</a></b></td>
+        <td>[]object</td>
+        <td>
+          Image pull secrets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepernodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -1224,6 +1367,20 @@ Resources requirements.
         <td>object</td>
         <td>
           Pod disruption budget configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -4453,6 +4610,32 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.imagePullSecrets[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.nodeAffinity
 
 
@@ -5359,7 +5542,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5407,10 +5590,31 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerimagepullsecretsindex">imagePullSecrets</a></b></td>
+        <td>[]object</td>
+        <td>
+          Image pull secrets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerinitcontainer">initContainer</a></b></td>
         <td>object</td>
         <td>
           Additional init container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5432,6 +5636,20 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>object</td>
         <td>
           Pod disruption budget configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -8668,6 +8886,32 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.broker.imagePullSecrets[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.initContainer
 
 
@@ -9499,7 +9743,7 @@ Update strategy for the StatefulSet.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -9547,10 +9791,24 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerlogsvolume">logsVolume</a></b></td>
         <td>object</td>
         <td>
           Volume configuration for export function logs.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -9572,6 +9830,20 @@ Update strategy for the StatefulSet.
         <td>object</td>
         <td>
           Pod disruption budget configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -15131,7 +15403,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -15165,10 +15437,31 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyimagepullsecretsindex">imagePullSecrets</a></b></td>
+        <td>[]object</td>
+        <td>
+          Image pull secrets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyinitcontainer">initContainer</a></b></td>
         <td>object</td>
         <td>
           Additional init container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -15190,6 +15483,20 @@ TLS configurations related to the ZooKeeper component.
         <td>object</td>
         <td>
           Pod disruption budget configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -18321,6 +18628,32 @@ Mount additional volumes to the pod.
 </table>
 
 
+### PulsarCluster.spec.proxy.imagePullSecrets[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.initContainer
 
 
@@ -19133,7 +19466,7 @@ Resources requirements.
         <td><b>annotations</b></td>
         <td>map[string]string</td>
         <td>
-          Annotations to add to each resource.<br/>
+          Annotations to add to each resource (except pods).<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -19174,6 +19507,27 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperimagepullsecretsindex">imagePullSecrets</a></b></td>
+        <td>[]object</td>
+        <td>
+          Image pull secrets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeepermetadatainitializationjob">metadataInitializationJob</a></b></td>
         <td>object</td>
         <td>
@@ -19199,6 +19553,20 @@ Resources requirements.
         <td>object</td>
         <td>
           Pod disruption budget configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          Annotations to add to pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Labels to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -22418,6 +22786,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>string</td>
         <td>
           Indicates the 'type' parameter for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.imagePullSecrets[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>

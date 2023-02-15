@@ -208,19 +208,19 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
         }
         if (preferred != null) {
             for (WeightedPodAffinityTerm weightedPodAffinityTerm : preferred) {
-                if (weightedPodAffinityTerm.getPodAffinityTerm().equals("kubernetes.io/hostname")) {
+                final String topologyKey = weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey();
+                if (topologyKey.equals("kubernetes.io/hostname")) {
                     builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
                             .enabled(true)
                             .required(false)
                             .build());
-                } else if (weightedPodAffinityTerm.getPodAffinityTerm().equals("failure-domain.beta.kubernetes.io/zone")) {
+                } else if (topologyKey.equals("failure-domain.beta.kubernetes.io/zone")) {
                     builder.zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
                             .enabled(true)
                             .build());
                 } else {
                     throw new IllegalArgumentException("Unsupported "
-                            + "topology key in podAntiAffinity " + weightedPodAffinityTerm
-                            .getPodAffinityTerm().getTopologyKey());
+                            + "topology key in podAntiAffinity " + topologyKey);
                 }
             }
         }

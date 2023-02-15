@@ -56,7 +56,12 @@ public class SpecGenerator {
         KubernetesClient client = builder.build();
 
         final File fullOut = new File(outputDirectory, inputSpecs.context);
-        fullOut.mkdirs();
+        final boolean mkdirs = fullOut.mkdirs();
+        if (mkdirs) {
+            log.info("Created directory {}", fullOut);
+        } else {
+            log.info("Using already existing directory {}", fullOut);
+        }
 
         final PulsarCluster pulsarCluster =
                 generatePulsarClusterSpec(client, fullOut);

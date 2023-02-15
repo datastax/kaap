@@ -35,7 +35,6 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

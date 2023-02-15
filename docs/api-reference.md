@@ -207,6 +207,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverynodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -754,6 +761,13 @@ Resources requirements.
         <td>map[string]string</td>
         <td>
           Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -1325,6 +1339,13 @@ Resources requirements.
         <td>map[string]string</td>
         <td>
           Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -5590,6 +5611,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokernodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -9774,6 +9802,13 @@ Update strategy for the StatefulSet.
         <td>object</td>
         <td>
           Volume configuration for export function logs.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -15423,6 +15458,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxynodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -19476,6 +19518,13 @@ Resources requirements.
         <td>map[string]string</td>
         <td>
           Labels to add to each resource (except pods).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          Match labels selectors to add to each pod.<br/>
         </td>
         <td>false</td>
       </tr><tr>

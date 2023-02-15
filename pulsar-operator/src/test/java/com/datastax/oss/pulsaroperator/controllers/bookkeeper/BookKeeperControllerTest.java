@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
@@ -76,7 +77,7 @@ public class BookKeeperControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: bookkeeper
                           name: pulsarname-bookkeeper
@@ -111,7 +112,7 @@ public class BookKeeperControllerTest {
                   annotations:
                     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: bookkeeper
                   name: pulsarname-bookkeeper
@@ -129,7 +130,8 @@ public class BookKeeperControllerTest {
                     port: 3181
                   publishNotReadyAddresses: true
                   selector:
-                    app: pulsarname
+                    app: pulsar
+                    cluster: pulsarname
                     component: bookkeeper
                 """);
 
@@ -141,7 +143,7 @@ public class BookKeeperControllerTest {
                 kind: StatefulSet
                 metadata:
                   labels:
-                    app: pulsarname
+                    app: pulsar
                     cluster: pulsarname
                     component: bookkeeper
                   name: pulsarname-bookkeeper
@@ -157,7 +159,8 @@ public class BookKeeperControllerTest {
                   replicas: 3
                   selector:
                     matchLabels:
-                      app: pulsarname
+                      app: pulsar
+                      cluster: pulsarname
                       component: bookkeeper
                   serviceName: pulsarname-bookkeeper
                   template:
@@ -166,7 +169,7 @@ public class BookKeeperControllerTest {
                         prometheus.io/port: 8080
                         prometheus.io/scrape: "true"
                       labels:
-                        app: pulsarname
+                        app: pulsar
                         cluster: pulsarname
                         component: bookkeeper
                     spec:
@@ -175,7 +178,8 @@ public class BookKeeperControllerTest {
                           requiredDuringSchedulingIgnoredDuringExecution:
                           - labelSelector:
                               matchLabels:
-                                app: pulsarname
+                                app: pulsar
+                                cluster: pulsarname
                                 component: bookkeeper
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -270,7 +274,7 @@ public class BookKeeperControllerTest {
                         kind: PodDisruptionBudget
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: bookkeeper
                           name: pulsarname-bookkeeper
@@ -285,7 +289,8 @@ public class BookKeeperControllerTest {
                           maxUnavailable: 1
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: bookkeeper
                             """);
 
@@ -388,8 +393,8 @@ public class BookKeeperControllerTest {
         final String stsCommand = sts.getSpec().getTemplate().getSpec().getContainers().get(0)
                 .getArgs().get(0);
         Assert.assertEquals(stsCommand, "bin/apply-config-from-env.py conf/bookkeeper.conf && openssl pkcs8 -topk8 "
-                        + "-inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && "
-                        + "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar bookie");
+                + "-inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && "
+                + "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar bookie");
     }
 
 
@@ -668,19 +673,116 @@ public class BookKeeperControllerTest {
                 bookkeeper:
                     annotations:
                         annotation-1: ann1-value
+                    podAnnotations:
+                        annotation-2: ann2-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
+                Map.of(
+                        "prometheus.io/scrape", "true",
+                        "prometheus.io/port", "8080",
+                        "annotation-2", "ann2-value"
+                )
+        );
+        client.getCreatedResources().forEach(resource -> {
+            if (resource.getResource() instanceof Service) {
+                return;
+            }
+            Assert.assertEquals(
+                    resource.getResource().getMetadata().getAnnotations(),
+                    Map.of(
+                            "annotation-1", "ann1-value"
+                    )
+            );
+        });
+    }
 
-        final Map<String, String> annotations =
-                createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
 
-        Assert.assertEquals(annotations.size(), 3);
-        Assert.assertEquals(annotations.get("prometheus.io/scrape"), "true");
-        Assert.assertEquals(annotations.get("prometheus.io/port"), "8080");
-        Assert.assertEquals(annotations.get("annotation-1"), "ann1-value");
+    @Test
+    public void testLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    labels:
+                        label-1: label1-value
+                    podLabels:
+                        label-2: label2-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "bookkeeper",
+                        "label-2", "label2-value"
+                )
+        );
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class).getResource().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "bookkeeper",
+                        "label-1", "label1-value"
+                )
+        );
+    }
+
+    @Test
+    public void testMatchLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    matchLabels:
+                        cluster: ""
+                        app: another-app
+                        custom: customvalue
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getSelector().getMatchLabels(),
+                Map.of(
+                        "app", "another-app",
+                        "component", "bookkeeper",
+                        "custom", "customvalue"
+                )
+        );
+    }
+
+
+    @Test
+    public void testImagePullSecrets() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    imagePullSecrets:
+                        - secret1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
+                List.of(new LocalObjectReference("secret1"))
+        );
     }
 
     @Test
@@ -1177,7 +1279,8 @@ public class BookKeeperControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "bookkeeper"
         ));
 
@@ -1198,7 +1301,8 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "bookkeeper"
         ));
 
@@ -1246,11 +1350,11 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "bookkeeper"
         ));
     }
-
 
 
     @Test
@@ -1271,7 +1375,8 @@ public class BookKeeperControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "bookkeeper"
         ));
 
@@ -1284,7 +1389,8 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "bookkeeper"
         ));
     }

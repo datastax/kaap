@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -64,6 +65,16 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
     protected Integer replicas;
     @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_ANNOTATIONS)
+    private Map<String, String> podAnnotations;
+    @JsonPropertyDescription(CRDConstants.DOC_LABELS)
+    private Map<String, String> labels;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_LABELS)
+    private Map<String, String> podLabels;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_MATCH_LABELS)
+    private Map<String, String> matchLabels;
+    @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_SECRETS)
+    private List<LocalObjectReference> imagePullSecrets;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
     @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)

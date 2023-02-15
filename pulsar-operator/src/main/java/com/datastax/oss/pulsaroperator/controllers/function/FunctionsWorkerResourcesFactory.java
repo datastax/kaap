@@ -104,13 +104,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels()))
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
                 .withClusterIP("None")
                 .withType(serviceSpec.getType())
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -142,12 +142,12 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName("%s-ca".formatted(resourceName))
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels()))
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -189,7 +189,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName("%s-extra".formatted(resourceName))
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -216,8 +218,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("authenticationEnabled", "true");
             data.put("authorizationEnabled", "true");
             data.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
-            data.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
-                    "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
+            data.put("authenticationProviders",
+                    List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                            "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
             data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
             data.put("superUserRoles", new TreeSet<>(tokenConfig.getSuperUserRoles()));
@@ -301,7 +304,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(Map.of("functions_worker.yml", SerializationUtil.writeAsYaml(data)))
                 .build();
         patchResource(configMap);
@@ -324,15 +329,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             return null;
         }
 
-        Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
+        Map<String, String> annotations = getAnnotations(spec.getAnnotations());
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
         Objects.requireNonNull(extraConfigMap, "ConfigMap (extra) should have been created at this point");
-        addConfigMapChecksumAnnotation(extraConfigMap, allAnnotations);
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
+        addConfigMapChecksumAnnotation(extraConfigMap, podAnnotations);
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
@@ -481,19 +484,20 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
+                .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withUpdateStrategy(spec.getUpdateStrategy())
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
@@ -501,7 +505,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(resourceName)
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -553,11 +557,12 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+        createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels(),
+                spec.getMatchLabels());
     }
 
     public void patchStorageClass() {
-        createStorageClassIfNeeded(spec.getLogsVolume());
+        createStorageClassIfNeeded(spec.getLogsVolume(), spec.getAnnotations(), spec.getLabels());
     }
 
     public void patchRBAC() {

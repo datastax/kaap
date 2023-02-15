@@ -147,7 +147,7 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         }
         boolean foundUser = false;
         for (NamedAuthInfo user : currentKubeConfig.getUsers()) {
-            if (user.equals(clusterName)) {
+            if (user.getName().equals(clusterName)) {
                 foundUser = true;
                 user.setUser(containerKubeConfig.getUsers().get(0).getUser());
                 break;

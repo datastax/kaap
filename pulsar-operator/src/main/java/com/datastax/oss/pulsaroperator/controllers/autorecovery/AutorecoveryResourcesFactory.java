@@ -92,7 +92,9 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -106,13 +108,11 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
             deleteDeployment();
             return;
         }
-        Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        final Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
@@ -162,22 +162,24 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
+                .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)

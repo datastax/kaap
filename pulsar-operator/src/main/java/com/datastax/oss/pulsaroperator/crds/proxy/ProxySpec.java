@@ -123,8 +123,6 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     protected Map<String, Object> config;
     @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
-    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
-    private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
     @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)

@@ -135,8 +135,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy.")
     private String podManagementPolicy;
-    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
-    private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
     @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)

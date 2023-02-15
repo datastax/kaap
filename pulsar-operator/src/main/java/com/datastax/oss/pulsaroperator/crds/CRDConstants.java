@@ -20,6 +20,7 @@ public final class CRDConstants {
     public static final String GROUP = "pulsar.oss.datastax.com";
 
     public static final String LABEL_APP = "app";
+    public static final String LABEL_APP_VALUE = "pulsar";
     public static final String LABEL_COMPONENT = "component";
     public static final String LABEL_CLUSTER = "cluster";
 
@@ -36,13 +37,18 @@ public final class CRDConstants {
     public static final String DOC_IMAGE = "Override Pulsar image.";
     public static final String DOC_IMAGE_PULL_POLICY = "Override image pull policy.";
     public static final String DOC_NODE_SELECTORS = "Additional node selectors.";
-    public static final String DOC_ANNOTATIONS = "Annotations to add to each resource.";
+    public static final String DOC_ANNOTATIONS = "Annotations to add to each resource (except pods).";
+    public static final String DOC_POD_ANNOTATIONS = "Annotations to add to pod.";
+    public static final String DOC_LABELS = "Labels to add to each resource (except pods).";
+    public static final String DOC_POD_LABELS = "Labels to add to each pod.";
+    public static final String DOC_POD_MATCH_LABELS = "Match labels selectors to add to each pod.";
     public static final String DOC_CONFIG = "Configuration.";
     public static final String DOC_REPLICAS = "Number of desired replicas.";
     public static final String DOC_GRACE_PERIOD = "Termination grace period in seconds.";
     public static final String DOC_RESOURCES = "Resources requirements.";
     public static final String DOC_TOLERATIONS = "Pod tolerations.";
     public static final String DOC_NODE_AFFINITY = "Node affinity configuration.";
+    public static final String DOC_IMAGE_PULL_SECRETS = "Image pull secrets.";
 
     public static final String DOC_SERVICE_ANNOTATIONS = "Additional annotations to add to the Service.";
     public static final String DOC_SERVICE_PORTS = "Additional ports to add to the Service.";

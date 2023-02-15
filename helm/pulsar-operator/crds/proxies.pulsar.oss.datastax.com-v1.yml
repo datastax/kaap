@@ -72,11 +72,6 @@ spec:
                     description: Whether or not the functions worker is in standalone
                       mode.
                     type: boolean
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Annotations to add to each resource.
-                    type: object
                   webSocket:
                     description: WebSocket configuration.
                     properties:
@@ -844,6 +839,32 @@ spec:
                           type: object
                         type: array
                     type: object
+                  imagePullSecrets:
+                    description: Image pull secrets.
+                    items:
+                      properties:
+                        name:
+                          type: string
+                      type: object
+                    type: array
+                  image:
+                    description: Override Pulsar image.
+                    type: string
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to each resource (except pods).
+                    type: object
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to add to pod.
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Labels to add to each resource (except pods).
+                    type: object
                   tolerations:
                     description: Pod tolerations.
                     items:
@@ -947,9 +968,6 @@ spec:
                             type: array
                         type: object
                     type: object
-                  image:
-                    description: Override Pulsar image.
-                    type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
@@ -958,6 +976,16 @@ spec:
                   imagePullPolicy:
                     description: Override image pull policy.
                     type: string
+                  podLabels:
+                    additionalProperties:
+                      type: string
+                    description: Labels to add to each pod.
+                    type: object
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: Match labels selectors to add to each pod.
+                    type: object
                 type: object
               global:
                 properties:

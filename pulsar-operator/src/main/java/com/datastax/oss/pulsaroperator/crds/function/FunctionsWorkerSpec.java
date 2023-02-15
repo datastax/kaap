@@ -25,7 +25,6 @@ import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
-import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -117,10 +116,6 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy.")
     private String podManagementPolicy;
-    @JsonPropertyDescription("Image pull secrets.")
-    private List<LocalObjectReference> imagePullSecrets;
-    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
-    private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
     @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)

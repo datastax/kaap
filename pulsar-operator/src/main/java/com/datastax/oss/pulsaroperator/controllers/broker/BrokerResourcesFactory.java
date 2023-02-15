@@ -110,14 +110,14 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels()))
                 .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(ports)
                 .withClusterIP("None")
                 .withType(serviceSpec.getType())
-                .withSelector(getMatchLabels())
+                .withSelector(getMatchLabels(spec.getMatchLabels()))
                 .endSpec()
                 .build();
 
@@ -200,7 +200,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels()).endMetadata()
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
+                .endMetadata()
                 .withData(handleConfigPulsarPrefix(data))
                 .build();
         patchResource(configMap);
@@ -222,13 +224,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             return null;
         }
 
-        Map<String, String> labels = getLabels();
-        Map<String, String> allAnnotations = getDefaultAnnotations();
+        Map<String, String> labels = getLabels(spec.getLabels());
+        Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        addConfigMapChecksumAnnotation(configMap, allAnnotations);
-        if (spec.getAnnotations() != null) {
-            allAnnotations.putAll(spec.getAnnotations());
-        }
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
@@ -342,26 +342,28 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withName(resourceName)
                 .withNamespace(namespace)
                 .withLabels(labels)
+                .withAnnotations(annotations)
                 .endMetadata()
                 .withNewSpec()
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
                 .withNewSelector()
-                .withMatchLabels(getMatchLabels())
+                .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()
                 .withUpdateStrategy(spec.getUpdateStrategy())
                 .withPodManagementPolicy(spec.getPodManagementPolicy())
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels(labels)
-                .withAnnotations(allAnnotations)
+                .withLabels(podLabels)
+                .withAnnotations(podAnnotations)
                 .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity()))
+                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -419,13 +421,19 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withNewMetadata()
                 .withName(resourceName)
                 .withNamespace(namespace)
-                .withLabels(getLabels())
+                .withLabels(getLabels(spec.getLabels()))
+                .withAnnotations(getAnnotations(spec.getAnnotations()))
                 .endMetadata()
                 .withNewSpec()
                 .withNewTemplate()
+                .withNewMetadata()
+                .withAnnotations(getPodAnnotations(spec.getPodAnnotations(), null))
+                .withLabels(getPodLabels(spec.getPodLabels()))
+                .endMetadata()
                 .withNewSpec()
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
+                .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withVolumes(volumes)
@@ -449,8 +457,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return new ProbeBuilder()
                 .withNewExec()
-                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/admin/v2/brokers/health > /dev/null"
-                        .formatted(specProbe.getTimeout(), authHeader))
+                .withCommand("sh", "-c",
+                        "curl -s --max-time %d --fail %s http://localhost:8080/admin/v2/brokers/health > /dev/null"
+                                .formatted(specProbe.getTimeout(), authHeader))
                 .endExec()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())
@@ -459,7 +468,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
     public void patchPodDisruptionBudget() {
-        createPodDisruptionBudgetIfEnabled(spec.getPdb());
+        createPodDisruptionBudgetIfEnabled(
+                spec.getPdb(),
+                spec.getAnnotations(),
+                spec.getLabels(),
+                spec.getMatchLabels());
     }
 
 }

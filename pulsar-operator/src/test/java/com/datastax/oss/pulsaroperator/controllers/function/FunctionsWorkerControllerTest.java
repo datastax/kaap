@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
@@ -85,7 +86,7 @@ public class FunctionsWorkerControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: function
                           name: pulsarname-function
@@ -135,7 +136,7 @@ public class FunctionsWorkerControllerTest {
                         kind: ConfigMap
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: function
                           name: pulsarname-function-extra
@@ -161,7 +162,7 @@ public class FunctionsWorkerControllerTest {
                         kind: Service
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: function
                           name: pulsarname-function-ca
@@ -179,7 +180,8 @@ public class FunctionsWorkerControllerTest {
                           - name: https
                             port: 6751
                           selector:
-                            app: pulsarname
+                            app: pulsar
+                            cluster: pulsarname
                             component: function
                         """);
 
@@ -190,7 +192,7 @@ public class FunctionsWorkerControllerTest {
                         kind: Service
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: function
                           name: pulsarname-function
@@ -209,7 +211,8 @@ public class FunctionsWorkerControllerTest {
                           - name: https
                             port: 6751
                           selector:
-                            app: pulsarname
+                            app: pulsar
+                            cluster: pulsarname
                             component: function
                           type: ClusterIP
                         """);
@@ -221,7 +224,7 @@ public class FunctionsWorkerControllerTest {
                         kind: StatefulSet
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: function
                           name: pulsarname-function
@@ -237,7 +240,8 @@ public class FunctionsWorkerControllerTest {
                           replicas: 2
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: function
                           serviceName: pulsarname-function
                           template:
@@ -246,7 +250,7 @@ public class FunctionsWorkerControllerTest {
                                 prometheus.io/port: 8080
                                 prometheus.io/scrape: "true"
                               labels:
-                                app: pulsarname
+                                app: pulsar
                                 cluster: pulsarname
                                 component: function
                             spec:
@@ -255,7 +259,8 @@ public class FunctionsWorkerControllerTest {
                                   requiredDuringSchedulingIgnoredDuringExecution:
                                   - labelSelector:
                                       matchLabels:
-                                        app: pulsarname
+                                        app: pulsar
+                                        cluster: pulsarname
                                         component: function
                                     topologyKey: kubernetes.io/hostname
                               containers:
@@ -343,7 +348,7 @@ public class FunctionsWorkerControllerTest {
                         kind: PodDisruptionBudget
                         metadata:
                           labels:
-                            app: pulsarname
+                            app: pulsar
                             cluster: pulsarname
                             component: function
                           name: pulsarname-function
@@ -358,7 +363,8 @@ public class FunctionsWorkerControllerTest {
                           maxUnavailable: 1
                           selector:
                             matchLabels:
-                              app: pulsarname
+                              app: pulsar
+                              cluster: pulsarname
                               component: function
                         """);
 
@@ -794,8 +800,9 @@ public class FunctionsWorkerControllerTest {
                 "org.apache.pulsar.functions.runtime.process.ProcessRuntimeFactory");
         expectedData.put("functionRuntimeFactoryConfigs", Map.of());
         expectedData.put("authenticationEnabled", "true");
-        expectedData.put("authenticationProviders", List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
-                "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
+        expectedData.put("authenticationProviders",
+                List.of("org.apache.pulsar.broker.authentication.AuthenticationProviderToken",
+                        "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
         expectedData.put("authorizationEnabled", "true");
         expectedData.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
         expectedData.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
@@ -806,9 +813,9 @@ public class FunctionsWorkerControllerTest {
         );
 
         final Map<String, Object> data = (Map<String, Object>) SerializationUtil
-                .readYaml(client.getCreatedResources(ConfigMap.class).get(0).getResource().getData().get("functions_worker.yml"), Map.class);
+                .readYaml(client.getCreatedResources(ConfigMap.class).get(0).getResource().getData()
+                        .get("functions_worker.yml"), Map.class);
         Assert.assertEquals(data, expectedData);
-
 
 
         Map<String, Object> expectedDataForExtra = new HashMap<>();
@@ -819,12 +826,15 @@ public class FunctionsWorkerControllerTest {
         expectedDataForExtra.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedDataForExtra.put("PULSAR_PREFIX_authorizationEnabled", "true");
         expectedDataForExtra.put("PULSAR_PREFIX_authenticationEnabled", "true");
-        expectedDataForExtra.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
-        expectedDataForExtra.put("PULSAR_PREFIX_brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedDataForExtra.put("PULSAR_PREFIX_brokerClientAuthenticationPlugin",
+                "org.apache.pulsar.client.impl.auth.AuthenticationToken");
+        expectedDataForExtra.put("PULSAR_PREFIX_brokerClientAuthenticationParameters",
+                "file:///pulsar/token-superuser/superuser.jwt");
         expectedDataForExtra.put("PULSAR_PREFIX_superUserRoles", "admin,proxy,superuser,websocket");
         expectedDataForExtra.put("PULSAR_PREFIX_tokenPublicKey", "file:///pulsar/token-public-key/my-public.key");
-        expectedDataForExtra.put("PULSAR_PREFIX_authenticationProviders", "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
-                + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
+        expectedDataForExtra.put("PULSAR_PREFIX_authenticationProviders",
+                "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,"
+                        + "org.apache.pulsar.broker.authentication.AuthenticationProviderTls");
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResource().getData(),
                 expectedDataForExtra);
@@ -838,8 +848,9 @@ public class FunctionsWorkerControllerTest {
                 "public-key", "superuser");
         final String cmdArg = sts.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs()
                 .stream().collect(Collectors.joining(" "));
-        Assert.assertTrue(cmdArg.contains("cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
-                + ".jwt && "));
+        Assert.assertTrue(cmdArg.contains(
+                "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
+                        + ".jwt && "));
 
         Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getContainers().get(0)
                 .getLivenessProbe().getExec().getCommand()
@@ -980,21 +991,122 @@ public class FunctionsWorkerControllerTest {
                     image: apachepulsar/pulsar:global
                 functionsWorker:
                     replicas: 1
+                    rbac: 
+                        create: false
                     annotations:
                         annotation-1: ann1-value
+                    podAnnotations:
+                        annotation-2: ann2-value
                 """;
         MockKubernetesClient client = invokeController(spec);
 
-        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
-                client.getCreatedResource(StatefulSet.class);
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
+                Map.of(
+                        "prometheus.io/scrape", "true",
+                        "prometheus.io/port", "8080",
+                        "annotation-2", "ann2-value"
+                )
+        );
+        client.getCreatedResources().forEach(resource -> {
+            if (resource.getResource() instanceof Service) {
+                return;
+            }
+            Assert.assertEquals(
+                    resource.getResource().getMetadata().getAnnotations(),
+                    Map.of(
+                            "annotation-1", "ann1-value"
+                    )
+            );
+        });
+    }
 
-        final Map<String, String> annotations =
-                createdResource.getResource().getSpec().getTemplate().getMetadata().getAnnotations();
 
-        Assert.assertEquals(annotations.size(), 3);
-        Assert.assertEquals(annotations.get("prometheus.io/scrape"), "true");
-        Assert.assertEquals(annotations.get("prometheus.io/port"), "8080");
-        Assert.assertEquals(annotations.get("annotation-1"), "ann1-value");
+    @Test
+    public void testLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 1
+                    labels:
+                        label-1: label1-value
+                    podLabels:
+                        label-2: label2-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "function",
+                        "label-2", "label2-value"
+                )
+        );
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class).getResource().getMetadata().getLabels(),
+                Map.of(
+                        "cluster", "pul",
+                        "app", "pulsar",
+                        "component", "function",
+                        "label-1", "label1-value"
+                )
+        );
+    }
+
+    @Test
+    public void testMatchLabels() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 1
+                    matchLabels:
+                        cluster: ""
+                        app: another-app
+                        custom: customvalue
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getSelector().getMatchLabels(),
+                Map.of(
+                        "app", "another-app",
+                        "component", "function",
+                        "custom", "customvalue"
+                )
+        );
+    }
+
+    @Test
+    public void testImagePullSecrets() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 1
+                    imagePullSecrets:
+                        - secret1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
+                List.of(new LocalObjectReference("secret1"))
+        );
     }
 
     @Test
@@ -1243,7 +1355,8 @@ public class FunctionsWorkerControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "function"
         ));
 
@@ -1266,7 +1379,8 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm.getWeight().intValue(), 100);
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "function"
         ));
 
@@ -1318,11 +1432,11 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "function"
         ));
     }
-
 
 
     @Test
@@ -1345,7 +1459,8 @@ public class FunctionsWorkerControllerTest {
                 .get(0);
         Assert.assertEquals(term.getTopologyKey(), "kubernetes.io/hostname");
         Assert.assertEquals(term.getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "function"
         ));
 
@@ -1358,7 +1473,8 @@ public class FunctionsWorkerControllerTest {
         Assert.assertEquals(weightedPodAffinityTerm
                 .getPodAffinityTerm().getTopologyKey(), "failure-domain.beta.kubernetes.io/zone");
         Assert.assertEquals(weightedPodAffinityTerm.getPodAffinityTerm().getLabelSelector().getMatchLabels(), Map.of(
-                "app", "pul",
+                "app", "pulsar",
+                "cluster", "pul",
                 "component", "function"
         ));
     }
@@ -1482,7 +1598,8 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-fnlogs").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-fnlogs").getMountPath(),
                 "/pulsar/logs");
         Assert.assertNotNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-function-fnlogs").getEmptyDir());
         Assert.assertNull(client.getCreatedResource(StorageClass.class));
@@ -1513,7 +1630,8 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
                 "/pulsar/logs");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-zookeeper-logs"));
 
@@ -1569,7 +1687,8 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
                 "/pulsar/logs");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
 
@@ -1635,7 +1754,8 @@ public class FunctionsWorkerControllerTest {
                 .getSpec();
         final Container container = podSpec.getContainers().get(0);
 
-        Assert.assertEquals(KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
+        Assert.assertEquals(
+                KubeTestUtil.getVolumeMountByName(container.getVolumeMounts(), "pul-function-logs").getMountPath(),
                 "/pulsar/logs");
         Assert.assertNull(KubeTestUtil.getVolumeByName(podSpec.getVolumes(), "pul-function-logs"));
 

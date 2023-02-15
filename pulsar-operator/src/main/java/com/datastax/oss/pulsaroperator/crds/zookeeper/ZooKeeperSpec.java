@@ -109,8 +109,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     private String podManagementPolicy;
     @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
-    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
-    private Map<String, String> annotations;
     @Min(0)
     @io.fabric8.generator.annotation.Min(0)
     @JsonPropertyDescription(CRDConstants.DOC_GRACE_PERIOD)

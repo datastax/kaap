@@ -15,7 +15,7 @@
 #
 
 enableAntiAffinity: false
-enableTls: false
+enableTls: true
 enableTokenAuth: true
 restartOnConfigMapChange:
   enabled: true
@@ -23,6 +23,34 @@ extra:
   function: false
   broker: false
   brokerSts: true
+
+cert-manager:
+  enabled: true
+
+createCertificates:
+  selfSignedPerComponent:
+    enabled: true
+
+tls:
+  zookeeper:
+    enabled: true
+    createCertificates: true
+    tlsSecretName: zk-tls
+    configureKeystoreWithPasswordFile: true
+  bookkeeper:
+    enabled: true
+    createCertificates: true
+    tlsSecretName: bk-tls
+  broker:
+    enabled: true
+    createCertificates: true
+    tlsSecretName: broker-tls
+  autoRecovery:
+    enabled: true
+    createCertificates: true
+    tlsSecretName: autor-tls
+  ssCaCert:
+    tlsSecretName: ss-ca-cert
 
 image:
   broker:

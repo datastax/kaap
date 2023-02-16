@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
@@ -29,6 +30,7 @@ import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -49,6 +51,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
     private Map<String, Object> config;
+    private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public BrokerSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
@@ -101,15 +104,17 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
 
-        config = new HashMap<>(configMap.getData());
+        config = convertConfigMapData(configMap);
         container.getEnv().forEach(envVar -> {
-            config.put(envVar.getName(), envVar.getValue());
+            config.put(envVar.getName().replace("PULSAR_PREFIX_", ""), envVar.getValue());
         });
+
 
         podDNSConfig = spec.getDnsConfig();
         antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
+        tlsEntryConfig = createTlsEntryConfig(statefulSet);
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
         final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
 
@@ -178,9 +183,15 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     public String getPriorityClassName() {
         return priorityClassName;
     }
+
     @Override
     public Map<String, Object> getConfig() {
         return config;
+    }
+
+    @Override
+    public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
+        return tlsEntryConfig;
     }
 
     private BrokerSpec.ServiceConfig createServiceConfig(Service service) {
@@ -206,5 +217,23 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
             throw new IllegalStateException("current probe is not compatible, must be exec");
         }
     }
+
+    private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
+        boolean tlsEnabled = parseConfigValueBool(getConfig(), "tlsEnabled");
+        if (!tlsEnabled) {
+            return null;
+        }
+        final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
+                .filter(v -> v.getName().equals("certs"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
+        final String secretName = certs.getSecret().getSecretName();
+
+        return TlsConfig.TlsEntryConfig.builder()
+                .enabled(true)
+                .secretName(secretName)
+                .build();
+    }
+
 
 }

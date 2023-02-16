@@ -20,11 +20,11 @@ set -e -o pipefail
 
 
 yes_or_no() {
-	read -p " $1 (y/n)? " choice
+	read -p "$1 (y/n)? " choice
 	case "$choice" in
 		y|Y ) ;;
 		n|N ) exit 1;;
-		* ) yes_or_no $1;;
+		* ) yes_or_no "$1";;
 	esac
 }
 
@@ -39,6 +39,7 @@ current_namespace=$(kubectl config get-contexts "$current_context" | tail -n1 | 
 yes_or_no "The pulsar cluster will be installed in the context $current_context, namespace $current_namespace."
 
 helm repo add datastax-pulsar https://datastax.github.io/pulsar-helm-chart && helm repo update
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.0/cert-manager.crds.yaml
 helm install pulsar -f $this_dir/pulsar-chart-values.yaml --wait datastax-pulsar/pulsar --debug
 
 tempdir=$(mktemp -d)

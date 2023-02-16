@@ -21,6 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -87,6 +88,8 @@ public abstract class BaseSpecGenerator<T> {
     public abstract String getPriorityClassName();
 
     public abstract Map<String, Object> getConfig();
+
+    public abstract TlsConfig.TlsEntryConfig getTlsEntryConfig();
 
     protected void addResource(HasMetadata resource) {
         resources.add(SerializationUtil.deepCloneObject(resource));
@@ -319,11 +322,23 @@ public abstract class BaseSpecGenerator<T> {
                 && Boolean.parseBoolean(configMapData.get(property).toString());
     }
 
-    protected boolean isPodDependantOnConfigMap(PodTemplateSpec podTemplate) {
+    protected static boolean isPodDependantOnConfigMap(PodTemplateSpec podTemplate) {
         return podTemplate
                 .getMetadata()
                 .getAnnotations()
                 .containsKey("checksum/config");
+    }
+
+    protected static boolean parseConfigValueBool(Map<String, Object> config, String key) {
+        return Boolean.parseBoolean(String.valueOf(config.get(key)));
+    }
+
+    protected static Map<String, Object> convertConfigMapData(ConfigMap configMap) {
+        Map<String, Object> res = new HashMap<>();
+        configMap.getData().forEach((k, v) -> {
+            res.put(k.replace("PULSAR_PREFIX_", ""), v);
+        });
+        return res;
     }
 
 }

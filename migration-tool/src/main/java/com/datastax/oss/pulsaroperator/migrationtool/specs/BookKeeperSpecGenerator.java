@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
@@ -30,6 +31,7 @@ import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -50,6 +52,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
     private Map<String, Object> config;
+    private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public BookKeeperSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
@@ -106,7 +109,8 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
         antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
-        config = new HashMap<>(configMap.getData());
+        config = convertConfigMapData(configMap);
+        tlsEntryConfig = createTlsEntryConfig(statefulSet);
 
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
         final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
@@ -172,6 +176,11 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
         return config;
     }
 
+    @Override
+    public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
+        return tlsEntryConfig;
+    }
+
     private BookKeeperSpec.ServiceConfig createServiceConfig(Service service) {
         Map<String, String> annotations = service.getMetadata().getAnnotations();
         if (annotations == null) {
@@ -188,6 +197,23 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
         if (probe.getHttpGet() == null) {
             throw new IllegalStateException("current probe is not compatible, must be httpGet");
         }
+    }
+
+    private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
+        final String tlsProvider = (String) getConfig().get("tlsProvider");
+        if (!"OpenSSL".equals(tlsProvider)) {
+            return null;
+        }
+        final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
+                .filter(v -> v.getName().equals("certs"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
+        final String secretName = certs.getSecret().getSecretName();
+
+        return TlsConfig.TlsEntryConfig.builder()
+                .enabled(true)
+                .secretName(secretName)
+                .build();
     }
 
 }

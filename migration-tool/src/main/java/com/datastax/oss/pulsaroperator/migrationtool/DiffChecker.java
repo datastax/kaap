@@ -42,11 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiffChecker {
 
-    public static void main(String[] args) {
-        diffFromDirectory(new File(
-                "/var/folders/0z/h11c9jxx76g640q6pc1984480000gp/T/tmp.vsX4bxPb/outputs/pulsaroperator-local-k3s"));
-    }
-
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
             .configure(SerializationFeature.INDENT_OUTPUT, true)

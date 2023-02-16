@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
@@ -175,9 +176,9 @@ public class SpecGenerator {
         options.setPrettyFlow(true);
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(options);
-        @Cleanup
-        final FileWriter fileWriter = new FileWriter(resultFileYaml);
-        yaml.dump(asJson, fileWriter);
+        try (final FileWriter fileWriter = new FileWriter(resultFileYaml, StandardCharsets.UTF_8);) {
+            yaml.dump(asJson, fileWriter);
+        }
     }
 
 

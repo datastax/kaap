@@ -1395,17 +1395,9 @@ public class FunctionsWorkerControllerTest {
                     replicas: 1
                 """;
         client = invokeController(spec);
-        Assert.assertTrue(client.getCreatedResource(StatefulSet.class)
+        Assert.assertNull(client.getCreatedResource(StatefulSet.class)
                 .getResource().getSpec().getTemplate()
-                .getSpec().getAffinity().getPodAntiAffinity()
-                .getPreferredDuringSchedulingIgnoredDuringExecution()
-                .isEmpty());
-
-        Assert.assertTrue(client.getCreatedResource(StatefulSet.class)
-                .getResource().getSpec().getTemplate()
-                .getSpec().getAffinity().getPodAntiAffinity()
-                .getRequiredDuringSchedulingIgnoredDuringExecution()
-                .isEmpty());
+                .getSpec().getAffinity());
     }
 
     @Test

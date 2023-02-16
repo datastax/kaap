@@ -698,17 +698,9 @@ public class AutorecoveryControllerTest {
                             enabled: false
                 """;
         client = invokeController(spec);
-        Assert.assertTrue(client.getCreatedResource(Deployment.class)
+        Assert.assertNull(client.getCreatedResource(Deployment.class)
                 .getResource().getSpec().getTemplate()
-                .getSpec().getAffinity().getPodAntiAffinity()
-                .getPreferredDuringSchedulingIgnoredDuringExecution()
-                .isEmpty());
-
-        Assert.assertTrue(client.getCreatedResource(Deployment.class)
-                .getResource().getSpec().getTemplate()
-                .getSpec().getAffinity().getPodAntiAffinity()
-                .getRequiredDuringSchedulingIgnoredDuringExecution()
-                .isEmpty());
+                .getSpec().getAffinity());
     }
 
     @Test

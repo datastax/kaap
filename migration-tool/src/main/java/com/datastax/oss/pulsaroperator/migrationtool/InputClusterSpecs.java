@@ -33,10 +33,31 @@ public class InputClusterSpecs {
     String kubernetesClusterDomain;
     @Builder.Default
     ZooKeeperSpecs zookeeper = new ZooKeeperSpecs();
+
+    @Builder.Default
+    BookKeeperSpecs bookkeeper = new BookKeeperSpecs();
+
+    @Builder.Default
+    BrokerSpecs broker = new BrokerSpecs();
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ZooKeeperSpecs {
         String baseName = "zookeeper";
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookKeeperSpecs {
+        String baseName = "bookkeeper";
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BrokerSpecs {
+        String baseName = "broker";
     }
 }

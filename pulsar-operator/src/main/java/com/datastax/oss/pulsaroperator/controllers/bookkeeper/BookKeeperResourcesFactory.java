@@ -52,6 +52,8 @@ import org.apache.commons.lang3.ObjectUtils;
 @JBossLog
 public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperSpec> {
 
+    public static final int DEFAULT_BK_PORT = 3181;
+
     public static String getBookKeeperContainerName(GlobalSpec globalSpec) {
         return getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName());
     }
@@ -88,7 +90,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("server")
-                .withPort(3181)
+                .withPort(DEFAULT_BK_PORT)
                 .build());
         if (spec.getService() != null && spec.getService().getAdditionalPorts() != null) {
             ports.addAll(spec.getService().getAdditionalPorts());
@@ -276,7 +278,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                         .withArgs(mainArg)
                         .withPorts(new ContainerPortBuilder()
                                 .withName("client")
-                                .withContainerPort(3181)
+                                .withContainerPort(DEFAULT_BK_PORT)
                                 .build())
                         .withEnvFrom(new EnvFromSourceBuilder()
                                 .withNewConfigMapRef()

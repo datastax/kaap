@@ -16,12 +16,13 @@
 
 enableAntiAffinity: false
 enableTls: false
-enableTokenAuth: false
+enableTokenAuth: true
 restartOnConfigMapChange:
   enabled: true
 extra:
-  #function: true
   function: false
+  broker: false
+  brokerSts: true
 
 image:
   broker:
@@ -63,7 +64,7 @@ zookeeper:
     PULSAR_MEM: "-Xms300m -Xmx300m -Djute.maxbuffer=10485760 -XX:+ExitOnOutOfMemoryError"
 
 bookkeeper:
-  replicaCount: 0
+  replicaCount: 1
   resources:
     requests:
       memory: 512Mi
@@ -71,9 +72,9 @@ bookkeeper:
   configData:
     BOOKIE_MEM: "-Xms312m -Xmx312m -XX:MaxDirectMemorySize=200m -XX:+ExitOnOutOfMemoryError"
 
-broker:
+brokerSts:
   component: broker
-  replicaCount: 0
+  replicaCount: 1
   ledger:
     defaultEnsembleSize: 1
     defaultAckQuorum: 1
@@ -86,7 +87,7 @@ broker:
     PULSAR_MEM: "-Xms400m -Xmx400m -XX:MaxDirectMemorySize=200m -XX:+ExitOnOutOfMemoryError"
 
 autoRecovery:
-  replicaCount: 0
+  enableProvisionContainer: true
   resources:
     requests:
       memory: 300Mi

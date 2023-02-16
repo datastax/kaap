@@ -15,6 +15,10 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.migrationtool.json.JSONAssertComparator;
+import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,14 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
-import org.skyscreamer.jsonassert.FieldComparisonFailure;
-import org.skyscreamer.jsonassert.JSONCompare;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.skyscreamer.jsonassert.JSONCompareResult;
 
 @Slf4j
 public class DiffChecker {
@@ -193,44 +191,51 @@ public class DiffChecker {
     }
 
     private void compareOrThrow(Map<String, Object> genJson, Map<String, Object> existingJson)
-            throws JSONException, JsonProcessingException {
+            throws JsonProcessingException {
         final String genStr = MAPPER.writeValueAsString(genJson);
         final String originalStr = MAPPER.writeValueAsString(existingJson);
 
-        JSONCompareResult result = JSONCompare.compareJSON(originalStr, genStr, JSONCompareMode.STRICT);
+
+        JSONComparator comparator = new JSONAssertComparator();
+        final JSONComparator.Result result = comparator.compare(originalStr, genStr);
         if (result.passed()) {
             return;
         }
+
         StringBuilder err = new StringBuilder("Comparison failed: \n");
-        Stream.of(result.getFieldFailures(), result.getFieldMissing(), result.getFieldUnexpected())
-                .flatMap(Collection::stream)
-                .sorted(Comparator.comparing(FieldComparisonFailure::getField))
+        result.failures()
+                .stream()
+                .sorted(Comparator.comparing(JSONComparator.FieldComparisonFailure::field))
                 .map(field -> formatFieldComparisonFailure(field, genJson, existingJson))
                 .forEach(err::append);
         throw new AssertionError(err.toString());
     }
 
-    private String formatFieldComparisonFailure(FieldComparisonFailure fieldFailure, Map<String, Object> genJson,
+    private String formatFieldComparisonFailure(JSONComparator.FieldComparisonFailure fieldFailure,
+                                                Map<String, Object> genJson,
                                                 Map<String, Object> originalJson) {
-        if (fieldFailure.getActual() == null) {
-            final String quotedExpected = "\"" + fieldFailure.getExpected() + "\"";
+        final Object actual = fieldFailure.actual();
+        final Object expected = fieldFailure.expected();
+        final String field = fieldFailure.field();
+        if (actual == null) {
+            final String quotedExpected = "\"" + expected + "\"";
             return """
                     - expected: '%s.%s=%s' but none found
                     """.formatted(
-                    fieldFailure.getField(),
+                    field,
                     quotedExpected,
-                    getValueByDotNotation(originalJson, "%s.%s".formatted(fieldFailure.getField(),
+                    getValueByDotNotation(originalJson, "%s.%s".formatted(field,
                             quotedExpected))
             );
         }
-        if (fieldFailure.getExpected() == null) {
-            final Object quotedActual = "\"" + fieldFailure.getActual() + "\"";
+        if (expected == null) {
+            final Object quotedActual = "\"" + actual + "\"";
             return """
                     - unexpected: '%s.%s=%s'
                     """.formatted(
-                    fieldFailure.getField(),
+                    field,
                     quotedActual,
-                    getValueByDotNotation(genJson, "%s.%s".formatted(fieldFailure.getField(),
+                    getValueByDotNotation(genJson, "%s.%s".formatted(field,
                             quotedActual))
             );
         }
@@ -239,9 +244,9 @@ public class DiffChecker {
                     Original:  %s
                     Generated: %s
                 """.formatted(
-                fieldFailure.getField(),
-                fieldFailure.getExpected(),
-                fieldFailure.getActual()
+                field,
+                expected,
+                actual
         );
     }
 
@@ -273,6 +278,7 @@ public class DiffChecker {
     private static void adjustResource(Map<String, Object> exiJson) {
         adjustMetadata(getPropAsMap(exiJson, "metadata"));
         adjustSpec(getPropAsMap(exiJson, "spec"));
+        adjustConfigMapData(exiJson);
         exiJson.remove("status");
     }
 
@@ -318,6 +324,14 @@ public class DiffChecker {
         });
         final Map<String, Object> selector = getPropAsMap(spec, "selector");
         BaseSpecGenerator.HELM_LABELS.forEach(selector::remove);
+
+    }
+
+    private static void adjustConfigMapData(Map<String, Object> spec) {
+        if (spec == null) {
+            return;
+        }
+        spec.put("data", BaseResourcesFactory.handleConfigPulsarPrefix(getPropAsMap(spec, "data")));
     }
 
     private static void adjustSpecSelector(Map<String, Object> spec) {
@@ -376,7 +390,6 @@ public class DiffChecker {
         removeIfMatch(container, "terminationMessagePolicy", "File");
 
         adjustContainerProbes(container);
-        adjustContainerArgs(container);
 
         getPropAsList(container, "ports").forEach(port -> {
             // https://kubernetes.io/docs/reference/networking/service-protocols/
@@ -390,20 +403,23 @@ public class DiffChecker {
         if (livenessProbe != null) {
             removeIfMatch(livenessProbe, "failureThreshold", 3);
             removeIfMatch(livenessProbe, "successThreshold", 1);
+            adjustHttpGetProbe(livenessProbe);
         }
         final Map<String, Object> readinessProbe = getPropAsMap(container, "readinessProbe");
         if (readinessProbe != null) {
             removeIfMatch(readinessProbe, "failureThreshold", 3);
             removeIfMatch(readinessProbe, "successThreshold", 1);
+            adjustHttpGetProbe(readinessProbe);
         }
     }
 
-    private static void adjustContainerArgs(Map<String, Object> container) {
-        final List<String> args = (List<String>) container.get("args");
-        if (args != null) {
-            for (int i = 0; i < args.size(); i++) {
-                args.set(i, args.get(i).trim());
-            }
+    private static void adjustHttpGetProbe(Map<String, Object> probe) {
+        if (probe == null) {
+            return;
+        }
+        final Map<String, Object> httpGet = getPropAsMap(probe, "httpGet");
+        if (httpGet != null) {
+            removeIfMatch(httpGet, "scheme", "HTTP");
         }
     }
 
@@ -420,6 +436,7 @@ public class DiffChecker {
     private static Map<String, Object> getPropAsMap(Map<String, Object> exiJson, String name) {
         return exiJson.get(name) == null ? new HashMap<>() : (Map<String, Object>) exiJson.get(name);
     }
+
     private static List<Map<String, Object>> getPropAsList(Map<String, Object> exiJson, String name) {
         return exiJson.get(name) == null ? Collections.emptyList() : (List<Map<String, Object>>) exiJson.get(name);
     }
@@ -460,6 +477,7 @@ public class DiffChecker {
 
         return currentMap.get(words.get(words.size() - 1)).toString();
     }
+
 
 }
 

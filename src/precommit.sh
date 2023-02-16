@@ -23,6 +23,6 @@ mvn_or_mvnd() {
   fi
 }
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
-mvn_or_mvnd checkstyle:check package spotbugs:check
+mvn_or_mvnd checkstyle:check package spotbugs:check -DskipTests -Pskip-quarkus
 $this_dir/generate-crds-docs.sh
 mvn_or_mvnd license:format

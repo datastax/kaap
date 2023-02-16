@@ -13942,7 +13942,7 @@ The default value is 'cluster.local'.
         <td><b>persistence</b></td>
         <td>boolean</td>
         <td>
-          If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+          If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptyDir
 <br/>
         </td>
         <td>false</td>

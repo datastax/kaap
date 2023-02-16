@@ -386,7 +386,7 @@ spec:
                     type: object
                   persistence:
                     description: |
-                      If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+                      If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptyDir
                     type: boolean
                   dnsName:
                     description: Public dns name for the cluster's load balancer.

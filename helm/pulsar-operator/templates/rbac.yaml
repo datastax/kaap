@@ -73,6 +73,8 @@ rules:
       - services
       - serviceaccounts
       - secrets
+      - persistentvolumes
+      - persistentvolumeclaims
     verbs:
       - '*'
   - apiGroups:

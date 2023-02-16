@@ -149,6 +149,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .periodMs(5000L)
                         .stabilizationWindowMs(10000L)
                         .minWritableBookies(1)
+                        .cleanUpPvcs(true)
                         .enabled(false)
                         .build())
                 .build());

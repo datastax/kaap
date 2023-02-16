@@ -581,6 +581,7 @@ public class PulsarClusterControllerTest {
                       scaleUpBy: 1
                       scaleDownBy: 1
                       stabilizationWindowMs: 300000
+                      cleanUpPvcs: true
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));

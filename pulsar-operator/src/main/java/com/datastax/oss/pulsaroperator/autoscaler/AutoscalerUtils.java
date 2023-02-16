@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
+import org.apache.commons.compress.utils.IOUtils;
 
 @JBossLog
 public class AutoscalerUtils {
@@ -122,7 +123,16 @@ public class AutoscalerUtils {
                         cmd,
                         error.toString(StandardCharsets.UTF_8),
                         out.toString(StandardCharsets.UTF_8),
-                        failureResponse.code(), t);
+                        failureResponse == null ? "(null)" : failureResponse.code(),
+                        t);
+                if (log.isDebugEnabled() && failureResponse != null) {
+                    try {
+                        log.debugf("Failure response details for %s: code: %s, body: %s",
+                                cmd, failureResponse.code(), failureResponse.body());
+                    } catch (IOException e) {
+                        log.debugf("Can't get failureResponse.body() for %s", cmd, e);
+                    }
+                }
                 response.completeExceptionally(t);
             }
 
@@ -159,22 +169,9 @@ public class AutoscalerUtils {
 
         final ExecWatch execToClose = exec;
         response.whenComplete((s, ex) -> {
-            if (execToClose != null) {
-                execToClose.close();
-            }
-
-            try {
-                out.close();
-            } catch (IOException e) {
-                log.warn("stream close resulted in exception", e);
-            }
-
-            try {
-                error.close();
-            } catch (IOException e) {
-                log.warn("stream close resulted in exception", e);
-            }
-
+            IOUtils.closeQuietly(execToClose);
+            IOUtils.closeQuietly(out);
+            IOUtils.closeQuietly(error);
         });
 
         return response;

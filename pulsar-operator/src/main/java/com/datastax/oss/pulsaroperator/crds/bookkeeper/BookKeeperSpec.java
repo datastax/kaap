@@ -101,6 +101,7 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
             .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
             .diskUsageToleranceHwm(0.92d)
             .diskUsageToleranceLwm(0.75d)
+            .cleanUpPvcs(true)
             .build();
 
 
@@ -239,6 +240,10 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
         autoscaler.setDiskUsageToleranceLwm(ObjectUtils.getFirstNonNull(
                 () -> autoscaler.getDiskUsageToleranceLwm(),
                 () -> DEFAULT_BK_CONFIG.get().getDiskUsageToleranceLwm()
+        ));
+        autoscaler.setCleanUpPvcs(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getCleanUpPvcs(),
+                () -> DEFAULT_BK_CONFIG.get().getCleanUpPvcs()
         ));
     }
 

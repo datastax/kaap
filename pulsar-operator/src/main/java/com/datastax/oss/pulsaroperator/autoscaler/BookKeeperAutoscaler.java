@@ -24,9 +24,11 @@ import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.validation.Valid;
 import lombok.Builder;
 import lombok.Data;
@@ -65,7 +68,15 @@ public class BookKeeperAutoscaler implements Runnable {
         @Builder.Default
         String rackInfo = "/default-region/default-rack";
 
+        PodResource podResource;
         List<BookieLedgerDiskInfo> ledgerDiskInfos;
+    }
+
+    @Data
+    public static class ClusterStats {
+        int writableBookiesTotal = 0;
+        int atRiskWritableBookies = 0;
+        int readOnlyBookiesTotal = 0;
     }
 
     private final KubernetesClient client;
@@ -107,6 +118,7 @@ public class BookKeeperAutoscaler implements Runnable {
         final int targetWritableBookiesCount = bkScalerSpec.getMinWritableBookies();
         final int bookieSafeStepUp = bkScalerSpec.getScaleUpBy();
         final int bookieSafeStepDown = bkScalerSpec.getScaleDownBy();
+        final boolean cleanUpPvcs = bkScalerSpec.getCleanUpPvcs();
 
         final BookKeeper bkCr = client.resources(BookKeeper.class)
                 .inNamespace(namespace)
@@ -117,11 +129,13 @@ public class BookKeeperAutoscaler implements Runnable {
             return;
         }
 
-        final int currentExpectedReplicas = bkCr.getSpec().getBookkeeper().getReplicas().intValue();
+        final int currentExpectedReplicas = bkCr.getSpec().getBookkeeper().getReplicas();
 
-        // I assume after this point we don't have bookies down / under-replicated ledgers
-        // Bookies are either writable or read-only, isBkReadyToScale conforms all pods are up and running.
+        // I assume after this point we don't have bookies down.
+        // Bookies are either writable or read-only, isBkReadyToScale confirms all pods are up and running.
         if (!isBkReadyToScale(clusterName, bkBaseName, bkName, currentExpectedReplicas)) {
+            log.infof("BookKeeper cluster %s %s is not ready to scale, expect replicas: %d",
+                    clusterName, bkName, currentExpectedReplicas);
             return;
         }
 
@@ -129,84 +143,274 @@ public class BookKeeperAutoscaler implements Runnable {
         withLabels.put(CRDConstants.LABEL_CLUSTER, clusterName);
         withLabels.put(CRDConstants.LABEL_COMPONENT, bkBaseName);
 
-        List<BookieInfo> bookieInfos = client.pods().inNamespace(namespace).withLabels(withLabels).resources()
-                .map(pod -> getBoookieInfo(namespace, pod)).toList();
+        List<BookieInfo> bookieInfos = collectBookieInfos(withLabels);
 
-        int writableBookiesTotal = 0;
-        int atRiskWritableBookies = 0;
-        int readOnlyBookiesTotal = 0;
-        // ignoring racks for now
-        for (BookieInfo info: bookieInfos) {
-            if (info.isWritable()) {
-                writableBookiesTotal++;
-
-                long disksNotAtRisk = info.ledgerDiskInfos.stream()
-                        .filter(d -> isDiskUsageBelowTolerance(d, diskUsageHwm))
-                        .count();
-                if (disksNotAtRisk == 0) {
-                    atRiskWritableBookies++;
-                }
-            } else {
-                readOnlyBookiesTotal++;
+        if (cleanUpPvcs) {
+            int cleanedUpCount = cleanupPvcs(bkBaseName, currentExpectedReplicas);
+            if (cleanedUpCount > 0 && bookieInfos.size() > 0) {
+                // Trigger audit earlier.
+                // There is no point in skipping PVC deletion as the cookie is already deleted.
+                log.infof("Cleaned up %d PVCs for bookkeeper cluster %s, will trigger audit",
+                        cleanedUpCount, clusterName);
+                triggerAudit(bookieInfos.get(0));
             }
+        } else {
+            log.debugf("PVC cleanup is disabled for bookkeeper cluster %s", clusterName);
         }
 
-        log.infof("Found %d writable bookies (%d at risk) and %d read-only",
-                writableBookiesTotal, atRiskWritableBookies, readOnlyBookiesTotal);
+        ClusterStats clusterStats = collectClusterStats(diskUsageHwm, bookieInfos);
 
         int desiredScaleChange = 0;
 
-        if (writableBookiesTotal < targetWritableBookiesCount) {
-            desiredScaleChange += targetWritableBookiesCount - writableBookiesTotal;
+        if (clusterStats.writableBookiesTotal < targetWritableBookiesCount) {
+            desiredScaleChange += targetWritableBookiesCount - clusterStats.writableBookiesTotal;
             log.infof("Not enough writable bookies, need to add %d", desiredScaleChange);
         }
 
-        if (atRiskWritableBookies > 0
-                && (writableBookiesTotal - atRiskWritableBookies) < (targetWritableBookiesCount - desiredScaleChange)) {
+        if (clusterStats.atRiskWritableBookies > 0
+                && (clusterStats.writableBookiesTotal - clusterStats.atRiskWritableBookies) < (targetWritableBookiesCount - desiredScaleChange)) {
             desiredScaleChange += bookieSafeStepUp;
             log.infof("Some writable bookies are at risk of running out of disk space, need to add extra %d",
                     bookieSafeStepUp);
         }
 
-        if (desiredScaleChange == 0 && writableBookiesTotal > targetWritableBookiesCount) {
-
-            boolean canScaleDown = true;
-            for (BookieInfo info: bookieInfos) {
-                if (info.isWritable()) {
-                    long notReadyDiskCount = info.ledgerDiskInfos.stream()
-                            .filter(d -> isDiskUsageAboveTolerance(d, diskUsageLwm))
-                            .count();
-                    if (notReadyDiskCount != 0) {
-                        canScaleDown = false;
-                        break;
-                    }
-                }
-            }
-
-            canScaleDown = canScaleDown && doesNotHaveUnderReplicatedLedgers();
-
+        if (desiredScaleChange == 0 && clusterStats.writableBookiesTotal > targetWritableBookiesCount) {
+            boolean canScaleDown = checkIfCanScaleDown(diskUsageLwm, bookieInfos);
             if (canScaleDown) {
-                desiredScaleChange -= bookieSafeStepDown;
+                desiredScaleChange -= Math.min(bookieSafeStepDown,
+                        clusterStats.writableBookiesTotal - targetWritableBookiesCount);
                 log.infof("Some writable bookies can be released, removing %d",
-                        bookieSafeStepDown);
+                        Math.abs(desiredScaleChange));
             }
         }
 
         if (desiredScaleChange == 0) {
             log.infof("System is stable, no scaling needed");
             return;
-        } else {
-            int scaleTo = currentExpectedReplicas + desiredScaleChange;
-            final BookKeeperSpec bkSpec = bkCr.getSpec().getBookkeeper();
-            bkSpec.setReplicas(scaleTo);
-
-            client.resources(BookKeeper.class)
-                            .inNamespace(namespace)
-                            .withName(clusterName + "-" + bkBaseName)
-                            .patch(bkCr);
-
-            log.infof("Bookies scaled up/down from %d to %d", currentExpectedReplicas, scaleTo);
         }
+
+        if (desiredScaleChange < 0) {
+            log.infof("Downscaling is needed");
+            int sz = bookieInfos.size();
+            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
+                makeReadOnly(bookieInfos.get(i));
+            }
+            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
+                String bookieName = bookieInfos.get(i).getPodResource().get().getMetadata().getName();
+
+                if (!runBookieRecoveryAndRemoveCookie(bookieInfos.get(i))) {
+                    log.warnf("Can't scale down, failed to recover %s", bookieName);
+                    return;
+                }
+
+                if (doesNotHaveUnderReplicatedLedgers()) {
+                    log.infof("ledgers recovered and cookie is deleted for %s, proceeding with downscale",
+                            bookieName);
+                } else {
+                    log.warnf("Can't scale down, there are under replicated ledgers after recovering of %s",
+                            bookieName);
+                    return;
+                }
+            }
+        }
+
+        int scaleTo = currentExpectedReplicas + desiredScaleChange;
+        final BookKeeperSpec bkSpec = bkCr.getSpec().getBookkeeper();
+        bkSpec.setReplicas(scaleTo);
+
+        client.resources(BookKeeper.class)
+                        .inNamespace(namespace)
+                        .withName(clusterName + "-" + bkBaseName)
+                        .patch(bkCr);
+
+        log.infof("Bookies scaled up/down from %d to %d", currentExpectedReplicas, scaleTo);
+    }
+
+    protected boolean runBookieRecoveryAndRemoveCookie(BookieInfo bookieInfo) {
+        boolean success = false;
+        try {
+            recoverAndDeleteCookieInZk(bookieInfo);
+            // todo: figure out better way to check if cookie got deleted or change recover command
+            if (recoverAndDeleteCookieInZk(bookieInfo).contains("No cookie to remove")) {
+                // have to do that, otherwise init bookie will fail if PVC survives
+                deleteCookieOnDisk(bookieInfo);
+                success = true;
+            }
+        } catch (Exception e) {
+            log.errorf(e, "Error while recovering bookie %s",
+                    bookieInfo.getPodResource().get().getMetadata().getName(), e);
+        }
+        return success;
+    }
+
+    private boolean checkIfCanScaleDown(double diskUsageLwm, List<BookieInfo> bookieInfos) {
+        boolean canScaleDown = true;
+        for (BookieInfo info: bookieInfos) {
+            if (info.isWritable()) {
+                long notReadyDiskCount = info.ledgerDiskInfos.stream()
+                        .filter(d -> {
+                            boolean res = isDiskUsageAboveTolerance(d, diskUsageLwm);
+                            log.infof("isDiskUsageAboveTolerance: %s for %s (%s)", res,
+                                    info.getPodResource().get().getMetadata().getName(),
+                                    d);
+                            return res;
+                        })
+                        .count();
+                if (notReadyDiskCount != 0) {
+                    // cannot estimate data distribution after removal of the bookie,
+                    // don't want to go back and forth if bookies disk usage may result in
+                    // switch to read-only/scale up soon
+                    log.infof("Not all disks are ready for %s, can't scale down",
+                            info.getPodResource().get().getMetadata().getName());
+                    return false;
+                }
+            }
+        }
+
+        boolean doesNotHaveUnderReplicatedLedgers = doesNotHaveUnderReplicatedLedgers();
+        canScaleDown = canScaleDown && doesNotHaveUnderReplicatedLedgers;
+
+        return canScaleDown;
+    }
+
+    private ClusterStats collectClusterStats(double diskUsageHwm, List<BookieInfo> bookieInfos) {
+        ClusterStats clusterStats = new ClusterStats();
+        // ignoring racks for now
+        for (BookieInfo info: bookieInfos) {
+            if (info.isWritable()) {
+                clusterStats.writableBookiesTotal++;
+
+                long disksNotAtRisk = info.ledgerDiskInfos.stream()
+                        .filter(d -> isDiskUsageBelowTolerance(d, diskUsageHwm))
+                        .count();
+                if (disksNotAtRisk == 0) {
+                    clusterStats.atRiskWritableBookies++;
+                }
+            } else {
+                clusterStats.readOnlyBookiesTotal++;
+            }
+        }
+
+        log.infof("Found %d writable bookies (%d at risk) and %d read-only",
+                clusterStats.writableBookiesTotal,
+                clusterStats.atRiskWritableBookies,
+                clusterStats.readOnlyBookiesTotal);
+        return clusterStats;
+    }
+
+    private List<BookieInfo> collectBookieInfos(LinkedHashMap<String, String> withLabels) {
+        List<BookieInfo> bookieInfos = client.pods().inNamespace(namespace).withLabels(withLabels).resources()
+                .map(pod -> getBoookieInfo(namespace, pod))
+                .sorted(Comparator.comparing(b -> b.podResource.get().getMetadata().getName())).toList();
+        return bookieInfos;
+    }
+
+    private int cleanupPvcs(String bkBaseName, int currentExpectedReplicas) {
+        log.infof("Checking PVCs for bookies %s = %s", CRDConstants.LABEL_COMPONENT, bkBaseName);
+        final AtomicInteger pvcCount = new AtomicInteger(0);
+        client.persistentVolumeClaims()
+                .inNamespace(namespace)
+                .withLabel(CRDConstants.LABEL_COMPONENT, bkBaseName)
+                .list().getItems().forEach(pvc -> {
+            String name = pvc.getMetadata().getName();
+            if (name.contains("-ledgers-") || name.contains("-journal-")) {
+                int idx = Integer.parseInt(name.substring(name.lastIndexOf('-') + 1));
+                if (idx >= currentExpectedReplicas) {
+                    log.infof("Deleting PVC %s", name);
+                    client.resource(pvc).delete();
+                    pvcCount.incrementAndGet();
+                } else {
+                    log.debugf("Keeping PVC %s", name);
+                }
+            }
+        });
+        return pvcCount.get();
+    }
+
+    @SneakyThrows
+    private String recoverAndDeleteCookieInZk(BookieInfo bookieInfo) {
+        CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
+                bookieInfo.getPodResource().get().getMetadata().getName(),
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "bin/bookkeeper shell recover -f -d "
+                        + getBookieId(bookieInfo.getPodResource()));
+        recoverOut.whenComplete((s, e) -> {
+            if (e != null) {
+                log.errorf(e, "Error recovering bookie %s",
+                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+            } else {
+                log.infof("Bookie %s recovered",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+            }
+        });
+        String res = recoverOut.get();
+        log.infof("Recover output: %s", res);
+        return res;
+    }
+
+    @SneakyThrows
+    private void deleteCookieOnDisk(BookieInfo bookieInfo) {
+        // moving rather than deleting, into a random name
+        CompletableFuture<String> cookieOut = AutoscalerUtils.execInPod(client, namespace,
+                bookieInfo.getPodResource().get().getMetadata().getName(),
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "mv /pulsar/data/bookkeeper/journal/current/VERSION "
+                + "/pulsar/data/bookkeeper/journal/current/VERSION.old.$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)");
+        cookieOut.whenComplete((s, e) -> {
+            if (e != null) {
+                log.errorf(e, "Error deleting cookie at %s",
+                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+            } else {
+                log.infof("Bookie/s %s cookie is deleted",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+            }
+        });
+        String res = cookieOut.get();
+        log.infof("Cookie delete output: %s", res);
+    }
+
+    private String getBookieId(PodResource podResource) {
+        Pod pod = podResource.get();
+        return pod.getSpec().getHostname() + ":3181";
+    }
+
+    @SneakyThrows
+    private void triggerAudit(BookieInfo bookieInfo) {
+        CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
+                bookieInfo.getPodResource().get().getMetadata().getName(),
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "curl -s -X PUT localhost:8000/api/v1/autorecovery/trigger_audit");
+        curlOut.whenComplete((s, e) -> {
+            if (e != null) {
+                log.errorf(e, "Error making bookie read-only %s",
+                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+            } else {
+                log.infof("Bookie %s is set to read-only",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+            }
+        });
+        curlOut.get();
+    }
+
+    @SneakyThrows
+    private void makeReadOnly(BookieInfo bookieInfo) {
+        CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
+                bookieInfo.getPodResource().get().getMetadata().getName(),
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "curl -s -X PUT -H \"Content-Type: application/json\" "
+                        + "-d '{\"readOnly\":true}' "
+                        + "localhost:8000/api/v1/bookie/state/readonly");
+        curlOut.whenComplete((s, e) -> {
+            if (e != null) {
+                log.errorf(e, "Error making bookie read-only %s",
+                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+            } else {
+                log.infof("Bookie %s is set to read-only",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+            }
+        });
+
+        curlOut.get();
     }
 
     @SneakyThrows
@@ -271,6 +475,7 @@ public class BookKeeperAutoscaler implements Runnable {
         boolean writable = parseIsWritable(bkStateOut.get());
 
         return BookieInfo.builder()
+                .podResource(pod)
                 .isWritable(writable)
                 .ledgerDiskInfos(ledgerDiskInfos)
                 .build();

@@ -53,6 +53,11 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
+    public static final int DEFAULT_HTTP_PORT = 8080;
+    public static final int DEFAULT_PULSAR_PORT = 6650;
+    public static final int DEFAULT_HTTPS_PORT = 8443;
+    public static final int DEFAULT_PULSARSSL_PORT = 6651;
+
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getBrokerBaseName();
     }
@@ -86,20 +91,20 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("http")
-                .withPort(8080)
+                .withPort(DEFAULT_HTTP_PORT)
                 .build());
         ports.add(new ServicePortBuilder()
                 .withName("pulsar")
-                .withPort(6650)
+                .withPort(DEFAULT_PULSAR_PORT)
                 .build());
         if (isTlsEnabledOnBroker()) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
-                    .withPort(8443)
+                    .withPort(DEFAULT_HTTPS_PORT)
                     .build());
             ports.add(new ServicePortBuilder()
                     .withName("pulsarssl")
-                    .withPort(6651)
+                    .withPort(DEFAULT_PULSARSSL_PORT)
                     .build());
         }
         if (serviceSpec.getAdditionalPorts() != null) {
@@ -294,13 +299,13 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         List<ContainerPort> containerPorts = new ArrayList<>();
         containerPorts.add(new ContainerPortBuilder()
                 .withName("http")
-                .withContainerPort(8080)
+                .withContainerPort(DEFAULT_HTTP_PORT)
                 .build()
         );
         containerPorts.add(
                 new ContainerPortBuilder()
                         .withName("pulsar")
-                        .withContainerPort(6650)
+                        .withContainerPort(DEFAULT_PULSAR_PORT)
                         .build()
         );
         if (tlsEnabledOnBroker) {
@@ -312,7 +317,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             containerPorts.add(
                     new ContainerPortBuilder()
                             .withName("pulsarssl")
-                            .withContainerPort(6651)
+                            .withContainerPort(DEFAULT_PULSARSSL_PORT)
                             .build()
             );
         }

@@ -16,6 +16,8 @@
 package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,10 +28,14 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 @Slf4j
 public class SpecGenerator {
@@ -72,6 +78,8 @@ public class SpecGenerator {
     private void dumpGeneratedResources(File fullOut, PulsarCluster pulsarClusterSpec) {
         final MockKubernetesClient local = new MockKubernetesClient(inputSpecs.getNamespace());
         generateZkResources(pulsarClusterSpec, local);
+        generateBkResources(pulsarClusterSpec, local);
+        generateBrokerResources(pulsarClusterSpec, local);
 
         for (MockKubernetesClient.ResourceInteraction createdResource : local.getCreatedResources()) {
             dumpToFile(fullOut.getAbsolutePath(), "generated", createdResource.getResource());
@@ -102,6 +110,30 @@ public class SpecGenerator {
         zooKeeperResourcesFactory.patchStatefulSet();
     }
 
+    private void generateBkResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
+        final BookKeeperResourcesFactory bkResourceFactory =
+                new BookKeeperResourcesFactory(local.getClient(), inputSpecs.
+                        getNamespace(), pulsarCluster.getSpec().getBookkeeper(),
+                        pulsarCluster.getSpec().getGlobal(), null);
+
+        bkResourceFactory.patchPodDisruptionBudget();
+        bkResourceFactory.patchConfigMap();
+        bkResourceFactory.patchService();
+        bkResourceFactory.patchStatefulSet();
+    }
+
+    private void generateBrokerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
+        final BrokerResourcesFactory brokerResourcesFactory =
+                new BrokerResourcesFactory(local.getClient(), inputSpecs.
+                        getNamespace(), pulsarCluster.getSpec().getBroker(),
+                        pulsarCluster.getSpec().getGlobal(), null);
+
+        brokerResourcesFactory.patchPodDisruptionBudget();
+        brokerResourcesFactory.patchConfigMap();
+        brokerResourcesFactory.patchService();
+        brokerResourcesFactory.patchStatefulSet();
+    }
+
 
     @SneakyThrows
     private static void dumpToFile(String directory, String prefix, HasMetadata hasMetadata) {
@@ -120,11 +152,33 @@ public class SpecGenerator {
     @SneakyThrows
     private static void dumpToFile(String directory, PulsarCluster spec) {
         final Map<String, Object> asJson = MAPPER.convertValue(spec, Map.class);
-        final File resultFile = new File(directory,
+        asJson.remove("status");
+
+        final File resultFileJson = new File(directory,
                 "crd-generated-pulsar-cluster-%s.json".formatted(spec.getMetadata().getName())
         );
-        MAPPER.writeValue(resultFile, asJson);
-        log.info("Resource PulsarClusterSpec exported to {}", resultFile.getAbsolutePath());
+
+        MAPPER.writeValue(resultFileJson, asJson);
+        log.info("Resource PulsarClusterSpec exported to {}", resultFileJson.getAbsolutePath());
+
+        final File resultFileYaml = new File(directory,
+                "crd-generated-pulsar-cluster-%s.yaml".formatted(spec.getMetadata().getName())
+        );
+        prettyPrintYaml(asJson, resultFileYaml);
+        log.info("Resource PulsarClusterSpec exported to {}", resultFileYaml.getAbsolutePath());
     }
+
+    private static void prettyPrintYaml(Map<String, Object> asJson, File resultFileYaml) throws IOException {
+        DumperOptions options = new DumperOptions();
+        options.setAllowReadOnlyProperties(true);
+        options.setIndent(2);
+        options.setPrettyFlow(true);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Yaml yaml = new Yaml(options);
+        @Cleanup
+        final FileWriter fileWriter = new FileWriter(resultFileYaml);
+        yaml.dump(asJson, fileWriter);
+    }
+
 
 }

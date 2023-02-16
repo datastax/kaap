@@ -58,6 +58,11 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpec> {
 
+    public static final int DEFAULT_SERVER_PORT = 2888;
+    public static final int DEFAULT_LEADER_ELECTION_PORT = 3888;
+    public static final int DEFAULT_CLIENT_PORT = 2181;
+    public static final int DEFAULT_CLIENT_TLS_PORT = 2281;
+
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getZookeeperBaseName();
     }
@@ -111,24 +116,24 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("server")
-                .withPort(2888)
+                .withPort(DEFAULT_SERVER_PORT)
                 .build()
         );
         ports.add(new ServicePortBuilder()
                 .withName("leader-election")
-                .withPort(3888)
+                .withPort(DEFAULT_LEADER_ELECTION_PORT)
                 .build()
         );
         ports.add(new ServicePortBuilder()
                 .withName("client")
-                .withPort(2181)
+                .withPort(DEFAULT_CLIENT_PORT)
                 .build()
         );
         if (isTlsEnabledOnZooKeeper()) {
             ports.add(
                     new ServicePortBuilder()
                             .withName("client-tls")
-                            .withPort(2281)
+                            .withPort(DEFAULT_CLIENT_TLS_PORT)
                             .build()
             );
         }
@@ -268,15 +273,15 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                         .withPorts(Arrays.asList(
                                 new ContainerPortBuilder()
                                         .withName("client")
-                                        .withContainerPort(2181)
+                                        .withContainerPort(DEFAULT_CLIENT_PORT)
                                         .build(),
                                 new ContainerPortBuilder()
                                         .withName("server")
-                                        .withContainerPort(2888)
+                                        .withContainerPort(DEFAULT_SERVER_PORT)
                                         .build(),
                                 new ContainerPortBuilder()
                                         .withName("leader-election")
-                                        .withContainerPort(3888)
+                                        .withContainerPort(DEFAULT_LEADER_ELECTION_PORT)
                                         .build()
                         ))
                         .withEnv(List.of(new EnvVarBuilder().withName("ZOOKEEPER_SERVERS").withValue(zkConnectString)

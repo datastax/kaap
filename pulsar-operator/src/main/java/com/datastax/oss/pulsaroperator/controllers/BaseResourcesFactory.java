@@ -36,6 +36,8 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
+import io.fabric8.kubernetes.api.model.PodAntiAffinity;
+import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -763,7 +765,7 @@ public abstract class BaseResourcesFactory<T> {
         );
     }
 
-    protected <T> Map<String, T> handleConfigPulsarPrefix(Map<String, T> data) {
+    public static <T> Map<String, T> handleConfigPulsarPrefix(Map<String, T> data) {
         if (data == null) {
             return null;
         }
@@ -896,14 +898,12 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected Affinity getAffinity(NodeAffinity nodeAffinity, Map<String, String> customMatchLabels) {
-        final AffinityBuilder builder = new AffinityBuilder()
-                .withNodeAffinity(nodeAffinity);
+
+        List<PodAffinityTerm> requiredTerms = new ArrayList<>();
+        List<WeightedPodAffinityTerm> preferredTerms = new ArrayList<>();
 
         if (global.getAntiAffinity() != null) {
             final AntiAffinityConfig.HostAntiAffinityConfig host = global.getAntiAffinity().getHost();
-
-            List<PodAffinityTerm> podAffinityTerms = new ArrayList<>();
-            List<WeightedPodAffinityTerm> weightedPodAffinityTerms = new ArrayList<>();
 
             if (host != null
                     && host.getEnabled() != null
@@ -913,9 +913,9 @@ public abstract class BaseResourcesFactory<T> {
                         "kubernetes.io/hostname",
                         customMatchLabels);
                 if (host.getRequired() != null && host.getRequired()) {
-                    podAffinityTerms.add(podAffinityTerm);
+                    requiredTerms.add(podAffinityTerm);
                 } else {
-                    weightedPodAffinityTerms.add(createWeightedPodAffinityTerm(
+                    preferredTerms.add(createWeightedPodAffinityTerm(
                             "kubernetes.io/hostname",
                             customMatchLabels));
                 }
@@ -928,18 +928,24 @@ public abstract class BaseResourcesFactory<T> {
                         createWeightedPodAffinityTerm(
                                 "failure-domain.beta.kubernetes.io/zone",
                                 customMatchLabels);
-                weightedPodAffinityTerms.add(weightedPodAffinityTerm);
+                preferredTerms.add(weightedPodAffinityTerm);
             }
-
-            builder.withNewPodAntiAffinity()
-                    .withPreferredDuringSchedulingIgnoredDuringExecution(weightedPodAffinityTerms)
-                    .withRequiredDuringSchedulingIgnoredDuringExecution(podAffinityTerms)
-                    .endPodAntiAffinity()
-                    .build();
-
         }
 
-        return builder.build();
+        PodAntiAffinity podAntiAffinity = null;
+        if (!preferredTerms.isEmpty() || !requiredTerms.isEmpty()) {
+            podAntiAffinity = new PodAntiAffinityBuilder()
+                    .withPreferredDuringSchedulingIgnoredDuringExecution(preferredTerms)
+                    .withRequiredDuringSchedulingIgnoredDuringExecution(requiredTerms)
+                    .build();
+        }
+        if (podAntiAffinity != null || nodeAffinity != null) {
+            return new AffinityBuilder()
+                    .withNodeAffinity(nodeAffinity)
+                    .withPodAntiAffinity(podAntiAffinity)
+                    .build();
+        }
+        return null;
     }
 
     private PodAffinityTerm createPodAffinityTerm(String topologyKey, Map<String, String> customMatchLabels) {

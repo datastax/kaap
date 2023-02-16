@@ -156,7 +156,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @JsonPropertyDescription("TLS configuration for the cluster.")
     private TlsConfig tls;
     @JsonPropertyDescription("""
-            If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptDir
+            If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptyDir
             """)
     private Boolean persistence;
     @JsonPropertyDescription("""

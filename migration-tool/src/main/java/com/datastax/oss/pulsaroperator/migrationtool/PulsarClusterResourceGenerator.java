@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BookKeeperSpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BrokerSpecGenerator;
@@ -88,6 +89,7 @@ public class PulsarClusterResourceGenerator {
                 .restartOnConfigMapChange(isRestartOnConfigMapChange())
                 .priorityClassName(getPriorityClassName())
                 .auth(getAuthConfig())
+                .tls(getTlsConfig())
                 .build();
 
         final PulsarClusterSpec clusterSpec = PulsarClusterSpec.builder()
@@ -102,6 +104,48 @@ public class PulsarClusterResourceGenerator {
                 .withName(inputSpecs.getClusterName())
                 .build());
         generatedResource.setSpec(clusterSpec);
+    }
+
+    private TlsConfig getTlsConfig() {
+        final TlsConfig.TlsEntryConfig zkTlsEntryConfig =
+                specGeneratorByName(ZooKeeperSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final TlsConfig.TlsEntryConfig bkTlsEntryConfig =
+                specGeneratorByName(BookKeeperSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final TlsConfig.TlsEntryConfig brokerTlsEntryConfig =
+                specGeneratorByName(BrokerSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        if (zkTlsEntryConfig == null && bkTlsEntryConfig == null && brokerTlsEntryConfig == null) {
+            return TlsConfig.builder()
+                    .enabled(false)
+                    .build();
+        }
+
+
+        final String caPath = (String) getValueAssertSame((Function<BaseSpecGenerator, Object>) baseSpecGenerator -> {
+            if (baseSpecGenerator.getSpecName().equals(ZooKeeperSpecGenerator.SPEC_NAME)) {
+                return null;
+            } else if (baseSpecGenerator.getSpecName().equals(BookKeeperSpecGenerator.SPEC_NAME)) {
+                if (bkTlsEntryConfig == null) {
+                    return null;
+                }
+                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("bookkeeperTLSTrustCertsFilePath"));
+            } else if (baseSpecGenerator.getSpecName().equals(BrokerSpecGenerator.SPEC_NAME)) {
+                if (brokerTlsEntryConfig == null) {
+                    return null;
+                }
+                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustCertsFilePath"));
+            }
+            return null;
+        }, true, "caPath");
+
+        return TlsConfig.builder()
+                .enabled(true)
+                .zookeeper(zkTlsEntryConfig)
+                .bookkeeper(bkTlsEntryConfig)
+                .broker(brokerTlsEntryConfig)
+                .caPath(caPath)
+                .build();
+
+
     }
 
     private AuthConfig getAuthConfig() {
@@ -127,8 +171,9 @@ public class PulsarClusterResourceGenerator {
                         filterComponents,
                         spec -> spec.getConfig().get("authPlugin"), false, "authPlugin");
         if (!"org.apache.pulsar.client.impl.auth.AuthenticationToken".equals(authPlugin)) {
-            log.info("Found unexpected authPlugin {} (expected org.apache.pulsar.client.impl.auth.AuthenticationToken), "
-                    + "auth will be disabled in the CRD", authPlugin);
+            log.info(
+                    "Found unexpected authPlugin {} (expected org.apache.pulsar.client.impl.auth.AuthenticationToken), "
+                            + "auth will be disabled in the CRD", authPlugin);
             return AuthConfig.builder()
                     .enabled(false)
                     .token(AuthConfig.TokenAuthenticationConfig.builder()
@@ -241,6 +286,15 @@ public class PulsarClusterResourceGenerator {
             }
         }
         return firstValue;
+    }
+
+    private BaseSpecGenerator specGeneratorByName(String name) {
+        for (BaseSpecGenerator specGenerator : specGenerators) {
+            if (specGenerator.getSpecName().equals(name)) {
+                return specGenerator;
+            }
+        }
+        return null;
     }
 
 }

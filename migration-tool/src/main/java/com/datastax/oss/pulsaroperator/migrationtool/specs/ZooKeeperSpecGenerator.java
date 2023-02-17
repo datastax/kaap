@@ -19,6 +19,7 @@ import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesF
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -30,6 +31,7 @@ import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -50,6 +52,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
     private Map<String, Object> config;
+    private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public ZooKeeperSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
@@ -107,16 +110,15 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
 
-
-
         final PersistentVolumeClaim persistentVolumeClaim = statefulSetSpec.getVolumeClaimTemplates()
                 .get(0);
 
-        config = new HashMap<>(configMap.getData());
+        config = convertConfigMapData(configMap);
         podDNSConfig = spec.getDnsConfig();
         antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
+        tlsEntryConfig = createTlsEntryConfig(statefulSet);
 
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
         final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
@@ -142,6 +144,25 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .dataVolume(createVolumeConfig(resourceName, persistentVolumeClaim))
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
+                .build();
+    }
+
+
+
+    private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
+        final String serverCnxnFactory = (String) getConfig().get("serverCnxnFactory");
+        if (!"org.apache.zookeeper.server.NettyServerCnxnFactory".equals(serverCnxnFactory)) {
+            return null;
+        }
+        final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
+                .filter(v -> v.getName().equals("certs"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
+        final String secretName = certs.getSecret().getSecretName();
+
+        return TlsConfig.TlsEntryConfig.builder()
+                .enabled(true)
+                .secretName(secretName)
                 .build();
     }
 
@@ -173,6 +194,11 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     @Override
     public Map<String, Object> getConfig() {
         return config;
+    }
+
+    @Override
+    public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
+        return tlsEntryConfig;
     }
 
     private ZooKeeperSpec.ServiceConfig createServiceConfig(Service mainService) {

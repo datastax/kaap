@@ -138,6 +138,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
                         spec.getTerminationGracePeriodSeconds().intValue())
                 .resources(container.getResources())
+                .tolerations(spec.getTolerations())
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
                 .functionsWorkerEnabled(isFunctionsWorkerEnabled(config))

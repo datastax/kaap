@@ -19390,6 +19390,13 @@ WebSocket configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>config</b></td>
+        <td>JSON</td>
+        <td>
+          Configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>

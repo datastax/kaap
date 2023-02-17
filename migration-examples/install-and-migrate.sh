@@ -49,6 +49,7 @@ clusterName: pulsar" > $tempdir/input-specs.yaml
 
 $this_dir/../bin/migration-tool generate -i $tempdir/input-specs.yaml -o $tempdir/outputs
 
+yes_or_no "Pulsar cluster installed and migration CRD generated. Do you want to proceed with the migration?"
 # Install the pulsar operator
 helm install pulsar-operator $this_dir/../helm/pulsar-operator -f $this_dir/pulsar-operator-values.yaml  --debug
 

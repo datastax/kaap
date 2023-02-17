@@ -72,7 +72,7 @@ public class JSONAssertComparator implements JSONComparator {
 
     private static class DefaultComparatorNoGenericFailures extends DefaultComparator {
         public DefaultComparatorNoGenericFailures() {
-            super(JSONCompareMode.STRICT_ORDER);
+            super(JSONCompareMode.STRICT);
         }
 
         @Override

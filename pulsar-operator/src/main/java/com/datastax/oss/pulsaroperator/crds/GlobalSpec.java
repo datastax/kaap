@@ -62,7 +62,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             .broker(TlsConfig.TlsEntryConfig.builder()
                     .enabled(false)
                     .build())
-            .proxy(TlsConfig.ProxyTlsEntryConfig.builder()
+            .proxy(TlsConfig.ProxyTlsEntryConfig.proxyBuilder()
                     .enabled(false)
                     .enabledWithBroker(false)
                     .build())

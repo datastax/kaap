@@ -135,8 +135,8 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
 
         List<ContainerPort> containerPorts = new ArrayList<>();
         containerPorts.add(new ContainerPortBuilder()
-                .withName("wss")
-                .withContainerPort(8001)
+                .withName("http")
+                .withContainerPort(8000)
                 .build()
         );
         List<Container> containers = new ArrayList<>();

@@ -75,6 +75,9 @@ spec:
                   webSocket:
                     description: WebSocket configuration.
                     properties:
+                      config:
+                        description: Configuration.
+                        x-kubernetes-preserve-unknown-fields: true
                       resources:
                         description: Resources requirements.
                         properties:

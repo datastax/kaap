@@ -350,7 +350,9 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
 
     public void createMetadataInitializationJobIfNeeded() {
-        if (isJobCompleted()) {
+        final String jobName = resourceName + "-metadata";
+
+        if (isJobCompleted(jobName)) {
             return;
         }
         final ZooKeeperSpec.MetadataInitializationJobConfig jobConfig =
@@ -386,7 +388,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         }
 
         final Container container = new ContainerBuilder()
-                .withName(resourceName)
+                .withName(jobName)
                 .withImage(spec.getImage())
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withVolumeMounts(volumeMounts)

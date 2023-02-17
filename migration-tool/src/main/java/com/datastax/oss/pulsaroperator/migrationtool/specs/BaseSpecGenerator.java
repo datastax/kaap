@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -37,6 +38,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -163,6 +165,22 @@ public abstract class BaseSpecGenerator<T> {
         return sts;
     }
 
+    protected Deployment requireDeployment(String name) {
+        return getDeployment(name, true);
+    }
+
+    private Deployment getDeployment(String name, boolean required) {
+        final Deployment sts = client.apps()
+                .deployments()
+                .inNamespace(inputSpecs.getNamespace())
+                .withName(name)
+                .get();
+        if (required && sts == null) {
+            throw new IllegalStateException("Expected Deployment with name " + name + " not found");
+        }
+        return sts;
+    }
+
     protected static VolumeConfig createVolumeConfig(String resourceName, PersistentVolumeClaim persistentVolumeClaim) {
         return VolumeConfig.builder()
                 .name(replaceResourceNamePrefix(persistentVolumeClaim
@@ -276,7 +294,12 @@ public abstract class BaseSpecGenerator<T> {
     }
 
     protected static Map<String, String> getMatchLabels(StatefulSetSpec statefulSetSpec) {
-        Map<String, String> matchLabels = statefulSetSpec.getSelector().getMatchLabels();
+        return getMatchLabels(statefulSetSpec.getSelector());
+    }
+
+    protected static Map<String, String> getMatchLabels(LabelSelector selector) {
+
+        Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels == null) {
             matchLabels = new HashMap<>();
         }
@@ -317,7 +340,7 @@ public abstract class BaseSpecGenerator<T> {
         return readinessProbeConfig;
     }
 
-    protected static boolean boolConfigMapValue(Map<String, Object> configMapData, String property) {
+    protected static boolean boolConfigMapValue(Map<String, ?> configMapData, String property) {
         return configMapData.containsKey(property)
                 && Boolean.parseBoolean(configMapData.get(property).toString());
     }
@@ -339,6 +362,15 @@ public abstract class BaseSpecGenerator<T> {
             res.put(k.replace("PULSAR_PREFIX_", ""), v);
         });
         return res;
+    }
+
+    protected static Container getContainerByName(List<Container> containers, String name) {
+        for (Container container : containers) {
+            if (container.getName().equals(name)) {
+                return container;
+            }
+        }
+        return null;
     }
 
 }

@@ -53,6 +53,7 @@ import org.apache.commons.lang3.ObjectUtils;
 public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperSpec> {
 
     public static final int DEFAULT_BK_PORT = 3181;
+    public static final int DEFAULT_HTTP_PORT = 8000;
 
     public static String getBookKeeperContainerName(GlobalSpec globalSpec) {
         return getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName());
@@ -89,7 +90,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
-                .withName("server")
+                .withName("client")
                 .withPort(DEFAULT_BK_PORT)
                 .build());
         if (spec.getService() != null && spec.getService().getAdditionalPorts() != null) {
@@ -277,9 +278,13 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
                         .withPorts(new ContainerPortBuilder()
-                                .withName("client")
-                                .withContainerPort(DEFAULT_BK_PORT)
-                                .build())
+                                        .withName("client")
+                                        .withContainerPort(DEFAULT_BK_PORT)
+                                        .build(),
+                                new ContainerPortBuilder()
+                                        .withName("http")
+                                        .withContainerPort(DEFAULT_HTTP_PORT)
+                                        .build())
                         .withEnvFrom(new EnvFromSourceBuilder()
                                 .withNewConfigMapRef()
                                 .withName(resourceName)
@@ -329,7 +334,6 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
 
-
     private Probe createProbe() {
         final ProbeConfig specProbe = spec.getProbe();
         if (specProbe == null || !specProbe.getEnabled()) {
@@ -338,7 +342,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return new ProbeBuilder()
                 .withHttpGet(new HTTPGetActionBuilder()
                         .withPath("/api/v1/bookie/is_ready")
-                        .withNewPort(8000)
+                        .withNewPort("http")
                         .build()
                 )
                 .withInitialDelaySeconds(specProbe.getInitial())

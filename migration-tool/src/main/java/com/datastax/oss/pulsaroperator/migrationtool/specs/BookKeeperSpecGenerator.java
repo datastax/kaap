@@ -136,12 +136,13 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                 .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
                         spec.getTerminationGracePeriodSeconds().intValue())
                 .resources(container.getResources())
+                .tolerations(spec.getTolerations())
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(createVolumeConfig(resourceName, journalPvc))
                         .ledgers(createVolumeConfig(resourceName, ledgersPvc))
                         .build())
                 .service(createServiceConfig(mainService))
-                .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
+                .imagePullSecrets(spec.getImagePullSecrets())
                 .build();
     }
 

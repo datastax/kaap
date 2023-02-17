@@ -59,6 +59,12 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                     "PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info",
                     "numHttpServerThreads", "10"
             );
+    public static final int DEFAULT_HTTPS_PORT = 8443;
+    public static final int DEFAULT_PULSARSSL_PORT = 6651;
+    public static final int DEFAULT_HTTP_PORT = 8080;
+    public static final int DEFAULT_PULSAR_PORT = 6650;
+    public static final int DEFAULT_WS_PORT = 8000;
+    public static final int DEFAULT_WSS_PORT = 8001;
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getProxyBaseName();
@@ -96,22 +102,30 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (tlsEnabledOnProxy) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
-                    .withPort(8443)
+                    .withPort(DEFAULT_HTTPS_PORT)
                     .build());
             ports.add(new ServicePortBuilder()
                     .withName("pulsarssl")
-                    .withPort(6651)
+                    .withPort(DEFAULT_PULSARSSL_PORT)
+                    .build());
+            ports.add(new ServicePortBuilder()
+                    .withName("wss")
+                    .withPort(DEFAULT_WSS_PORT)
                     .build());
 
         }
         if (!tlsEnabledOnProxy || serviceSpec.getEnablePlainTextWithTLS()) {
             ports.add(new ServicePortBuilder()
                     .withName("http")
-                    .withPort(8080)
+                    .withPort(DEFAULT_HTTP_PORT)
                     .build());
             ports.add(new ServicePortBuilder()
                     .withName("pulsar")
-                    .withPort(6650)
+                    .withPort(DEFAULT_PULSAR_PORT)
+                    .build());
+            ports.add(new ServicePortBuilder()
+                    .withName("ws")
+                    .withPort(DEFAULT_WS_PORT)
                     .build());
         }
         if (serviceSpec.getAdditionalPorts() != null) {
@@ -250,8 +264,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             }
         }
 
-
-        appendConfigData(data, spec.getConfig());
+        appendConfigData(data, webSocketConfig.getConfig());
         if (!data.containsKey("webServicePort")) {
             data.put("webServicePort", "8000");
         }
@@ -287,7 +300,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        if (isTlsEnabledOnProxy()) {
+        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxy();
+        if (tlsEnabledOnProxy) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxy());
         }
         if (isAuthTokenEnabled()) {
@@ -342,11 +356,30 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
 
         List<ContainerPort> containerPorts = new ArrayList<>();
-        containerPorts.add(new ContainerPortBuilder()
-                .withName("wss")
-                .withContainerPort(8001)
-                .build()
-        );
+        if (tlsEnabledOnProxy) {
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("https")
+                    .withContainerPort(DEFAULT_HTTPS_PORT)
+                    .build()
+            );
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("pulsarssl")
+                    .withContainerPort(DEFAULT_PULSARSSL_PORT)
+                    .build()
+            );
+        } else {
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("http")
+                    .withContainerPort(DEFAULT_HTTP_PORT)
+                    .build()
+            );
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("pulsar")
+                    .withContainerPort(DEFAULT_PULSAR_PORT)
+                    .build()
+            );
+        }
+
         List<Container> containers = new ArrayList<>();
         if (spec.getService().getAdditionalPorts() != null) {
             spec.getService().getAdditionalPorts()
@@ -392,6 +425,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             wsArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar websocket";
 
 
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("wss")
+                    .withContainerPort(8001)
+                    .build()
+            );
             final String wsResourceName = "%s-ws".formatted(resourceName);
             containers.add(
                     new ContainerBuilder()
@@ -402,10 +440,15 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                             .withCommand("sh", "-c")
                             .withArgs(wsArg)
                             .withPorts(List.of(
-                                    new ContainerPortBuilder()
-                                            .withName("http")
-                                            .withContainerPort(8080)
-                                            .build()
+                                    tlsEnabledOnProxy ?
+                                            new ContainerPortBuilder()
+                                                    .withName("wss")
+                                                    .withContainerPort(DEFAULT_WSS_PORT)
+                                                    .build() :
+                                            new ContainerPortBuilder()
+                                                    .withName("ws")
+                                                    .withContainerPort(DEFAULT_WS_PORT)
+                                                    .build()
                             ))
                             .withEnvFrom(new EnvFromSourceBuilder()
                                     .withNewConfigMapRef()

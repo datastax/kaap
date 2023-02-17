@@ -224,14 +224,14 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         !client
                                 .pods()
                                 .inNamespace(namespace)
-                                .withLabel("job-name", "pulsar-zookeeper")
+                                .withLabel("job-name", "pulsar-zookeeper-metadata")
                                 .list()
                                 .getItems()
                                 .isEmpty()
                 );
 
         log.info("awaiting zk init job to complete");
-        awaitJobCompleted("pulsar-zookeeper");
+        awaitJobCompleted("pulsar-zookeeper-metadata");
     }
 
     private void awaitBookKeeperRunning() {

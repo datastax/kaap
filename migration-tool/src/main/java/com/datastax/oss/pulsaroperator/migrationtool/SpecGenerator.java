@@ -16,8 +16,12 @@
 package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.controllers.autorecovery.AutorecoveryResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.bastion.BastionResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -81,6 +85,10 @@ public class SpecGenerator {
         generateZkResources(pulsarClusterSpec, local);
         generateBkResources(pulsarClusterSpec, local);
         generateBrokerResources(pulsarClusterSpec, local);
+        generateAutorecoveryResources(pulsarClusterSpec, local);
+        generateBastionResources(pulsarClusterSpec, local);
+        generateProxyResources(pulsarClusterSpec, local);
+        generateFunctionsWorkerResources(pulsarClusterSpec, local);
 
         for (MockKubernetesClient.ResourceInteraction createdResource : local.getCreatedResources()) {
             dumpToFile(fullOut.getAbsolutePath(), "generated", createdResource.getResource());
@@ -133,6 +141,51 @@ public class SpecGenerator {
         brokerResourcesFactory.patchConfigMap();
         brokerResourcesFactory.patchService();
         brokerResourcesFactory.patchStatefulSet();
+    }
+
+    private void generateAutorecoveryResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
+        final AutorecoveryResourcesFactory autorecoveryResourcesFactory =
+                new AutorecoveryResourcesFactory(local.getClient(), inputSpecs.
+                        getNamespace(), pulsarCluster.getSpec().getAutorecovery(),
+                        pulsarCluster.getSpec().getGlobal(), null);
+
+        autorecoveryResourcesFactory.patchConfigMap();
+        autorecoveryResourcesFactory.patchDeployment();
+    }
+
+    private void generateBastionResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
+        final BastionResourcesFactory bastionResourcesFactory =
+                new BastionResourcesFactory(local.getClient(), inputSpecs.
+                        getNamespace(), pulsarCluster.getSpec().getBastion(),
+                        pulsarCluster.getSpec().getGlobal(), null);
+
+        bastionResourcesFactory.patchConfigMap();
+        bastionResourcesFactory.patchDeployment();
+    }
+
+    private void generateProxyResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
+        final ProxyResourcesFactory proxyResourcesFactory =
+                new ProxyResourcesFactory(local.getClient(), inputSpecs.
+                        getNamespace(), pulsarCluster.getSpec().getProxy(),
+                        pulsarCluster.getSpec().getGlobal(), null);
+        proxyResourcesFactory.patchPodDisruptionBudget();
+        proxyResourcesFactory.patchConfigMap();
+        proxyResourcesFactory.patchConfigMapWsConfig();
+        proxyResourcesFactory.patchService();
+        proxyResourcesFactory.patchDeployment();
+    }
+
+    private void generateFunctionsWorkerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
+        final FunctionsWorkerResourcesFactory functionsWorkerResourcesFactory =
+                new FunctionsWorkerResourcesFactory(local.getClient(), inputSpecs.
+                        getNamespace(), pulsarCluster.getSpec().getFunctionsWorker(),
+                        pulsarCluster.getSpec().getGlobal(), null);
+        functionsWorkerResourcesFactory.patchPodDisruptionBudget();
+        functionsWorkerResourcesFactory.patchConfigMap();
+        functionsWorkerResourcesFactory.patchExtraConfigMap();
+        functionsWorkerResourcesFactory.patchCaService();
+        functionsWorkerResourcesFactory.patchService();
+        functionsWorkerResourcesFactory.patchStatefulSet();
     }
 
 

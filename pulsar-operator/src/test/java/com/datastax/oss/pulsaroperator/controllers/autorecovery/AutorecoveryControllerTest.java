@@ -143,8 +143,8 @@ public class AutorecoveryControllerTest {
                         imagePullPolicy: IfNotPresent
                         name: pulsarname-autorecovery
                         ports:
-                        - containerPort: 8001
-                          name: wss
+                        - containerPort: 8000
+                          name: http
                         resources:
                           requests:
                             cpu: 0.3

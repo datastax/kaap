@@ -115,6 +115,10 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         private Boolean enabled;
         @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
         private ResourceRequirements resources;
+        @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
+        // workaround to generate CRD spec that accepts any type as key
+        @SchemaFrom(type = JsonNode.class)
+        protected Map<String, Object> config;
     }
 
     @JsonPropertyDescription(CRDConstants.DOC_CONFIG)

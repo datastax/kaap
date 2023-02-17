@@ -60,6 +60,9 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
 
+    public static final int DEFAULT_HTTP_PORT = 6750;
+    public static final int DEFAULT_HTTPS_PORT = 6751;
+
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getFunctionsWorkerBaseName();
     }
@@ -90,11 +93,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("http")
-                .withPort(6750)
+                .withPort(DEFAULT_HTTP_PORT)
                 .build());
         ports.add(new ServicePortBuilder()
                 .withName("https")
-                .withPort(6751)
+                .withPort(DEFAULT_HTTPS_PORT)
                 .build());
         if (serviceSpec.getAdditionalPorts() != null) {
             ports.addAll(serviceSpec.getAdditionalPorts());
@@ -128,11 +131,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("http")
-                .withPort(6750)
+                .withPort(DEFAULT_HTTP_PORT)
                 .build());
         ports.add(new ServicePortBuilder()
                 .withName("https")
-                .withPort(6751)
+                .withPort(DEFAULT_HTTPS_PORT)
                 .build());
         if (serviceSpec.getAdditionalPorts() != null) {
             ports.addAll(serviceSpec.getAdditionalPorts());
@@ -293,9 +296,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         + "only process and kubernetes");
         }
         if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
+            spec.getConfig().forEach((k, v) -> {
+                // keep PULSAR_PREFIX_ but skip PULSAR_MEM and family. They are handled by the extra config map
+                if (k.startsWith("PULSAR_PREFIX_") || !k.startsWith("PULSAR_")) {
+                    data.put(k, v);
+                }
+            });
         }
-
         if (!data.containsKey("numFunctionPackageReplicas")) {
             data.put("numFunctionPackageReplicas", "2");
         }
@@ -416,13 +423,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<ContainerPort> containerPorts = new ArrayList<>();
         containerPorts.add(new ContainerPortBuilder()
                 .withName("http")
-                .withContainerPort(6750)
+                .withContainerPort(DEFAULT_HTTP_PORT)
                 .build()
         );
         containerPorts.add(
                 new ContainerPortBuilder()
                         .withName("https")
-                        .withContainerPort(6751)
+                        .withContainerPort(DEFAULT_HTTPS_PORT)
                         .build()
         );
 
@@ -529,7 +536,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         }
         return new ProbeBuilder()
                 .withNewTcpSocket()
-                .withNewPort().withValue(6750).endPort()
+                .withNewPort().withValue(DEFAULT_HTTP_PORT).endPort()
                 .endTcpSocket()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())

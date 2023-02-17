@@ -141,6 +141,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
                         spec.getTerminationGracePeriodSeconds().intValue())
                 .resources(container.getResources())
+                .tolerations(spec.getTolerations())
                 .dataVolume(createVolumeConfig(resourceName, persistentVolumeClaim))
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())

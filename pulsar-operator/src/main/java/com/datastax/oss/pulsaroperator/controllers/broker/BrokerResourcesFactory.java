@@ -311,7 +311,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         if (tlsEnabledOnBroker) {
             containerPorts.add(new ContainerPortBuilder()
                     .withName("https")
-                    .withContainerPort(8843)
+                    .withContainerPort(DEFAULT_HTTPS_PORT)
                     .build()
             );
             containerPorts.add(

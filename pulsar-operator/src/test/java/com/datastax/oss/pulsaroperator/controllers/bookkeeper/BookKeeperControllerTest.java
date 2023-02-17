@@ -126,7 +126,7 @@ public class BookKeeperControllerTest {
                 spec:
                   clusterIP: None
                   ports:
-                  - name: server
+                  - name: client
                     port: 3181
                   publishNotReadyAddresses: true
                   selector:
@@ -196,7 +196,7 @@ public class BookKeeperControllerTest {
                         livenessProbe:
                           httpGet:
                             path: /api/v1/bookie/is_ready
-                            port: 8000
+                            port: http
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -204,10 +204,12 @@ public class BookKeeperControllerTest {
                         ports:
                         - containerPort: 3181
                           name: client
+                        - containerPort: 8000
+                          name: http
                         readinessProbe:
                           httpGet:
                             path: /api/v1/bookie/is_ready
-                            port: 8000
+                            port: http
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -1491,7 +1493,7 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(ports.size(), 2);
         for (ServicePort port : ports) {
             switch (port.getName()) {
-                case "server":
+                case "client":
                     Assert.assertEquals((int) port.getPort(), 3181);
                     break;
                 case "myport1":
@@ -1609,7 +1611,7 @@ public class BookKeeperControllerTest {
 
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
-        Assert.assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8000);
+        Assert.assertEquals(probe.getHttpGet().getPort().getStrVal(), "http");
         Assert.assertEquals(probe.getHttpGet().getPath(), "/api/v1/bookie/is_ready");
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);

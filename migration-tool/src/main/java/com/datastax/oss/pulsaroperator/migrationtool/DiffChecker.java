@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONAssertComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
@@ -26,7 +27,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +38,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -71,14 +77,17 @@ public class DiffChecker {
                     }
                 });
         DiffChecker diffChecker = new DiffChecker();
-        diffChecker.checkDiffsFromMaps(existingResources, generatedResources);
+        final String resultStr = diffChecker.checkDiffsFromMaps(existingResources, generatedResources);
+        final Path diffPath = Path.of(inputDirectory.getAbsolutePath(), "diff.txt");
+        Files.write(diffPath, resultStr.getBytes(StandardCharsets.UTF_8));
+        log.info("Exported diff to {}", diffPath.toAbsolutePath());
     }
 
 
-    private void checkDiffsFromMaps(
+    private String checkDiffsFromMaps(
             Collection<Map<String, Object>> existingResources, Collection<Map<String, Object>> generatedResources) {
 
-        checkDiffs(existingResources
+        return checkDiffs(existingResources
                         .stream()
                         .map(this::mapToResource)
                         .collect(Collectors.toList()),
@@ -156,7 +165,7 @@ public class DiffChecker {
     }
 
     @SneakyThrows
-    private void checkDiffs(Collection<Resource> existingResources, Collection<Resource> generatedResources) {
+    private String checkDiffs(Collection<Resource> existingResources, Collection<Resource> generatedResources) {
         Map<String, String> results = new HashMap<>();
         for (Resource generatedResource : generatedResources) {
             final String name = generatedResource.getName();
@@ -166,7 +175,7 @@ public class DiffChecker {
                 reportDiff("generated resouce %s not found in existing resources".formatted(name));
                 continue;
             }
-            final String fqn = generatedResource.getKind() + "/" + name;
+            final String fqn = name + "/" + generatedResource.getKind();
 
             log.info("converting generated resource {} to json", fqn);
             final Map<String, Object> genJson = toJson(generatedResource);
@@ -179,15 +188,17 @@ public class DiffChecker {
 
                 results.put(fqn, "OK");
             } catch (AssertionError assertionError) {
-                log.warn(assertionError.getMessage());
                 results.put(fqn, assertionError.getMessage());
             }
         }
-        String resultStr = "*** RESULTS ***\n\n";
-        for (Map.Entry<String, String> stringStringEntry : results.entrySet()) {
-            resultStr += stringStringEntry.getKey() + ": " + stringStringEntry.getValue() + "\n";
+
+        String resultStr = "";
+        SortedSet<String> keys = new TreeSet<>(results.keySet());
+        for (String key : keys) {
+            resultStr += key + ": " + results.get(key) + "\n";
         }
-        log.info(resultStr);
+        log.info("\n*** RESULTS ***\n{}\n{}".formatted("*".repeat(100)), resultStr);
+        return resultStr;
     }
 
     private void compareOrThrow(Map<String, Object> genJson, Map<String, Object> existingJson)
@@ -293,6 +304,7 @@ public class DiffChecker {
         metadata.remove("uid");
         metadata.remove("revisionHistoryLimit");
         metadata.remove("namespace");
+        metadata.remove("finalizers");
         final Map<String, Object> annotations = getPropAsMap(metadata, "annotations");
         if (annotations != null) {
             BaseSpecGenerator.HELM_ANNOTATIONS.forEach(annotations::remove);
@@ -312,26 +324,43 @@ public class DiffChecker {
         adjustVolumeClaimTemplates(spec);
         removeIfMatch(spec, "clusterIPs", List.of("None"));
         removeIfMatch(spec, "internalTrafficPolicy", "Cluster");
+        removeIfMatch(spec, "externalTrafficPolicy", "Cluster");
         removeIfMatch(spec, "ipFamilies", List.of("IPv4"));
         removeIfMatch(spec, "ipFamilyPolicy", "SingleStack");
         removeIfMatch(spec, "sessionAffinity", "None");
         removeIfMatch(spec, "type", "ClusterIP");
-        removeIfMatch(spec, "type", "ClusterIP");
-        getPropAsList(spec, "ports").forEach(port -> {
+        removeIfMatch(spec, "allocateLoadBalancerNodePorts", true);
+        sortAndReplaceList(spec, "ports", port -> {
             // https://kubernetes.io/docs/reference/networking/service-protocols/
             removeIfMatch(port, "protocol", "TCP");
             removeIfMatch(port, "targetPort", port.get("port"));
+            port.remove("nodePort");
+
+            return port;
         });
         final Map<String, Object> selector = getPropAsMap(spec, "selector");
         BaseSpecGenerator.HELM_LABELS.forEach(selector::remove);
 
+        // https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds
+        removeIfMatch(spec, "progressDeadlineSeconds", 600);
+        // https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+        removeIfMatch(spec, "strategy", Map.of("rollingUpdate",
+                Map.of("maxSurge", "25%", "maxUnavailable", "25%"), "type", "RollingUpdate"));
     }
 
     private static void adjustConfigMapData(Map<String, Object> spec) {
         if (spec == null) {
             return;
         }
-        spec.put("data", BaseResourcesFactory.handleConfigPulsarPrefix(getPropAsMap(spec, "data")));
+        final Map<String, Object> data = getPropAsMap(spec, "data");
+        if (data != null) {
+            final String functionsWorkerYml = (String) data.get("functions_worker.yml");
+            if (functionsWorkerYml != null) {
+                // deserialize to better visual comparison
+                data.put("functions_worker.yml", SerializationUtil.readYaml(functionsWorkerYml, Map.class));
+            }
+        }
+        spec.put("data", BaseResourcesFactory.handleConfigPulsarPrefix(data));
     }
 
     private static void adjustSpecSelector(Map<String, Object> spec) {
@@ -341,11 +370,12 @@ public class DiffChecker {
     }
 
     private static void adjustVolumeClaimTemplates(Map<String, Object> spec) {
-        getPropAsList(spec, "volumeClaimTemplates").forEach(vct -> {
+        sortAndReplaceList(spec, "volumeClaimTemplates", vct -> {
             vct.remove("status");
             final Map<String, Object> vctSpec = getPropAsMap(vct, "spec");
             // https://kubernetes.io/docs/concepts/storage/persistent-volumes/#volume-mode
             removeIfMatch(vctSpec, "volumeMode", "Filesystem");
+            return vct;
         });
     }
 
@@ -367,17 +397,15 @@ public class DiffChecker {
         removeIfMatch(templateSpec, "restartPolicy", "Always");
         // https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/#specify-schedulers-for-pods
         removeIfMatch(templateSpec, "schedulerName", "default-scheduler");
-        adjustContainers(getPropAsList(templateSpec, "containers"));
-    }
-
-    private static void adjustContainers(List<Map<String, Object>> containers) {
-        if (containers == null) {
-            return;
-        }
-        for (Map<String, Object> container : containers) {
+        sortAndReplaceList(templateSpec, "volumes", v -> {
+            final Map<String, Object> secret = getPropAsMap(v, "secret");
+            removeIfMatch(secret, "defaultMode", 420);
+            return v;
+        });
+        sortAndReplaceList(templateSpec, "containers", container -> {
             adjustContainer(container);
-        }
-
+            return container;
+        });
     }
 
     private static void adjustContainer(Map<String, Object> container) {
@@ -391,10 +419,14 @@ public class DiffChecker {
 
         adjustContainerProbes(container);
 
-        getPropAsList(container, "ports").forEach(port -> {
+        sortAndReplaceList(container, "ports", port -> {
             // https://kubernetes.io/docs/reference/networking/service-protocols/
             removeIfMatch(port, "protocol", "TCP");
+            return port;
         });
+
+        sortAndReplaceList(container, "volumeMounts", Function.identity());
+
     }
 
     private static void adjustContainerProbes(Map<String, Object> container) {
@@ -437,11 +469,33 @@ public class DiffChecker {
         return exiJson.get(name) == null ? new HashMap<>() : (Map<String, Object>) exiJson.get(name);
     }
 
+    private static void sortAndReplaceList(Map<String, Object> exiJson,
+                                           String name,
+                                           Function<Map<String, Object>, Map<String, Object>> mapper) {
+        final var sortedList = getPropAsList(exiJson, name)
+                .stream()
+                .map(mapper)
+                .sorted(Comparator.comparing(v -> SerializationUtil.writeAsJson(v)))
+                .collect(Collectors.toList());
+        if (!sortedList.isEmpty()) {
+            exiJson.put(name, sortedList);
+        }
+    }
+
     private static List<Map<String, Object>> getPropAsList(Map<String, Object> exiJson, String name) {
         return exiJson.get(name) == null ? Collections.emptyList() : (List<Map<String, Object>>) exiJson.get(name);
     }
 
     private static String getValueByDotNotation(final Map<String, Object> map, String key) {
+        if (key.startsWith("data.")) {
+            // ConfigMap data, need to handle nested maps with key with dots
+            final Map<String, Object> data = (Map<String, Object>) map.get("data");
+            if (data != null) {
+                for (String dataKey : data.keySet()) {
+                    key = key.replace("data." + dataKey, "data.\"" + dataKey + "\"");
+                }
+            }
+        }
         List<String> words = new ArrayList<>();
         String currentWord = "";
         boolean openQuote = false;

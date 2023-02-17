@@ -74,8 +74,8 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class ProxyTlsEntryConfig {
+    @Builder(builderMethodName = "proxyBuilder")
+    public static class ProxyTlsEntryConfig extends TlsEntryConfig {
         public static boolean isEnabled(ProxyTlsEntryConfig tlsEntryConfig) {
             if (tlsEntryConfig != null
                     && tlsEntryConfig.getEnabled() != null
@@ -95,8 +95,8 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class FunctionsWorkerTlsEntryConfig {
+    @Builder(builderMethodName = "functionsWorkerBuilder")
+    public static class FunctionsWorkerTlsEntryConfig extends TlsEntryConfig {
         public static boolean isEnabled(FunctionsWorkerTlsEntryConfig tlsEntryConfig) {
             if (tlsEntryConfig != null
                     && tlsEntryConfig.getEnabled() != null

@@ -76,18 +76,6 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder(builderMethodName = "proxyBuilder")
     public static class ProxyTlsEntryConfig extends TlsEntryConfig {
-        public static boolean isEnabled(ProxyTlsEntryConfig tlsEntryConfig) {
-            if (tlsEntryConfig != null
-                    && tlsEntryConfig.getEnabled() != null
-                    && tlsEntryConfig.getEnabled()) {
-                return true;
-            }
-            return false;
-        }
-        @JsonPropertyDescription("Enable TLS.")
-        Boolean enabled;
-        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
-        String secretName;
         @JsonPropertyDescription("Enable TLS for the proxy to broker connections.")
         Boolean enabledWithBroker;
     }
@@ -97,18 +85,6 @@ public class TlsConfig {
     @AllArgsConstructor
     @Builder(builderMethodName = "functionsWorkerBuilder")
     public static class FunctionsWorkerTlsEntryConfig extends TlsEntryConfig {
-        public static boolean isEnabled(FunctionsWorkerTlsEntryConfig tlsEntryConfig) {
-            if (tlsEntryConfig != null
-                    && tlsEntryConfig.getEnabled() != null
-                    && tlsEntryConfig.getEnabled()) {
-                return true;
-            }
-            return false;
-        }
-        @JsonPropertyDescription("Enable TLS.")
-        Boolean enabled;
-        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
-        String secretName;
         @JsonPropertyDescription("Enable TLS for the functions worker to broker connections.")
         Boolean enabledWithBroker;
     }

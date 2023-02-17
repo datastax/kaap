@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import static org.testng.Assert.assertEquals;
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerUtils;
-import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import java.util.Map;
@@ -37,7 +36,6 @@ public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
         applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-        specs.getGlobal().setImagePullPolicy("IfNotPresent");
         specs.getGlobal().getAuth().setEnabled(false);
         try {
             applyPulsarCluster(specsToYaml(specs));
@@ -82,7 +80,6 @@ public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
         applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
-        specs.getGlobal().setImagePullPolicy("IfNotPresent");
         specs.getGlobal().getAuth().setEnabled(false);
         try {
             applyPulsarCluster(specsToYaml(specs));
@@ -159,11 +156,12 @@ public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
             log.info("REMOVED extra bookies");
 
             Awaitility.waitAtMost(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS).untilAsserted(() -> {
-                int count = client.persistentVolumeClaims()
+                long count = client.persistentVolumeClaims()
                         .inNamespace(namespace)
-                        .withLabel(CRDConstants.LABEL_COMPONENT, specs.getGlobal()
-                                .getComponents().getBookkeeperBaseName())
-                        .resources().toList().size();
+                        .resources()
+                        .filter(pvcr -> pvcr.get().getMetadata().getName().contains("-ledgers-")
+                                    || pvcr.get().getMetadata().getName().contains("-journal-"))
+                        .count();
                 // 3 for ledgers + 3 for journals
                 assertEquals(6, count);
             });

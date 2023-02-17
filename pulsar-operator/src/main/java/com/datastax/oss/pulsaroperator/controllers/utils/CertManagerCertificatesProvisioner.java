@@ -85,10 +85,10 @@ public class CertManagerCertificatesProvisioner {
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
                 dnsNames.addAll(getBrokerDNSNames());
             }
-            if (TlsConfig.ProxyTlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
                 dnsNames.addAll(getProxyDNSNames());
             }
-            if (TlsConfig.FunctionsWorkerTlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
+            if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
                 dnsNames.addAll(getFunctionsWorkerDNSNames());
             }
             if (globalSpec.getDnsName() != null

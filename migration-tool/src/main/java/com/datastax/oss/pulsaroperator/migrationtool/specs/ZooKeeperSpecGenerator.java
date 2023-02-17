@@ -16,7 +16,6 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -47,7 +46,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     public static final String SPEC_NAME = "ZooKeeper";
     private final String resourceName;
     private ZooKeeperSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -115,7 +113,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
 
         config = convertConfigMapData(configMap);
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         tlsEntryConfig = createTlsEntryConfig(statefulSet);
@@ -145,9 +142,9 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .dataVolume(createVolumeConfig(resourceName, persistentVolumeClaim))
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
-
 
 
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
@@ -170,11 +167,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override

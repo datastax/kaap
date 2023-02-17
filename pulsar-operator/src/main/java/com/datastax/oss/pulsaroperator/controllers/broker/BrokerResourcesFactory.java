@@ -275,7 +275,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                     .build());
         }
 
-        final Probe probe = createProbe();
         String mainArg = "";
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
         if (tlsEnabledOnBroker) {
@@ -328,8 +327,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                         .withName(resourceName)
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(probe)
-                        .withReadinessProbe(probe)
+                        .withLivenessProbe(createLivenessProbe())
+                        .withReadinessProbe(createReadinessProbe())
                         .withResources(spec.getResources())
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
@@ -368,7 +367,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
+                .withAffinity(getAffinity(
+                        spec.getNodeAffinity(),
+                        spec.getAntiAffinity(),
+                        spec.getMatchLabels()
+                ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -452,19 +455,30 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         patchResource(job);
     }
 
+    private Probe createLivenessProbe() {
+        return createProbe(true);
+    }
 
-    private Probe createProbe() {
+    private Probe createReadinessProbe() {
+        return createProbe(false);
+    }
+
+    private Probe createProbe(boolean liveness) {
         final ProbeConfig specProbe = spec.getProbe();
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
+        final String uri = liveness ? (spec.getProbe().getUseHealthCheckForLiveness() ?
+                "admin/v2/brokers/health" : "status.html") : (spec.getProbe().getUseHealthCheckForReadiness() ?
+                "admin/v2/brokers/health" : "metrics/");
+
         return new ProbeBuilder()
                 .withNewExec()
                 .withCommand("sh", "-c",
-                        "curl -s --max-time %d --fail %s http://localhost:8080/admin/v2/brokers/health > /dev/null"
-                                .formatted(specProbe.getTimeout(), authHeader))
+                        "curl -s --max-time %d --fail %s http://localhost:8080/%s > /dev/null"
+                                .formatted(specProbe.getTimeout(), authHeader, uri))
                 .endExec()
                 .withInitialDelaySeconds(specProbe.getInitial())
                 .withPeriodSeconds(specProbe.getPeriod())

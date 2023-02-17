@@ -16,8 +16,8 @@
 package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
@@ -48,8 +48,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription(CRDConstants.DOC_REPLICAS)
     protected Integer replicas;
-    @JsonPropertyDescription("Liveness and readiness probe values.")
-    private ProbeConfig probe;
     @JsonPropertyDescription("Pod disruption budget configuration.")
     private PodDisruptionBudgetConfig pdb;
     @JsonPropertyDescription("Mount additional volumes to the pod.")
@@ -58,6 +56,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private List<Toleration> tolerations;
     @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)
     private NodeAffinity nodeAffinity;
+    @JsonPropertyDescription(CRDConstants.DOC_ANTIAFFINITY)
+    private AntiAffinityConfig antiAffinity;
     @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @JsonPropertyDescription(CRDConstants.DOC_POD_ANNOTATIONS)
@@ -80,33 +80,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
-        applyProbeDefault();
         applyPdbDefault();
-    }
-
-    private void applyProbeDefault() {
-        final ProbeConfig defaultProbe = getDefaultProbeConfig();
-        if (probe == null) {
-            probe = defaultProbe;
-        } else if (defaultProbe != null) {
-            boolean enabled = probe.getEnabled() == null
-                    ? defaultProbe.getEnabled() : probe.getEnabled();
-            if (!enabled) {
-                probe = ProbeConfig.builder()
-                        .enabled(false)
-                        .build();
-            } else {
-                probe = ProbeConfig.builder()
-                        .enabled(true)
-                        .initial(ObjectUtils.firstNonNull(probe.getInitial(),
-                                defaultProbe.getInitial()))
-                        .period(ObjectUtils.firstNonNull(probe.getPeriod(),
-                                defaultProbe.getPeriod()))
-                        .timeout(ObjectUtils.firstNonNull(probe.getTimeout(),
-                                defaultProbe.getTimeout()))
-                        .build();
-            }
-        }
     }
 
     public void applyPdbDefault() {
@@ -132,8 +106,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         return result;
     }
 
-
-    protected abstract ProbeConfig getDefaultProbeConfig();
 
     protected abstract PodDisruptionBudgetConfig getDefaultPdb();
 }

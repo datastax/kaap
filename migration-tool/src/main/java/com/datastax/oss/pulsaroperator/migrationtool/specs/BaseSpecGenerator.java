@@ -81,8 +81,6 @@ public abstract class BaseSpecGenerator<T> {
 
     public abstract PodDNSConfig getPodDnsConfig();
 
-    public abstract AntiAffinityConfig getAntiAffinityConfig();
-
     public abstract boolean isRestartOnConfigMapChange();
 
     public abstract String getDnsName();
@@ -310,10 +308,20 @@ public abstract class BaseSpecGenerator<T> {
     }
 
     protected static void verifyProbesSameValues(Probe probe1, Probe probe2) {
-        if (!Objects.equals(probe1, probe2)) {
+        if (!Objects.equals(probe1.getInitialDelaySeconds(), probe2.getInitialDelaySeconds())) {
             throw new IllegalStateException(
-                    "probes are not equals, the operator handles a single configuration for readiness and liveness "
-                            + "probe");
+                    "probes delay seconds are not equals, the operator handles a single configuration for readiness "
+                            + "and liveness probe");
+        }
+        if (!Objects.equals(probe1.getPeriodSeconds(), probe2.getPeriodSeconds())) {
+            throw new IllegalStateException(
+                    "probes period seconds are not equals, the operator handles a single configuration for readiness "
+                            + "and liveness probe");
+        }
+        if (!Objects.equals(probe1.getTimeoutSeconds(), probe2.getTimeoutSeconds())) {
+            throw new IllegalStateException(
+                    "probes timeout seconds are not equals, the operator handles a single configuration for readiness "
+                            + "and liveness probe");
         }
     }
 

@@ -47,7 +47,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     public static final String SPEC_NAME = "BookKeeper";
     private final String resourceName;
     private BookKeeperSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -106,7 +105,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
 
 
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
@@ -143,6 +141,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                         .build())
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(spec.getImagePullSecrets())
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
 
@@ -150,11 +149,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override

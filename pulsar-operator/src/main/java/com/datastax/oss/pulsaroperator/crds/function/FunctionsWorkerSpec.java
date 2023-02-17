@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.crds.function;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
@@ -112,6 +113,8 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
+    @JsonPropertyDescription("Liveness and readiness probe values.")
+    private ProbeConfig probe;
     @JsonPropertyDescription("Update strategy for the StatefulSet.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy.")
@@ -162,6 +165,11 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
         if (runtime == null) {
             runtime = "process";
         }
+        if (probe == null) {
+            probe = DEFAULT_PROBE.get();
+        } else {
+            probe = ConfigUtil.applyDefaultsWithReflection(probe, DEFAULT_PROBE);
+        }
         applyServiceDefaults();
         applyRbacDefaults();
     }
@@ -199,11 +207,6 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
         service.setAdditionalPorts(ObjectUtils.getFirstNonNull(
                 () -> service.getAdditionalPorts(),
                 () -> DEFAULT_SERVICE_CONFIG.get().getAdditionalPorts()));
-    }
-
-    @Override
-    protected ProbeConfig getDefaultProbeConfig() {
-        return DEFAULT_PROBE.get();
     }
 
     @Override

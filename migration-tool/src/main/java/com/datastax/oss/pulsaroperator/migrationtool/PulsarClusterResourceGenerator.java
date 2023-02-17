@@ -18,7 +18,6 @@ package com.datastax.oss.pulsaroperator.migrationtool;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.AutorecoverySpecGenerator;
@@ -102,7 +101,6 @@ public class PulsarClusterResourceGenerator {
                 .name(inputSpecs.getClusterName())
                 .components(getComponentsConfig())
                 .dnsConfig(getPodDNSConfig())
-                .antiAffinity(getAntiAffinityConfig())
                 .dnsName(getDnsName())
                 .restartOnConfigMapChange(isRestartOnConfigMapChange())
                 .priorityClassName(getPriorityClassName())
@@ -292,10 +290,6 @@ public class PulsarClusterResourceGenerator {
 
     private PodDNSConfig getPodDNSConfig() {
         return getValueAssertSame(BaseSpecGenerator::getPodDnsConfig, false, "PodDNSConfig");
-    }
-
-    private AntiAffinityConfig getAntiAffinityConfig() {
-        return getValueAssertSame(BaseSpecGenerator::getAntiAffinityConfig, false, "AntiAffinityConfig");
     }
 
     private String getDnsName() {

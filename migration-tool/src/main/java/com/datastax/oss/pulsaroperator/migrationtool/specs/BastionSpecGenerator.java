@@ -40,7 +40,6 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
     public static final String SPEC_NAME = "Bastion";
     private final String resourceName;
     private BastionSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -86,7 +85,6 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
                 .getContainers()
                 .get(0);
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(deploymentSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
@@ -111,6 +109,7 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
                 .resources(container.getResources())
                 .tolerations(deploymentSpec.getTemplate().getSpec().getTolerations())
                 .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
 
@@ -118,11 +117,6 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override

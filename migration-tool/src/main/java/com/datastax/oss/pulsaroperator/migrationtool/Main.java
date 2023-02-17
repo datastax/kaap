@@ -18,6 +18,7 @@ package com.datastax.oss.pulsaroperator.migrationtool;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.datastax.oss.pulsaroperator.migrationtool.diff.DiffChecker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;

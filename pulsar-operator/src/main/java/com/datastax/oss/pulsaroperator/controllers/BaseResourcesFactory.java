@@ -897,13 +897,18 @@ public abstract class BaseResourcesFactory<T> {
         }
     }
 
-    protected Affinity getAffinity(NodeAffinity nodeAffinity, Map<String, String> customMatchLabels) {
+    protected Affinity getAffinity(NodeAffinity nodeAffinity,
+                                   AntiAffinityConfig overrideGlobalAntiAffinity,
+                                   Map<String, String> customMatchLabels) {
 
         List<PodAffinityTerm> requiredTerms = new ArrayList<>();
         List<WeightedPodAffinityTerm> preferredTerms = new ArrayList<>();
 
-        if (global.getAntiAffinity() != null) {
-            final AntiAffinityConfig.HostAntiAffinityConfig host = global.getAntiAffinity().getHost();
+        final AntiAffinityConfig antiAffinityConfig =
+                ObjectUtils.firstNonNull(overrideGlobalAntiAffinity, global.getAntiAffinity());
+
+        if (antiAffinityConfig != null) {
+            final AntiAffinityConfig.HostAntiAffinityConfig host = antiAffinityConfig.getHost();
 
             if (host != null
                     && host.getEnabled() != null
@@ -920,7 +925,7 @@ public abstract class BaseResourcesFactory<T> {
                             customMatchLabels));
                 }
             }
-            final AntiAffinityConfig.ZoneAntiAffinityConfig zone = global.getAntiAffinity().getZone();
+            final AntiAffinityConfig.ZoneAntiAffinityConfig zone = antiAffinityConfig.getZone();
             if (zone != null
                     && zone.getEnabled() != null
                     && zone.getEnabled()) {

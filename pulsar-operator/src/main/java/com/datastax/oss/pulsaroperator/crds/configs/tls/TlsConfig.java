@@ -74,8 +74,14 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder(builderMethodName = "proxyBuilder")
     public static class ProxyTlsEntryConfig extends TlsEntryConfig {
+
+        @Builder(builderMethodName = "proxyBuilder")
+        public ProxyTlsEntryConfig(Boolean enabled, String secretName, Boolean enabledWithBroker) {
+            super(enabled, secretName);
+            this.enabledWithBroker = enabledWithBroker;
+        }
+
         @JsonPropertyDescription("Enable TLS for the proxy to broker connections.")
         Boolean enabledWithBroker;
     }
@@ -83,8 +89,12 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder(builderMethodName = "functionsWorkerBuilder")
     public static class FunctionsWorkerTlsEntryConfig extends TlsEntryConfig {
+        @Builder(builderMethodName = "functionsWorkerBuilder")
+        public FunctionsWorkerTlsEntryConfig(Boolean enabled, String secretName, Boolean enabledWithBroker) {
+            super(enabled, secretName);
+            this.enabledWithBroker = enabledWithBroker;
+        }
         @JsonPropertyDescription("Enable TLS for the functions worker to broker connections.")
         Boolean enabledWithBroker;
     }

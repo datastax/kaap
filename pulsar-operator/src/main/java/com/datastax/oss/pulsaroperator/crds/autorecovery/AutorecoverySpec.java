@@ -19,6 +19,7 @@ import static com.datastax.oss.pulsaroperator.crds.BaseComponentSpec.mergeMaps;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -85,6 +86,8 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     private List<Toleration> tolerations;
     @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)
     private NodeAffinity nodeAffinity;
+    @JsonPropertyDescription(CRDConstants.DOC_ANTIAFFINITY)
+    private AntiAffinityConfig antiAffinity;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

@@ -129,7 +129,6 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         if (tlsEnabledOnZooKeeper) {
             mainArg += generateCertConverterScript() + " && ";
         }
-        mainArg += "bin/apply-config-from-env.py conf/proxy.conf && ";
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/bookkeeper autorecovery";
 
 
@@ -179,7 +178,11 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
+                .withAffinity(getAffinity(
+                        spec.getNodeAffinity(),
+                        spec.getAntiAffinity(),
+                        spec.getMatchLabels()
+                ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)

@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.crds.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
@@ -120,6 +121,8 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
+    @JsonPropertyDescription("Liveness and readiness probe values.")
+    private ProbeConfig probe;
     @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")
@@ -171,13 +174,13 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
         volumes.getJournal().merge(DEFAULT_VOLUMES.get().getJournal());
         volumes.getLedgers().mergeVolumeConfigWithGlobal(globalSpec.getStorage());
         volumes.getLedgers().merge(DEFAULT_VOLUMES.get().getLedgers());
+        if (probe == null) {
+            probe = DEFAULT_PROBE.get();
+        } else {
+            probe = ConfigUtil.applyDefaultsWithReflection(probe, DEFAULT_PROBE);
+        }
 
         applyAutoscalerDefaults();
-    }
-
-    @Override
-    protected ProbeConfig getDefaultProbeConfig() {
-        return DEFAULT_PROBE.get();
     }
 
     @Override

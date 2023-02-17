@@ -19,7 +19,6 @@ import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -46,7 +45,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     public static final String SPEC_NAME = "Broker";
     private final String resourceName;
     private BrokerSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -96,10 +94,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         final Container container = spec
                 .getContainers()
                 .get(0);
-        verifyProbeCompatible(container.getReadinessProbe());
-        verifyProbeCompatible(container.getLivenessProbe());
         verifyProbesSameValues(container.getReadinessProbe(), container.getLivenessProbe());
-        final ProbeConfig readinessProbeConfig = createProbeConfig(container);
         PodDisruptionBudgetConfig podDisruptionBudgetConfig =
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
@@ -111,7 +106,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
 
 
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         tlsEntryConfig = createTlsEntryConfig(statefulSet);
@@ -126,7 +120,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
-                .probe(readinessProbeConfig)
+                .probe(createBrokerProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
@@ -144,6 +138,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .functionsWorkerEnabled(isFunctionsWorkerEnabled(config))
                 .transactions(getTransactionCoordinatorConfig(config))
                 .serviceAccountName(spec.getServiceAccountName())
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
 
@@ -163,11 +158,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override
@@ -213,12 +203,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     }
 
 
-    private void verifyProbeCompatible(Probe probe) {
-        if (probe.getExec() == null) {
-            throw new IllegalStateException("current probe is not compatible, must be exec");
-        }
-    }
-
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
         boolean tlsEnabled = parseConfigValueBool(getConfig(), "tlsEnabled");
         if (!tlsEnabled) {
@@ -236,5 +220,26 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .build();
     }
 
+    protected static BrokerSpec.BrokerProbeConfig createBrokerProbeConfig(Container container) {
+        final Integer timeout = container.getReadinessProbe().getTimeoutSeconds();
+        final Integer period = container.getReadinessProbe().getPeriodSeconds();
+        final Integer initial = container.getReadinessProbe().getInitialDelaySeconds();
+
+        return BrokerSpec.BrokerProbeConfig.brokerProbeConfigBuilder()
+                .enabled(true)
+                .initial(initial)
+                .period(period)
+                .timeout(timeout)
+                .useHealthCheckForLiveness(detectedProbeUsingHealthCheck(container.getLivenessProbe()))
+                .useHealthCheckForReadiness(detectedProbeUsingHealthCheck(container.getReadinessProbe()))
+                .build();
+    }
+
+    private static boolean detectedProbeUsingHealthCheck(Probe probe) {
+        if (probe.getHttpGet() != null) {
+            return probe.getHttpGet().getPath().contains("/brokers/health");
+        }
+        return true;
+    }
 
 }

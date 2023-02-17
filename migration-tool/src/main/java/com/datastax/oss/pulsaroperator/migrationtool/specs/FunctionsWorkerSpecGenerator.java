@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
@@ -46,7 +45,6 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
     public static final String SPEC_NAME = "Functions Worker";
     private final String resourceName;
     private FunctionsWorkerSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -99,7 +97,6 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                 .getSpec();
         final Container mainContainer = getContainerByName(spec.getContainers(), resourceName);
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         final Map<String, Object> extraConfigMapData = convertConfigMapData(configMapExtra);
@@ -146,6 +143,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                 .rbac(FunctionsWorkerSpec.RbacConfig.builder()
                         .create(false)
                         .build())
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
 
@@ -153,11 +151,6 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override

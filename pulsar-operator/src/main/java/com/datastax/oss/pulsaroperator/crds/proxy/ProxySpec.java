@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.crds.proxy;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
@@ -125,6 +126,8 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
+    @JsonPropertyDescription("Liveness and readiness probe values.")
+    private ProbeConfig probe;
     @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
     @Min(0)
@@ -158,6 +161,11 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         }
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
+        }
+        if (probe == null) {
+            probe = DEFAULT_PROBE.get();
+        } else {
+            probe = ConfigUtil.applyDefaultsWithReflection(probe, DEFAULT_PROBE);
         }
         applyServiceDefaults();
         applyWebSocketDefaults();
@@ -195,11 +203,6 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         service.setAdditionalPorts(ObjectUtils.getFirstNonNull(
                 () -> service.getAdditionalPorts(),
                 () -> DEFAULT_SERVICE_CONFIG.get().getAdditionalPorts()));
-    }
-
-    @Override
-    protected ProbeConfig getDefaultProbeConfig() {
-        return DEFAULT_PROBE.get();
     }
 
     @Override

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.pulsaroperator.migrationtool;
+package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -38,8 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -47,6 +44,18 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DiffChecker {
+
+    public interface DiffOutputWriter {
+
+        void diffOk(String fqname);
+
+        void diffFailed(String fqname, List<JSONComparator.FieldComparisonFailure> fieldFailures,
+                        Map<String, Object> genJson,
+                        Map<String, Object> originalJson);
+
+        void flush();
+
+    }
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
@@ -76,18 +85,27 @@ public class DiffChecker {
                         }
                     }
                 });
-        DiffChecker diffChecker = new DiffChecker();
-        final String resultStr = diffChecker.checkDiffsFromMaps(existingResources, generatedResources);
-        final Path diffPath = Path.of(inputDirectory.getAbsolutePath(), "diff.txt");
-        Files.write(diffPath, resultStr.getBytes(StandardCharsets.UTF_8));
-        log.info("Exported diff to {}", diffPath.toAbsolutePath());
+        DiffChecker diffChecker = new DiffChecker(new MultiDiffOutputWriters(
+                List.of(
+                        new RawFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.txt")),
+                        new ConsoleDiffOutputWriter()
+                )
+        ));
+        diffChecker.checkDiffsFromMaps(existingResources, generatedResources);
+
+
     }
 
+    private final DiffOutputWriter diffOutputWriter;
 
-    private String checkDiffsFromMaps(
+    public DiffChecker(DiffOutputWriter diffOutputWriter) {
+        this.diffOutputWriter = diffOutputWriter;
+    }
+
+    private void checkDiffsFromMaps(
             Collection<Map<String, Object>> existingResources, Collection<Map<String, Object>> generatedResources) {
 
-        return checkDiffs(existingResources
+        checkDiffs(existingResources
                         .stream()
                         .map(this::mapToResource)
                         .collect(Collectors.toList()),
@@ -165,14 +183,14 @@ public class DiffChecker {
     }
 
     @SneakyThrows
-    private String checkDiffs(Collection<Resource> existingResources, Collection<Resource> generatedResources) {
-        Map<String, String> results = new HashMap<>();
+    private void checkDiffs(Collection<Resource> existingResources,
+                            Collection<Resource> generatedResources) {
         for (Resource generatedResource : generatedResources) {
             final String name = generatedResource.getName();
 
             final Resource equivalent = findEquivalent(generatedResource, existingResources);
             if (equivalent == null) {
-                reportDiff("generated resouce %s not found in existing resources".formatted(name));
+                reportDiff("generated resource %s not found in existing resources".formatted(name));
                 continue;
             }
             final String fqn = name + "/" + generatedResource.getKind();
@@ -182,26 +200,12 @@ public class DiffChecker {
             log.info("converting original resource {} to json", fqn);
             final Map<String, Object> existingJson = toJson(equivalent);
             log.info("checking diff for {}", fqn);
-            try {
-                compareOrThrow(genJson, existingJson);
-                log.info("{} OK!", fqn);
-
-                results.put(fqn, "OK");
-            } catch (AssertionError assertionError) {
-                results.put(fqn, assertionError.getMessage());
-            }
+            compare(fqn, genJson, existingJson);
         }
-
-        String resultStr = "";
-        SortedSet<String> keys = new TreeSet<>(results.keySet());
-        for (String key : keys) {
-            resultStr += key + ": " + results.get(key) + "\n";
-        }
-        log.info("\n*** RESULTS ***\n{}\n{}".formatted("*".repeat(100)), resultStr);
-        return resultStr;
+        diffOutputWriter.flush();
     }
 
-    private void compareOrThrow(Map<String, Object> genJson, Map<String, Object> existingJson)
+    private void compare(String fqname, Map<String, Object> genJson, Map<String, Object> existingJson)
             throws JsonProcessingException {
         final String genStr = MAPPER.writeValueAsString(genJson);
         final String originalStr = MAPPER.writeValueAsString(existingJson);
@@ -210,56 +214,18 @@ public class DiffChecker {
         JSONComparator comparator = new JSONAssertComparator();
         final JSONComparator.Result result = comparator.compare(originalStr, genStr);
         if (result.passed()) {
+            diffOutputWriter.diffOk(fqname);
             return;
         }
 
-        StringBuilder err = new StringBuilder("Comparison failed: \n");
-        result.failures()
+        final List<JSONComparator.FieldComparisonFailure> failures = result.failures()
                 .stream()
                 .sorted(Comparator.comparing(JSONComparator.FieldComparisonFailure::field))
-                .map(field -> formatFieldComparisonFailure(field, genJson, existingJson))
-                .forEach(err::append);
-        throw new AssertionError(err.toString());
+                .collect(Collectors.toList());
+
+        diffOutputWriter.diffFailed(fqname, failures, genJson, existingJson);
     }
 
-    private String formatFieldComparisonFailure(JSONComparator.FieldComparisonFailure fieldFailure,
-                                                Map<String, Object> genJson,
-                                                Map<String, Object> originalJson) {
-        final Object actual = fieldFailure.actual();
-        final Object expected = fieldFailure.expected();
-        final String field = fieldFailure.field();
-        if (actual == null) {
-            final String quotedExpected = "\"" + expected + "\"";
-            return """
-                    - expected: '%s.%s=%s' but none found
-                    """.formatted(
-                    field,
-                    quotedExpected,
-                    getValueByDotNotation(originalJson, "%s.%s".formatted(field,
-                            quotedExpected))
-            );
-        }
-        if (expected == null) {
-            final Object quotedActual = "\"" + actual + "\"";
-            return """
-                    - unexpected: '%s.%s=%s'
-                    """.formatted(
-                    field,
-                    quotedActual,
-                    getValueByDotNotation(genJson, "%s.%s".formatted(field,
-                            quotedActual))
-            );
-        }
-        return """
-                - '%s' value differs:
-                    Original:  %s
-                    Generated: %s
-                """.formatted(
-                field,
-                expected,
-                actual
-        );
-    }
 
     private Resource findEquivalent(Resource as, Collection<Resource> from) {
         for (Resource hasMetadata : from) {
@@ -485,54 +451,6 @@ public class DiffChecker {
     private static List<Map<String, Object>> getPropAsList(Map<String, Object> exiJson, String name) {
         return exiJson.get(name) == null ? Collections.emptyList() : (List<Map<String, Object>>) exiJson.get(name);
     }
-
-    private static String getValueByDotNotation(final Map<String, Object> map, String key) {
-        if (key.startsWith("data.")) {
-            // ConfigMap data, need to handle nested maps with key with dots
-            final Map<String, Object> data = (Map<String, Object>) map.get("data");
-            if (data != null) {
-                for (String dataKey : data.keySet()) {
-                    key = key.replace("data." + dataKey, "data.\"" + dataKey + "\"");
-                }
-            }
-        }
-        List<String> words = new ArrayList<>();
-        String currentWord = "";
-        boolean openQuote = false;
-        for (char c : key.toCharArray()) {
-            if (c == '"') {
-                openQuote = !openQuote;
-                continue;
-            }
-            if (c == '.') {
-                if (currentWord.isEmpty()) {
-                    throw new IllegalArgumentException("invalid key: " + key);
-                }
-                if (!openQuote) {
-                    words.add(currentWord);
-                    currentWord = "";
-                    continue;
-                }
-            }
-            currentWord += c;
-        }
-        words.add(currentWord);
-        Map<String, Object> currentMap = map;
-        for (int i = 0; i < words.size() - 1; i++) {
-            final String word = words.get(i);
-            if (word.endsWith("]")) {
-                int index = Integer.parseInt(word.substring(word.indexOf("[") + 1, word.indexOf("]")));
-                final List<Object> list = (List<Object>) currentMap.get(word.replace("[" + index + "]", ""));
-                currentMap = (Map<String, Object>) list.get(index);
-            } else {
-                currentMap = (Map<String, Object>) currentMap.get(word);
-            }
-        }
-
-        return currentMap.get(words.get(words.size() - 1)).toString();
-    }
-
-
 }
 
 

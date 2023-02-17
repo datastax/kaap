@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.autorecovery.AutorecoveryResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -40,7 +39,6 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
     public static final String SPEC_NAME = "Autorecovery";
     private final String resourceName;
     private AutorecoverySpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -86,7 +84,6 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
                 .getContainers()
                 .get(0);
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(deploymentSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
@@ -111,6 +108,7 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
                 .resources(container.getResources())
                 .tolerations(deploymentSpec.getTemplate().getSpec().getTolerations())
                 .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
 
@@ -118,11 +116,6 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override

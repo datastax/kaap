@@ -48,11 +48,12 @@ public final class CRDConstants {
     public static final String DOC_RESOURCES = "Resources requirements.";
     public static final String DOC_TOLERATIONS = "Pod tolerations.";
     public static final String DOC_NODE_AFFINITY = "Node affinity configuration.";
+    public static final String DOC_ANTIAFFINITY =
+            "Pod anti-affinity configuration. This override the global value if set.";
     public static final String DOC_IMAGE_PULL_SECRETS = "Image pull secrets.";
 
     public static final String DOC_SERVICE_ANNOTATIONS = "Additional annotations to add to the Service.";
     public static final String DOC_SERVICE_PORTS = "Additional ports to add to the Service.";
-
 
 
     private CRDConstants() {

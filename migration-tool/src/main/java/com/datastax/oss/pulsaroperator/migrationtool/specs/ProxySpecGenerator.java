@@ -45,7 +45,6 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     public static final String SPEC_NAME = "Proxy";
     private final String resourceName;
     private ProxySpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -113,7 +112,6 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
 
 
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(deploymentSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
@@ -142,6 +140,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 .updateStrategy(deploymentSpec.getStrategy())
                 .pdb(createPodDisruptionBudgetConfig(pdb))
                 .webSocket(wsConfig)
+                .antiAffinity(createAntiAffinityConfig(spec))
                 .build();
     }
 
@@ -149,11 +148,6 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override

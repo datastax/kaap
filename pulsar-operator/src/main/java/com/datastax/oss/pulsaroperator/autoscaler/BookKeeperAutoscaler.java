@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.autoscaler;
 
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
@@ -238,7 +239,7 @@ public class BookKeeperAutoscaler implements Runnable {
             }
         } catch (Exception e) {
             log.errorf(e, "Error while recovering bookie %s",
-                    bookieInfo.getPodResource().get().getMetadata().getName(), e);
+                    bookieInfo.getPodResource().get().getMetadata().getName());
         }
         return success;
     }
@@ -313,7 +314,7 @@ public class BookKeeperAutoscaler implements Runnable {
                 .withLabel(CRDConstants.LABEL_COMPONENT, bkBaseName)
                 .list().getItems().forEach(pvc -> {
             String name = pvc.getMetadata().getName();
-            if (name.contains("-ledgers-") || name.contains("-journal-")) {
+            if (isLedgersPvc(name) || isJournalPvc(name)) {
                 int idx = Integer.parseInt(name.substring(name.lastIndexOf('-') + 1));
                 if (idx >= currentExpectedReplicas) {
                     log.infof("Deleting PVC %s", name);
@@ -327,6 +328,24 @@ public class BookKeeperAutoscaler implements Runnable {
         return pvcCount.get();
     }
 
+    private boolean isJournalPvc(String name) {
+        GlobalSpec globalSpec = clusterSpec.getGlobalSpec();
+        String resourceName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
+                globalSpec.getComponents().getBookkeeperBaseName());
+        String ledgersVolumeName = BookKeeperResourcesFactory
+                .getJournalVolumeName(clusterSpec.getBookkeeper(), resourceName);
+        return name.startsWith(ledgersVolumeName);
+    }
+
+    private boolean isLedgersPvc(String name) {
+        GlobalSpec globalSpec = clusterSpec.getGlobalSpec();
+        String resourceName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
+                        globalSpec.getComponents().getBookkeeperBaseName());
+        String ledgersVolumeName = BookKeeperResourcesFactory
+                .getLedgersVolumeName(clusterSpec.getBookkeeper(), resourceName);
+        return name.startsWith(ledgersVolumeName);
+    }
+
     @SneakyThrows
     private String recoverAndDeleteCookieInZk(BookieInfo bookieInfo) {
         CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
@@ -337,7 +356,7 @@ public class BookKeeperAutoscaler implements Runnable {
         recoverOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error recovering bookie %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+                        bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
                 log.infof("Bookie %s recovered",
                         bookieInfo.getPodResource().get().getMetadata().getName());
@@ -359,7 +378,7 @@ public class BookKeeperAutoscaler implements Runnable {
         cookieOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error deleting cookie at %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+                        bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
                 log.infof("Bookie/s %s cookie is deleted",
                         bookieInfo.getPodResource().get().getMetadata().getName());
@@ -383,7 +402,7 @@ public class BookKeeperAutoscaler implements Runnable {
         curlOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error making bookie read-only %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+                        bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
                 log.infof("Bookie %s is set to read-only",
                         bookieInfo.getPodResource().get().getMetadata().getName());
@@ -403,7 +422,7 @@ public class BookKeeperAutoscaler implements Runnable {
         curlOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error making bookie read-only %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName(), e);
+                        bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
                 log.infof("Bookie %s is set to read-only",
                         bookieInfo.getPodResource().get().getMetadata().getName());

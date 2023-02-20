@@ -439,8 +439,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                             .withCommand("sh", "-c")
                             .withArgs(wsArg)
                             .withPorts(List.of(
-                                    tlsEnabledOnProxy ?
-                                            new ContainerPortBuilder()
+                                    tlsEnabledOnProxy
+                                            ? new ContainerPortBuilder()
                                                     .withName("wss")
                                                     .withContainerPort(DEFAULT_WSS_PORT)
                                                     .build() :

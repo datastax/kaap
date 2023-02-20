@@ -469,9 +469,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
-        final String uri = liveness ? (spec.getProbes().getUseHealthCheckForLiveness() ?
-                "admin/v2/brokers/health" : "status.html") : (spec.getProbes().getUseHealthCheckForReadiness() ?
-                "admin/v2/brokers/health" : "metrics/");
+        final String uri = liveness ? (spec.getProbes().getUseHealthCheckForLiveness()
+                ? "admin/v2/brokers/health" : "status.html") :
+                (spec.getProbes().getUseHealthCheckForReadiness() ? "admin/v2/brokers/health" : "metrics/");
 
         return newProbeBuilder(specProbe)
                 .withNewExec()

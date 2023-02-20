@@ -26,6 +26,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -985,6 +986,28 @@ public class BrokerControllerTest {
         );
     }
 
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                broker:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null))
+        );
+    }
+
     @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
@@ -1410,8 +1433,11 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 broker:
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1433,8 +1459,11 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 broker:
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1456,9 +1485,13 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 broker:
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        liveness:
+                            enabled: true
+                            initialDelaySeconds: 90
+                        readiness:
+                            enabled: true
+                            timeoutSeconds: 10
                 """;
 
         client = invokeController(spec);
@@ -1470,8 +1503,8 @@ public class BrokerControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 5, 10, 50);
-        assertProbe(container.getReadinessProbe(), 5, 10, 50);
+        assertProbe(container.getLivenessProbe(), 5, 90, 30);
+        assertProbe(container.getReadinessProbe(), 10, 10, 30);
 
     }
 

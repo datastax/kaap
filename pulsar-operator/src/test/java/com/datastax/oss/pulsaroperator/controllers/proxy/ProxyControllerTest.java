@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -163,6 +164,8 @@ public class ProxyControllerTest {
                     port: 8080
                   - name: pulsar
                     port: 6650
+                  - name: ws
+                    port: 8000
                   selector:
                     app: pulsar
                     cluster: pulsarname
@@ -242,8 +245,10 @@ public class ProxyControllerTest {
                           timeoutSeconds: 5
                         name: pulsarname-proxy
                         ports:
-                        - containerPort: 8001
-                          name: wss
+                        - containerPort: 8080
+                          name: http
+                        - containerPort: 6650
+                          name: pulsar
                         readinessProbe:
                           exec:
                             command:
@@ -269,8 +274,8 @@ public class ProxyControllerTest {
                         imagePullPolicy: IfNotPresent
                         name: pulsarname-proxy-ws
                         ports:
-                        - containerPort: 8080
-                          name: http
+                        - containerPort: 8000
+                          name: ws
                         resources:
                           requests:
                             cpu: 1
@@ -471,7 +476,11 @@ public class ProxyControllerTest {
                 proxy:
                     config:
                         PULSAR_LOG_LEVEL: debug
-                        customConfig: customValue
+                        dont: takeit
+                    webSocket:
+                        config:
+                            PULSAR_LOG_LEVEL: trace
+                            please: takethis
                 """;
         MockKubernetesClient client = invokeController(spec);
 
@@ -491,11 +500,11 @@ public class ProxyControllerTest {
 
         expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
         expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
-        expectedData.put("PULSAR_LOG_LEVEL", "debug");
+        expectedData.put("PULSAR_LOG_LEVEL", "trace");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
-        expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_please", "takethis");
         expectedData.put("PULSAR_PREFIX_webServicePort", "8000");
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -645,7 +654,7 @@ public class ProxyControllerTest {
 
         final Service service = client.getCreatedResource(Service.class).getResource();
         final List<ServicePort> ports = service.getSpec().getPorts();
-        Assert.assertEquals(ports.size(), 2);
+        Assert.assertEquals(ports.size(), 3);
         for (ServicePort port : ports) {
             switch (port.getName()) {
                 case "https":
@@ -653,6 +662,9 @@ public class ProxyControllerTest {
                     break;
                 case "pulsarssl":
                     Assert.assertEquals((int) port.getPort(), 6651);
+                    break;
+                case "wss":
+                    Assert.assertEquals((int) port.getPort(), 8001);
                     break;
                 default:
                     Assert.fail("unexpected port " + port.getName());
@@ -860,6 +872,28 @@ public class ProxyControllerTest {
                         "component", "proxy",
                         "custom", "customvalue"
                 )
+        );
+    }
+
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null))
         );
     }
 
@@ -1250,8 +1284,11 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 proxy:
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1273,8 +1310,11 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 proxy:
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1296,9 +1336,12 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 proxy:
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        readiness:
+                            periodSeconds: 50
+                        liveness:
+                            periodSeconds: 45
+                            
                 """;
 
         client = invokeController(spec);
@@ -1310,7 +1353,7 @@ public class ProxyControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 5, 10, 50);
+        assertProbe(container.getLivenessProbe(), 5, 10, 45);
         assertProbe(container.getReadinessProbe(), 5, 10, 50);
 
     }
@@ -1345,7 +1388,7 @@ public class ProxyControllerTest {
         Assert.assertEquals(metadata.getName(), "pul-proxy");
         Assert.assertEquals(metadata.getNamespace(), NAMESPACE);
         final List<ServicePort> ports = service.getResource().getSpec().getPorts();
-        Assert.assertEquals(ports.size(), 3);
+        Assert.assertEquals(ports.size(), 4);
         for (ServicePort port : ports) {
             switch (port.getName()) {
                 case "http":
@@ -1353,6 +1396,9 @@ public class ProxyControllerTest {
                     break;
                 case "pulsar":
                     Assert.assertEquals((int) port.getPort(), 6650);
+                    break;
+                case "ws":
+                    Assert.assertEquals((int) port.getPort(), 8000);
                     break;
                 case "myport1":
                     Assert.assertEquals((int) port.getPort(), 3333);
@@ -1453,6 +1499,9 @@ public class ProxyControllerTest {
                 proxy:
                     config:
                         PULSAR_ROOT_LOG_LEVEL: debug
+                    webSocket:
+                        config:
+                            PULSAR_ROOT_LOG_LEVEL: debug
                 """;
 
         client = invokeController(spec);

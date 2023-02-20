@@ -19,10 +19,12 @@ import static com.datastax.oss.pulsaroperator.crds.BaseComponentSpec.mergeMaps;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
+import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -87,6 +89,10 @@ public class BastionSpec extends ValidableSpec<BastionSpec> implements WithDefau
     private List<Toleration> tolerations;
     @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)
     private NodeAffinity nodeAffinity;
+    @JsonPropertyDescription(CRDConstants.DOC_ANTIAFFINITY)
+    private AntiAffinityConfig antiAffinity;
+    @JsonPropertyDescription(CRDConstants.DOC_CONTAINER_ENV)
+    private List<EnvVar> env;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

@@ -40,6 +40,17 @@ public class InputClusterSpecs {
     @Builder.Default
     BrokerSpecs broker = new BrokerSpecs();
 
+    @Builder.Default
+    AutorecoverySpecs autorecovery = new AutorecoverySpecs();
+
+    @Builder.Default
+    BastionSpecs bastion = new BastionSpecs();
+
+    @Builder.Default
+    ProxySpecs proxy = new ProxySpecs();
+
+    @Builder.Default
+    FunctionsWorkerSpecs functionsWorker = new FunctionsWorkerSpecs();
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -59,5 +70,32 @@ public class InputClusterSpecs {
     @AllArgsConstructor
     public static class BrokerSpecs {
         String baseName = "broker";
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AutorecoverySpecs {
+        String baseName = "autorecovery";
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BastionSpecs {
+        String baseName = "bastion";
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProxySpecs {
+        String baseName = "proxy";
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FunctionsWorkerSpecs {
+        String baseName = "function";
     }
 }

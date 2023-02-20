@@ -171,6 +171,76 @@ spec:
                         description: The image pull policy used for the container.
                         type: string
                     type: object
+                  probes:
+                    description: Liveness and readiness probes configuration.
+                    properties:
+                      useHealthCheckForReadiness:
+                        description: "Use healthcheck for the readiness probe. If\
+                          \ false, the /metrics endpoint will be used."
+                        type: boolean
+                      useHealthCheckForLiveness:
+                        description: "Use healthcheck for the liveness probe. If false,\
+                          \ the /metrics endpoint will be used."
+                        type: boolean
+                      readiness:
+                        description: Readiness probe configuration.
+                        properties:
+                          periodSeconds:
+                            description: Indicates the period (in seconds) for the
+                              probe.
+                            type: integer
+                          initialDelaySeconds:
+                            description: Indicates the initial delay (in seconds)
+                              for the probe.
+                            type: integer
+                          failureThreshold:
+                            description: Failure threshold.
+                            type: integer
+                          successThreshold:
+                            description: Success threshold.
+                            type: integer
+                          terminationGracePeriodSeconds:
+                            description: Indicates the termination grace period (in
+                              seconds) for the probe.
+                            type: integer
+                          timeoutSeconds:
+                            description: Indicates the timeout (in seconds) for the
+                              probe.
+                            type: integer
+                          enabled:
+                            description: Enables the probe.
+                            type: boolean
+                        type: object
+                      liveness:
+                        description: Liveness probe configuration.
+                        properties:
+                          periodSeconds:
+                            description: Indicates the period (in seconds) for the
+                              probe.
+                            type: integer
+                          initialDelaySeconds:
+                            description: Indicates the initial delay (in seconds)
+                              for the probe.
+                            type: integer
+                          failureThreshold:
+                            description: Failure threshold.
+                            type: integer
+                          successThreshold:
+                            description: Success threshold.
+                            type: integer
+                          terminationGracePeriodSeconds:
+                            description: Indicates the termination grace period (in
+                              seconds) for the probe.
+                            type: integer
+                          timeoutSeconds:
+                            description: Indicates the timeout (in seconds) for the
+                              probe.
+                            type: integer
+                          enabled:
+                            description: Enables the probe.
+                            type: boolean
+                        type: object
+                    type: object
                   resources:
                     description: Resources requirements.
                     properties:
@@ -192,23 +262,6 @@ spec:
                   serviceAccountName:
                     description: Service account name for the Broker StatefulSet.
                     type: string
-                  probe:
-                    description: Liveness and readiness probe values.
-                    properties:
-                      period:
-                        description: Indicates the period (in seconds) for the probe.
-                        type: integer
-                      timeout:
-                        description: Indicates the timeout (in seconds) for the probe.
-                        type: integer
-                      initial:
-                        description: Indicates the initial delay (in seconds) for
-                          the probe.
-                        type: integer
-                      enabled:
-                        description: Enables the probe.
-                        type: boolean
-                    type: object
                   additionalVolumes:
                     description: Mount additional volumes to the pod.
                     properties:
@@ -893,6 +946,56 @@ spec:
                       type: string
                     description: Annotations to add to pod.
                     type: object
+                  env:
+                    description: Additional container env variables.
+                    items:
+                      properties:
+                        value:
+                          type: string
+                        valueFrom:
+                          properties:
+                            configMapKeyRef:
+                              properties:
+                                optional:
+                                  type: boolean
+                                key:
+                                  type: string
+                                name:
+                                  type: string
+                              type: object
+                            fieldRef:
+                              properties:
+                                apiVersion:
+                                  type: string
+                                fieldPath:
+                                  type: string
+                              type: object
+                            resourceFieldRef:
+                              properties:
+                                containerName:
+                                  type: string
+                                divisor:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                resource:
+                                  type: string
+                              type: object
+                            secretKeyRef:
+                              properties:
+                                optional:
+                                  type: boolean
+                                key:
+                                  type: string
+                                name:
+                                  type: string
+                              type: object
+                          type: object
+                        name:
+                          type: string
+                      type: object
+                    type: array
                   labels:
                     additionalProperties:
                       type: string
@@ -1018,6 +1121,32 @@ spec:
                     additionalProperties:
                       type: string
                     description: Match labels selectors to add to each pod.
+                    type: object
+                  antiAffinity:
+                    description: Pod anti-affinity configuration. This override the
+                      global value if set.
+                    properties:
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
+                        properties:
+                          enabled:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
+                        type: object
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
+                        properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
+                          enabled:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
+                        type: object
                     type: object
                 type: object
               global:

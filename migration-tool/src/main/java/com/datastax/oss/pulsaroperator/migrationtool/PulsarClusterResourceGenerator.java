@@ -18,17 +18,23 @@ package com.datastax.oss.pulsaroperator.migrationtool;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
+import com.datastax.oss.pulsaroperator.migrationtool.specs.AutorecoverySpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
+import com.datastax.oss.pulsaroperator.migrationtool.specs.BastionSpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BookKeeperSpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BrokerSpecGenerator;
+import com.datastax.oss.pulsaroperator.migrationtool.specs.FunctionsWorkerSpecGenerator;
+import com.datastax.oss.pulsaroperator.migrationtool.specs.ProxySpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.ZooKeeperSpecGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +55,10 @@ public class PulsarClusterResourceGenerator {
     private final ZooKeeperSpecGenerator zooKeeperSpecGenerator;
     private final BookKeeperSpecGenerator bookKeeperSpecGenerator;
     private final BrokerSpecGenerator brokerSpecGenerator;
+    private final AutorecoverySpecGenerator autorecoverySpecGenerator;
+    private final BastionSpecGenerator bastionSpecGenerator;
+    private final ProxySpecGenerator proxySpecGenerator;
+    private final FunctionsWorkerSpecGenerator functionsWorkerSpecGenerator;
     private final List<BaseSpecGenerator> specGenerators;
 
 
@@ -58,10 +68,18 @@ public class PulsarClusterResourceGenerator {
         zooKeeperSpecGenerator = new ZooKeeperSpecGenerator(inputSpecs, client);
         bookKeeperSpecGenerator = new BookKeeperSpecGenerator(inputSpecs, client);
         brokerSpecGenerator = new BrokerSpecGenerator(inputSpecs, client);
+        autorecoverySpecGenerator = new AutorecoverySpecGenerator(inputSpecs, client);
+        bastionSpecGenerator = new BastionSpecGenerator(inputSpecs, client);
+        proxySpecGenerator = new ProxySpecGenerator(inputSpecs, client);
+        functionsWorkerSpecGenerator = new FunctionsWorkerSpecGenerator(inputSpecs, client);
         specGenerators = List.of(
                 zooKeeperSpecGenerator,
                 bookKeeperSpecGenerator,
-                brokerSpecGenerator
+                brokerSpecGenerator,
+                autorecoverySpecGenerator,
+                bastionSpecGenerator,
+                proxySpecGenerator,
+                functionsWorkerSpecGenerator
         );
         internalGenerateSpec();
     }
@@ -84,7 +102,6 @@ public class PulsarClusterResourceGenerator {
                 .name(inputSpecs.getClusterName())
                 .components(getComponentsConfig())
                 .dnsConfig(getPodDNSConfig())
-                .antiAffinity(getAntiAffinityConfig())
                 .dnsName(getDnsName())
                 .restartOnConfigMapChange(isRestartOnConfigMapChange())
                 .priorityClassName(getPriorityClassName())
@@ -97,6 +114,10 @@ public class PulsarClusterResourceGenerator {
                 .zookeeper(zooKeeperSpecGenerator.generateSpec())
                 .bookkeeper(bookKeeperSpecGenerator.generateSpec())
                 .broker(brokerSpecGenerator.generateSpec())
+                .autorecovery(autorecoverySpecGenerator.generateSpec())
+                .bastion(bastionSpecGenerator.generateSpec())
+                .proxy(proxySpecGenerator.generateSpec())
+                .functionsWorker(functionsWorkerSpecGenerator.generateSpec())
                 .build();
         clusterSpec.applyDefaults(global);
         generatedResource = new PulsarCluster();
@@ -113,50 +134,58 @@ public class PulsarClusterResourceGenerator {
                 specGeneratorByName(BookKeeperSpecGenerator.SPEC_NAME).getTlsEntryConfig();
         final TlsConfig.TlsEntryConfig brokerTlsEntryConfig =
                 specGeneratorByName(BrokerSpecGenerator.SPEC_NAME).getTlsEntryConfig();
-        if (zkTlsEntryConfig == null && bkTlsEntryConfig == null && brokerTlsEntryConfig == null) {
+        final TlsConfig.TlsEntryConfig autorecoveryTlsEntryConfig =
+                specGeneratorByName(AutorecoverySpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final TlsConfig.TlsEntryConfig proxyTlsEntryConfig =
+                specGeneratorByName(ProxySpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final TlsConfig.TlsEntryConfig functionTlsEntryConfig =
+                specGeneratorByName(FunctionsWorkerSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+
+
+        if (zkTlsEntryConfig == null
+                && bkTlsEntryConfig == null
+                && brokerTlsEntryConfig == null
+                && autorecoveryTlsEntryConfig == null
+                && proxyTlsEntryConfig == null
+                && functionTlsEntryConfig == null) {
             return TlsConfig.builder()
                     .enabled(false)
                     .build();
         }
 
 
-        final String caPath = (String) getValueAssertSame((Function<BaseSpecGenerator, Object>) baseSpecGenerator -> {
-            if (baseSpecGenerator.getSpecName().equals(ZooKeeperSpecGenerator.SPEC_NAME)) {
-                return null;
-            } else if (baseSpecGenerator.getSpecName().equals(BookKeeperSpecGenerator.SPEC_NAME)) {
-                if (bkTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("bookkeeperTLSTrustCertsFilePath"));
-            } else if (baseSpecGenerator.getSpecName().equals(BrokerSpecGenerator.SPEC_NAME)) {
-                if (brokerTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustCertsFilePath"));
-            }
-            return null;
-        }, true, "caPath");
+        final TlsConfig.TlsEntryConfig ssCaEntryConfig =
+                specGeneratorByName(BastionSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final String caPath = getValueAssertSame(spec -> spec.getTlsCaPath(), true, "caPath");
 
         return TlsConfig.builder()
                 .enabled(true)
                 .zookeeper(zkTlsEntryConfig)
                 .bookkeeper(bkTlsEntryConfig)
                 .broker(brokerTlsEntryConfig)
+                .autorecovery(autorecoveryTlsEntryConfig)
+                .proxy((TlsConfig.ProxyTlsEntryConfig) proxyTlsEntryConfig)
+                .functionsWorker((TlsConfig.FunctionsWorkerTlsEntryConfig) functionTlsEntryConfig)
+                .ssCa(ssCaEntryConfig)
                 .caPath(caPath)
                 .build();
-
-
     }
 
     private AuthConfig getAuthConfig() {
         final Predicate<BaseSpecGenerator> filterComponents =
-                spec -> !List.of(BookKeeperSpecGenerator.SPEC_NAME, ZooKeeperSpecGenerator.SPEC_NAME)
+                spec -> !List.of(
+                                BookKeeperSpecGenerator.SPEC_NAME,
+                                ZooKeeperSpecGenerator.SPEC_NAME,
+                                AutorecoverySpecGenerator.SPEC_NAME,
+                                BastionSpecGenerator.SPEC_NAME
+                        )
                         .contains(spec.getSpecName());
+
         final boolean authEnabled = getValueAssertSame(
                 filterComponents,
                 spec -> parseConfigValueBool(spec.getConfig(), "authenticationEnabled"),
                 false,
-                "authenticationEnabled");
+                "authenticationEnabled").booleanValue();
         if (!authEnabled) {
             log.info("Found authenticationEnabled=false, auth will be disabled in the CRD");
             return AuthConfig.builder()
@@ -166,54 +195,58 @@ public class PulsarClusterResourceGenerator {
                             .build())
                     .build();
         }
-        final String authPlugin =
-                (String) getValueAssertSame(
-                        filterComponents,
-                        spec -> spec.getConfig().get("authPlugin"), false, "authPlugin");
-        if (!"org.apache.pulsar.client.impl.auth.AuthenticationToken".equals(authPlugin)) {
-            log.info(
-                    "Found unexpected authPlugin {} (expected org.apache.pulsar.client.impl.auth.AuthenticationToken), "
-                            + "auth will be disabled in the CRD", authPlugin);
-            return AuthConfig.builder()
-                    .enabled(false)
-                    .token(AuthConfig.TokenAuthenticationConfig.builder()
-                            .initialize(false)
-                            .build())
-                    .build();
-        }
+
+        specGenerators.stream()
+                .filter(filterComponents)
+                .forEach(spec -> {
+                    checkAuthenticationProvidersContainTokenAuth(spec.getConfig(), spec.getSpecName());
+                });
+
         final AuthConfig.AuthConfigBuilder authConfigBuilder = AuthConfig.builder()
                 .enabled(true);
 
         final AuthConfig.TokenAuthenticationConfig.TokenAuthenticationConfigBuilder tokenAuthBuilder =
                 AuthConfig.TokenAuthenticationConfig.builder()
                         .initialize(false);
-        final String superUserRoles =
-                (String) getValueAssertSame(
+        final List<String> superUserRoles =
+                getValueAssertSame(
                         filterComponents,
-                        spec -> spec.getConfig().get("superUserRoles"),
+                        spec -> {
+                            final List<String> parsed = parseConfigList(spec.getConfig(), "superUserRoles");
+                            Collections.sort(parsed);
+                            return parsed;
+                        },
                         false, "superUserRoles");
-        if (StringUtils.isBlank(superUserRoles)) {
+        if (superUserRoles.isEmpty()) {
             throw new IllegalArgumentException("superUserRoles must be set if authentication is enabled");
         }
-        tokenAuthBuilder.superUserRoles(new TreeSet<>(List.of(superUserRoles.split(","))));
+        tokenAuthBuilder.superUserRoles(new TreeSet<>(superUserRoles));
 
         final String proxyRoles =
-                (String) getValueAssertSame(
-                        filterComponents,
-                        spec -> spec.getConfig().get("proxyRoles"),
-                        false, "proxyRoles");
+                (String) specGeneratorByName(BrokerSpecGenerator.SPEC_NAME).getConfig().get("proxyRoles");
         if (StringUtils.isBlank(proxyRoles)) {
             tokenAuthBuilder.proxyRoles(null);
         } else {
             tokenAuthBuilder.proxyRoles(new TreeSet<>(List.of(proxyRoles.split(","))));
         }
+
+        final String publicKeyFile = getValueAssertSame(spec -> spec.getAuthPublicKeyFile(), true,
+                "publicKeyFile");
+        final AuthConfig.TokenAuthenticationConfig tokenAuthenticationConfig = tokenAuthBuilder
+                .publicKeyFile(publicKeyFile)
+                .build();
         return authConfigBuilder
-                .token(tokenAuthBuilder.build())
+                .token(tokenAuthenticationConfig)
                 .build();
     }
 
-    private boolean parseConfigValueBool(Map<String, Object> config, String key) {
-        return Boolean.parseBoolean(String.valueOf(config.get(key)));
+    @SuppressFBWarnings("NP_BOOLEAN_RETURN_NULL")
+    private Boolean parseConfigValueBool(Map<String, Object> config, String key) {
+        final Object val = config.get(key);
+        if (val == null) {
+            return null;
+        }
+        return Boolean.parseBoolean(String.valueOf(val));
     }
 
     private GlobalSpec.Components getComponentsConfig() {
@@ -221,15 +254,15 @@ public class PulsarClusterResourceGenerator {
                 .zookeeperBaseName(inputSpecs.getZookeeper().getBaseName())
                 .bookkeeperBaseName(inputSpecs.getBookkeeper().getBaseName())
                 .brokerBaseName(inputSpecs.getBroker().getBaseName())
+                .autorecoveryBaseName(inputSpecs.getAutorecovery().getBaseName())
+                .bastionBaseName(inputSpecs.getBastion().getBaseName())
+                .proxyBaseName(inputSpecs.getProxy().getBaseName())
+                .functionsWorkerBaseName(inputSpecs.getFunctionsWorker().getBaseName())
                 .build();
     }
 
     private PodDNSConfig getPodDNSConfig() {
         return getValueAssertSame(BaseSpecGenerator::getPodDnsConfig, false, "PodDNSConfig");
-    }
-
-    private AntiAffinityConfig getAntiAffinityConfig() {
-        return getValueAssertSame(BaseSpecGenerator::getAntiAffinityConfig, false, "AntiAffinityConfig");
     }
 
     private String getDnsName() {
@@ -295,6 +328,33 @@ public class PulsarClusterResourceGenerator {
             }
         }
         return null;
+    }
+
+    public static void checkAuthenticationProvidersContainTokenAuth(Map<String, ?> config, String specName) {
+        final List<String> parsed = parseConfigList(config, "authenticationProviders");
+        if (parsed == null) {
+            throw new IllegalArgumentException("authenticationProviders not set in " + specName);
+        }
+        if (!parsed.contains("org.apache.pulsar.broker.authentication."
+                + "AuthenticationProviderToken")) {
+            throw new IllegalArgumentException(
+                    "authenticationProviders does not include Token auth in " + specName);
+        }
+
+    }
+
+    private static List<String> parseConfigList(Map<String, ?> config, String key) {
+        final Object val = config.get(key);
+        if (val == null) {
+            return new ArrayList<>();
+        }
+        if (val instanceof List) {
+            return new ArrayList<>((List<String>) val);
+        }
+        if (val instanceof String) {
+            return new ArrayList<>(List.of(((String) val).split(",")));
+        }
+        throw new IllegalArgumentException("Invalid value for " + key + ": " + val);
     }
 
 }

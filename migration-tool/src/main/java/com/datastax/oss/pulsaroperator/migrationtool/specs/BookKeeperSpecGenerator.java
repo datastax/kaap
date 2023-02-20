@@ -17,9 +17,7 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -39,6 +37,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -47,7 +46,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     public static final String SPEC_NAME = "BookKeeper";
     private final String resourceName;
     private BookKeeperSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -99,14 +97,11 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                 .get(0);
         verifyProbeCompatible(container.getReadinessProbe());
         verifyProbeCompatible(container.getLivenessProbe());
-        verifyProbesSameValues(container.getReadinessProbe(), container.getLivenessProbe());
-        final ProbeConfig readinessProbeConfig = createProbeConfig(container);
         PodDisruptionBudgetConfig podDisruptionBudgetConfig =
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
 
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
@@ -124,7 +119,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
-                .probe(readinessProbeConfig)
+                .probes(createProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
@@ -136,12 +131,15 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                 .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
                         spec.getTerminationGracePeriodSeconds().intValue())
                 .resources(container.getResources())
+                .tolerations(spec.getTolerations())
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(createVolumeConfig(resourceName, journalPvc))
                         .ledgers(createVolumeConfig(resourceName, ledgersPvc))
                         .build())
                 .service(createServiceConfig(mainService))
-                .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
+                .imagePullSecrets(spec.getImagePullSecrets())
+                .antiAffinity(createAntiAffinityConfig(spec))
+                .env(container.getEnv())
                 .build();
     }
 
@@ -149,11 +147,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override
@@ -179,6 +172,19 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
         return tlsEntryConfig;
+    }
+
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("bookkeeperTLSTrustCertsFilePath"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        return null;
     }
 
     private BookKeeperSpec.ServiceConfig createServiceConfig(Service service) {

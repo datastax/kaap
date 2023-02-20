@@ -17,10 +17,11 @@ package com.datastax.oss.pulsaroperator.crds.function;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,11 +58,19 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
             .name("logs")
             .size("5Gi").build();
 
-    public static final Supplier<ProbeConfig> DEFAULT_PROBE = () -> ProbeConfig.builder()
-            .enabled(true)
-            .initial(10)
-            .period(30)
-            .timeout(5)
+    public static final Supplier<ProbesConfig> DEFAULT_PROBES = () -> ProbesConfig.builder()
+            .liveness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
+            .readiness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
             .build();
 
     private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
@@ -112,6 +121,8 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
+    @JsonPropertyDescription(CRDConstants.DOC_PROBES)
+    private ProbesConfig probes;
     @JsonPropertyDescription("Update strategy for the StatefulSet.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy.")
@@ -162,6 +173,11 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
         if (runtime == null) {
             runtime = "process";
         }
+        if (probes == null) {
+            probes = DEFAULT_PROBES.get();
+        } else {
+            probes = ConfigUtil.applyDefaultsWithReflection(probes, DEFAULT_PROBES);
+        }
         applyServiceDefaults();
         applyRbacDefaults();
     }
@@ -199,11 +215,6 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
         service.setAdditionalPorts(ObjectUtils.getFirstNonNull(
                 () -> service.getAdditionalPorts(),
                 () -> DEFAULT_SERVICE_CONFIG.get().getAdditionalPorts()));
-    }
-
-    @Override
-    protected ProbeConfig getDefaultProbeConfig() {
-        return DEFAULT_PROBE.get();
     }
 
     @Override

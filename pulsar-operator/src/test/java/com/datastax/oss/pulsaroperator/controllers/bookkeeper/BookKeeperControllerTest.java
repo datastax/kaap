@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -196,7 +197,7 @@ public class BookKeeperControllerTest {
                         livenessProbe:
                           httpGet:
                             path: /api/v1/bookie/is_ready
-                            port: 8000
+                            port: http
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -204,10 +205,12 @@ public class BookKeeperControllerTest {
                         ports:
                         - containerPort: 3181
                           name: client
+                        - containerPort: 8000
+                          name: http
                         readinessProbe:
                           httpGet:
                             path: /api/v1/bookie/is_ready
-                            port: 8000
+                            port: http
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
@@ -761,6 +764,27 @@ public class BookKeeperControllerTest {
                         "component", "bookkeeper",
                         "custom", "customvalue"
                 )
+        );
+    }
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null))
         );
     }
 
@@ -1396,8 +1420,11 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 bookkeeper:
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1419,8 +1446,11 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 bookkeeper:
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1442,9 +1472,13 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 bookkeeper:
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        liveness:
+                            enabled: true
+                            periodSeconds: 10
+                        readiness:
+                            enabled: true
+                            periodSeconds: 11
                 """;
 
         client = invokeController(spec);
@@ -1456,8 +1490,8 @@ public class BookKeeperControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 5, 10, 50);
-        assertProbe(container.getReadinessProbe(), 5, 10, 50);
+        assertProbe(container.getLivenessProbe(), 5, 10, 10);
+        assertProbe(container.getReadinessProbe(), 5, 10, 11);
 
     }
 
@@ -1609,7 +1643,7 @@ public class BookKeeperControllerTest {
 
 
     private void assertProbe(Probe probe, int timeout, int initial, int period) {
-        Assert.assertEquals(probe.getHttpGet().getPort().getIntVal().intValue(), 8000);
+        Assert.assertEquals(probe.getHttpGet().getPort().getStrVal(), "http");
         Assert.assertEquals(probe.getHttpGet().getPath(), "/api/v1/bookie/is_ready");
 
         Assert.assertEquals((int) probe.getInitialDelaySeconds(), initial);

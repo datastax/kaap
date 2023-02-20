@@ -17,9 +17,7 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -38,6 +36,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -46,7 +45,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     public static final String SPEC_NAME = "Broker";
     private final String resourceName;
     private BrokerSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -96,10 +94,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         final Container container = spec
                 .getContainers()
                 .get(0);
-        verifyProbeCompatible(container.getReadinessProbe());
-        verifyProbeCompatible(container.getLivenessProbe());
-        verifyProbesSameValues(container.getReadinessProbe(), container.getLivenessProbe());
-        final ProbeConfig readinessProbeConfig = createProbeConfig(container);
         PodDisruptionBudgetConfig podDisruptionBudgetConfig =
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
@@ -111,7 +105,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
 
 
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         tlsEntryConfig = createTlsEntryConfig(statefulSet);
@@ -126,7 +119,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
-                .probe(readinessProbeConfig)
+                .probes(createBrokerProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
@@ -138,11 +131,14 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
                         spec.getTerminationGracePeriodSeconds().intValue())
                 .resources(container.getResources())
+                .tolerations(spec.getTolerations())
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
                 .functionsWorkerEnabled(isFunctionsWorkerEnabled(config))
                 .transactions(getTransactionCoordinatorConfig(config))
                 .serviceAccountName(spec.getServiceAccountName())
+                .antiAffinity(createAntiAffinityConfig(spec))
+                .env(container.getEnv())
                 .build();
     }
 
@@ -162,11 +158,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     @Override
     public PodDNSConfig getPodDnsConfig() {
         return podDNSConfig;
-    }
-
-    @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
     }
 
     @Override
@@ -194,6 +185,24 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         return tlsEntryConfig;
     }
 
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        String tokenPublicKey = (String) getConfig().get("tokenPublicKey");
+        if (tokenPublicKey == null) {
+            return null;
+        }
+        return getPublicKeyFileFromFileURL(tokenPublicKey);
+    }
+
+
     private BrokerSpec.ServiceConfig createServiceConfig(Service service) {
         Map<String, String> annotations = service.getMetadata().getAnnotations();
         if (annotations == null) {
@@ -212,12 +221,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     }
 
 
-    private void verifyProbeCompatible(Probe probe) {
-        if (probe.getExec() == null) {
-            throw new IllegalStateException("current probe is not compatible, must be exec");
-        }
-    }
-
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
         boolean tlsEnabled = parseConfigValueBool(getConfig(), "tlsEnabled");
         if (!tlsEnabled) {
@@ -235,5 +238,20 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .build();
     }
 
+    protected static BrokerSpec.BrokerProbesConfig createBrokerProbeConfig(Container container) {
+        return BrokerSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
+                .liveness(createProbeConfig(container.getLivenessProbe()))
+                .readiness(createProbeConfig(container.getReadinessProbe()))
+                .useHealthCheckForLiveness(detectedProbeUsingHealthCheck(container.getLivenessProbe()))
+                .useHealthCheckForReadiness(detectedProbeUsingHealthCheck(container.getReadinessProbe()))
+                .build();
+    }
+
+    private static boolean detectedProbeUsingHealthCheck(Probe probe) {
+        if (probe.getHttpGet() != null) {
+            return probe.getHttpGet().getPath().contains("/brokers/health");
+        }
+        return true;
+    }
 
 }

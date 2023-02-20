@@ -17,10 +17,11 @@ package com.datastax.oss.pulsaroperator.crds.broker;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
@@ -39,6 +40,7 @@ import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.ObjectUtils;
@@ -49,16 +51,49 @@ import org.apache.commons.lang3.ObjectUtils;
 @SuperBuilder
 public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
 
-    public static final Supplier<ProbeConfig> DEFAULT_PROBE = () -> ProbeConfig.builder()
-            .enabled(true)
-            .initial(10)
-            .period(30)
-            .timeout(5)
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    public static class BrokerProbesConfig extends ProbesConfig {
+        @JsonPropertyDescription("Use healthcheck for the liveness probe. If false, the /metrics endpoint will be "
+                + "used.")
+        private Boolean useHealthCheckForLiveness;
+        @JsonPropertyDescription("Use healthcheck for the readiness probe. If false, the /metrics endpoint will be "
+                + "used.")
+        private Boolean useHealthCheckForReadiness;
+
+        @Builder(builderMethodName = "brokerProbeConfigBuilder")
+        public BrokerProbesConfig(ProbeConfig readiness,
+                                  ProbeConfig liveness, Boolean useHealthCheckForLiveness,
+                                  Boolean useHealthCheckForReadiness) {
+            super(readiness, liveness);
+            this.useHealthCheckForLiveness = useHealthCheckForLiveness;
+            this.useHealthCheckForReadiness = useHealthCheckForReadiness;
+        }
+    }
+
+    public static final Supplier<BrokerProbesConfig> DEFAULT_PROBE = () -> BrokerProbesConfig.brokerProbeConfigBuilder()
+            .readiness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
+            .liveness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
+            .useHealthCheckForLiveness(true)
+            .useHealthCheckForReadiness(true)
             .build();
 
-    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
-            .withRequests(Map.of("memory", Quantity.parse("2Gi"), "cpu", Quantity.parse("1")))
-            .build();
+    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS =
+            () -> new ResourceRequirementsBuilder()
+                    .withRequests(Map.of("memory", Quantity.parse("2Gi"), "cpu", Quantity.parse("1")))
+                    .build();
 
     public static final Supplier<PodDisruptionBudgetConfig> DEFAULT_PDB = () -> PodDisruptionBudgetConfig.builder()
             .enabled(true)
@@ -106,7 +141,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @AllArgsConstructor
     @Builder
     public static class TransactionCoordinatorConfig {
-        @JsonPropertyDescription("Initialize the transaction coordinator if it's not yet and configure the broker to accept transactions.")
+        @JsonPropertyDescription("Initialize the transaction coordinator if it's not yet and configure the broker to "
+                + "accept transactions.")
         private Boolean enabled;
         @JsonPropertyDescription("Number of coordinators to create.")
         private Integer partitions;
@@ -127,6 +163,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
+    @JsonPropertyDescription(CRDConstants.DOC_PROBES)
+    private BrokerProbesConfig probes;
     @JsonPropertyDescription("Enable functions worker embedded in the broker.")
     private Boolean functionsWorkerEnabled;
     @JsonPropertyDescription("Enable transactions in the broker.")
@@ -160,6 +198,11 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         }
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
+        }
+        if (probes == null) {
+            probes = DEFAULT_PROBE.get();
+        } else {
+            probes = ConfigUtil.applyDefaultsWithReflection(probes, DEFAULT_PROBE);
         }
         applyServiceDefaults();
         if (functionsWorkerEnabled == null) {
@@ -250,12 +293,6 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
                 () -> autoscaler.getStabilizationWindowMs(),
                 () -> DEFAULT_BROKER_CONFIG.get().getStabilizationWindowMs()
         ));
-    }
-
-
-    @Override
-    protected ProbeConfig getDefaultProbeConfig() {
-        return DEFAULT_PROBE.get();
     }
 
     @Override

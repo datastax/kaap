@@ -23,6 +23,8 @@ import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -50,6 +52,7 @@ import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1088,6 +1091,46 @@ public class FunctionsWorkerControllerTest {
         );
     }
 
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                functionsWorker:
+                    replicas: 1
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        List<EnvVar> expectedEnv = new ArrayList<>();
+        expectedEnv.add(new EnvVar("env1", "env1-value", null));
+        expectedEnv.add(new EnvVarBuilder()
+                .withName(FunctionsWorkerResourcesFactory.ENV_WORKER_HOSTNAME)
+                .withNewValueFrom()
+                .withNewFieldRef()
+                .withFieldPath("metadata.name")
+                .endFieldRef()
+                .endValueFrom()
+                .build());
+        expectedEnv.add(new EnvVarBuilder()
+                .withName(FunctionsWorkerResourcesFactory.ENV_WORKER_ID)
+                .withNewValueFrom()
+                .withNewFieldRef()
+                .withFieldPath("metadata.name")
+                .endFieldRef()
+                .endValueFrom()
+                .build());
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(), expectedEnv);
+    }
+
     @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
@@ -1481,8 +1524,11 @@ public class FunctionsWorkerControllerTest {
                     image: apachepulsar/pulsar:global
                 functionsWorker:
                     replicas: 1
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1505,8 +1551,11 @@ public class FunctionsWorkerControllerTest {
                     image: apachepulsar/pulsar:global
                 functionsWorker:
                     replicas: 1
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1529,9 +1578,13 @@ public class FunctionsWorkerControllerTest {
                     image: apachepulsar/pulsar:global
                 functionsWorker:
                     replicas: 1
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        liveness:
+                            enabled: true
+                            periodSeconds: 12
+                        readiness:
+                            enabled: true
+                            periodSeconds: 11
                 """;
 
         client = invokeController(spec);
@@ -1543,8 +1596,8 @@ public class FunctionsWorkerControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertLivenessProbe(container.getLivenessProbe(), 5, 10, 50);
-        assertReadinessProbe(container.getReadinessProbe(), 5, 10, 50);
+        assertLivenessProbe(container.getLivenessProbe(), 5, 10, 12);
+        assertReadinessProbe(container.getReadinessProbe(), 5, 10, 11);
 
     }
 

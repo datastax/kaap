@@ -129,14 +129,13 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         if (tlsEnabledOnZooKeeper) {
             mainArg += generateCertConverterScript() + " && ";
         }
-        mainArg += "bin/apply-config-from-env.py conf/proxy.conf && ";
         mainArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/bookkeeper autorecovery";
 
 
         List<ContainerPort> containerPorts = new ArrayList<>();
         containerPorts.add(new ContainerPortBuilder()
-                .withName("wss")
-                .withContainerPort(8001)
+                .withName("http")
+                .withContainerPort(8000)
                 .build()
         );
         List<Container> containers = new ArrayList<>();
@@ -154,6 +153,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                                 .withName(resourceName)
                                 .endConfigMapRef()
                                 .build())
+                        .withEnv(spec.getEnv())
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
@@ -179,7 +179,11 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
+                .withAffinity(getAffinity(
+                        spec.getNodeAffinity(),
+                        spec.getAntiAffinity(),
+                        spec.getMatchLabels()
+                ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)

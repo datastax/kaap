@@ -20,6 +20,7 @@ import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -74,20 +75,15 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class ProxyTlsEntryConfig {
-        public static boolean isEnabled(ProxyTlsEntryConfig tlsEntryConfig) {
-            if (tlsEntryConfig != null
-                    && tlsEntryConfig.getEnabled() != null
-                    && tlsEntryConfig.getEnabled()) {
-                return true;
-            }
-            return false;
+    @EqualsAndHashCode(callSuper = true)
+    public static class ProxyTlsEntryConfig extends TlsEntryConfig {
+
+        @Builder(builderMethodName = "proxyBuilder")
+        public ProxyTlsEntryConfig(Boolean enabled, String secretName, Boolean enabledWithBroker) {
+            super(enabled, secretName);
+            this.enabledWithBroker = enabledWithBroker;
         }
-        @JsonPropertyDescription("Enable TLS.")
-        Boolean enabled;
-        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
-        String secretName;
+
         @JsonPropertyDescription("Enable TLS for the proxy to broker connections.")
         Boolean enabledWithBroker;
     }
@@ -95,20 +91,13 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class FunctionsWorkerTlsEntryConfig {
-        public static boolean isEnabled(FunctionsWorkerTlsEntryConfig tlsEntryConfig) {
-            if (tlsEntryConfig != null
-                    && tlsEntryConfig.getEnabled() != null
-                    && tlsEntryConfig.getEnabled()) {
-                return true;
-            }
-            return false;
+    @EqualsAndHashCode(callSuper = true)
+    public static class FunctionsWorkerTlsEntryConfig extends TlsEntryConfig {
+        @Builder(builderMethodName = "functionsWorkerBuilder")
+        public FunctionsWorkerTlsEntryConfig(Boolean enabled, String secretName, Boolean enabledWithBroker) {
+            super(enabled, secretName);
+            this.enabledWithBroker = enabledWithBroker;
         }
-        @JsonPropertyDescription("Enable TLS.")
-        Boolean enabled;
-        @JsonPropertyDescription("Override the default secret name from where to load the certificates.")
-        String secretName;
         @JsonPropertyDescription("Enable TLS for the functions worker to broker connections.")
         Boolean enabledWithBroker;
     }

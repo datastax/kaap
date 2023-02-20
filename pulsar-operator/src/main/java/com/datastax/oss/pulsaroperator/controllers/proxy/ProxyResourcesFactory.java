@@ -18,7 +18,7 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -29,7 +29,6 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
@@ -59,6 +58,12 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                     "PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info",
                     "numHttpServerThreads", "10"
             );
+    public static final int DEFAULT_HTTPS_PORT = 8443;
+    public static final int DEFAULT_PULSARSSL_PORT = 6651;
+    public static final int DEFAULT_HTTP_PORT = 8080;
+    public static final int DEFAULT_PULSAR_PORT = 6650;
+    public static final int DEFAULT_WS_PORT = 8000;
+    public static final int DEFAULT_WSS_PORT = 8001;
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getProxyBaseName();
@@ -96,22 +101,30 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         if (tlsEnabledOnProxy) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
-                    .withPort(8443)
+                    .withPort(DEFAULT_HTTPS_PORT)
                     .build());
             ports.add(new ServicePortBuilder()
                     .withName("pulsarssl")
-                    .withPort(6651)
+                    .withPort(DEFAULT_PULSARSSL_PORT)
+                    .build());
+            ports.add(new ServicePortBuilder()
+                    .withName("wss")
+                    .withPort(DEFAULT_WSS_PORT)
                     .build());
 
         }
         if (!tlsEnabledOnProxy || serviceSpec.getEnablePlainTextWithTLS()) {
             ports.add(new ServicePortBuilder()
                     .withName("http")
-                    .withPort(8080)
+                    .withPort(DEFAULT_HTTP_PORT)
                     .build());
             ports.add(new ServicePortBuilder()
                     .withName("pulsar")
-                    .withPort(6650)
+                    .withPort(DEFAULT_PULSAR_PORT)
+                    .build());
+            ports.add(new ServicePortBuilder()
+                    .withName("ws")
+                    .withPort(DEFAULT_WS_PORT)
                     .build());
         }
         if (serviceSpec.getAdditionalPorts() != null) {
@@ -250,8 +263,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             }
         }
 
-
-        appendConfigData(data, spec.getConfig());
+        appendConfigData(data, webSocketConfig.getConfig());
         if (!data.containsKey("webServicePort")) {
             data.put("webServicePort", "8000");
         }
@@ -287,7 +299,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        if (isTlsEnabledOnProxy()) {
+        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxy();
+        if (tlsEnabledOnProxy) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxy());
         }
         if (isAuthTokenEnabled()) {
@@ -326,7 +339,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                     .build());
         }
 
-        final Probe probe = createProbe();
         String mainArg = "";
         if (isAuthTokenEnabled()) {
             mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
@@ -342,11 +354,30 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
 
         List<ContainerPort> containerPorts = new ArrayList<>();
-        containerPorts.add(new ContainerPortBuilder()
-                .withName("wss")
-                .withContainerPort(8001)
-                .build()
-        );
+        if (tlsEnabledOnProxy) {
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("https")
+                    .withContainerPort(DEFAULT_HTTPS_PORT)
+                    .build()
+            );
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("pulsarssl")
+                    .withContainerPort(DEFAULT_PULSARSSL_PORT)
+                    .build()
+            );
+        } else {
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("http")
+                    .withContainerPort(DEFAULT_HTTP_PORT)
+                    .build()
+            );
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("pulsar")
+                    .withContainerPort(DEFAULT_PULSAR_PORT)
+                    .build()
+            );
+        }
+
         List<Container> containers = new ArrayList<>();
         if (spec.getService().getAdditionalPorts() != null) {
             spec.getService().getAdditionalPorts()
@@ -362,8 +393,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                         .withName(resourceName)
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(probe)
-                        .withReadinessProbe(probe)
+                        .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
+                        .withReadinessProbe(createProbe(spec.getProbes().getReadiness()))
                         .withResources(spec.getResources())
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
@@ -374,6 +405,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
+                        .withEnv(spec.getEnv())
                         .build()
         );
         final ProxySpec.WebSocketConfig webSocket = spec.getWebSocket();
@@ -392,6 +424,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             wsArg += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar websocket";
 
 
+            containerPorts.add(new ContainerPortBuilder()
+                    .withName("wss")
+                    .withContainerPort(8001)
+                    .build()
+            );
             final String wsResourceName = "%s-ws".formatted(resourceName);
             containers.add(
                     new ContainerBuilder()
@@ -402,16 +439,23 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                             .withCommand("sh", "-c")
                             .withArgs(wsArg)
                             .withPorts(List.of(
-                                    new ContainerPortBuilder()
-                                            .withName("http")
-                                            .withContainerPort(8080)
-                                            .build()
+                                    tlsEnabledOnProxy
+                                            ? new ContainerPortBuilder()
+                                                    .withName("wss")
+                                                    .withContainerPort(DEFAULT_WSS_PORT)
+                                                    .build() :
+                                            new ContainerPortBuilder()
+                                                    .withName("ws")
+                                                    .withContainerPort(DEFAULT_WS_PORT)
+                                                    .build()
                             ))
                             .withEnvFrom(new EnvFromSourceBuilder()
                                     .withNewConfigMapRef()
                                     .withName(wsResourceName)
                                     .endConfigMapRef()
                                     .build())
+                            .withLivenessProbe(createProbe(webSocket.getProbes().getLiveness()))
+                            .withReadinessProbe(createProbe(webSocket.getProbes().getReadiness()))
                             .withVolumeMounts(volumeMounts)
                             .build()
             );
@@ -440,7 +484,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
+                .withAffinity(getAffinity(
+                        spec.getNodeAffinity(),
+                        spec.getAntiAffinity(),
+                        spec.getMatchLabels()
+                ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -453,21 +501,17 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         patchResource(deployment);
     }
 
-    private Probe createProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+    private Probe createProbe(ProbesConfig.ProbeConfig specProbe) {
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withNewExec()
                 .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout(), authHeader))
+                        .formatted(specProbe.getTimeoutSeconds(), authHeader))
                 .endExec()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

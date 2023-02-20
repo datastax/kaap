@@ -19,7 +19,7 @@ import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -29,7 +29,6 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
@@ -275,7 +274,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                     .build());
         }
 
-        final Probe probe = createProbe();
         String mainArg = "";
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
         if (tlsEnabledOnBroker) {
@@ -311,7 +309,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         if (tlsEnabledOnBroker) {
             containerPorts.add(new ContainerPortBuilder()
                     .withName("https")
-                    .withContainerPort(8843)
+                    .withContainerPort(DEFAULT_HTTPS_PORT)
                     .build()
             );
             containerPorts.add(
@@ -328,8 +326,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                         .withName(resourceName)
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(probe)
-                        .withReadinessProbe(probe)
+                        .withLivenessProbe(createLivenessProbe())
+                        .withReadinessProbe(createReadinessProbe())
                         .withResources(spec.getResources())
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
@@ -340,6 +338,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
+                        .withEnv(spec.getEnv())
                         .build()
         );
         final StatefulSet statefulSet = new StatefulSetBuilder()
@@ -368,7 +367,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
+                .withAffinity(getAffinity(
+                        spec.getNodeAffinity(),
+                        spec.getAntiAffinity(),
+                        spec.getMatchLabels()
+                ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -452,23 +455,30 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         patchResource(job);
     }
 
+    private Probe createLivenessProbe() {
+        return createProbe(spec.getProbes().getLiveness(), true);
+    }
 
-    private Probe createProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+    private Probe createReadinessProbe() {
+        return createProbe(spec.getProbes().getReadiness(), false);
+    }
+
+    private Probe createProbe(ProbesConfig.ProbeConfig specProbe, boolean liveness) {
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
-        return new ProbeBuilder()
+        final String uri = liveness ? (spec.getProbes().getUseHealthCheckForLiveness()
+                ? "admin/v2/brokers/health" : "status.html") :
+                (spec.getProbes().getUseHealthCheckForReadiness() ? "admin/v2/brokers/health" : "metrics/");
+
+        return newProbeBuilder(specProbe)
                 .withNewExec()
                 .withCommand("sh", "-c",
-                        "curl -s --max-time %d --fail %s http://localhost:8080/admin/v2/brokers/health > /dev/null"
-                                .formatted(specProbe.getTimeout(), authHeader))
+                        "curl -s --max-time %d --fail %s http://localhost:8080/%s > /dev/null"
+                                .formatted(specProbe.getTimeoutSeconds(), authHeader, uri))
                 .endExec()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

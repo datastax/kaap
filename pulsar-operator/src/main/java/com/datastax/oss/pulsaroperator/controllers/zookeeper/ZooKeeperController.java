@@ -87,7 +87,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         }
         if (BaseResourcesFactory.isStatefulSetReady(sts)) {
 
-            final Job job = resourcesFactory.getJob();
+            final Job job = resourcesFactory.getMetadataInitializationJob();
             if (job == null) {
                 resourcesFactory.createMetadataInitializationJobIfNeeded();
                 return new ReconciliationResult(

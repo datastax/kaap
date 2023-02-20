@@ -22,6 +22,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -29,6 +30,7 @@ import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -38,6 +40,7 @@ import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -897,13 +900,18 @@ public abstract class BaseResourcesFactory<T> {
         }
     }
 
-    protected Affinity getAffinity(NodeAffinity nodeAffinity, Map<String, String> customMatchLabels) {
+    protected Affinity getAffinity(NodeAffinity nodeAffinity,
+                                   AntiAffinityConfig overrideGlobalAntiAffinity,
+                                   Map<String, String> customMatchLabels) {
 
         List<PodAffinityTerm> requiredTerms = new ArrayList<>();
         List<WeightedPodAffinityTerm> preferredTerms = new ArrayList<>();
 
-        if (global.getAntiAffinity() != null) {
-            final AntiAffinityConfig.HostAntiAffinityConfig host = global.getAntiAffinity().getHost();
+        final AntiAffinityConfig antiAffinityConfig =
+                ObjectUtils.firstNonNull(overrideGlobalAntiAffinity, global.getAntiAffinity());
+
+        if (antiAffinityConfig != null) {
+            final AntiAffinityConfig.HostAntiAffinityConfig host = antiAffinityConfig.getHost();
 
             if (host != null
                     && host.getEnabled() != null
@@ -920,7 +928,7 @@ public abstract class BaseResourcesFactory<T> {
                             customMatchLabels));
                 }
             }
-            final AntiAffinityConfig.ZoneAntiAffinityConfig zone = global.getAntiAffinity().getZone();
+            final AntiAffinityConfig.ZoneAntiAffinityConfig zone = antiAffinityConfig.getZone();
             if (zone != null
                     && zone.getEnabled() != null
                     && zone.getEnabled()) {
@@ -975,6 +983,26 @@ public abstract class BaseResourcesFactory<T> {
             return "/pulsar/certs/ca.crt";
         } else {
             return global.getTls().getCaPath();
+        }
+    }
+
+    protected ProbeBuilder newProbeBuilder(ProbesConfig.ProbeConfig probeConfig) {
+        return new ProbeBuilder()
+                .withInitialDelaySeconds(probeConfig.getInitialDelaySeconds())
+                .withTimeoutSeconds(probeConfig.getTimeoutSeconds())
+                .withPeriodSeconds(probeConfig.getPeriodSeconds())
+                .withFailureThreshold(probeConfig.getFailureThreshold())
+                .withSuccessThreshold(probeConfig.getSuccessThreshold());
+    }
+
+    protected static void checkEnvListNotContains(List<EnvVar> list, List<String> forbidden) {
+        if (list == null) {
+            return;
+        }
+        for (EnvVar envVar : list) {
+            if (forbidden.contains(envVar.getName())) {
+                throw new IllegalArgumentException("Env list contains forbidden env var: " + envVar.getName());
+            }
         }
     }
 }

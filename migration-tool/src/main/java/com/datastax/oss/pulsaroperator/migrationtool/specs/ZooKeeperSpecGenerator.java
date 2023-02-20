@@ -16,14 +16,13 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -39,6 +38,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -47,7 +47,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     public static final String SPEC_NAME = "ZooKeeper";
     private final String resourceName;
     private ZooKeeperSpec generatedSpec;
-    private AntiAffinityConfig antiAffinityConfig;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -104,8 +103,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .get(0);
         verifyProbeCompatible(container.getReadinessProbe());
         verifyProbeCompatible(container.getLivenessProbe());
-        verifyProbesSameValues(container.getReadinessProbe(), container.getLivenessProbe());
-        final ProbeConfig readinessProbeConfig = createProbeConfig(container);
         PodDisruptionBudgetConfig podDisruptionBudgetConfig =
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
@@ -115,7 +112,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
 
         config = convertConfigMapData(configMap);
         podDNSConfig = spec.getDnsConfig();
-        antiAffinityConfig = createAntiAffinityConfig(spec);
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         tlsEntryConfig = createTlsEntryConfig(statefulSet);
@@ -129,7 +125,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
-                .probe(readinessProbeConfig)
+                .probes(createProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
@@ -141,12 +137,24 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
                         spec.getTerminationGracePeriodSeconds().intValue())
                 .resources(container.getResources())
+                .tolerations(spec.getTolerations())
                 .dataVolume(createVolumeConfig(resourceName, persistentVolumeClaim))
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
+                .antiAffinity(createAntiAffinityConfig(spec))
+                .env(getEnv(container))
                 .build();
     }
 
+    private List<EnvVar> getEnv(Container container) {
+
+        final List<EnvVar> env = container.getEnv();
+        if (env == null) {
+            return null;
+        }
+        return env.stream().filter(e -> !ZooKeeperResourcesFactory.ENV_ZOOKEEPER_SERVERS.contains(e.getName()))
+                .collect(Collectors.toList());
+    }
 
 
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
@@ -172,11 +180,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     }
 
     @Override
-    public AntiAffinityConfig getAntiAffinityConfig() {
-        return antiAffinityConfig;
-    }
-
-    @Override
     public boolean isRestartOnConfigMapChange() {
         return isRestartOnConfigMapChange;
     }
@@ -199,6 +202,16 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
         return tlsEntryConfig;
+    }
+
+    @Override
+    public String getTlsCaPath() {
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        return null;
     }
 
     private ZooKeeperSpec.ServiceConfig createServiceConfig(Service mainService) {

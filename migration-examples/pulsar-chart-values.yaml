@@ -20,7 +20,7 @@ enableTokenAuth: true
 restartOnConfigMapChange:
   enabled: true
 extra:
-  function: false
+  function: true
   broker: false
   brokerSts: true
 
@@ -49,6 +49,14 @@ tls:
     enabled: true
     createCertificates: true
     tlsSecretName: autor-tls
+  proxy:
+    enabled: true
+    createCertificates: true
+    tlsSecretName: proxy-tls
+  function:
+    enabled: true
+    createCertificates: true
+    tlsSecretName: func-tls
   ssCaCert:
     tlsSecretName: ss-ca-cert
 
@@ -122,7 +130,7 @@ autoRecovery:
       cpu: 0.3
 
 function:
-  replicaCount: 0
+  replicaCount: 1
   functionReplicaCount: 1
   resources:
     requests:
@@ -132,8 +140,7 @@ function:
     PULSAR_MEM: "-Xms312m -Xmx312m -XX:MaxDirectMemorySize=200m -XX:+ExitOnOutOfMemoryError"
 
 proxy:
-  #replicaCount: 1
-  replicaCount: 0
+  replicaCount: 1
   resources:
     requests:
       memory: 512Mi

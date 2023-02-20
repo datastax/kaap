@@ -19,7 +19,7 @@ import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -37,6 +38,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -79,8 +81,6 @@ public abstract class BaseSpecGenerator<T> {
 
     public abstract PodDNSConfig getPodDnsConfig();
 
-    public abstract AntiAffinityConfig getAntiAffinityConfig();
-
     public abstract boolean isRestartOnConfigMapChange();
 
     public abstract String getDnsName();
@@ -90,6 +90,10 @@ public abstract class BaseSpecGenerator<T> {
     public abstract Map<String, Object> getConfig();
 
     public abstract TlsConfig.TlsEntryConfig getTlsEntryConfig();
+
+    public abstract String getTlsCaPath();
+
+    public abstract String getAuthPublicKeyFile();
 
     protected void addResource(HasMetadata resource) {
         resources.add(SerializationUtil.deepCloneObject(resource));
@@ -159,6 +163,22 @@ public abstract class BaseSpecGenerator<T> {
                 .get();
         if (required && sts == null) {
             throw new IllegalStateException("Expected StatefulSet with name " + name + " not found");
+        }
+        return sts;
+    }
+
+    protected Deployment requireDeployment(String name) {
+        return getDeployment(name, true);
+    }
+
+    private Deployment getDeployment(String name, boolean required) {
+        final Deployment sts = client.apps()
+                .deployments()
+                .inNamespace(inputSpecs.getNamespace())
+                .withName(name)
+                .get();
+        if (required && sts == null) {
+            throw new IllegalStateException("Expected Deployment with name " + name + " not found");
         }
         return sts;
     }
@@ -276,7 +296,12 @@ public abstract class BaseSpecGenerator<T> {
     }
 
     protected static Map<String, String> getMatchLabels(StatefulSetSpec statefulSetSpec) {
-        Map<String, String> matchLabels = statefulSetSpec.getSelector().getMatchLabels();
+        return getMatchLabels(statefulSetSpec.getSelector());
+    }
+
+    protected static Map<String, String> getMatchLabels(LabelSelector selector) {
+
+        Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels == null) {
             matchLabels = new HashMap<>();
         }
@@ -286,15 +311,6 @@ public abstract class BaseSpecGenerator<T> {
         return matchLabels;
     }
 
-    protected static void verifyProbesSameValues(Probe probe1, Probe probe2) {
-        if (!Objects.equals(probe1, probe2)) {
-            throw new IllegalStateException(
-                    "probes are not equals, the operator handles a single configuration for readiness and liveness "
-                            + "probe");
-        }
-    }
-
-
     protected static void verifyLabelsEquals(HasMetadata... resources) {
         for (int i = 0; i < resources.length; i++) {
             if (!Objects.equals(resources[0].getMetadata().getLabels(), resources[i].getMetadata().getLabels())) {
@@ -303,21 +319,31 @@ public abstract class BaseSpecGenerator<T> {
         }
     }
 
-    protected static ProbeConfig createProbeConfig(Container container) {
-        final Integer timeout = container.getReadinessProbe().getTimeoutSeconds();
-        final Integer period = container.getReadinessProbe().getPeriodSeconds();
-        final Integer initial = container.getReadinessProbe().getInitialDelaySeconds();
-
-        final ProbeConfig readinessProbeConfig = ProbeConfig.builder()
-                .enabled(true)
-                .initial(initial)
-                .period(period)
-                .timeout(timeout)
+    protected static ProbesConfig createProbeConfig(Container container) {
+        return ProbesConfig.builder()
+                .liveness(createProbeConfig(container.getLivenessProbe()))
+                .readiness(createProbeConfig(container.getReadinessProbe()))
                 .build();
-        return readinessProbeConfig;
     }
 
-    protected static boolean boolConfigMapValue(Map<String, Object> configMapData, String property) {
+    protected static ProbesConfig.ProbeConfig createProbeConfig(Probe containerProbe) {
+        if (containerProbe == null) {
+            return ProbesConfig.ProbeConfig.builder()
+                    .enabled(false)
+                    .build();
+        }
+        return ProbesConfig.ProbeConfig.builder()
+                .enabled(true)
+                .initialDelaySeconds(containerProbe.getInitialDelaySeconds())
+                .periodSeconds(containerProbe.getPeriodSeconds())
+                .timeoutSeconds(containerProbe.getTimeoutSeconds())
+                .failureThreshold(containerProbe.getFailureThreshold())
+                .successThreshold(containerProbe.getSuccessThreshold())
+                .terminationGracePeriodSeconds(containerProbe.getTerminationGracePeriodSeconds())
+                .build();
+    }
+
+    protected static boolean boolConfigMapValue(Map<String, ?> configMapData, String property) {
         return configMapData.containsKey(property)
                 && Boolean.parseBoolean(configMapData.get(property).toString());
     }
@@ -339,6 +365,22 @@ public abstract class BaseSpecGenerator<T> {
             res.put(k.replace("PULSAR_PREFIX_", ""), v);
         });
         return res;
+    }
+
+    protected static Container getContainerByName(List<Container> containers, String name) {
+        for (Container container : containers) {
+            if (container.getName().equals(name)) {
+                return container;
+            }
+        }
+        return null;
+    }
+
+    protected static String getPublicKeyFileFromFileURL(String url) {
+        if (!url.startsWith("file://")) {
+            throw new IllegalArgumentException("Invalid public key file url: " + url);
+        }
+        return url.substring(url.lastIndexOf("/") + 1);
     }
 
 }

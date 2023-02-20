@@ -19,7 +19,7 @@ import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -59,6 +58,12 @@ import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
+
+    public static final int DEFAULT_HTTP_PORT = 6750;
+    public static final int DEFAULT_HTTPS_PORT = 6751;
+    public static final String ENV_WORKER_HOSTNAME = "workerHostname";
+    public static final String ENV_WORKER_ID = "PF_workerId";
+    public static final List<String> DEFAULT_ENV = List.of(ENV_WORKER_HOSTNAME, ENV_WORKER_ID);
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getFunctionsWorkerBaseName();
@@ -90,11 +95,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("http")
-                .withPort(6750)
+                .withPort(DEFAULT_HTTP_PORT)
                 .build());
         ports.add(new ServicePortBuilder()
                 .withName("https")
-                .withPort(6751)
+                .withPort(DEFAULT_HTTPS_PORT)
                 .build());
         if (serviceSpec.getAdditionalPorts() != null) {
             ports.addAll(serviceSpec.getAdditionalPorts());
@@ -128,11 +133,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
                 .withName("http")
-                .withPort(6750)
+                .withPort(DEFAULT_HTTP_PORT)
                 .build());
         ports.add(new ServicePortBuilder()
                 .withName("https")
-                .withPort(6751)
+                .withPort(DEFAULT_HTTPS_PORT)
                 .build());
         if (serviceSpec.getAdditionalPorts() != null) {
             ports.addAll(serviceSpec.getAdditionalPorts());
@@ -208,7 +213,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("zooKeeperSessionTimeoutMillis", "30000");
         data.put("pulsarFunctionsCluster", global.getName());
         data.put("workerId", resourceName);
-        data.put("workerHostname", resourceName);
+        data.put(ENV_WORKER_HOSTNAME, resourceName);
         data.put("workerPort", "6750");
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
@@ -293,9 +298,13 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         + "only process and kubernetes");
         }
         if (spec.getConfig() != null) {
-            data.putAll(spec.getConfig());
+            spec.getConfig().forEach((k, v) -> {
+                // keep PULSAR_PREFIX_ but skip PULSAR_MEM and family. They are handled by the extra config map
+                if (k.startsWith("PULSAR_PREFIX_") || !k.startsWith("PULSAR_")) {
+                    data.put(k, v);
+                }
+            });
         }
-
         if (!data.containsKey("numFunctionPackageReplicas")) {
             data.put("numFunctionPackageReplicas", "2");
         }
@@ -416,19 +425,21 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<ContainerPort> containerPorts = new ArrayList<>();
         containerPorts.add(new ContainerPortBuilder()
                 .withName("http")
-                .withContainerPort(6750)
+                .withContainerPort(DEFAULT_HTTP_PORT)
                 .build()
         );
         containerPorts.add(
                 new ContainerPortBuilder()
                         .withName("https")
-                        .withContainerPort(6751)
+                        .withContainerPort(DEFAULT_HTTPS_PORT)
                         .build()
         );
 
-        List<EnvVar> env = new ArrayList<>();
+        List<EnvVar> env = spec.getEnv() != null ? spec.getEnv() : new ArrayList<>();
+        checkEnvListNotContains(env, DEFAULT_ENV);
+
         env.add(new EnvVarBuilder()
-                .withName("workerHostname")
+                .withName(ENV_WORKER_HOSTNAME)
                 .withNewValueFrom()
                 .withNewFieldRef()
                 .withFieldPath("metadata.name")
@@ -436,7 +447,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .endValueFrom()
                 .build());
         env.add(new EnvVarBuilder()
-                .withName("PF_workerId")
+                .withName(ENV_WORKER_ID)
                 .withNewValueFrom()
                 .withNewFieldRef()
                 .withFieldPath("metadata.name")
@@ -505,7 +516,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withImagePullSecrets(spec.getImagePullSecrets())
                 .withServiceAccountName(resourceName)
                 .withNodeSelector(spec.getNodeSelectors())
-                .withAffinity(getAffinity(spec.getNodeAffinity(), spec.getMatchLabels()))
+                .withAffinity(getAffinity(
+                        spec.getNodeAffinity(),
+                        spec.getAntiAffinity(),
+                        spec.getMatchLabels()
+                ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(initContainers)
@@ -523,36 +538,30 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
     private Probe createReadinessProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+        final ProbesConfig.ProbeConfig specProbe = spec.getProbes().getReadiness();
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withNewTcpSocket()
-                .withNewPort().withValue(6750).endPort()
+                .withNewPort().withValue(DEFAULT_HTTP_PORT).endPort()
                 .endTcpSocket()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 
 
     private Probe createLivenessProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+        final ProbesConfig.ProbeConfig specProbe = spec.getProbes().getLiveness();
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withNewExec()
                 .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:6750/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout(), authHeader))
+                        .formatted(specProbe.getTimeoutSeconds(), authHeader))
                 .endExec()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

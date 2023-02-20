@@ -17,9 +17,10 @@ package com.datastax.oss.pulsaroperator.crds.zookeeper;
 
 import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,11 +53,19 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
             .withType("RollingUpdate")
             .build();
 
-    public static final Supplier<ProbeConfig> DEFAULT_PROBE = () -> ProbeConfig.builder()
-            .enabled(true)
-            .initial(20)
-            .period(30)
-            .timeout(30)
+    public static final Supplier<ProbesConfig> DEFAULT_PROBES = () -> ProbesConfig.builder()
+            .readiness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(20)
+                    .periodSeconds(30)
+                    .timeoutSeconds(30)
+                    .build())
+            .liveness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(20)
+                    .periodSeconds(30)
+                    .timeoutSeconds(30)
+                    .build())
             .build();
 
 
@@ -105,6 +114,8 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
+    @JsonPropertyDescription(CRDConstants.DOC_PROBE_LIVENESS)
+    private ProbesConfig probes;
     @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")
     private String podManagementPolicy;
     @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
@@ -141,6 +152,11 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
+        if (probes == null) {
+            probes = DEFAULT_PROBES.get();
+        } else {
+            probes = ConfigUtil.applyDefaultsWithReflection(probes, DEFAULT_PROBES);
+        }
         if (dataVolume == null) {
             dataVolume = DEFAULT_DATA_VOLUME.get();
         }
@@ -156,13 +172,6 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
         } else {
             metadataInitializationJob = DEFAULT_METADATA_INITIALIZATION_JOB_CONFIG.get();
         }
-    }
-
-
-
-    @Override
-    protected ProbeConfig getDefaultProbeConfig() {
-        return DEFAULT_PROBE.get();
     }
 
     @Override

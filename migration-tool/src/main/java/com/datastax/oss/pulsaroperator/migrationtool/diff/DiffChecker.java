@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.pulsaroperator.migrationtool;
+package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONAssertComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
@@ -27,6 +28,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,9 +37,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class DiffChecker {
@@ -49,34 +54,53 @@ public class DiffChecker {
 
     @SneakyThrows
     public static void diffFromDirectory(File inputDirectory) {
-        Collection<Map<String, Object>> existingResources = new ArrayList<>();
-        Collection<Map<String, Object>> generatedResources = new ArrayList<>();
+        Collection<Pair<File, Map<String, Object>>> existingResources = new ArrayList<>();
+        Collection<Pair<File, Map<String, Object>>> generatedResources = new ArrayList<>();
         log.info("checking files at {}", inputDirectory.getAbsolutePath());
+        final AtomicReference<File> pulsarClusterCrd = new AtomicReference<>();
         Files.list(inputDirectory.toPath())
                 .filter(p -> p.toFile().getName().endsWith(".json"))
                 .forEach(p -> {
-                    final String filename = p.toFile().getName();
+                    final File file = p.toFile();
+                    final String filename = file.getName();
                     if (filename.startsWith("generated-")) {
                         try {
-                            generatedResources.add(MAPPER.readValue(p.toFile(), Map.class));
+                            generatedResources.add(Pair.of(file, MAPPER.readValue(file, Map.class)));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     } else if (filename.startsWith("original-")) {
                         try {
-                            existingResources.add(MAPPER.readValue(p.toFile(), Map.class));
+                            existingResources.add(Pair.of(file, MAPPER.readValue(file, Map.class)));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                    } else if (filename.startsWith("crd-")) {
+                        pulsarClusterCrd.set(file);
                     }
                 });
-        DiffChecker diffChecker = new DiffChecker();
+        DiffChecker diffChecker = new DiffChecker(new MultiDiffOutputWriters(
+                List.of(
+                        new HtmlFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.html"),
+                                pulsarClusterCrd.get()),
+                        new RawFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.txt")),
+                        new ConsoleDiffOutputWriter()
+                )
+        ));
         diffChecker.checkDiffsFromMaps(existingResources, generatedResources);
+
+
     }
 
+    private final DiffOutputWriter diffOutputWriter;
+
+    public DiffChecker(DiffOutputWriter diffOutputWriter) {
+        this.diffOutputWriter = diffOutputWriter;
+    }
 
     private void checkDiffsFromMaps(
-            Collection<Map<String, Object>> existingResources, Collection<Map<String, Object>> generatedResources) {
+            Collection<Pair<File, Map<String, Object>>> existingResources,
+            Collection<Pair<File, Map<String, Object>>> generatedResources) {
 
         checkDiffs(existingResources
                         .stream()
@@ -117,138 +141,116 @@ public class DiffChecker {
             }
 
             @Override
+            public String getFullQualifedName() {
+                return getName() + "/" + getKind();
+            }
+
+            @Override
             @SneakyThrows
             public Map<String, Object> toMap() {
                 return MAPPER.convertValue(metadata, Map.class);
             }
+
+            @Override
+            public File getFileReference() {
+                return null;
+            }
         };
 
     }
 
-    private Resource mapToResource(Map<String, Object> map) {
+    private Resource mapToResource(Pair<File, Map<String, Object>> map) {
         return new Resource() {
             @Override
             public String getName() {
-                return ((Map<String, Object>) (map.get("metadata"))).get("name").toString();
+                return ((Map<String, Object>) (map.getRight().get("metadata"))).get("name").toString();
             }
 
             @Override
             public String getKind() {
-                return map.get("kind").toString();
+                return map.getRight().get("kind").toString();
+            }
+
+            @Override
+            public String getFullQualifedName() {
+                return getName() + "/" + getKind();
             }
 
             @Override
             @SneakyThrows
             public Map<String, Object> toMap() {
-                return map;
+                return map.getRight();
+            }
+
+            @Override
+            public File getFileReference() {
+                return map.getLeft();
             }
         };
 
     }
 
-    private interface Resource {
+    public interface Resource {
         String getName();
 
         String getKind();
 
+        String getFullQualifedName();
+
         Map<String, Object> toMap();
+
+        File getFileReference();
 
     }
 
     @SneakyThrows
-    private void checkDiffs(Collection<Resource> existingResources, Collection<Resource> generatedResources) {
-        Map<String, String> results = new HashMap<>();
-        for (Resource generatedResource : generatedResources) {
+    private void checkDiffs(Collection<Resource> existingResources,
+                            Collection<Resource> generatedResources) {
+        final List<Resource> sortedGenResources = generatedResources.stream()
+                .sorted(Comparator.comparing(Resource::getName).thenComparing(Resource::getKind))
+                .collect(Collectors.toList());
+        for (Resource generatedResource : sortedGenResources) {
             final String name = generatedResource.getName();
 
-            final Resource equivalent = findEquivalent(generatedResource, existingResources);
-            if (equivalent == null) {
-                reportDiff("generated resouce %s not found in existing resources".formatted(name));
+            final Resource original = findEquivalent(generatedResource, existingResources);
+            if (original == null) {
+                reportDiff("generated resource %s not found in existing resources".formatted(name));
                 continue;
             }
-            final String fqn = generatedResource.getKind() + "/" + name;
-
-            log.info("converting generated resource {} to json", fqn);
-            final Map<String, Object> genJson = toJson(generatedResource);
-            log.info("converting original resource {} to json", fqn);
-            final Map<String, Object> existingJson = toJson(equivalent);
-            log.info("checking diff for {}", fqn);
-            try {
-                compareOrThrow(genJson, existingJson);
-                log.info("{} OK!", fqn);
-
-                results.put(fqn, "OK");
-            } catch (AssertionError assertionError) {
-                log.warn(assertionError.getMessage());
-                results.put(fqn, assertionError.getMessage());
-            }
+            compare(generatedResource, original);
         }
-        String resultStr = "*** RESULTS ***\n\n";
-        for (Map.Entry<String, String> stringStringEntry : results.entrySet()) {
-            resultStr += stringStringEntry.getKey() + ": " + stringStringEntry.getValue() + "\n";
-        }
-        log.info(resultStr);
+        diffOutputWriter.flush();
     }
 
-    private void compareOrThrow(Map<String, Object> genJson, Map<String, Object> existingJson)
+    private void compare(Resource generated, Resource original)
             throws JsonProcessingException {
+        final String fqn = generated.getFullQualifedName();
+        log.info("converting generated resource {} to json", fqn);
+        final Map<String, Object> genJson = toJson(generated);
+        log.info("converting original resource {} to json", fqn);
+        final Map<String, Object> existingJson = toJson(original);
+        log.info("checking diff for {}", fqn);
         final String genStr = MAPPER.writeValueAsString(genJson);
         final String originalStr = MAPPER.writeValueAsString(existingJson);
 
 
+        final Pair<Resource, Resource> resources = Pair.of(generated, original);
+
         JSONComparator comparator = new JSONAssertComparator();
         final JSONComparator.Result result = comparator.compare(originalStr, genStr);
         if (result.passed()) {
+            diffOutputWriter.diffOk(resources);
             return;
         }
 
-        StringBuilder err = new StringBuilder("Comparison failed: \n");
-        result.failures()
+        final List<JSONComparator.FieldComparisonFailure> failures = result.failures()
                 .stream()
                 .sorted(Comparator.comparing(JSONComparator.FieldComparisonFailure::field))
-                .map(field -> formatFieldComparisonFailure(field, genJson, existingJson))
-                .forEach(err::append);
-        throw new AssertionError(err.toString());
+                .collect(Collectors.toList());
+
+        diffOutputWriter.diffFailed(resources, failures, genJson, existingJson);
     }
 
-    private String formatFieldComparisonFailure(JSONComparator.FieldComparisonFailure fieldFailure,
-                                                Map<String, Object> genJson,
-                                                Map<String, Object> originalJson) {
-        final Object actual = fieldFailure.actual();
-        final Object expected = fieldFailure.expected();
-        final String field = fieldFailure.field();
-        if (actual == null) {
-            final String quotedExpected = "\"" + expected + "\"";
-            return """
-                    - expected: '%s.%s=%s' but none found
-                    """.formatted(
-                    field,
-                    quotedExpected,
-                    getValueByDotNotation(originalJson, "%s.%s".formatted(field,
-                            quotedExpected))
-            );
-        }
-        if (expected == null) {
-            final Object quotedActual = "\"" + actual + "\"";
-            return """
-                    - unexpected: '%s.%s=%s'
-                    """.formatted(
-                    field,
-                    quotedActual,
-                    getValueByDotNotation(genJson, "%s.%s".formatted(field,
-                            quotedActual))
-            );
-        }
-        return """
-                - '%s' value differs:
-                    Original:  %s
-                    Generated: %s
-                """.formatted(
-                field,
-                expected,
-                actual
-        );
-    }
 
     private Resource findEquivalent(Resource as, Collection<Resource> from) {
         for (Resource hasMetadata : from) {
@@ -293,9 +295,11 @@ public class DiffChecker {
         metadata.remove("uid");
         metadata.remove("revisionHistoryLimit");
         metadata.remove("namespace");
+        metadata.remove("finalizers");
         final Map<String, Object> annotations = getPropAsMap(metadata, "annotations");
         if (annotations != null) {
             BaseSpecGenerator.HELM_ANNOTATIONS.forEach(annotations::remove);
+            annotations.remove("deployment.kubernetes.io/revision");
             if (annotations.isEmpty()) {
                 metadata.remove("annotations");
             }
@@ -312,26 +316,43 @@ public class DiffChecker {
         adjustVolumeClaimTemplates(spec);
         removeIfMatch(spec, "clusterIPs", List.of("None"));
         removeIfMatch(spec, "internalTrafficPolicy", "Cluster");
+        removeIfMatch(spec, "externalTrafficPolicy", "Cluster");
         removeIfMatch(spec, "ipFamilies", List.of("IPv4"));
         removeIfMatch(spec, "ipFamilyPolicy", "SingleStack");
         removeIfMatch(spec, "sessionAffinity", "None");
         removeIfMatch(spec, "type", "ClusterIP");
-        removeIfMatch(spec, "type", "ClusterIP");
-        getPropAsList(spec, "ports").forEach(port -> {
+        removeIfMatch(spec, "allocateLoadBalancerNodePorts", true);
+        sortAndReplaceList(spec, "ports", port -> {
             // https://kubernetes.io/docs/reference/networking/service-protocols/
             removeIfMatch(port, "protocol", "TCP");
             removeIfMatch(port, "targetPort", port.get("port"));
-        });
+            port.remove("nodePort");
+
+            return port;
+        }, Comparator.comparing(c -> (Integer) c.get("port")));
         final Map<String, Object> selector = getPropAsMap(spec, "selector");
         BaseSpecGenerator.HELM_LABELS.forEach(selector::remove);
 
+        // https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds
+        removeIfMatch(spec, "progressDeadlineSeconds", 600);
+        // https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+        removeIfMatch(spec, "strategy", Map.of("rollingUpdate",
+                Map.of("maxSurge", "25%", "maxUnavailable", "25%"), "type", "RollingUpdate"));
     }
 
     private static void adjustConfigMapData(Map<String, Object> spec) {
         if (spec == null) {
             return;
         }
-        spec.put("data", BaseResourcesFactory.handleConfigPulsarPrefix(getPropAsMap(spec, "data")));
+        final Map<String, Object> data = getPropAsMap(spec, "data");
+        if (data != null) {
+            final String functionsWorkerYml = (String) data.get("functions_worker.yml");
+            if (functionsWorkerYml != null) {
+                // deserialize to better visual comparison
+                data.put("functions_worker.yml", SerializationUtil.readYaml(functionsWorkerYml, Map.class));
+            }
+        }
+        spec.put("data", BaseResourcesFactory.handleConfigPulsarPrefix(data));
     }
 
     private static void adjustSpecSelector(Map<String, Object> spec) {
@@ -341,11 +362,12 @@ public class DiffChecker {
     }
 
     private static void adjustVolumeClaimTemplates(Map<String, Object> spec) {
-        getPropAsList(spec, "volumeClaimTemplates").forEach(vct -> {
+        sortAndReplaceList(spec, "volumeClaimTemplates", vct -> {
             vct.remove("status");
             final Map<String, Object> vctSpec = getPropAsMap(vct, "spec");
             // https://kubernetes.io/docs/concepts/storage/persistent-volumes/#volume-mode
             removeIfMatch(vctSpec, "volumeMode", "Filesystem");
+            return vct;
         });
     }
 
@@ -367,17 +389,17 @@ public class DiffChecker {
         removeIfMatch(templateSpec, "restartPolicy", "Always");
         // https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/#specify-schedulers-for-pods
         removeIfMatch(templateSpec, "schedulerName", "default-scheduler");
-        adjustContainers(getPropAsList(templateSpec, "containers"));
-    }
-
-    private static void adjustContainers(List<Map<String, Object>> containers) {
-        if (containers == null) {
-            return;
-        }
-        for (Map<String, Object> container : containers) {
+        removeIfMatch(templateSpec, "securityContext", Map.of());
+        removeIfMatch(templateSpec, "serviceAccount", templateSpec.get("serviceAccountName"));
+        sortAndReplaceList(templateSpec, "volumes", v -> {
+            final Map<String, Object> secret = getPropAsMap(v, "secret");
+            removeIfMatch(secret, "defaultMode", 420);
+            return v;
+        });
+        sortAndReplaceList(templateSpec, "containers", container -> {
             adjustContainer(container);
-        }
-
+            return container;
+        }, Comparator.comparing(c -> (String) c.get("name")));
     }
 
     private static void adjustContainer(Map<String, Object> container) {
@@ -391,10 +413,14 @@ public class DiffChecker {
 
         adjustContainerProbes(container);
 
-        getPropAsList(container, "ports").forEach(port -> {
+        sortAndReplaceList(container, "ports", port -> {
             // https://kubernetes.io/docs/reference/networking/service-protocols/
             removeIfMatch(port, "protocol", "TCP");
-        });
+            return port;
+        }, Comparator.comparing(c -> (Integer) c.get("containerPort")));
+
+        sortAndReplaceList(container, "volumeMounts", Function.identity());
+
     }
 
     private static void adjustContainerProbes(Map<String, Object> container) {
@@ -437,48 +463,31 @@ public class DiffChecker {
         return exiJson.get(name) == null ? new HashMap<>() : (Map<String, Object>) exiJson.get(name);
     }
 
+    private static void sortAndReplaceList(Map<String, Object> exiJson,
+                                           String name,
+                                           Function<Map<String, Object>, Map<String, Object>> mapper) {
+        sortAndReplaceList(exiJson, name, mapper,
+                Comparator.comparing(v -> SerializationUtil.writeAsJson(v)));
+    }
+
+
+    private static void sortAndReplaceList(Map<String, Object> exiJson,
+                                           String name,
+                                           Function<Map<String, Object>, Map<String, Object>> mapper,
+                                           Comparator<Map<String, Object>> comparator) {
+        final var sortedList = getPropAsList(exiJson, name)
+                .stream()
+                .map(mapper)
+                .sorted(comparator)
+                .collect(Collectors.toList());
+        if (!sortedList.isEmpty()) {
+            exiJson.put(name, sortedList);
+        }
+    }
+
     private static List<Map<String, Object>> getPropAsList(Map<String, Object> exiJson, String name) {
         return exiJson.get(name) == null ? Collections.emptyList() : (List<Map<String, Object>>) exiJson.get(name);
     }
-
-    private static String getValueByDotNotation(final Map<String, Object> map, String key) {
-        List<String> words = new ArrayList<>();
-        String currentWord = "";
-        boolean openQuote = false;
-        for (char c : key.toCharArray()) {
-            if (c == '"') {
-                openQuote = !openQuote;
-                continue;
-            }
-            if (c == '.') {
-                if (currentWord.isEmpty()) {
-                    throw new IllegalArgumentException("invalid key: " + key);
-                }
-                if (!openQuote) {
-                    words.add(currentWord);
-                    currentWord = "";
-                    continue;
-                }
-            }
-            currentWord += c;
-        }
-        words.add(currentWord);
-        Map<String, Object> currentMap = map;
-        for (int i = 0; i < words.size() - 1; i++) {
-            final String word = words.get(i);
-            if (word.endsWith("]")) {
-                int index = Integer.parseInt(word.substring(word.indexOf("[") + 1, word.indexOf("]")));
-                final List<Object> list = (List<Object>) currentMap.get(word.replace("[" + index + "]", ""));
-                currentMap = (Map<String, Object>) list.get(index);
-            } else {
-                currentMap = (Map<String, Object>) currentMap.get(word);
-            }
-        }
-
-        return currentMap.get(words.get(words.size() - 1)).toString();
-    }
-
-
 }
 
 

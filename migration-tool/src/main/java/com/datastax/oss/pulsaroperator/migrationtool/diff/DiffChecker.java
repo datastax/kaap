@@ -37,25 +37,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class DiffChecker {
-
-    public interface DiffOutputWriter {
-
-        void diffOk(String fqname);
-
-        void diffFailed(String fqname, List<JSONComparator.FieldComparisonFailure> fieldFailures,
-                        Map<String, Object> genJson,
-                        Map<String, Object> originalJson);
-
-        void flush();
-
-    }
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
@@ -64,29 +54,35 @@ public class DiffChecker {
 
     @SneakyThrows
     public static void diffFromDirectory(File inputDirectory) {
-        Collection<Map<String, Object>> existingResources = new ArrayList<>();
-        Collection<Map<String, Object>> generatedResources = new ArrayList<>();
+        Collection<Pair<File, Map<String, Object>>> existingResources = new ArrayList<>();
+        Collection<Pair<File, Map<String, Object>>> generatedResources = new ArrayList<>();
         log.info("checking files at {}", inputDirectory.getAbsolutePath());
+        final AtomicReference<File> pulsarClusterCrd = new AtomicReference<>();
         Files.list(inputDirectory.toPath())
                 .filter(p -> p.toFile().getName().endsWith(".json"))
                 .forEach(p -> {
-                    final String filename = p.toFile().getName();
+                    final File file = p.toFile();
+                    final String filename = file.getName();
                     if (filename.startsWith("generated-")) {
                         try {
-                            generatedResources.add(MAPPER.readValue(p.toFile(), Map.class));
+                            generatedResources.add(Pair.of(file, MAPPER.readValue(file, Map.class)));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
                     } else if (filename.startsWith("original-")) {
                         try {
-                            existingResources.add(MAPPER.readValue(p.toFile(), Map.class));
+                            existingResources.add(Pair.of(file, MAPPER.readValue(file, Map.class)));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                    } else if (filename.startsWith("crd-")) {
+                        pulsarClusterCrd.set(file);
                     }
                 });
         DiffChecker diffChecker = new DiffChecker(new MultiDiffOutputWriters(
                 List.of(
+                        new HtmlFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.html"),
+                                pulsarClusterCrd.get()),
                         new RawFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.txt")),
                         new ConsoleDiffOutputWriter()
                 )
@@ -103,7 +99,8 @@ public class DiffChecker {
     }
 
     private void checkDiffsFromMaps(
-            Collection<Map<String, Object>> existingResources, Collection<Map<String, Object>> generatedResources) {
+            Collection<Pair<File, Map<String, Object>>> existingResources,
+            Collection<Pair<File, Map<String, Object>>> generatedResources) {
 
         checkDiffs(existingResources
                         .stream()
@@ -144,77 +141,105 @@ public class DiffChecker {
             }
 
             @Override
+            public String getFullQualifedName() {
+                return getName() + "/" + getKind();
+            }
+
+            @Override
             @SneakyThrows
             public Map<String, Object> toMap() {
                 return MAPPER.convertValue(metadata, Map.class);
             }
+
+            @Override
+            public File getFileReference() {
+                return null;
+            }
         };
 
     }
 
-    private Resource mapToResource(Map<String, Object> map) {
+    private Resource mapToResource(Pair<File, Map<String, Object>> map) {
         return new Resource() {
             @Override
             public String getName() {
-                return ((Map<String, Object>) (map.get("metadata"))).get("name").toString();
+                return ((Map<String, Object>) (map.getRight().get("metadata"))).get("name").toString();
             }
 
             @Override
             public String getKind() {
-                return map.get("kind").toString();
+                return map.getRight().get("kind").toString();
+            }
+
+            @Override
+            public String getFullQualifedName() {
+                return getName() + "/" + getKind();
             }
 
             @Override
             @SneakyThrows
             public Map<String, Object> toMap() {
-                return map;
+                return map.getRight();
+            }
+
+            @Override
+            public File getFileReference() {
+                return map.getLeft();
             }
         };
 
     }
 
-    private interface Resource {
+    public interface Resource {
         String getName();
 
         String getKind();
 
+        String getFullQualifedName();
+
         Map<String, Object> toMap();
+
+        File getFileReference();
 
     }
 
     @SneakyThrows
     private void checkDiffs(Collection<Resource> existingResources,
                             Collection<Resource> generatedResources) {
-        for (Resource generatedResource : generatedResources) {
+        final List<Resource> sortedGenResources = generatedResources.stream()
+                .sorted(Comparator.comparing(Resource::getName).thenComparing(Resource::getKind))
+                .collect(Collectors.toList());
+        for (Resource generatedResource : sortedGenResources) {
             final String name = generatedResource.getName();
 
-            final Resource equivalent = findEquivalent(generatedResource, existingResources);
-            if (equivalent == null) {
+            final Resource original = findEquivalent(generatedResource, existingResources);
+            if (original == null) {
                 reportDiff("generated resource %s not found in existing resources".formatted(name));
                 continue;
             }
-            final String fqn = name + "/" + generatedResource.getKind();
-
-            log.info("converting generated resource {} to json", fqn);
-            final Map<String, Object> genJson = toJson(generatedResource);
-            log.info("converting original resource {} to json", fqn);
-            final Map<String, Object> existingJson = toJson(equivalent);
-            log.info("checking diff for {}", fqn);
-            compare(fqn, genJson, existingJson);
+            compare(generatedResource, original);
         }
         diffOutputWriter.flush();
     }
 
-    private void compare(String fqname, Map<String, Object> genJson, Map<String, Object> existingJson)
+    private void compare(Resource generated, Resource original)
             throws JsonProcessingException {
+        final String fqn = generated.getFullQualifedName();
+        log.info("converting generated resource {} to json", fqn);
+        final Map<String, Object> genJson = toJson(generated);
+        log.info("converting original resource {} to json", fqn);
+        final Map<String, Object> existingJson = toJson(original);
+        log.info("checking diff for {}", fqn);
         final String genStr = MAPPER.writeValueAsString(genJson);
         final String originalStr = MAPPER.writeValueAsString(existingJson);
 
 
+        final Pair<Resource, Resource> resources = Pair.of(generated, original);
+
         JSONComparator comparator = new JSONAssertComparator();
         final JSONComparator.Result result = comparator.compare(originalStr, genStr);
         if (result.passed()) {
-            diffOutputWriter.diffOk(fqname);
+            diffOutputWriter.diffOk(resources);
             return;
         }
 
@@ -223,7 +248,7 @@ public class DiffChecker {
                 .sorted(Comparator.comparing(JSONComparator.FieldComparisonFailure::field))
                 .collect(Collectors.toList());
 
-        diffOutputWriter.diffFailed(fqname, failures, genJson, existingJson);
+        diffOutputWriter.diffFailed(resources, failures, genJson, existingJson);
     }
 
 
@@ -274,6 +299,7 @@ public class DiffChecker {
         final Map<String, Object> annotations = getPropAsMap(metadata, "annotations");
         if (annotations != null) {
             BaseSpecGenerator.HELM_ANNOTATIONS.forEach(annotations::remove);
+            annotations.remove("deployment.kubernetes.io/revision");
             if (annotations.isEmpty()) {
                 metadata.remove("annotations");
             }
@@ -303,7 +329,7 @@ public class DiffChecker {
             port.remove("nodePort");
 
             return port;
-        });
+        }, Comparator.comparing(c -> (Integer) c.get("port")));
         final Map<String, Object> selector = getPropAsMap(spec, "selector");
         BaseSpecGenerator.HELM_LABELS.forEach(selector::remove);
 
@@ -363,6 +389,8 @@ public class DiffChecker {
         removeIfMatch(templateSpec, "restartPolicy", "Always");
         // https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/#specify-schedulers-for-pods
         removeIfMatch(templateSpec, "schedulerName", "default-scheduler");
+        removeIfMatch(templateSpec, "securityContext", Map.of());
+        removeIfMatch(templateSpec, "serviceAccount", templateSpec.get("serviceAccountName"));
         sortAndReplaceList(templateSpec, "volumes", v -> {
             final Map<String, Object> secret = getPropAsMap(v, "secret");
             removeIfMatch(secret, "defaultMode", 420);
@@ -371,7 +399,7 @@ public class DiffChecker {
         sortAndReplaceList(templateSpec, "containers", container -> {
             adjustContainer(container);
             return container;
-        });
+        }, Comparator.comparing(c -> (String) c.get("name")));
     }
 
     private static void adjustContainer(Map<String, Object> container) {
@@ -389,7 +417,7 @@ public class DiffChecker {
             // https://kubernetes.io/docs/reference/networking/service-protocols/
             removeIfMatch(port, "protocol", "TCP");
             return port;
-        });
+        }, Comparator.comparing(c -> (Integer) c.get("containerPort")));
 
         sortAndReplaceList(container, "volumeMounts", Function.identity());
 
@@ -438,10 +466,19 @@ public class DiffChecker {
     private static void sortAndReplaceList(Map<String, Object> exiJson,
                                            String name,
                                            Function<Map<String, Object>, Map<String, Object>> mapper) {
+        sortAndReplaceList(exiJson, name, mapper,
+                Comparator.comparing(v -> SerializationUtil.writeAsJson(v)));
+    }
+
+
+    private static void sortAndReplaceList(Map<String, Object> exiJson,
+                                           String name,
+                                           Function<Map<String, Object>, Map<String, Object>> mapper,
+                                           Comparator<Map<String, Object>> comparator) {
         final var sortedList = getPropAsList(exiJson, name)
                 .stream()
                 .map(mapper)
-                .sorted(Comparator.comparing(v -> SerializationUtil.writeAsJson(v)))
+                .sorted(comparator)
                 .collect(Collectors.toList());
         if (!sortedList.isEmpty()) {
             exiJson.put(name, sortedList);

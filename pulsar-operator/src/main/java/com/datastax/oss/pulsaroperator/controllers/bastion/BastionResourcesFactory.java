@@ -141,6 +141,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
+                        .withEnv(spec.getEnv())
                         .build()
         );
         Deployment deployment = new DeploymentBuilder()

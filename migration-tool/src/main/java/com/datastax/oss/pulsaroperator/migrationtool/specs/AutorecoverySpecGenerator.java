@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -109,6 +110,7 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
                 .tolerations(deploymentSpec.getTemplate().getSpec().getTolerations())
                 .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
+                .env(container.getEnv())
                 .build();
     }
 
@@ -141,6 +143,19 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
         return tlsEntryConfig;
+    }
+
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("tlsTrustStore"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        return null;
     }
 
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(Deployment deployment) {

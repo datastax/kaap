@@ -153,6 +153,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                                 .withName(resourceName)
                                 .endConfigMapRef()
                                 .build())
+                        .withEnv(spec.getEnv())
                         .withVolumeMounts(volumeMounts)
                         .build()
         );

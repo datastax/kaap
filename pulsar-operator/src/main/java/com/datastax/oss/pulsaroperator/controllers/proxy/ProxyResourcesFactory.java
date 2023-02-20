@@ -18,7 +18,7 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -29,7 +29,6 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
@@ -340,7 +339,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                     .build());
         }
 
-        final Probe probe = createProbe();
         String mainArg = "";
         if (isAuthTokenEnabled()) {
             mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
@@ -395,8 +393,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                         .withName(resourceName)
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(probe)
-                        .withReadinessProbe(probe)
+                        .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
+                        .withReadinessProbe(createProbe(spec.getProbes().getReadiness()))
                         .withResources(spec.getResources())
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
@@ -407,6 +405,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
+                        .withEnv(spec.getEnv())
                         .build()
         );
         final ProxySpec.WebSocketConfig webSocket = spec.getWebSocket();
@@ -455,6 +454,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                                     .withName(wsResourceName)
                                     .endConfigMapRef()
                                     .build())
+                            .withLivenessProbe(createProbe(webSocket.getProbes().getLiveness()))
+                            .withReadinessProbe(createProbe(webSocket.getProbes().getReadiness()))
                             .withVolumeMounts(volumeMounts)
                             .build()
             );
@@ -500,21 +501,17 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         patchResource(deployment);
     }
 
-    private Probe createProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+    private Probe createProbe(ProbesConfig.ProbeConfig specProbe) {
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withNewExec()
                 .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout(), authHeader))
+                        .formatted(specProbe.getTimeoutSeconds(), authHeader))
                 .endExec()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

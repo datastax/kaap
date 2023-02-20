@@ -20,7 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,15 +51,24 @@ import org.apache.commons.lang3.ObjectUtils;
 @SuperBuilder
 public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
 
-    private static final Supplier<StatefulSetUpdateStrategy> DEFAULT_UPDATE_STRATEGY = () -> new StatefulSetUpdateStrategyBuilder()
-            .withType("RollingUpdate")
-            .build();
+    private static final Supplier<StatefulSetUpdateStrategy> DEFAULT_UPDATE_STRATEGY =
+            () -> new StatefulSetUpdateStrategyBuilder()
+                    .withType("RollingUpdate")
+                    .build();
 
-    public static final Supplier<ProbeConfig> DEFAULT_PROBE = () -> ProbeConfig.builder()
-            .enabled(true)
-            .initial(10)
-            .period(30)
-            .timeout(5)
+    public static final Supplier<ProbesConfig> DEFAULT_PROBE = () -> ProbesConfig.builder()
+            .liveness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
+            .readiness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
             .build();
 
     public static final Supplier<Volumes> DEFAULT_VOLUMES = () -> Volumes.builder()
@@ -73,9 +82,10 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
                     .build())
             .build();
 
-    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS = () -> new ResourceRequirementsBuilder()
-            .withRequests(Map.of("memory", Quantity.parse("2Gi"), "cpu", Quantity.parse("1")))
-            .build();
+    private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS =
+            () -> new ResourceRequirementsBuilder()
+                    .withRequests(Map.of("memory", Quantity.parse("2Gi"), "cpu", Quantity.parse("1")))
+                    .build();
 
     public static final Supplier<PodDisruptionBudgetConfig> DEFAULT_PDB = () -> PodDisruptionBudgetConfig.builder()
             .enabled(true)
@@ -121,8 +131,8 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
-    @JsonPropertyDescription("Liveness and readiness probe values.")
-    private ProbeConfig probe;
+    @JsonPropertyDescription(CRDConstants.DOC_PROBES)
+    private ProbesConfig probes;
     @JsonPropertyDescription("Update strategy for the StatefulSet. Default value is rolling update.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy. Default value is 'Parallel'.")
@@ -174,10 +184,10 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
         volumes.getJournal().merge(DEFAULT_VOLUMES.get().getJournal());
         volumes.getLedgers().mergeVolumeConfigWithGlobal(globalSpec.getStorage());
         volumes.getLedgers().merge(DEFAULT_VOLUMES.get().getLedgers());
-        if (probe == null) {
-            probe = DEFAULT_PROBE.get();
+        if (probes == null) {
+            probes = DEFAULT_PROBE.get();
         } else {
-            probe = ConfigUtil.applyDefaultsWithReflection(probe, DEFAULT_PROBE);
+            probes = ConfigUtil.applyDefaultsWithReflection(probes, DEFAULT_PROBE);
         }
 
         applyAutoscalerDefaults();

@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.bastion.BastionResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -32,6 +31,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -110,6 +110,7 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
                 .tolerations(deploymentSpec.getTemplate().getSpec().getTolerations())
                 .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
+                .env(container.getEnv())
                 .build();
     }
 
@@ -142,6 +143,19 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
         return tlsEntryConfig;
+    }
+
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        return null;
     }
 
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(Deployment deployment) {

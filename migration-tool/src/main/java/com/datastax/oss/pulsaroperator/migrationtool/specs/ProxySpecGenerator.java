@@ -16,7 +16,6 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
@@ -103,6 +102,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                     .enabled(true)
                     .resources(wsContainer.getResources())
                     .config(convertConfigMapData(configMapWs))
+                    .probes(createProbeConfig(wsContainer))
                     .build();
         } else {
             wsConfig = ProxySpec.WebSocketConfig.builder()
@@ -127,6 +127,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(deploymentSpec.getReplicas())
                 .nodeAffinity(nodeAffinity)
+                .probes(createProbeConfig(mainContainer))
                 .labels(deployment.getMetadata().getLabels())
                 .podLabels(deploymentSpec.getTemplate().getMetadata().getLabels())
                 .matchLabels(matchLabels)
@@ -141,6 +142,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 .pdb(createPodDisruptionBudgetConfig(pdb))
                 .webSocket(wsConfig)
                 .antiAffinity(createAntiAffinityConfig(spec))
+                .env(mainContainer.getEnv())
                 .build();
     }
 
@@ -173,6 +175,23 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
         return tlsEntryConfig;
+    }
+
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        String tokenPublicKey = (String) getConfig().get("tokenPublicKey");
+        if (tokenPublicKey == null) {
+            return null;
+        }
+        return getPublicKeyFileFromFileURL(tokenPublicKey);
     }
 
     private TlsConfig.ProxyTlsEntryConfig createTlsEntryConfig(Deployment deployment) {

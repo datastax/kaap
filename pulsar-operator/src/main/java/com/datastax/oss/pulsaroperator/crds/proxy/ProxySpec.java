@@ -21,7 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
@@ -57,11 +57,19 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
             .endRollingUpdate()
             .build();
 
-    public static final Supplier<ProbeConfig> DEFAULT_PROBE = () -> ProbeConfig.builder()
-            .enabled(true)
-            .initial(10)
-            .period(30)
-            .timeout(5)
+    public static final Supplier<ProbesConfig> DEFAULT_PROBE = () -> ProbesConfig.builder()
+            .liveness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
+            .readiness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
             .build();
 
     private static final Supplier<ResourceRequirements> DEFAULT_RESOURCE_REQUIREMENTS =
@@ -86,6 +94,7 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
                             .withRequests(Map.of("memory", Quantity.parse("1Gi"), "cpu", Quantity.parse("1")))
                             .build()
             )
+            .probes(ProbesConfig.builder().build())
             .build();
 
     @Data
@@ -120,14 +129,16 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         // workaround to generate CRD spec that accepts any type as key
         @SchemaFrom(type = JsonNode.class)
         protected Map<String, Object> config;
+        @JsonPropertyDescription(CRDConstants.DOC_PROBES)
+        private ProbesConfig probes;
     }
 
     @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
-    @JsonPropertyDescription("Liveness and readiness probe values.")
-    private ProbeConfig probe;
+    @JsonPropertyDescription(CRDConstants.DOC_PROBES)
+    private ProbesConfig probes;
     @JsonPropertyDescription("Strategy for the proxy deployment.")
     private DeploymentStrategy updateStrategy;
     @Min(0)
@@ -162,10 +173,10 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
-        if (probe == null) {
-            probe = DEFAULT_PROBE.get();
+        if (probes == null) {
+            probes = DEFAULT_PROBE.get();
         } else {
-            probe = ConfigUtil.applyDefaultsWithReflection(probe, DEFAULT_PROBE);
+            probes = ConfigUtil.applyDefaultsWithReflection(probes, DEFAULT_PROBE);
         }
         applyServiceDefaults();
         applyWebSocketDefaults();

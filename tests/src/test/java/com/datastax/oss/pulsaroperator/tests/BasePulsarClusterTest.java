@@ -25,7 +25,7 @@ import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
@@ -91,10 +91,10 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .build());
 
         // speed up readiness
-        final ProbeConfig probe = ProbeConfig.builder()
-                .initial(5)
-                .period(5)
-                .timeout(60)
+        final ProbesConfig probe = ProbesConfig.builder()
+                .initialDelaySeconds(5)
+                .periodSeconds(5)
+                .timeoutSeconds(60)
                 .build();
 
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
@@ -110,7 +110,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         defaultSpecs.setBookkeeper(BookKeeperSpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
-                .probe(probe)
+                .probes(probe)
                 .volumes(BookKeeperSpec.Volumes.builder()
                         .journal(
                                 VolumeConfig.builder()
@@ -144,12 +144,12 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 "managedLedgerDefaultWriteQuorum", "1"
                         )
                 )
-                .probe(probe)
+                .probes(probe)
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
-                .probe(probe)
+                .probes(probe)
                 .webSocket(ProxySpec.WebSocketConfig.builder()
                         .resources(RESOURCE_REQUIREMENTS)
                         .build())
@@ -173,10 +173,10 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 "cpu", 0.001d
                         )
                 ))
-                .probe(ProbeConfig.builder()
-                        .initial(15)
-                        .period(5)
-                        .timeout(90)
+                .probes(ProbesConfig.builder()
+                        .initialDelaySeconds(15)
+                        .periodSeconds(5)
+                        .timeoutSeconds(90)
                         .build())
                 .build());
         return defaultSpecs;

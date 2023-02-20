@@ -19,7 +19,7 @@ import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
@@ -90,6 +90,10 @@ public abstract class BaseSpecGenerator<T> {
     public abstract Map<String, Object> getConfig();
 
     public abstract TlsConfig.TlsEntryConfig getTlsEntryConfig();
+
+    public abstract String getTlsCaPath();
+
+    public abstract String getAuthPublicKeyFile();
 
     protected void addResource(HasMetadata resource) {
         resources.add(SerializationUtil.deepCloneObject(resource));
@@ -307,25 +311,6 @@ public abstract class BaseSpecGenerator<T> {
         return matchLabels;
     }
 
-    protected static void verifyProbesSameValues(Probe probe1, Probe probe2) {
-        if (!Objects.equals(probe1.getInitialDelaySeconds(), probe2.getInitialDelaySeconds())) {
-            throw new IllegalStateException(
-                    "probes delay seconds are not equals, the operator handles a single configuration for readiness "
-                            + "and liveness probe");
-        }
-        if (!Objects.equals(probe1.getPeriodSeconds(), probe2.getPeriodSeconds())) {
-            throw new IllegalStateException(
-                    "probes period seconds are not equals, the operator handles a single configuration for readiness "
-                            + "and liveness probe");
-        }
-        if (!Objects.equals(probe1.getTimeoutSeconds(), probe2.getTimeoutSeconds())) {
-            throw new IllegalStateException(
-                    "probes timeout seconds are not equals, the operator handles a single configuration for readiness "
-                            + "and liveness probe");
-        }
-    }
-
-
     protected static void verifyLabelsEquals(HasMetadata... resources) {
         for (int i = 0; i < resources.length; i++) {
             if (!Objects.equals(resources[0].getMetadata().getLabels(), resources[i].getMetadata().getLabels())) {
@@ -334,18 +319,28 @@ public abstract class BaseSpecGenerator<T> {
         }
     }
 
-    protected static ProbeConfig createProbeConfig(Container container) {
-        final Integer timeout = container.getReadinessProbe().getTimeoutSeconds();
-        final Integer period = container.getReadinessProbe().getPeriodSeconds();
-        final Integer initial = container.getReadinessProbe().getInitialDelaySeconds();
-
-        final ProbeConfig readinessProbeConfig = ProbeConfig.builder()
-                .enabled(true)
-                .initial(initial)
-                .period(period)
-                .timeout(timeout)
+    protected static ProbesConfig createProbeConfig(Container container) {
+        return ProbesConfig.builder()
+                .liveness(createProbeConfig(container.getLivenessProbe()))
+                .readiness(createProbeConfig(container.getReadinessProbe()))
                 .build();
-        return readinessProbeConfig;
+    }
+
+    protected static ProbesConfig.ProbeConfig createProbeConfig(Probe containerProbe) {
+        if (containerProbe == null) {
+            return ProbesConfig.ProbeConfig.builder()
+                    .enabled(false)
+                    .build();
+        }
+        return ProbesConfig.ProbeConfig.builder()
+                .enabled(true)
+                .initialDelaySeconds(containerProbe.getInitialDelaySeconds())
+                .periodSeconds(containerProbe.getPeriodSeconds())
+                .timeoutSeconds(containerProbe.getTimeoutSeconds())
+                .failureThreshold(containerProbe.getFailureThreshold())
+                .successThreshold(containerProbe.getSuccessThreshold())
+                .terminationGracePeriodSeconds(containerProbe.getTerminationGracePeriodSeconds())
+                .build();
     }
 
     protected static boolean boolConfigMapValue(Map<String, ?> configMapData, String property) {
@@ -379,6 +374,13 @@ public abstract class BaseSpecGenerator<T> {
             }
         }
         return null;
+    }
+
+    protected static String getPublicKeyFileFromFileURL(String url) {
+        if (!url.startsWith("file://")) {
+            throw new IllegalArgumentException("Invalid public key file url: " + url);
+        }
+        return url.substring(url.lastIndexOf("/") + 1);
     }
 
 }

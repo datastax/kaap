@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class RawFileDiffOutputWriter extends BaseDiffOutputWriter {
@@ -20,17 +21,17 @@ public class RawFileDiffOutputWriter extends BaseDiffOutputWriter {
     }
 
     @Override
-    public void diffOk(String fqname) {
-        builder.append(fqname + ": OK\n");
+    public void diffOk(Pair<DiffChecker.Resource, DiffChecker.Resource> resources) {
+        builder.append(resources.getLeft().getFullQualifedName() + ": OK\n");
 
     }
 
 
     @Override
-    public void diffFailed(String fqname, List<JSONComparator.FieldComparisonFailure> failures,
+    public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources, List<JSONComparator.FieldComparisonFailure> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
-        builder.append(fqname + ": FAILED\n");
-        super.diffFailed(fqname, failures, genJson, originalJson);
+        builder.append(resources.getLeft().getFullQualifedName() + ": FAILED\n");
+        super.diffFailed(resources, failures, genJson, originalJson);
     }
 
 

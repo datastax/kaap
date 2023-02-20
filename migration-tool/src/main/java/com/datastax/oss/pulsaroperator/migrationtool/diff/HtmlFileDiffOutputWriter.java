@@ -1,0 +1,180 @@
+package com.datastax.oss.pulsaroperator.migrationtool.diff;
+
+import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+
+@Slf4j
+public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .configure(SerializationFeature.INDENT_OUTPUT, true)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+    private final StringBuilder builder = new StringBuilder();
+    private final Path outputFile;
+    private boolean ulOpen = false;
+
+    public HtmlFileDiffOutputWriter(Path outputFile, File pulsarClusterCrd) {
+        this.outputFile = outputFile;
+        builder.append("""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+                    <title>Diff</title>
+                    <meta name='viewport' content='width=device-width, initial-scale=1'>
+                    <style>
+                    body {
+                        font-family: Verdana,sans-serif;
+                        line-height: 1.5;
+                    }
+                    code {
+                      display: inline-block;
+                      white-space: pre-wrap
+                    }
+                    li {
+                        margin-top: 1.2em;
+                        margin-bottom: 1.2em;
+                        font-size: 15px;
+                    }
+                    .resource-link {
+                        font-size: 10px;
+                        line-height: 1.2;
+                        margin-top: 0.75em;
+                        margin-bottom: 0.75em;
+                    }
+                    details {
+                        padding: 0.5em 0.5em 0;
+                    }
+                    summary {
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin: -0.5em -0.5em 0;
+                        padding: 0.5em;
+                    }
+                    details[open] {
+                        padding: 0.5em;
+                    }
+                    details[open] summary {
+                        margin-bottom: 0.5em;
+                    }
+                    </style>
+                </head>
+                <body>
+                """);
+        if (pulsarClusterCrd != null) {
+            addResourceLink("Generated PulsarCluster CRD", pulsarClusterCrd);
+        }
+    }
+
+    @Override
+    public void diffOk(Pair<DiffChecker.Resource, DiffChecker.Resource> resources) {
+        final String fqName = resources.getLeft().getFullQualifedName();
+        if (ulOpen) {
+            builder.append("</ul>\n");
+            ulOpen = false;
+        }
+        builder.append("<h3>%s: OK</h3>\n".formatted(fqName));
+        appendResourceLinks(resources);
+    }
+
+    private void appendResourceLinks(Pair<DiffChecker.Resource, DiffChecker.Resource> resources) {
+        if (resources.getLeft().getFileReference() != null) {
+            addResourceLink("Generated resource", resources.getLeft().getFileReference());
+            addResourceLink("Original resource", resources.getRight().getFileReference());
+        }
+    }
+
+    private void addResourceLink(String text, File fileRef) {
+        builder.append("<p class=\"resource-link\"><a href=\"%s\">%s</a></p>".formatted(
+                fileRef.getAbsolutePath(), text));
+    }
+
+
+    @Override
+    public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources,
+                           List<JSONComparator.FieldComparisonFailure> failures,
+                           Map<String, Object> genJson, Map<String, Object> originalJson) {
+        final String fqName = resources.getLeft().getFullQualifedName();
+        if (ulOpen) {
+            builder.append("</ul>\n");
+            ulOpen = false;
+        }
+        builder.append("<h3>%s: FAILED</h3>\n".formatted(fqName));
+        appendResourceLinks(resources);
+        builder.append("<ul>");
+        ulOpen = true;
+        super.diffFailed(resources, failures, genJson, originalJson);
+    }
+
+
+    @Override
+    protected void formatFailure(String completeField, String expectedValue, String actualValue) {
+
+        if (actualValue == null) {
+            builder.append("""
+                    <li>expected but none found: <b>%s</b> - <code>%s</code></li>
+                    """.formatted(completeField, prettifyValue(expectedValue)));
+        } else if (expectedValue == null) {
+            builder.append("""
+                    <li>unexpected: <b>%s</b> - <code>%s</code></li>
+                    """.formatted(completeField, prettifyValue(actualValue)));
+        } else {
+            builder.append("""
+                    <li><b>%s</b> value differs:
+                    <br>
+                    <details><summary>Original</summary> <code>%s</code></details>
+                    <details><summary>Generated</summary> <code>%s</code></details>
+                    </li>
+                    """.formatted(
+                    completeField,
+                    prettifyValue(expectedValue),
+                    prettifyValue(actualValue)
+            ));
+        }
+    }
+
+    private static String prettifyValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            final Class<?> clazz;
+            if (value.startsWith("[")) {
+                clazz = List.class;
+            } else if (value.startsWith("{")) {
+                clazz = Map.class;
+            } else {
+                return value;
+            }
+            return MAPPER.writeValueAsString(MAPPER.readValue(value, clazz));
+        } catch (JsonProcessingException e) {
+            return value;
+        }
+    }
+
+    @Override
+    @SneakyThrows
+    public void flush() {
+        builder.append("""
+                </body>
+                </html>
+                """);
+        Files.write(outputFile, builder.toString().getBytes(StandardCharsets.UTF_8));
+        log.info("Exported HTML diff to {}", outputFile.toAbsolutePath());
+    }
+}

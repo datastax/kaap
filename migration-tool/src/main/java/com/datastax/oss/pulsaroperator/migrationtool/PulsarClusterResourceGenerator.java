@@ -155,42 +155,7 @@ public class PulsarClusterResourceGenerator {
 
         final TlsConfig.TlsEntryConfig ssCaEntryConfig =
                 specGeneratorByName(BastionSpecGenerator.SPEC_NAME).getTlsEntryConfig();
-        final String caPath = (String) getValueAssertSame((Function<BaseSpecGenerator, Object>) baseSpecGenerator -> {
-            if (baseSpecGenerator.getSpecName().equals(ZooKeeperSpecGenerator.SPEC_NAME)) {
-                return null;
-            } else if (baseSpecGenerator.getSpecName().equals(BookKeeperSpecGenerator.SPEC_NAME)) {
-                if (bkTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("bookkeeperTLSTrustCertsFilePath"));
-            } else if (baseSpecGenerator.getSpecName().equals(BrokerSpecGenerator.SPEC_NAME)) {
-                if (brokerTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustCertsFilePath"));
-            } else if (baseSpecGenerator.getSpecName().equals(AutorecoverySpecGenerator.SPEC_NAME)) {
-                if (autorecoveryTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustStore"));
-            } else if (baseSpecGenerator.getSpecName().equals(ProxySpecGenerator.SPEC_NAME)) {
-                if (proxyTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustCertsFilePath"));
-            } else if (baseSpecGenerator.getSpecName().equals(FunctionsWorkerSpecGenerator.SPEC_NAME)) {
-                if (functionTlsEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustCertsFilePath"));
-            } else if (baseSpecGenerator.getSpecName().equals(BastionSpecGenerator.SPEC_NAME)) {
-                if (ssCaEntryConfig == null) {
-                    return null;
-                }
-                return Objects.requireNonNull(baseSpecGenerator.getConfig().get("tlsTrustCertsFilePath"));
-            }
-            return null;
-        }, true, "caPath");
+        final String caPath = getValueAssertSame(spec -> spec.getTlsCaPath(), true, "caPath");
 
         return TlsConfig.builder()
                 .enabled(true)
@@ -263,8 +228,14 @@ public class PulsarClusterResourceGenerator {
         } else {
             tokenAuthBuilder.proxyRoles(new TreeSet<>(List.of(proxyRoles.split(","))));
         }
+
+        final String publicKeyFile = getValueAssertSame(spec -> spec.getAuthPublicKeyFile(), true,
+                "publicKeyFile");
+        final AuthConfig.TokenAuthenticationConfig tokenAuthenticationConfig = tokenAuthBuilder
+                .publicKeyFile(publicKeyFile)
+                .build();
         return authConfigBuilder
-                .token(tokenAuthBuilder.build())
+                .token(tokenAuthenticationConfig)
                 .build();
     }
 

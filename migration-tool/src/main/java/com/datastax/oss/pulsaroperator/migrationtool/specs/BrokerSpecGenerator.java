@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
@@ -37,6 +36,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -94,7 +94,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         final Container container = spec
                 .getContainers()
                 .get(0);
-        verifyProbesSameValues(container.getReadinessProbe(), container.getLivenessProbe());
         PodDisruptionBudgetConfig podDisruptionBudgetConfig =
                 createPodDisruptionBudgetConfig(podDisruptionBudget);
 
@@ -120,7 +119,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
-                .probe(createBrokerProbeConfig(container))
+                .probes(createBrokerProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
@@ -139,6 +138,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .transactions(getTransactionCoordinatorConfig(config))
                 .serviceAccountName(spec.getServiceAccountName())
                 .antiAffinity(createAntiAffinityConfig(spec))
+                .env(container.getEnv())
                 .build();
     }
 
@@ -185,6 +185,24 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         return tlsEntryConfig;
     }
 
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        String tokenPublicKey = (String) getConfig().get("tokenPublicKey");
+        if (tokenPublicKey == null) {
+            return null;
+        }
+        return getPublicKeyFileFromFileURL(tokenPublicKey);
+    }
+
+
     private BrokerSpec.ServiceConfig createServiceConfig(Service service) {
         Map<String, String> annotations = service.getMetadata().getAnnotations();
         if (annotations == null) {
@@ -220,16 +238,10 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .build();
     }
 
-    protected static BrokerSpec.BrokerProbeConfig createBrokerProbeConfig(Container container) {
-        final Integer timeout = container.getReadinessProbe().getTimeoutSeconds();
-        final Integer period = container.getReadinessProbe().getPeriodSeconds();
-        final Integer initial = container.getReadinessProbe().getInitialDelaySeconds();
-
-        return BrokerSpec.BrokerProbeConfig.brokerProbeConfigBuilder()
-                .enabled(true)
-                .initial(initial)
-                .period(period)
-                .timeout(timeout)
+    protected static BrokerSpec.BrokerProbesConfig createBrokerProbeConfig(Container container) {
+        return BrokerSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
+                .liveness(createProbeConfig(container.getLivenessProbe()))
+                .readiness(createProbeConfig(container.getReadinessProbe()))
                 .useHealthCheckForLiveness(detectedProbeUsingHealthCheck(container.getLivenessProbe()))
                 .useHealthCheckForReadiness(detectedProbeUsingHealthCheck(container.getReadinessProbe()))
                 .build();

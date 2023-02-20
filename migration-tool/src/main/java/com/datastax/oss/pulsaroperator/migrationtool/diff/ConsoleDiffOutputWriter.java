@@ -4,22 +4,23 @@ import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class ConsoleDiffOutputWriter extends BaseDiffOutputWriter {
 
 
     @Override
-    public void diffOk(String fqname) {
-        log.info("{}: OK", fqname);
+    public void diffOk(Pair<DiffChecker.Resource, DiffChecker.Resource> resources) {
+        log.info("{}: OK", resources.getLeft().getFullQualifedName());
 
     }
 
     @Override
-    public void diffFailed(String fqname, List<JSONComparator.FieldComparisonFailure> failures,
+    public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources, List<JSONComparator.FieldComparisonFailure> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
-        log.info("{}: FAILED", fqname);
-        super.diffFailed(fqname, failures, genJson, originalJson);
+        log.info("{}: FAILED", resources.getLeft().getFullQualifedName());
+        super.diffFailed(resources, failures, genJson, originalJson);
     }
 
     @Override

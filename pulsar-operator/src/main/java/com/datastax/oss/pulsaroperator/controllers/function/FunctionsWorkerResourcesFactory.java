@@ -19,7 +19,7 @@ import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -469,6 +468,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
+                        .withEnv(spec.getEnv())
                         .build()
         );
 
@@ -534,36 +534,30 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
     private Probe createReadinessProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+        final ProbesConfig.ProbeConfig specProbe = spec.getProbes().getReadiness();
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withNewTcpSocket()
                 .withNewPort().withValue(DEFAULT_HTTP_PORT).endPort()
                 .endTcpSocket()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 
 
     private Probe createLivenessProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+        final ProbesConfig.ProbeConfig specProbe = spec.getProbes().getLiveness();
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
         final String authHeader = isAuthTokenEnabled()
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withNewExec()
                 .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:6750/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeout(), authHeader))
+                        .formatted(specProbe.getTimeoutSeconds(), authHeader))
                 .endExec()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

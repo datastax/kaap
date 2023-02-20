@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Toleration;
@@ -70,6 +71,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private Map<String, String> matchLabels;
     @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_SECRETS)
     private List<LocalObjectReference> imagePullSecrets;
+    @JsonPropertyDescription(CRDConstants.DOC_CONTAINER_ENV)
+    private List<EnvVar> env;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

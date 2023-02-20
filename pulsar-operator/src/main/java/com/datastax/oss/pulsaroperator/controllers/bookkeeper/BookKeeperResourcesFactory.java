@@ -18,7 +18,7 @@ package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -29,7 +29,6 @@ import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
@@ -90,7 +89,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
         List<ServicePort> ports = new ArrayList<>();
         ports.add(new ServicePortBuilder()
-                .withName("client")
+                .withName("server")
                 .withPort(DEFAULT_BK_PORT)
                 .build());
         if (spec.getService() != null && spec.getService().getAdditionalPorts() != null) {
@@ -206,7 +205,6 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .build()
         );
 
-        final Probe probe = createProbe();
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
         final boolean tlsEnabledOnBookKeeper = isTlsEnabledOnBookKeeper();
         if (tlsEnabledOnBookKeeper) {
@@ -272,8 +270,8 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                         .withName(getBookKeeperContainerName(global))
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(probe)
-                        .withReadinessProbe(probe)
+                        .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
+                        .withReadinessProbe(createProbe(spec.getProbes().getReadiness()))
                         .withResources(spec.getResources())
                         .withCommand("sh", "-c")
                         .withArgs(mainArg)
@@ -291,6 +289,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
+                        .withEnv(spec.getEnv())
                         .build()
         );
         final StatefulSet statefulSet = new StatefulSetBuilder()
@@ -338,20 +337,16 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
 
-    private Probe createProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
+    private Probe createProbe(ProbesConfig.ProbeConfig specProbe) {
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
-        return new ProbeBuilder()
+        return newProbeBuilder(specProbe)
                 .withHttpGet(new HTTPGetActionBuilder()
                         .withPath("/api/v1/bookie/is_ready")
                         .withNewPort("http")
                         .build()
                 )
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

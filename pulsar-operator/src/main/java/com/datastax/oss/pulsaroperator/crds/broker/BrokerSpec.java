@@ -21,7 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
@@ -53,7 +53,7 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class BrokerProbeConfig extends ProbeConfig {
+    public static class BrokerProbesConfig extends ProbesConfig {
         @JsonPropertyDescription("Use healthcheck for the liveness probe. If false, the /metrics endpoint will be "
                 + "used.")
         private Boolean useHealthCheckForLiveness;
@@ -62,19 +62,28 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         private Boolean useHealthCheckForReadiness;
 
         @Builder(builderMethodName = "brokerProbeConfigBuilder")
-        public BrokerProbeConfig(Boolean enabled, Integer timeout, Integer initial, Integer period,
-                                 Boolean useHealthCheckForLiveness, Boolean useHealthCheckForReadiness) {
-            super(enabled, timeout, initial, period);
+        public BrokerProbesConfig(ProbeConfig readiness,
+                                  ProbeConfig liveness, Boolean useHealthCheckForLiveness,
+                                  Boolean useHealthCheckForReadiness) {
+            super(readiness, liveness);
             this.useHealthCheckForLiveness = useHealthCheckForLiveness;
             this.useHealthCheckForReadiness = useHealthCheckForReadiness;
         }
     }
 
-    public static final Supplier<BrokerProbeConfig> DEFAULT_PROBE = () -> BrokerProbeConfig.brokerProbeConfigBuilder()
-            .enabled(true)
-            .initial(10)
-            .period(30)
-            .timeout(5)
+    public static final Supplier<BrokerProbesConfig> DEFAULT_PROBE = () -> BrokerProbesConfig.brokerProbeConfigBuilder()
+            .readiness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
+            .liveness(ProbesConfig.ProbeConfig.builder()
+                    .enabled(true)
+                    .initialDelaySeconds(10)
+                    .periodSeconds(30)
+                    .timeoutSeconds(5)
+                    .build())
             .useHealthCheckForLiveness(true)
             .useHealthCheckForReadiness(true)
             .build();
@@ -152,8 +161,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
-    @JsonPropertyDescription("Liveness and readiness probe values.")
-    private BrokerProbeConfig probe;
+    @JsonPropertyDescription(CRDConstants.DOC_PROBES)
+    private BrokerProbesConfig probes;
     @JsonPropertyDescription("Enable functions worker embedded in the broker.")
     private Boolean functionsWorkerEnabled;
     @JsonPropertyDescription("Enable transactions in the broker.")
@@ -188,10 +197,10 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         if (resources == null) {
             resources = DEFAULT_RESOURCE_REQUIREMENTS.get();
         }
-        if (probe == null) {
-            probe = DEFAULT_PROBE.get();
+        if (probes == null) {
+            probes = DEFAULT_PROBE.get();
         } else {
-            probe = ConfigUtil.applyDefaultsWithReflection(probe, DEFAULT_PROBE);
+            probes = ConfigUtil.applyDefaultsWithReflection(probes, DEFAULT_PROBE);
         }
         applyServiceDefaults();
         if (functionsWorkerEnabled == null) {

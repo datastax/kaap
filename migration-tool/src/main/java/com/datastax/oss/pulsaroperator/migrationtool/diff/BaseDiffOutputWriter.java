@@ -4,13 +4,14 @@ import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
 
-public abstract class BaseDiffOutputWriter implements DiffChecker.DiffOutputWriter {
+public abstract class BaseDiffOutputWriter implements DiffOutputWriter {
 
     protected abstract void formatFailure(String complete, String expectedValue, String actualValue);
 
     @Override
-    public void diffFailed(String fqname, List<JSONComparator.FieldComparisonFailure> failures,
+    public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources, List<JSONComparator.FieldComparisonFailure> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
 
         for (JSONComparator.FieldComparisonFailure fieldFailure : failures) {

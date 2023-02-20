@@ -22,6 +22,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -38,6 +39,7 @@ import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -981,5 +983,14 @@ public abstract class BaseResourcesFactory<T> {
         } else {
             return global.getTls().getCaPath();
         }
+    }
+
+    protected ProbeBuilder newProbeBuilder(ProbesConfig.ProbeConfig probeConfig) {
+        return new ProbeBuilder()
+                .withInitialDelaySeconds(probeConfig.getInitialDelaySeconds())
+                .withTimeoutSeconds(probeConfig.getTimeoutSeconds())
+                .withPeriodSeconds(probeConfig.getPeriodSeconds())
+                .withFailureThreshold(probeConfig.getFailureThreshold())
+                .withSuccessThreshold(probeConfig.getSuccessThreshold());
     }
 }

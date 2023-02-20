@@ -37,6 +37,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -125,6 +126,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
                 .nodeAffinity(nodeAffinity)
+                .probes(createProbeConfig(mainContainer))
                 .labels(statefulSet.getMetadata().getLabels())
                 .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
                 .matchLabels(matchLabels)
@@ -144,6 +146,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                         .create(false)
                         .build())
                 .antiAffinity(createAntiAffinityConfig(spec))
+                .env(mainContainer.getEnv())
                 .build();
     }
 
@@ -176,6 +179,23 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
         return tlsEntryConfig;
+    }
+
+    @Override
+    public String getTlsCaPath() {
+        if (tlsEntryConfig != null) {
+            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
+        }
+        return null;
+    }
+
+    @Override
+    public String getAuthPublicKeyFile() {
+        String tokenPublicKey = (String) getConfig().get("tokenPublicKey");
+        if (tokenPublicKey == null) {
+            return null;
+        }
+        return getPublicKeyFileFromFileURL(tokenPublicKey);
     }
 
     private TlsConfig.FunctionsWorkerTlsEntryConfig createTlsEntryConfig(StatefulSet sts) {

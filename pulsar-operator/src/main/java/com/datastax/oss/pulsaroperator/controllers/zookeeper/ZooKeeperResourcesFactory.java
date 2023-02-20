@@ -17,7 +17,7 @@ package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.ProbeConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -26,12 +26,12 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -62,6 +62,8 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     public static final int DEFAULT_LEADER_ELECTION_PORT = 3888;
     public static final int DEFAULT_CLIENT_PORT = 2181;
     public static final int DEFAULT_CLIENT_TLS_PORT = 2281;
+    public static final String ENV_ZOOKEEPER_SERVERS = "ZOOKEEPER_SERVERS";
+    public static final List<String> DEFAULT_ENV = List.of("ZOOKEEPER_SERVERS");
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getZookeeperBaseName();
@@ -237,7 +239,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         }
 
 
-        Probe probe = createProbe();
         final String dataStorageVolumeName = resourceName + "-" + spec.getDataVolume().getName();
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
@@ -262,6 +263,12 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         command += "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" exec bin/pulsar zookeeper";
 
         final String zkConnectString = zkServers.stream().collect(Collectors.joining(","));
+        final List<EnvVar> env  = spec.getEnv() == null ? new ArrayList<>() : spec.getEnv();
+        env.add(new EnvVarBuilder()
+                .withName(ENV_ZOOKEEPER_SERVERS)
+                .withValue(zkConnectString)
+                .build()
+        );
         containers.add(
                 new ContainerBuilder()
                         .withName(resourceName)
@@ -284,12 +291,11 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                                         .withContainerPort(DEFAULT_LEADER_ELECTION_PORT)
                                         .build()
                         ))
-                        .withEnv(List.of(new EnvVarBuilder().withName("ZOOKEEPER_SERVERS").withValue(zkConnectString)
-                                .build()))
+                        .withEnv(env)
                         .withEnvFrom(List.of(new EnvFromSourceBuilder().withNewConfigMapRef()
                                 .withName(resourceName).endConfigMapRef().build()))
-                        .withLivenessProbe(probe)
-                        .withReadinessProbe(probe)
+                        .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
+                        .withReadinessProbe(createProbe(spec.getProbes().getReadiness()))
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
@@ -428,17 +434,14 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     }
 
 
-    private Probe createProbe() {
-        final ProbeConfig specProbe = spec.getProbe();
-        if (specProbe == null || !specProbe.getEnabled()) {
+    private Probe createProbe(ProbesConfig.ProbeConfig probe) {
+        if (probe == null || !probe.getEnabled()) {
             return null;
         }
-        return new ProbeBuilder().withNewExec()
-                .withCommand("timeout", specProbe.getTimeout() + "", "bin/pulsar-zookeeper-ruok.sh")
+        return newProbeBuilder(probe)
+                .withNewExec()
+                .withCommand("timeout", probe.getTimeoutSeconds() + "", "bin/pulsar-zookeeper-ruok.sh")
                 .endExec()
-                .withInitialDelaySeconds(specProbe.getInitial())
-                .withPeriodSeconds(specProbe.getPeriod())
-                .withTimeoutSeconds(specProbe.getTimeout())
                 .build();
     }
 

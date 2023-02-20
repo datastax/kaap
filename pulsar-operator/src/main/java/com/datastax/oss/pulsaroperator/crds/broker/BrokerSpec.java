@@ -40,6 +40,7 @@ import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.ObjectUtils;
@@ -53,6 +54,7 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
     public static class BrokerProbesConfig extends ProbesConfig {
         @JsonPropertyDescription("Use healthcheck for the liveness probe. If false, the /metrics endpoint will be "
                 + "used.")

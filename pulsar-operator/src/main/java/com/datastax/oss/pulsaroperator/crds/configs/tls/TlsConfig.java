@@ -20,6 +20,7 @@ import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -74,6 +75,7 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
     public static class ProxyTlsEntryConfig extends TlsEntryConfig {
 
         @Builder(builderMethodName = "proxyBuilder")
@@ -89,6 +91,7 @@ public class TlsConfig {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
     public static class FunctionsWorkerTlsEntryConfig extends TlsEntryConfig {
         @Builder(builderMethodName = "functionsWorkerBuilder")
         public FunctionsWorkerTlsEntryConfig(Boolean enabled, String secretName, Boolean enabledWithBroker) {

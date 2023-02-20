@@ -28,6 +28,7 @@ import com.datastax.oss.pulsaroperator.migrationtool.specs.BrokerSpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.FunctionsWorkerSpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.ProxySpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.ZooKeeperSpecGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
@@ -239,6 +240,7 @@ public class PulsarClusterResourceGenerator {
                 .build();
     }
 
+    @SuppressFBWarnings("NP_BOOLEAN_RETURN_NULL")
     private Boolean parseConfigValueBool(Map<String, Object> config, String key) {
         final Object val = config.get(key);
         if (val == null) {

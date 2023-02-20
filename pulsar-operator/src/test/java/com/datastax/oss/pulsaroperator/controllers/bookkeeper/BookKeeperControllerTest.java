@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -40,6 +41,7 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
@@ -126,7 +128,7 @@ public class BookKeeperControllerTest {
                 spec:
                   clusterIP: None
                   ports:
-                  - name: client
+                  - name: server
                     port: 3181
                   publishNotReadyAddresses: true
                   selector:
@@ -766,6 +768,27 @@ public class BookKeeperControllerTest {
         );
     }
 
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null))
+        );
+    }
+
 
     @Test
     public void testImagePullSecrets() throws Exception {
@@ -1398,8 +1421,11 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 bookkeeper:
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1421,8 +1447,11 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 bookkeeper:
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1444,9 +1473,13 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 bookkeeper:
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        liveness:
+                            enabled: true
+                            periodSeconds: 10
+                        readiness:
+                            enabled: true
+                            periodSeconds: 11
                 """;
 
         client = invokeController(spec);
@@ -1458,8 +1491,8 @@ public class BookKeeperControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 5, 10, 50);
-        assertProbe(container.getReadinessProbe(), 5, 10, 50);
+        assertProbe(container.getLivenessProbe(), 5, 10, 10);
+        assertProbe(container.getReadinessProbe(), 5, 10, 11);
 
     }
 
@@ -1493,7 +1526,7 @@ public class BookKeeperControllerTest {
         Assert.assertEquals(ports.size(), 2);
         for (ServicePort port : ports) {
             switch (port.getName()) {
-                case "client":
+                case "server":
                     Assert.assertEquals((int) port.getPort(), 3181);
                     break;
                 case "myport1":

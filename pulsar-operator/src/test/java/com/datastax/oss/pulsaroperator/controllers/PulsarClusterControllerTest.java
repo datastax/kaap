@@ -303,14 +303,20 @@ public class PulsarClusterControllerTest {
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     replicas: 0
-                    probe:
-                      enabled: true
-                      timeout: 5
-                      initial: 10
-                      period: 30
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    probes:
+                      readiness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
+                      liveness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
                     updateStrategy:
                       type: RollingUpdate
                     podManagementPolicy: Parallel
@@ -415,14 +421,20 @@ public class PulsarClusterControllerTest {
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     replicas: 3
-                    probe:
-                      enabled: true
-                      timeout: 5
-                      initial: 10
-                      period: 30
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    probes:
+                      readiness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
+                      liveness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
                     updateStrategy:
                       rollingUpdate:
                         maxSurge: 1
@@ -442,6 +454,7 @@ public class PulsarClusterControllerTest {
                         requests:
                           cpu: 1
                           memory: 1Gi
+                      probes: {}
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));
@@ -467,14 +480,22 @@ public class PulsarClusterControllerTest {
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     replicas: 3
-                    probe:
-                      enabled: true
-                      timeout: 5
-                      initial: 10
-                      period: 30
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    probes:
+                      readiness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
+                      liveness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
+                      useHealthCheckForLiveness: true
+                      useHealthCheckForReadiness: true
                     functionsWorkerEnabled: false
                     transactions:
                       enabled: false
@@ -520,14 +541,20 @@ public class PulsarClusterControllerTest {
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     replicas: 3
-                    probe:
-                      enabled: true
-                      timeout: 5
-                      initial: 10
-                      period: 30
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    probes:
+                      readiness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
+                      liveness:
+                        enabled: true
+                        timeoutSeconds: 5
+                        initialDelaySeconds: 10
+                        periodSeconds: 30
                     updateStrategy:
                       type: RollingUpdate
                     podManagementPolicy: Parallel
@@ -579,14 +606,20 @@ public class PulsarClusterControllerTest {
                     image: apachepulsar/pulsar:2.10.2
                     imagePullPolicy: IfNotPresent
                     replicas: 3
-                    probe:
-                      enabled: true
-                      timeout: 30
-                      initial: 20
-                      period: 30
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    probes:
+                      readiness:
+                        enabled: true
+                        timeoutSeconds: 30
+                        initialDelaySeconds: 20
+                        periodSeconds: 30
+                      liveness:
+                        enabled: true
+                        timeoutSeconds: 30
+                        initialDelaySeconds: 20
+                        periodSeconds: 30
                     podManagementPolicy: Parallel
                     updateStrategy:
                       type: RollingUpdate

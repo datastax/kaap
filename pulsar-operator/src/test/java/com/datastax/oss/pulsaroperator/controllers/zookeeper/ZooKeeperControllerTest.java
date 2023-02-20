@@ -26,6 +26,7 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -662,7 +663,7 @@ public class ZooKeeperControllerTest {
                 client.getCreatedResource(StatefulSet.class)
                         .getResource().getSpec().getTemplate().getMetadata().getLabels(),
                 Map.of(
-                    "cluster", "pul",
+                        "cluster", "pul",
                         "app", "pulsar",
                         "component", "zookeeper",
                         "label-2", "label2-value"
@@ -702,6 +703,30 @@ public class ZooKeeperControllerTest {
                         "component", "zookeeper",
                         "custom", "customvalue"
                 )
+        );
+    }
+
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null),
+                        new EnvVar(ZooKeeperResourcesFactory.ENV_ZOOKEEPER_SERVERS,
+                                "pul-zookeeper-0,pul-zookeeper-1,pul-zookeeper-2", null))
         );
     }
 
@@ -1150,8 +1175,11 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 zookeeper:
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1173,8 +1201,11 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 zookeeper:
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1196,9 +1227,13 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 zookeeper:
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        liveness:
+                            enabled: true
+                            periodSeconds: 11
+                        readiness:
+                            enabled: true
+                            periodSeconds: 10
                 """;
 
         client = invokeController(spec);
@@ -1210,8 +1245,8 @@ public class ZooKeeperControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 30, 20, 50);
-        assertProbe(container.getReadinessProbe(), 30, 20, 50);
+        assertProbe(container.getLivenessProbe(), 30, 20, 11);
+        assertProbe(container.getReadinessProbe(), 30, 20, 10);
 
     }
 

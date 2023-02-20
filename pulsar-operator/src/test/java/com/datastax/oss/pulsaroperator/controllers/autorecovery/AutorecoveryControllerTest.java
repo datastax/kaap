@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoveryFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -132,7 +133,7 @@ public class AutorecoveryControllerTest {
                             topologyKey: kubernetes.io/hostname
                       containers:
                       - args:
-                        - "bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/proxy.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/bookkeeper autorecovery"
+                        - "bin/apply-config-from-env.py conf/bookkeeper.conf && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/bookkeeper autorecovery"
                         command:
                         - sh
                         - -c
@@ -238,7 +239,7 @@ public class AutorecoveryControllerTest {
                 .getArgs().get(0);
         Assert.assertEquals(stsCommand, "bin/apply-config-from-env.py conf/bookkeeper.conf && openssl pkcs8 -topk8 "
                 + "-inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && "
-                + "bin/apply-config-from-env.py conf/proxy.conf && OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" "
+                + "OPTS=\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\" "
                 + "exec bin/bookkeeper autorecovery");
     }
 
@@ -429,6 +430,29 @@ public class AutorecoveryControllerTest {
                 client.getCreatedResource(Deployment.class)
                         .getResource().getSpec().getTemplate().getSpec().getImagePullSecrets(),
                 List.of(new LocalObjectReference("secret1"))
+        );
+    }
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                autorecovery:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null))
         );
     }
 

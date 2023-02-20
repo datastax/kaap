@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -41,6 +42,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import java.util.HashMap;
 import java.util.List;
@@ -874,6 +876,28 @@ public class ProxyControllerTest {
         );
     }
 
+
+    @Test
+    public void testEnv() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    env:
+                    - name: env1
+                      value: env1-value
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv(),
+                List.of(new EnvVar("env1", "env1-value", null))
+        );
+    }
+
     @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
@@ -1261,8 +1285,11 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 proxy:
-                    probe:
-                        enabled: false
+                    probes:
+                        liveness:
+                            enabled: false
+                        readiness:
+                            enabled: false
                 """;
 
         MockKubernetesClient client = invokeController(spec);
@@ -1284,8 +1311,11 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 proxy:
-                    probe:
-                        enabled: true
+                    probes:
+                        liveness:
+                            enabled: true
+                        readiness:
+                            enabled: true
                 """;
 
         client = invokeController(spec);
@@ -1307,9 +1337,12 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                 proxy:
-                    probe:
-                        enabled: true
-                        period: 50
+                    probes:
+                        readiness:
+                            periodSeconds: 50
+                        liveness:
+                            periodSeconds: 45
+                            
                 """;
 
         client = invokeController(spec);
@@ -1321,7 +1354,7 @@ public class ProxyControllerTest {
         container = createdResource.getResource().getSpec().getTemplate()
                 .getSpec().getContainers().get(0);
 
-        assertProbe(container.getLivenessProbe(), 5, 10, 50);
+        assertProbe(container.getLivenessProbe(), 5, 10, 45);
         assertProbe(container.getReadinessProbe(), 5, 10, 50);
 
     }

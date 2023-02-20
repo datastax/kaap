@@ -264,6 +264,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         final String zkConnectString = zkServers.stream().collect(Collectors.joining(","));
         final List<EnvVar> env  = spec.getEnv() == null ? new ArrayList<>() : spec.getEnv();
+        checkEnvListNotContains(env, DEFAULT_ENV);
         env.add(new EnvVarBuilder()
                 .withName(ENV_ZOOKEEPER_SERVERS)
                 .withValue(zkConnectString)

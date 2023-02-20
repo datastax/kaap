@@ -92,15 +92,26 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
 
         // speed up readiness
         final ProbesConfig probe = ProbesConfig.builder()
-                .initialDelaySeconds(5)
-                .periodSeconds(5)
-                .timeoutSeconds(60)
+                .liveness(ProbesConfig.ProbeConfig.builder()
+                        .initialDelaySeconds(5)
+                        .periodSeconds(5)
+                        .timeoutSeconds(60)
+                        .build()
+                )
+                .readiness(
+                        ProbesConfig.ProbeConfig.builder()
+                                .initialDelaySeconds(1)
+                                .periodSeconds(2)
+                                .timeoutSeconds(65)
+                                .failureThreshold(10)
+                                .build()
+                )
                 .build();
 
         defaultSpecs.setZookeeper(ZooKeeperSpec.builder()
                 .replicas(3)
                 .resources(RESOURCE_REQUIREMENTS)
-                .probe(probe)
+                .probes(probe)
                 .dataVolume(VolumeConfig.builder()
                         .size("2Gi")
                         .build()
@@ -144,7 +155,22 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 "managedLedgerDefaultWriteQuorum", "1"
                         )
                 )
-                .probes(probe)
+                .probes(BrokerSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
+                        .liveness(ProbesConfig.ProbeConfig.builder()
+                                .initialDelaySeconds(5)
+                                .periodSeconds(5)
+                                .timeoutSeconds(60)
+                                .build()
+                        )
+                        .readiness(
+                                ProbesConfig.ProbeConfig.builder()
+                                        .initialDelaySeconds(1)
+                                        .periodSeconds(2)
+                                        .timeoutSeconds(65)
+                                        .failureThreshold(10)
+                                        .build()
+                        )
+                        .build())
                 .build());
         defaultSpecs.setProxy(ProxySpec.builder()
                 .replicas(1)
@@ -173,11 +199,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 "cpu", 0.001d
                         )
                 ))
-                .probes(ProbesConfig.builder()
-                        .initialDelaySeconds(15)
-                        .periodSeconds(5)
-                        .timeoutSeconds(90)
-                        .build())
+                .probes(probe)
                 .build());
         return defaultSpecs;
     }

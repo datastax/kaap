@@ -81,7 +81,7 @@ public class ZooKeeperJobTest {
 
             server.expect()
                     .delete()
-                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper".formatted(clusterName))
+                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper-metadata".formatted(clusterName))
                     .andReply(HttpURLConnection.HTTP_OK, recordedRequest -> {
                         MockServer.this.ops.add(new Op("DELETE"));
                         return null;
@@ -96,7 +96,7 @@ public class ZooKeeperJobTest {
             } else {
                 currentJob = new JobBuilder()
                         .withNewMetadata()
-                        .withName("%s-zookeeper".formatted(clusterName))
+                        .withName("%s-zookeeper-metadata".formatted(clusterName))
                         .endMetadata()
                         .withNewStatus()
                         .withSucceeded(currentJobState == CurrentJobState.Running ? 0 : 1)
@@ -106,7 +106,7 @@ public class ZooKeeperJobTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper".formatted(clusterName))
+                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper-metadata".formatted(clusterName))
                     .andReturn(HttpURLConnection.HTTP_OK, currentJob)
                     .always();
         }

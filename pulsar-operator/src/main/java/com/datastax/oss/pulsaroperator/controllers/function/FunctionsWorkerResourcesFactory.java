@@ -61,6 +61,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     public static final int DEFAULT_HTTP_PORT = 6750;
     public static final int DEFAULT_HTTPS_PORT = 6751;
+    public static final String ENV_WORKER_HOSTNAME = "workerHostname";
+    public static final String ENV_WORKER_ID = "PF_workerId";
+    public static final List<String> DEFAULT_ENV = List.of(ENV_WORKER_HOSTNAME, ENV_WORKER_ID);
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getFunctionsWorkerBaseName();
@@ -210,7 +213,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("zooKeeperSessionTimeoutMillis", "30000");
         data.put("pulsarFunctionsCluster", global.getName());
         data.put("workerId", resourceName);
-        data.put("workerHostname", resourceName);
+        data.put(ENV_WORKER_HOSTNAME, resourceName);
         data.put("workerPort", "6750");
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
@@ -432,9 +435,11 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         .build()
         );
 
-        List<EnvVar> env = new ArrayList<>();
+        List<EnvVar> env = spec.getEnv() != null ? spec.getEnv() : new ArrayList<>();
+        checkEnvListNotContains(env, DEFAULT_ENV);
+
         env.add(new EnvVarBuilder()
-                .withName("workerHostname")
+                .withName(ENV_WORKER_HOSTNAME)
                 .withNewValueFrom()
                 .withNewFieldRef()
                 .withFieldPath("metadata.name")
@@ -442,7 +447,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .endValueFrom()
                 .build());
         env.add(new EnvVarBuilder()
-                .withName("PF_workerId")
+                .withName(ENV_WORKER_ID)
                 .withNewValueFrom()
                 .withNewFieldRef()
                 .withFieldPath("metadata.name")
@@ -468,7 +473,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                                 .endConfigMapRef()
                                 .build())
                         .withVolumeMounts(volumeMounts)
-                        .withEnv(spec.getEnv())
                         .build()
         );
 

@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -992,5 +993,16 @@ public abstract class BaseResourcesFactory<T> {
                 .withPeriodSeconds(probeConfig.getPeriodSeconds())
                 .withFailureThreshold(probeConfig.getFailureThreshold())
                 .withSuccessThreshold(probeConfig.getSuccessThreshold());
+    }
+
+    protected static void checkEnvListNotContains(List<EnvVar> list, List<String> forbidden) {
+        if (list == null) {
+            return;
+        }
+        for (EnvVar envVar : list) {
+            if (forbidden.contains(envVar.getName())) {
+                throw new IllegalArgumentException("Env list contains forbidden env var: " + envVar.getName());
+            }
+        }
     }
 }

@@ -184,7 +184,7 @@ public class PulsarClusterResourceGenerator {
                 filterComponents,
                 spec -> parseConfigValueBool(spec.getConfig(), "authenticationEnabled"),
                 false,
-                "authenticationEnabled");
+                "authenticationEnabled").booleanValue();
         if (!authEnabled) {
             log.info("Found authenticationEnabled=false, auth will be disabled in the CRD");
             return AuthConfig.builder()

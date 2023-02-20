@@ -359,9 +359,13 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         patchResource(statefulSet);
     }
 
+    public Job getMetadataInitializationJob() {
+        return getJob(jobName());
+    }
+
 
     public void createMetadataInitializationJobIfNeeded() {
-        final String jobName = resourceName + "-metadata";
+        final String jobName = jobName();
 
         if (isJobCompleted(jobName)) {
             return;
@@ -432,6 +436,10 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .build();
 
         patchResource(job);
+    }
+
+    private String jobName() {
+        return "%s-metadata".formatted(resourceName);
     }
 
 

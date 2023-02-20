@@ -411,7 +411,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         final Job job = new JobBuilder()
                 .withNewMetadata()
-                .withName(resourceName)
+                .withName(jobName)
                 .withNamespace(namespace)
                 .withLabels(getLabels(spec.getLabels()))
                 .endMetadata()

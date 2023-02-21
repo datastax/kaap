@@ -9,7 +9,7 @@ for name in ${names[@]}; do
   if [[ -z "$grep_arg" ]]; then
     grep_arg="$name"
   else
-    #grep_arg="$grep_arg\|$name"
+    grep_arg="$grep_arg\|$name"
   fi
 done
 

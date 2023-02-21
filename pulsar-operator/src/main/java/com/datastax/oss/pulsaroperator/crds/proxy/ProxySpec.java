@@ -19,7 +19,6 @@ import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;

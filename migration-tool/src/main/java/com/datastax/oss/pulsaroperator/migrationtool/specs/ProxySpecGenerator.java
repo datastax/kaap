@@ -143,6 +143,8 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 .webSocket(wsConfig)
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(mainContainer.getEnv())
+                .initContainers(spec.getInitContainers())
+                .sidecars(getSidecars(spec, ProxyResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

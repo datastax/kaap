@@ -1009,6 +1009,96 @@ public class BrokerControllerTest {
     }
 
     @Test
+    public void testInitContainers() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                broker:
+                    initContainers:
+                        - name: myinit
+                          image: myimage:latest
+                          command: ["echo test"]
+                          volumeMounts:
+                            - name: certs
+                              mountPath: /pulsar/certs
+                              readOnly: true
+                          resources:
+                            requests:
+                              cpu: 100m
+                              memory: 128Mi
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final List<Container> initContainers = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate().getSpec().getInitContainers();
+        Assert.assertEquals(initContainers.size(), 1);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(initContainers.get(0)),
+                """
+                        ---
+                        command:
+                        - echo test
+                        image: myimage:latest
+                        name: myinit
+                        resources:
+                          requests:
+                            cpu: 100m
+                            memory: 128Mi
+                        volumeMounts:
+                        - mountPath: /pulsar/certs
+                          name: certs
+                          readOnly: true
+                        """
+        );
+    }
+
+
+    @Test
+    public void testSidecars() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                broker:
+                    sidecars:
+                        - name: mycontainer
+                          image: myimage:latest
+                          command: ["echo test"]
+                          volumeMounts:
+                            - name: certs
+                              mountPath: /pulsar/certs
+                              readOnly: true
+                          resources:
+                            requests:
+                              cpu: 100m
+                              memory: 128Mi
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final List<Container> containers = client.getCreatedResource(StatefulSet.class)
+                .getResource().getSpec().getTemplate().getSpec().getContainers();
+        Assert.assertEquals(containers.size(), 2);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        KubeTestUtil.getContainerByName(containers, "mycontainer")),
+                """
+                        ---
+                        command:
+                        - echo test
+                        image: myimage:latest
+                        name: mycontainer
+                        resources:
+                          requests:
+                            cpu: 100m
+                            memory: 128Mi
+                        volumeMounts:
+                        - mountPath: /pulsar/certs
+                          name: certs
+                          readOnly: true
+                        """
+        );
+    }
+
+    @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
                 global:

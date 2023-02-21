@@ -15,12 +15,14 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bastion;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
@@ -495,6 +497,97 @@ public class BastionControllerTest {
                         .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
                         .getEnv(),
                 List.of(new EnvVar("env1", "env1-value", null))
+        );
+    }
+
+
+    @Test
+    public void testInitContainers() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                bastion:
+                    initContainers:
+                        - name: myinit
+                          image: myimage:latest
+                          command: ["echo test"]
+                          volumeMounts:
+                            - name: certs
+                              mountPath: /pulsar/certs
+                              readOnly: true
+                          resources:
+                            requests:
+                              cpu: 100m
+                              memory: 128Mi
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final List<Container> initContainers = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate().getSpec().getInitContainers();
+        Assert.assertEquals(initContainers.size(), 1);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(KubeTestUtil.getContainerByName(initContainers, "myinit")),
+                """
+                        ---
+                        command:
+                        - echo test
+                        image: myimage:latest
+                        name: myinit
+                        resources:
+                          requests:
+                            cpu: 100m
+                            memory: 128Mi
+                        volumeMounts:
+                        - mountPath: /pulsar/certs
+                          name: certs
+                          readOnly: true
+                        """
+        );
+    }
+
+
+    @Test
+    public void testSidecars() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                bastion:
+                    sidecars:
+                        - name: mycontainer
+                          image: myimage:latest
+                          command: ["echo test"]
+                          volumeMounts:
+                            - name: certs
+                              mountPath: /pulsar/certs
+                              readOnly: true
+                          resources:
+                            requests:
+                              cpu: 100m
+                              memory: 128Mi
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final List<Container> containers = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate().getSpec().getContainers();
+        Assert.assertEquals(containers.size(), 2);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        KubeTestUtil.getContainerByName(containers, "mycontainer")),
+                """
+                        ---
+                        command:
+                        - echo test
+                        image: myimage:latest
+                        name: mycontainer
+                        resources:
+                          requests:
+                            cpu: 100m
+                            memory: 128Mi
+                        volumeMounts:
+                        - mountPath: /pulsar/certs
+                          name: certs
+                          readOnly: true
+                        """
         );
     }
 

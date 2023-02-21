@@ -111,6 +111,8 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
                 .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(container.getEnv())
+                .initContainers(spec.getInitContainers())
+                .sidecars(getSidecars(spec, AutorecoveryResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

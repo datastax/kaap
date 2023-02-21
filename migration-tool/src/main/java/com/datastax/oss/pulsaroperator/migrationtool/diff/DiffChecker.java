@@ -57,7 +57,7 @@ public class DiffChecker {
         Collection<Pair<File, Map<String, Object>>> generatedResources =
                 readResourcesDirectory(SpecGenerator.getGeneratedResourcesFileFromDir(inputDirectory));
 
-        File pulsarClusterCrd = SpecGenerator.getGeneratedPulsarClusterFileFromDir(inputDirectory).toFile();
+        File pulsarClusterCrd = SpecGenerator.getGeneratedPulsarClusterJSONFileFromDir(inputDirectory).toFile();
         DiffChecker diffChecker = new DiffChecker(new MultiDiffOutputWriters(
                 List.of(
                         new HtmlFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.html"),
@@ -203,8 +203,7 @@ public class DiffChecker {
 
             final Resource original = findEquivalent(generatedResource, existingResources);
             if (original == null) {
-                reportDiff("generated resource %s not found in existing resources".formatted(name));
-                continue;
+                throw new IllegalStateException("Generated resource that didn't existed before: " + name);
             }
             compare(generatedResource, original);
         }
@@ -254,10 +253,6 @@ public class DiffChecker {
         return null;
     }
 
-
-    private void reportDiff(String message) {
-        log.error(message);
-    }
 
     @SneakyThrows
     private static Map<String, Object> toJson(Resource resource) {

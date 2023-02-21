@@ -54,8 +54,24 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     public static final int DEFAULT_BK_PORT = 3181;
     public static final int DEFAULT_HTTP_PORT = 8000;
 
+    public static List<String> getInitContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+    private static String getMetadataFormatInitContainerName(String resourceName) {
+        return "%s-metadata-format".formatted(getMainContainerName(resourceName));
+    }
+
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
+    }
+
     public static String getBookKeeperContainerName(GlobalSpec globalSpec) {
-        return getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName());
+        return getMainContainerName(
+                getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName()));
     }
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
@@ -179,7 +195,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
         final Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
-        List<Container> initContainers = new ArrayList<>();
+
         String metaformatArg = "";
         final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
         List<VolumeMount> initContainerVolumeMounts = new ArrayList<>();
@@ -190,8 +206,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         metaformatArg += "bin/apply-config-from-env.py conf/bookkeeper.conf "
                 + "&& bin/bookkeeper shell metaformat --nonInteractive || true;";
 
+        List<Container> initContainers = getInitContainers(spec.getInitContainers());
         initContainers.add(new ContainerBuilder()
-                .withName("pulsar-bookkeeper-metaformat")
+                .withName(getMetadataFormatInitContainerName(resourceName))
                 .withImage(spec.getImage())
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withCommand("sh", "-c")
@@ -265,33 +282,33 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
 
 
-        List<Container> containers = List.of(
-                new ContainerBuilder()
-                        .withName(getBookKeeperContainerName(global))
-                        .withImage(spec.getImage())
-                        .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
-                        .withReadinessProbe(createProbe(spec.getProbes().getReadiness()))
-                        .withResources(spec.getResources())
-                        .withCommand("sh", "-c")
-                        .withArgs(mainArg)
-                        .withPorts(new ContainerPortBuilder()
-                                        .withName("client")
-                                        .withContainerPort(DEFAULT_BK_PORT)
-                                        .build(),
-                                new ContainerPortBuilder()
-                                        .withName("http")
-                                        .withContainerPort(DEFAULT_HTTP_PORT)
-                                        .build())
-                        .withEnvFrom(new EnvFromSourceBuilder()
-                                .withNewConfigMapRef()
-                                .withName(resourceName)
-                                .endConfigMapRef()
+        final Container mainContainer = new ContainerBuilder()
+                .withName(getMainContainerName(resourceName))
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
+                .withReadinessProbe(createProbe(spec.getProbes().getReadiness()))
+                .withResources(spec.getResources())
+                .withCommand("sh", "-c")
+                .withArgs(mainArg)
+                .withPorts(new ContainerPortBuilder()
+                                .withName("client")
+                                .withContainerPort(DEFAULT_BK_PORT)
+                                .build(),
+                        new ContainerPortBuilder()
+                                .withName("http")
+                                .withContainerPort(DEFAULT_HTTP_PORT)
                                 .build())
-                        .withVolumeMounts(volumeMounts)
-                        .withEnv(spec.getEnv())
-                        .build()
-        );
+                .withEnvFrom(new EnvFromSourceBuilder()
+                        .withNewConfigMapRef()
+                        .withName(resourceName)
+                        .endConfigMapRef()
+                        .build())
+                .withVolumeMounts(volumeMounts)
+                .withEnv(spec.getEnv())
+                .build();
+        final List<Container> containers = getSidecars(spec.getSidecars());
+        containers.add(mainContainer);
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(resourceName)

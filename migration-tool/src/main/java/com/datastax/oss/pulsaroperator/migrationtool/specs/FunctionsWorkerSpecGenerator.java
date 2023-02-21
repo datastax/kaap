@@ -147,6 +147,8 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                         .build())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(getEnv(mainContainer, FunctionsWorkerResourcesFactory.DEFAULT_ENV))
+                .initContainers(spec.getInitContainers())
+                .sidecars(getSidecars(spec, FunctionsWorkerResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

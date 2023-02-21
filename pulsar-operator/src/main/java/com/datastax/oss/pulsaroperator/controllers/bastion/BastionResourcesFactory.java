@@ -39,6 +39,14 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
+    }
+
     private ConfigMap configMap;
 
     public BastionResourcesFactory(KubernetesClient client, String namespace,
@@ -126,10 +134,10 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         mainArg += "bin/apply-config-from-env.py conf/client.conf && "
                 + "exec /bin/bash -c \"trap : TERM INT; sleep infinity & wait\"";
 
-        List<Container> containers = new ArrayList<>();
+        List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(
                 new ContainerBuilder()
-                        .withName(resourceName)
+                        .withName(getMainContainerName(resourceName))
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withResources(spec.getResources())
@@ -174,6 +182,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)
+                .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withVolumes(volumes)
                 .endSpec()
                 .endTemplate()

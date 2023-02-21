@@ -24,6 +24,7 @@ import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.crd.generator.annotation.SchemaFrom;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
@@ -91,6 +92,10 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     private AntiAffinityConfig antiAffinity;
     @JsonPropertyDescription(CRDConstants.DOC_CONTAINER_ENV)
     private List<EnvVar> env;
+    @JsonPropertyDescription(CRDConstants.DOC_SIDECARS)
+    private List<Container> sidecars;
+    @JsonPropertyDescription(CRDConstants.DOC_INIT_CONTAINERS)
+    private List<Container> initContainers;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

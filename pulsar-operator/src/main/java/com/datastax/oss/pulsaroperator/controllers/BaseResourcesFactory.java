@@ -29,6 +29,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -1004,5 +1005,19 @@ public abstract class BaseResourcesFactory<T> {
                 throw new IllegalArgumentException("Env list contains forbidden env var: " + envVar.getName());
             }
         }
+    }
+
+    protected static List<Container> getInitContainers(List<Container> containers) {
+        if (containers == null) {
+            return new ArrayList<>();
+        }
+        return containers;
+    }
+
+    protected static List<Container> getSidecars(List<Container> containers) {
+        if (containers == null) {
+            return new ArrayList<>();
+        }
+        return containers;
     }
 }

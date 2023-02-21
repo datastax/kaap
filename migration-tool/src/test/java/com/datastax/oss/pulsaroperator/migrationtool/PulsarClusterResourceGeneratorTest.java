@@ -65,7 +65,7 @@ public class PulsarClusterResourceGeneratorTest {
 
     private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
         final List<JSONComparator.FieldComparisonFailure> diffs = diff.getAll();
-        Assert.assertEquals(diffs.size(), 121);
+        Assert.assertEquals(diffs.size(), 129);
     }
 
     @SneakyThrows
@@ -184,6 +184,8 @@ public class PulsarClusterResourceGeneratorTest {
                               release: pulsar-cluster
                             imagePullSecrets: []
                             env: []
+                            sidecars: []
+                            initContainers: []
                             config:
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                               PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
@@ -270,6 +272,37 @@ public class PulsarClusterResourceGeneratorTest {
                               release: pulsar-cluster
                             imagePullSecrets: []
                             env: []
+                            sidecars: []
+                            initContainers:
+                            - args:
+                              - |-
+                                until bin/pulsar zookeeper-shell -server pulsar-cluster-zookeeper ls /admin/clusters | grep "^\\[.*pulsar-cluster.*\\]"; do
+                                  sleep 3;
+                                done;
+                              command:
+                              - sh
+                              - -c
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: wait-zookeeper-ready
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                            - args:
+                              - |
+                                bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/bkenv.sh && bin/bookkeeper shell metaformat --nonInteractive || true;
+                              command:
+                              - sh
+                              - -c
+                              envFrom:
+                              - configMapRef:
+                                  name: pulsar-cluster-bookkeeper
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: pulsar-bookkeeper-metaformat
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
                             config:
                               BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
                               BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
@@ -408,6 +441,22 @@ public class PulsarClusterResourceGeneratorTest {
                               value: 2
                             - name: managedLedgerDefaultWriteQuorum
                               value: 2
+                            sidecars: []
+                            initContainers:
+                            - args:
+                              - |-
+                                until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
+                                  sleep 3;
+                                done;
+                              command:
+                              - sh
+                              - -c
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: wait-bookkeeper-ready
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
                             config:
                               PF_clientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
                               PF_clientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
@@ -584,6 +633,99 @@ public class PulsarClusterResourceGeneratorTest {
                               value: "10.*,192.168.*,pulsar-cluster-broker*"
                             - name: PULSAR_PREFIX_brokerProxyAllowedIPAddresses
                               value: "10.0.0.0/8,192.168.0.0/16"
+                            sidecars:
+                            - env:
+                              - name: PORT
+                                value: 8964
+                              - name: ClusterName
+                                value: pulsar-cluster
+                              - name: WebsocketURL
+                                value: ws://localhost:8000
+                              - name: BrokerProxyURL
+                                value: http://pulsar-cluster-broker:8080
+                              - name: FunctionProxyURL
+                                value: http://pulsar-cluster-function:6750
+                              - name: SuperRoles
+                                value: "superuser-backup,create-tenant,admin"
+                              - name: StreamingAPIKey
+                                valueFrom:
+                                  secretKeyRef:
+                                    key: streaming-api-key.txt
+                                    name: api-key
+                              - name: PulsarToken
+                                valueFrom:
+                                  secretKeyRef:
+                                    key: superuser.jwt
+                                    name: token-superuser
+                              - name: HTTPAuthImpl
+                              - name: PulsarURL
+                                value: pulsar://pulsar-cluster-broker:6650
+                              - name: PulsarPublicKey
+                                value: /pulsar/token-public-key/pulsar-public.key
+                              - name: PulsarPrivateKey
+                                value: /pulsar/token-private-key/pulsar-private.key
+                              - name: CertFile
+                                value: /pulsar/certs/tls.crt
+                              - name: KeyFile
+                                value: /pulsar/certs/tls.key
+                              - name: TrustStore
+                                value: /etc/ssl/certs/ca-bundle.crt
+                              - name: FEDERATED_PROM_URL
+                                value: http://pulsar-cluster-kub-prometheus:9090/federate
+                              - name: FederatedPromURL
+                                value: http://pulsar-cluster-kub-prometheus:9090/federate
+                              - name: TenantsUsageDisabled
+                              - name: TenantManagmentTopic
+                                value: persistent://public/default/tenant-management
+                              - name: LogLevel
+                                value: info
+                              - name: LogServerPort
+                                value: :4040
+                              - name: AdminRestPrefix
+                                value: /admin/v2
+                              - name: FunctionWorkerDomain
+                                value: .pulsar-cluster-function.pulsar.svc.cluster.local
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: pulsar-cluster-proxy-burnell
+                              ports:
+                              - containerPort: 8964
+                                name: burnell
+                                protocol: TCP
+                              - containerPort: 9090
+                                name: metrics
+                                protocol: TCP
+                              resources:
+                                requests:
+                                  cpu: 100m
+                                  memory: 128Mi
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                              volumeMounts:
+                              - mountPath: /pulsar/certs
+                                name: certs
+                                readOnly: true
+                              - mountPath: /pulsar/token-private-key
+                                name: token-private-key
+                                readOnly: true
+                              - mountPath: /pulsar/token-public-key
+                                name: token-public-key
+                                readOnly: true
+                            initContainers:
+                            - args:
+                              - |-
+                                until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
+                                  sleep 3;
+                                done;
+                              command:
+                              - sh
+                              - -c
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: wait-bookkeeper-ready
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
                             config:
                               PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
@@ -764,6 +906,8 @@ public class PulsarClusterResourceGeneratorTest {
                               zone:
                                 enabled: false
                             env: []
+                            sidecars: []
+                            initContainers: []
                           bastion:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
@@ -819,6 +963,8 @@ public class PulsarClusterResourceGeneratorTest {
                               value: https://pulsar-cluster-proxy:8443/
                             - name: brokerServiceUrl
                               value: pulsar://pulsar-cluster-broker:6650/
+                            sidecars: []
+                            initContainers: []
                           functionsWorker:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
@@ -862,6 +1008,8 @@ public class PulsarClusterResourceGeneratorTest {
                               release: pulsar-cluster
                             imagePullSecrets: []
                             env: []
+                            sidecars: []
+                            initContainers: []
                             config:
                               PF_authenticateMetricsEndpoint: "false"
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info

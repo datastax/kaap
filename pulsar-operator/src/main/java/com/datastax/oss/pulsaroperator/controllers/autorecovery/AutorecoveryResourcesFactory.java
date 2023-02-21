@@ -45,6 +45,14 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         return globalSpec.getComponents().getAutorecoveryBaseName();
     }
 
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
+    }
+
     private ConfigMap configMap;
 
     public AutorecoveryResourcesFactory(KubernetesClient client, String namespace,
@@ -138,10 +146,10 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withContainerPort(8000)
                 .build()
         );
-        List<Container> containers = new ArrayList<>();
+        List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(
                 new ContainerBuilder()
-                        .withName(resourceName)
+                        .withName(getMainContainerName(resourceName))
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withResources(spec.getResources())
@@ -187,6 +195,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withContainers(containers)
+                .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withVolumes(volumes)
                 .endSpec()
                 .endTemplate()

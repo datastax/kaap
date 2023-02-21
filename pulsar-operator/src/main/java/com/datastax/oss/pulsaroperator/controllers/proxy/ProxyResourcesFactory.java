@@ -34,9 +34,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -64,6 +62,18 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     public static final int DEFAULT_PULSAR_PORT = 6650;
     public static final int DEFAULT_WS_PORT = 8000;
     public static final int DEFAULT_WSS_PORT = 8001;
+
+
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName), getWsContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
+    }
+    private static String getWsContainerName(String resourceName) {
+        return "%s-ws".formatted(getMainContainerName(resourceName));
+    }
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getProxyBaseName();
@@ -270,7 +280,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()
-                .withName("%s-ws".formatted(resourceName))
+                .withName(getWsConfigMapName())
                 .withNamespace(namespace)
                 .withLabels(getLabels(spec.getLabels()))
                 .withAnnotations(getAnnotations(spec.getAnnotations()))
@@ -279,6 +289,10 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 .build();
         patchResource(configMap);
         this.wsConfigMap = configMap;
+    }
+
+    private String getWsConfigMapName() {
+        return "%s-ws".formatted(resourceName);
     }
 
 
@@ -309,34 +323,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             addSecretTokenVolume(volumeMounts, volumes, "proxy");
             addSecretTokenVolume(volumeMounts, volumes, "websocket");
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
-        }
-
-        List<Container> initContainers = new ArrayList<>();
-
-        if (spec.getInitContainer() != null) {
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName("lib-data")
-                            .withNewEmptyDir().endEmptyDir()
-                            .build()
-            );
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName("lib-data")
-                            .withMountPath(spec.getInitContainer().getEmptyDirPath())
-                            .build()
-            );
-            initContainers.add(new ContainerBuilder()
-                    .withName("add-libs")
-                    .withImage(spec.getInitContainer().getImage())
-                    .withImagePullPolicy(spec.getInitContainer().getImagePullPolicy())
-                    .withCommand(spec.getInitContainer().getCommand())
-                    .withArgs(spec.getInitContainer().getArgs())
-                    .withVolumeMounts(new VolumeMountBuilder()
-                            .withName("lib-data")
-                            .withMountPath(spec.getInitContainer().getEmptyDirPath())
-                            .build())
-                    .build());
         }
 
         String mainArg = "";
@@ -378,19 +364,10 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
             );
         }
 
-        List<Container> containers = new ArrayList<>();
-        if (spec.getService().getAdditionalPorts() != null) {
-            spec.getService().getAdditionalPorts()
-                    .stream()
-                    .map(s -> new ContainerPortBuilder()
-                            .withName(s.getName())
-                            .withContainerPort(s.getPort())
-                            .build())
-                    .forEachOrdered(p -> containerPorts.add(p));
-        }
+        List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(
                 new ContainerBuilder()
-                        .withName(resourceName)
+                        .withName(getMainContainerName(resourceName))
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
@@ -429,7 +406,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                     .withContainerPort(8001)
                     .build()
             );
-            final String wsResourceName = "%s-ws".formatted(resourceName);
+            final String wsResourceName = getWsContainerName(resourceName);
             containers.add(
                     new ContainerBuilder()
                             .withName(wsResourceName)
@@ -451,7 +428,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                             ))
                             .withEnvFrom(new EnvFromSourceBuilder()
                                     .withNewConfigMapRef()
-                                    .withName(wsResourceName)
+                                    .withName(getWsConfigMapName())
                                     .endConfigMapRef()
                                     .build())
                             .withLivenessProbe(createProbe(webSocket.getProbes().getLiveness()))
@@ -491,7 +468,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
-                .withInitContainers(initContainers)
+                .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withContainers(containers)
                 .withVolumes(volumes)
                 .endSpec()

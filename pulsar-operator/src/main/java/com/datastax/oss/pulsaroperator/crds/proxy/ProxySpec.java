@@ -149,8 +149,6 @@ public class ProxySpec extends BaseComponentSpec<ProxySpec> {
     private ResourceRequirements resources;
     @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
-    @JsonPropertyDescription("Additional init container.")
-    private InitContainerConfig initContainer;
     @JsonPropertyDescription("WebSocket configuration.")
     private WebSocketConfig webSocket;
     @JsonPropertyDescription("Whether or not the functions worker is in standalone mode.")

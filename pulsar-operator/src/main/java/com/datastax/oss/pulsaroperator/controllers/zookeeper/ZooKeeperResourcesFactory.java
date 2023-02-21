@@ -69,6 +69,14 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         return globalSpec.getComponents().getZookeeperBaseName();
     }
 
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
+    }
+
 
     private ConfigMap configMap;
 
@@ -229,7 +237,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
         long gracePeriod = spec.getGracePeriod();
 
-        List<Container> containers = new ArrayList<>();
+
         final ResourceRequirements resources = spec.getResources();
         boolean enableTls = isTlsEnabledOnZooKeeper();
 
@@ -270,9 +278,10 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withValue(zkConnectString)
                 .build()
         );
+        List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(
                 new ContainerBuilder()
-                        .withName(resourceName)
+                        .withName(getMainContainerName(resourceName))
                         .withImage(spec.getImage())
                         .withImagePullPolicy(spec.getImagePullPolicy())
                         .withResources(resources)
@@ -350,6 +359,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withPriorityClassName(global.getPriorityClassName())
                 .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
                 .withContainers(containers)
+                .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withVolumes(volumes)
                 .endSpec()
                 .endTemplate()

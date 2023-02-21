@@ -15,9 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.function;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
@@ -620,4 +620,3 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     }
 
 }
-

@@ -60,7 +60,7 @@ public class RawFileDiffOutputWriter extends BaseDiffOutputWriter {
         } else if (expectedValue == null) {
             builder.append("""
                         - unexpected: '%s=%s'
-                    """.formatted(completeField, completeField, actualValue));
+                    """.formatted(completeField, actualValue));
         } else {
             builder.append("""
                         - '%s' value differs:

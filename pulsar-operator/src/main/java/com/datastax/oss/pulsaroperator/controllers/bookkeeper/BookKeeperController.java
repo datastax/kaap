@@ -92,4 +92,3 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
         resourcesFactory.patchStatefulSet();
     }
 }
-

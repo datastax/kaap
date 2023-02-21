@@ -53,7 +53,7 @@ public class JSONAssertComparator implements JSONComparator {
     }
 
     private static class NoGenericFailuresCompareResult extends JSONCompareResult {
-        int lastFailCallNumOfFailures = 0;
+        int lastFailCallNumOfFailures;
 
         @Override
         public void fail(String message) {

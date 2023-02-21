@@ -15,15 +15,15 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.broker;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.MockResourcesResolver;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -355,7 +355,7 @@ public class BrokerControllerTest {
         client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
             public StatefulSet statefulSetWithName(String name) {
-                return baseStatefulSetBuilder(name, true).build();
+                return newStatefulSetBuilder(name, true).build();
             }
         });
         invokeController(brokerCr, client);
@@ -650,7 +650,7 @@ public class BrokerControllerTest {
         client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
             public StatefulSet statefulSetWithName(String name) {
-                return baseStatefulSetBuilder(name, true).build();
+                return newStatefulSetBuilder(name, true).build();
             }
         });
         invokeController(brokerCr, client);
@@ -1161,7 +1161,7 @@ public class BrokerControllerTest {
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
             public StatefulSet statefulSetWithName(String name) {
-                return baseStatefulSetBuilder(name, true).build();
+                return newStatefulSetBuilder(name, true).build();
             }
         });
         invokeController(brokerCr, client);
@@ -1407,7 +1407,7 @@ public class BrokerControllerTest {
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
             public StatefulSet statefulSetWithName(String name) {
-                return baseStatefulSetBuilder(name, true).build();
+                return newStatefulSetBuilder(name, true).build();
             }
         });
         invokeController(brokerCr, client);

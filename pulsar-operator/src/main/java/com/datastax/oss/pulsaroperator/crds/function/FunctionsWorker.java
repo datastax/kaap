@@ -38,4 +38,3 @@ public class FunctionsWorker extends CustomResource<FunctionsWorkerFullSpec, Bas
         return new BaseComponentStatus();
     }
 }
-

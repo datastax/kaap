@@ -1,0 +1,40 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:25Z"
+  generation: 1
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: function
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-function
+  namespace: pulsar
+  resourceVersion: "340716581"
+  uid: 2256a26a-a775-410f-8379-37451c66d548
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pulsar
+      component: function
+      release: pulsar-cluster
+status:
+  conditions:
+  - lastTransitionTime: "2023-02-16T15:24:42Z"
+    message: ""
+    observedGeneration: 1
+    reason: SufficientPods
+    status: "True"
+    type: DisruptionAllowed
+  currentHealthy: 1
+  desiredHealthy: 0
+  disruptionsAllowed: 1
+  expectedPods: 1
+  observedGeneration: 1

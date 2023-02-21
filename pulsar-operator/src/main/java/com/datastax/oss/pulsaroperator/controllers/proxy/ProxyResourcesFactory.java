@@ -521,4 +521,3 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     }
 
 }
-

@@ -1,0 +1,186 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:31Z"
+  generation: 101
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: function
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-function
+  namespace: pulsar
+  resourceVersion: "340716582"
+  uid: fcd21084-1bc7-48a9-ab72-0d5ad73b1936
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: pulsar
+      component: function
+      release: pulsar-cluster
+  serviceName: pulsar-cluster-function
+  template:
+    metadata:
+      annotations:
+        checksum/config: 47ad923e414693581ea4870abc26b5fc43b332ace809516acd9734b5ba5c7240
+        kubectl.kubernetes.io/restartedAt: "2022-10-14T09:59:02-04:00"
+        prometheus.io/port: "6750"
+        prometheus.io/scrape: "true"
+      creationTimestamp: null
+      labels:
+        app: pulsar
+        cluster: pulsar-cluster
+        component: function
+        release: pulsar-cluster
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pulsar
+              - key: release
+                operator: In
+                values:
+                - pulsar-cluster
+              - key: component
+                operator: In
+                values:
+                - function
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - |
+          cat /pulsar/token-superuser/superuser.jwt | tr -d '\n' > /pulsar/token-superuser-stripped.jwt && bin/apply-config-from-env.py conf/broker.conf && cp -f funcconf/functions_worker.yml conf/functions_worker.yml && export PF_workerHostname="${workerHostname}.pulsar-cluster-function" && bin/gen-yml-from-env.py conf/functions_worker.yml && openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar functions-worker
+        command:
+        - sh
+        - -c
+        env:
+        - name: workerHostname
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: PF_workerId
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        envFrom:
+        - configMapRef:
+            name: pulsar-cluster-function-extra
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: 6750
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: pulsar-cluster-function
+        ports:
+        - containerPort: 6751
+          name: functiontls
+          protocol: TCP
+        - containerPort: 6750
+          name: function
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 180
+          periodSeconds: 60
+          successThreshold: 1
+          tcpSocket:
+            port: 6750
+          timeoutSeconds: 10
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /pulsar/token-superuser
+          name: token-superuser
+          readOnly: true
+        - mountPath: /pulsar/token-public-key
+          name: token-public-key
+          readOnly: true
+        - mountPath: /pulsar/certs
+          name: certs
+          readOnly: true
+        - mountPath: /pulsar/funcconf/functions_worker.yml
+          name: config-volume
+          subPath: functions_worker.yml
+        - mountPath: /pulsar/logs
+          name: pulsar-cluster-function-logs
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 0
+        fsGroupChangePolicy: OnRootMismatch
+      serviceAccount: pulsar-cluster-function
+      serviceAccountName: pulsar-cluster-function
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: pulsar-cluster-function
+        name: config-volume
+      - name: token-superuser
+        secret:
+          defaultMode: 420
+          secretName: token-superuser
+      - name: token-public-key
+        secret:
+          defaultMode: 420
+          secretName: token-public-key
+      - name: certs
+        secret:
+          defaultMode: 420
+          secretName: pulsar-tls
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: pulsar-cluster-function-logs
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: pulsar-cluster-function-logs
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+status:
+  availableReplicas: 1
+  collisionCount: 0
+  currentReplicas: 1
+  currentRevision: pulsar-cluster-function-79d447dc9b
+  observedGeneration: 101
+  readyReplicas: 1
+  replicas: 1
+  updateRevision: pulsar-cluster-function-79d447dc9b
+  updatedReplicas: 1

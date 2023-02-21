@@ -1,0 +1,49 @@
+apiVersion: v1
+data:
+  PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_GC: -XX:+UseG1GC
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  PULSAR_MEM: -Xms400m -Xmx400m -XX:MaxDirectMemorySize=400m
+  PULSAR_PREFIX_authenticateMetricsEndpoint: "false"
+  authenticationEnabled: "true"
+  authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken,org.apache.pulsar.broker.authentication.AuthenticationProviderTls
+  authorizationEnabled: "true"
+  brokerClientAuthenticationParameters: file:///pulsar/token-websocket/websocket.jwt
+  brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  brokerClientTlsEnabled: "true"
+  brokerServiceUrl: pulsar://pulsar-cluster-broker:6650
+  brokerServiceUrlTls: pulsar+ssl://pulsar-cluster-broker:6651
+  clusterName: pulsar-cluster
+  configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
+  numHttpServerThreads: "8"
+  serviceUrl: http://pulsar-cluster-broker:8080
+  serviceUrlTls: https://pulsar-cluster-broker:8443
+  superUserRoles: superuser-backup,create-tenant,admin
+  tlsCertificateFilePath: /pulsar/certs/tls.crt
+  tlsEnabled: "true"
+  tlsKeyFilePath: /pulsar/tls-pk8.key
+  tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+  tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+  webServicePort: "8000"
+  webServicePortTls: "8001"
+  zookeeperServers: pulsar-cluster-zookeeper-ca:2181
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:26Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: proxy
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-proxy-ws
+  namespace: pulsar
+  resourceVersion: "33057955"
+  uid: 04cc91dd-4e8e-4715-abdb-2da1b56f5f83

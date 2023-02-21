@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.pulsaroperator.crds;
+package com.datastax.oss.pulsaroperator.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +25,7 @@ import lombok.SneakyThrows;
 public class SerializationUtil {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
+    private static final ObjectMapper yamlMapper = new ObjectMapper(YAMLFactory.builder()
             .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
             .disable(YAMLGenerator.Feature.SPLIT_LINES)
             .build()

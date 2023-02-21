@@ -40,7 +40,7 @@ jobs:
       
 
       - name: Unit tests
-        run: mvn -B -ntp -nsu test -pl pulsar-operator
+        run: mvn -B -ntp -nsu test -pl '!tests'
 
   integration-tests:
     name: Integration tests - ${{ matrix.name }}

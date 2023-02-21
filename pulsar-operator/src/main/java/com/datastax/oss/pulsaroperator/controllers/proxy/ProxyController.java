@@ -95,4 +95,3 @@ public class ProxyController extends AbstractController<Proxy> {
     }
 
 }
-

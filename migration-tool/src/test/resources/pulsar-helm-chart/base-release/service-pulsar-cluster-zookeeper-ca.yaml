@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  creationTimestamp: "2021-10-29T14:50:30Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: zookeeper
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-zookeeper-ca
+  namespace: pulsar
+  resourceVersion: "2173554"
+  uid: 33a189d5-266b-424c-aa19-31fb5970c770
+spec:
+  clusterIP: 0.0.0.0
+  clusterIPs:
+  - 0.0.0.0
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: server
+    port: 2888
+    protocol: TCP
+    targetPort: 2888
+  - name: leader-election
+    port: 3888
+    protocol: TCP
+    targetPort: 3888
+  - name: stats
+    port: 2181
+    protocol: TCP
+    targetPort: 2181
+  selector:
+    app: pulsar
+    component: zookeeper
+    release: pulsar-cluster
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

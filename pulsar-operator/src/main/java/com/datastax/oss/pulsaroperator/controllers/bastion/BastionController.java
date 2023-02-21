@@ -90,4 +90,3 @@ public class BastionController extends AbstractController<Bastion> {
         }
     }
 }
-

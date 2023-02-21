@@ -183,4 +183,3 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
     }
 
 }
-

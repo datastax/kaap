@@ -196,4 +196,3 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
     }
 
 }
-

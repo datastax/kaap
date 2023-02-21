@@ -40,7 +40,7 @@ public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
 
     private final StringBuilder builder = new StringBuilder();
     private final Path outputFile;
-    private boolean ulOpen = false;
+    private boolean ulOpen;
 
     public HtmlFileDiffOutputWriter(Path outputFile, File pulsarClusterCrd) {
         this.outputFile = outputFile;

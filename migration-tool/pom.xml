@@ -41,7 +41,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>pulsar-operator</artifactId>
+      <artifactId>pulsar-operator-common</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>
     </dependency>

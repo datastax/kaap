@@ -1,0 +1,26 @@
+apiVersion: v1
+data:
+  BOOKIE_GC: -XX:+UseG1GC
+  BOOKIE_MEM: -Xms2000m -Xmx2000m -XX:+ExitOnOutOfMemoryError
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  zkServers: pulsar-cluster-zookeeper-ca:2181
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:26Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: autorecovery
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-autorecovery
+  namespace: pulsar
+  resourceVersion: "306298509"
+  uid: 9e0bfa30-e36c-4f28-baaf-b02fb5a2a828

@@ -15,8 +15,8 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
@@ -146,7 +146,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                         .create(false)
                         .build())
                 .antiAffinity(createAntiAffinityConfig(spec))
-                .env(mainContainer.getEnv())
+                .env(getEnv(mainContainer, FunctionsWorkerResourcesFactory.DEFAULT_ENV))
                 .build();
     }
 
@@ -204,7 +204,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
             return null;
         }
         final Volume certs = sts.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> v.getName().equals("certs"))
+                .filter(v -> "certs".equals(v.getName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
         final String secretName = certs.getSecret().getSecretName();

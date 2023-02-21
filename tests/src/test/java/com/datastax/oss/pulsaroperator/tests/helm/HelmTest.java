@@ -16,7 +16,7 @@
 package com.datastax.oss.pulsaroperator.tests.helm;
 
 import com.datastax.oss.pulsaroperator.LeaderElectionConfig;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import io.fabric8.kubernetes.api.model.Pod;
 import java.util.HashMap;

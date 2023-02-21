@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.crds;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import java.util.Arrays;
 
 public class SpecDiffer {

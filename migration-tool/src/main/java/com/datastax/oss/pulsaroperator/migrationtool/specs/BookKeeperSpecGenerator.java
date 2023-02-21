@@ -211,7 +211,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
             return null;
         }
         final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> v.getName().equals("certs"))
+                .filter(v -> "certs".equals(v.getName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
         final String secretName = certs.getSecret().getSecretName();

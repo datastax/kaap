@@ -181,4 +181,7 @@ public class AutoscalerUtils {
         return response;
     }
 
+    private AutoscalerUtils() {
+    }
+
 }

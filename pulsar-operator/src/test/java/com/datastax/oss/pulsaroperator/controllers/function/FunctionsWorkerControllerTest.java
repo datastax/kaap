@@ -15,12 +15,12 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.function;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerFullSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -1858,9 +1858,9 @@ public class FunctionsWorkerControllerTest {
         for (MockKubernetesClient.ResourceInteraction<Service> service : services) {
             final ObjectMeta metadata = service.getResource().getMetadata();
             boolean isCaService = false;
-            if (metadata.getName().equals("pul-function-ca")) {
+            if ("pul-function-ca".equals(metadata.getName())) {
                 isCaService = true;
-            } else if (!metadata.getName().equals("pul-function")) {
+            } else if (!"pul-function".equals(metadata.getName())) {
                 Assert.fail("unexpected service " + metadata.getName());
             }
             Assert.assertEquals(metadata.getNamespace(), NAMESPACE);

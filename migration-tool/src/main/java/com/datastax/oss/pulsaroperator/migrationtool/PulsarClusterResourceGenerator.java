@@ -49,7 +49,6 @@ import org.apache.commons.lang3.StringUtils;
 public class PulsarClusterResourceGenerator {
 
     private final InputClusterSpecs inputSpecs;
-    private final KubernetesClient client;
     private PulsarCluster generatedResource;
 
     private final ZooKeeperSpecGenerator zooKeeperSpecGenerator;
@@ -64,7 +63,6 @@ public class PulsarClusterResourceGenerator {
 
     public PulsarClusterResourceGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         this.inputSpecs = inputSpecs;
-        this.client = client;
         zooKeeperSpecGenerator = new ZooKeeperSpecGenerator(inputSpecs, client);
         bookKeeperSpecGenerator = new BookKeeperSpecGenerator(inputSpecs, client);
         brokerSpecGenerator = new BrokerSpecGenerator(inputSpecs, client);

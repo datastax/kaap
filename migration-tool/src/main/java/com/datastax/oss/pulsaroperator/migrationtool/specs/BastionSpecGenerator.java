@@ -160,7 +160,7 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
 
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(Deployment deployment) {
         final Volume certs = deployment.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> v.getName().equals("certs"))
+                .filter(v -> "certs".equals(v.getName()))
                 .findFirst()
                 .orElse(null);
         if (certs == null) {

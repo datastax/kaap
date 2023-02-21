@@ -22,7 +22,6 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -38,7 +37,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -142,19 +140,11 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .service(createServiceConfig(mainService))
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
-                .env(getEnv(container))
+                .env(getEnv(container, ZooKeeperResourcesFactory.DEFAULT_ENV))
                 .build();
     }
 
-    private List<EnvVar> getEnv(Container container) {
 
-        final List<EnvVar> env = container.getEnv();
-        if (env == null) {
-            return null;
-        }
-        return env.stream().filter(e -> !ZooKeeperResourcesFactory.ENV_ZOOKEEPER_SERVERS.contains(e.getName()))
-                .collect(Collectors.toList());
-    }
 
 
     private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
@@ -163,7 +153,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
             return null;
         }
         final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> v.getName().equals("certs"))
+                .filter(v -> "certs".equals(v.getName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
         final String secretName = certs.getSecret().getSecretName();

@@ -15,8 +15,8 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
@@ -26,6 +26,7 @@ import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -44,6 +45,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -249,7 +251,7 @@ public abstract class BaseSpecGenerator<T> {
                 podAntiAffinity.getPreferredDuringSchedulingIgnoredDuringExecution();
         if (required != null) {
             for (PodAffinityTerm podAffinityTerm : required) {
-                if (podAffinityTerm.getTopologyKey().equals("kubernetes.io/hostname")) {
+                if ("kubernetes.io/hostname".equals(podAffinityTerm.getTopologyKey())) {
                     builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
                             .enabled(true)
                             .required(true)
@@ -264,12 +266,12 @@ public abstract class BaseSpecGenerator<T> {
         if (preferred != null) {
             for (WeightedPodAffinityTerm weightedPodAffinityTerm : preferred) {
                 final String topologyKey = weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey();
-                if (topologyKey.equals("kubernetes.io/hostname")) {
+                if ("kubernetes.io/hostname".equals(topologyKey)) {
                     builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
                             .enabled(true)
                             .required(false)
                             .build());
-                } else if (topologyKey.equals("failure-domain.beta.kubernetes.io/zone")) {
+                } else if ("failure-domain.beta.kubernetes.io/zone".equals(topologyKey)) {
                     builder.zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
                             .enabled(true)
                             .build());
@@ -312,8 +314,10 @@ public abstract class BaseSpecGenerator<T> {
     }
 
     protected static void verifyLabelsEquals(HasMetadata... resources) {
-        for (int i = 0; i < resources.length; i++) {
-            if (!Objects.equals(resources[0].getMetadata().getLabels(), resources[i].getMetadata().getLabels())) {
+        final List<HasMetadata> list =
+                Arrays.stream(resources).filter(Objects::nonNull).collect(Collectors.toList());
+        for (int i = 0; i < list.size(); i++) {
+            if (!Objects.equals(list.get(0).getMetadata().getLabels(), list.get(i).getMetadata().getLabels())) {
                 throw new IllegalStateException("labels are not equals");
             }
         }
@@ -381,6 +385,19 @@ public abstract class BaseSpecGenerator<T> {
             throw new IllegalArgumentException("Invalid public key file url: " + url);
         }
         return url.substring(url.lastIndexOf("/") + 1);
+    }
+
+    protected List<EnvVar> getEnv(Container container, List<String> excludes) {
+
+        final List<EnvVar> env = container.getEnv();
+        if (env == null) {
+            return null;
+        }
+        if (excludes == null) {
+            return env;
+        }
+        return env.stream().filter(e -> !excludes.contains(e.getName()))
+                .collect(Collectors.toList());
     }
 
 }

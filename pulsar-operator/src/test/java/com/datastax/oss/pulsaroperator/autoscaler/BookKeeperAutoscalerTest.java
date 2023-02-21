@@ -15,11 +15,11 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
@@ -317,7 +317,7 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
 
@@ -355,7 +355,7 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         final AtomicInteger count = new AtomicInteger(0);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
 
@@ -395,7 +395,7 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
             List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
@@ -430,7 +430,7 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 990000;
 
@@ -467,7 +467,7 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         final AtomicInteger count = new AtomicInteger(0);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
 
@@ -510,7 +510,7 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 10000;
 
@@ -559,7 +559,7 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 10000;
 
@@ -609,7 +609,7 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         AtomicBoolean isWritable = new AtomicBoolean(false);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             long usedBytes = 10000;
 
             List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
@@ -645,7 +645,7 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         AtomicLong usedBytes = new AtomicLong(990000L);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
 
             List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
@@ -676,7 +676,7 @@ public class BookKeeperAutoscalerTest {
                     autoscaler:
                         enabled: true
                 """;
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
 
             List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
@@ -709,7 +709,7 @@ public class BookKeeperAutoscalerTest {
                     autoscaler:
                         enabled: true
                 """;
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
 
             List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
@@ -736,7 +736,7 @@ public class BookKeeperAutoscalerTest {
 
     private MockServer runAutoscaler(String spec, MockServer.PodConsumer podConf, Consumer<StatefulSet> stsConf,
                                      Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc) {
-        return runAutoscaler(spec, podConf, stsConf, bookieInfofunc, (x) -> {});
+        return runAutoscaler(spec, podConf, stsConf, bookieInfofunc, x -> {});
     }
 
     private MockServer runAutoscaler(String spec, MockServer.PodConsumer podConf, Consumer<StatefulSet> stsConf,

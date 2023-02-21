@@ -15,12 +15,12 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -1163,8 +1163,8 @@ public class BookKeeperControllerTest {
         for (MockKubernetesClient.ResourceInteraction<StorageClass> createdStorageClass : storageClasses) {
 
             final StorageClass storageClass = createdStorageClass.getResource();
-            if (!storageClass.getMetadata().getName().equals("pul-bookkeeper-journal")
-                    && !storageClass.getMetadata().getName().equals("pul-bookkeeper-ledgers")) {
+            if (!"pul-bookkeeper-journal".equals(storageClass.getMetadata().getName())
+                    && !"pul-bookkeeper-ledgers".equals(storageClass.getMetadata().getName())) {
                 Assert.fail("unexpected storageClass " + storageClass.getMetadata().getName());
             }
             Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);

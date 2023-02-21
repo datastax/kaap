@@ -92,4 +92,3 @@ public class AutorecoveryController extends AbstractController<Autorecovery> {
     }
 
 }
-

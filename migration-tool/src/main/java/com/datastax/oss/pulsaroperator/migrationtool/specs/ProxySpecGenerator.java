@@ -200,7 +200,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
             return null;
         }
         final Volume certs = deployment.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> v.getName().equals("certs"))
+                .filter(v -> "certs".equals(v.getName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
         final String secretName = certs.getSecret().getSecretName();

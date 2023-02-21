@@ -425,4 +425,3 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         }
     }
 }
-

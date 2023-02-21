@@ -1,0 +1,94 @@
+apiVersion: v1
+data:
+  PF_clientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
+  PF_clientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled
+    -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions
+    -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32
+    -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError
+    -XX:+PerfDisableSharedMem
+  PULSAR_PREFIX_brokerEntryMetadataInterceptors: org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common.intercept.AppendBrokerTimestampMetadataInterceptor
+  PULSAR_PREFIX_kafkaAdvertisedListeners: SASL_PLAINTEXT://advertisedAddress:9092
+  PULSAR_PREFIX_kafkaListeners: SASL_PLAINTEXT://0.0.0.0:9092
+  PULSAR_PREFIX_kafkaManageSystemNamespaces: "false"
+  PULSAR_PREFIX_kafkaNamespace: kafka
+  PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled: "true"
+  PULSAR_PREFIX_kafkaTransactionProducerIdsNamespace: __kafka_unlimited
+  PULSAR_PREFIX_kopSchemaRegistryEnable: "true"
+  PULSAR_PREFIX_kopSchemaRegistryNamespace: __kafka_unlimited
+  PULSAR_PREFIX_messagingProtocols: kafka
+  PULSAR_PREFIX_protocolHandlerDirectory: ./protocols
+  PULSAR_PREFIX_saslAllowedMechanisms: PLAIN
+  acknowledgmentAtBatchIndexLevelEnabled: "true"
+  allowAutoTopicCreation: "true"
+  allowAutoTopicCreationType: non-partitioned
+  authParams: file:///pulsar/token-superuser-stripped.jwt
+  authPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  authenticationEnabled: "true"
+  authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
+  authorizationEnabled: "true"
+  backlogQuotaDefaultRetentionPolicy: producer_exception
+  brokerClientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
+  brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  brokerClientTlsEnabled: "true"
+  brokerClientTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+  brokerDeduplicationEnabled: "false"
+  brokerDeleteInactivePartitionedTopicMetadataEnabled: "true"
+  brokerDeleteInactiveTopicsEnabled: "true"
+  brokerPublisherThrottlingTickTimeMillis: "50"
+  brokerServicePortTls: "6651"
+  clusterName: pulsar-cluster
+  configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
+  dispatcherMaxReadBatchSize: "1000"
+  enableBusyWait: "true"
+  exposeConsumerLevelMetricsInPrometheus: "false"
+  exposeTopicLevelMetricsInPrometheus: "true"
+  forceDeleteNamespaceAllowed: "true"
+  forceDeleteTenantAllowed: "true"
+  loadBalancerBrokerOverloadedThresholdPercentage: "95"
+  loadBalancerLoadSheddingStrategy: org.apache.pulsar.broker.loadbalance.impl.OverloadShedder
+  managedLedgerCacheEvictionTimeThresholdMillis: "10000"
+  managedLedgerCacheSizeMB: "2000"
+  managedLedgerMaxLedgerRolloverTimeMinutes: "240"
+  managedLedgerMaxSizePerLedgerMbytes: "2000"
+  managedLedgerMinLedgerRolloverTimeMinutes: "0"
+  managedLedgerNumSchedulerThreads: "32"
+  managedLedgerNumWorkerThreads: "32"
+  managedLedgerOffloadMaxThreads: "4"
+  proxyRoles: create-tenant
+  statusFilePath: /pulsar/status
+  subscriptionExpirationTimeMinutes: "20160"
+  superUserRoles: superuser-backup,create-tenant,admin
+  tlsCertificateFilePath: /pulsar/certs/tls.crt
+  tlsEnabled: "true"
+  tlsKeyFilePath: /pulsar/tls-pk8.key
+  tlsProtocols: TLSv1.3,TLSv1.2
+  tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+  tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+  topicFencingTimeoutSeconds: "5"
+  topicPublisherThrottlingTickTimeMillis: "10"
+  webServicePortTls: "8443"
+  zookeeperServers: pulsar-cluster-zookeeper-ca:2181
+  zookeeperSessionExpiredPolicy: shutdown
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:27Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: broker
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-broker
+  namespace: pulsar
+  resourceVersion: "339980531"
+  uid: 00dac7ff-ab52-465e-846a-b7474c8f64a5

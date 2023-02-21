@@ -38,4 +38,3 @@ public class Autorecovery extends CustomResource<AutorecoveryFullSpec, BaseCompo
         return new BaseComponentStatus();
     }
 }
-

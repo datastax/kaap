@@ -1,0 +1,210 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:31Z"
+  generation: 94
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: broker
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-broker
+  namespace: pulsar
+  resourceVersion: "342531351"
+  uid: 005e3cc0-2ac3-4bc0-9d18-624b02e631f1
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: pulsar
+      component: broker
+      release: pulsar-cluster
+  serviceName: pulsar-cluster-broker
+  template:
+    metadata:
+      annotations:
+        checksum/config: b5ed0b35c448ff4bb2aa18d4b436516875c4b5fb75d535c8cffe212202ecb289
+        kubectl.kubernetes.io/restartedAt: "2023-01-18T16:02:36-05:00"
+        prometheus.io/path: /metrics/
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      creationTimestamp: null
+      labels:
+        app: pulsar
+        cluster: pulsar-cluster
+        component: broker
+        release: pulsar-cluster
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - pulsar
+                - key: release
+                  operator: In
+                  values:
+                  - pulsar-cluster
+                - key: component
+                  operator: In
+                  values:
+                  - broker
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - args:
+        - |
+          bin/apply-config-from-env.py conf/broker.conf && bin/apply-config-from-env.py conf/client.conf && bin/gen-yml-from-env.py conf/functions_worker.yml && echo "OK" > status && openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && cat /pulsar/token-superuser/superuser.jwt | tr -d '\n' > /pulsar/token-superuser-stripped.jwt && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar broker
+        command:
+        - sh
+        - -c
+        env:
+        - name: PULSAR_PREFIX_kafkaAdvertisedListeners
+          value: SASL_PLAINTEXT://advertisedAddress:9092
+        - name: kafkaAdvertisedListeners
+          value: SASL_PLAINTEXT://advertisedAddress:9092
+        - name: PULSAR_PREFIX_kafkaListeners
+          value: SASL_PLAINTEXT://0.0.0.0:9092
+        - name: kafkaListeners
+          value: SASL_PLAINTEXT://0.0.0.0:9092
+        - name: managedLedgerDefaultAckQuorum
+          value: "2"
+        - name: managedLedgerDefaultEnsembleSize
+          value: "2"
+        - name: managedLedgerDefaultWriteQuorum
+          value: "2"
+        envFrom:
+        - configMapRef:
+            name: pulsar-cluster-broker
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /status.html
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: pulsar-cluster-broker
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 6650
+          name: pulsar
+          protocol: TCP
+        - containerPort: 9092
+          name: kafkaplaintext
+          protocol: TCP
+        - containerPort: 9093
+          name: kafkassl
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /pulsar/health/broker_health_check.sh
+          failureThreshold: 5
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          requests:
+            cpu: "1"
+            memory: 4Gi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /pulsar/health
+          name: health
+        - mountPath: /pulsar/certs
+          name: certs
+          readOnly: true
+        - mountPath: /pulsar/token-public-key
+          name: token-public-key
+          readOnly: true
+        - mountPath: /pulsar/token-superuser
+          name: token-superuser
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - |-
+          until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
+            sleep 3;
+          done;
+        command:
+        - sh
+        - -c
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        name: wait-bookkeeper-ready
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - configMap:
+          defaultMode: 493
+          name: pulsar-cluster-health
+        name: health
+      - name: certs
+        secret:
+          defaultMode: 420
+          secretName: pulsar-tls
+      - name: token-public-key
+        secret:
+          defaultMode: 420
+          secretName: token-public-key
+      - name: token-superuser
+        secret:
+          defaultMode: 420
+          secretName: token-superuser
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+status:
+  availableReplicas: 3
+  collisionCount: 0
+  currentReplicas: 3
+  currentRevision: pulsar-cluster-broker-789cd889d
+  observedGeneration: 94
+  readyReplicas: 3
+  replicas: 3
+  updateRevision: pulsar-cluster-broker-789cd889d
+  updatedReplicas: 3

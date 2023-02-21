@@ -1,0 +1,325 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "138"
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:30Z"
+  generation: 138
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: proxy
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-proxy
+  namespace: pulsar
+  resourceVersion: "340715616"
+  uid: 9c828f42-839e-4bf0-980f-01f80591fae7
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: pulsar
+      component: proxy
+      release: pulsar-cluster
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config: cbb34e869a79e09b1db23364ccc46bf773b11b8376182b444ef48bfe08ecb238
+        prometheus.io/path: /metrics/
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      creationTimestamp: null
+      labels:
+        app: pulsar
+        cluster: pulsar-cluster
+        component: proxy
+        release: pulsar-cluster
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - pulsar
+                - key: release
+                  operator: In
+                  values:
+                  - pulsar-cluster
+                - key: component
+                  operator: In
+                  values:
+                  - proxy
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - args:
+        - |
+          cat /pulsar/token-superuser/superuser.jwt | tr -d '\n' > /pulsar/token-superuser-stripped.jwt && bin/apply-config-from-env.py conf/proxy.conf && openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar proxy
+        command:
+        - sh
+        - -c
+        env:
+        - name: PULSAR_PREFIX_brokerProxyAllowedHostNames
+          value: 10.*,192.168.*,pulsar-cluster-broker*
+        - name: PULSAR_PREFIX_brokerProxyAllowedIPAddresses
+          value: 10.0.0.0/8,192.168.0.0/16
+        envFrom:
+        - configMapRef:
+            name: pulsar-cluster-proxy
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics/
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        name: pulsar-cluster-proxy
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics/
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 100m
+            memory: 400Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /pulsar/certs
+          name: certs
+          readOnly: true
+        - mountPath: /pulsar/token-public-key
+          name: token-public-key
+          readOnly: true
+        - mountPath: /pulsar/token-proxy
+          name: token-proxy
+          readOnly: true
+        - mountPath: /pulsar/token-superuser
+          name: token-superuser
+          readOnly: true
+      - args:
+        - |
+          echo "tokenPublicKey=" >> /pulsar/conf/websocket.conf && bin/apply-config-from-env.py conf/websocket.conf && openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key -out /pulsar/tls-pk8.key -nocrypt && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar websocket
+        command:
+        - sh
+        - -c
+        envFrom:
+        - configMapRef:
+            name: pulsar-cluster-proxy-ws
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        name: pulsar-cluster-proxy-ws
+        ports:
+        - containerPort: 8000
+          name: ws
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 400Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /pulsar/certs
+          name: certs
+          readOnly: true
+        - mountPath: /pulsar/token-public-key
+          name: token-public-key
+          readOnly: true
+        - mountPath: /pulsar/token-proxy
+          name: token-proxy
+          readOnly: true
+        - mountPath: /pulsar/token-websocket
+          name: token-websocket
+          readOnly: true
+      - env:
+        - name: PORT
+          value: "8964"
+        - name: ClusterName
+          value: pulsar-cluster
+        - name: WebsocketURL
+          value: ws://localhost:8000
+        - name: BrokerProxyURL
+          value: http://pulsar-cluster-broker:8080
+        - name: FunctionProxyURL
+          value: http://pulsar-cluster-function:6750
+        - name: SuperRoles
+          value: superuser-backup,create-tenant,admin
+        - name: StreamingAPIKey
+          valueFrom:
+            secretKeyRef:
+              key: streaming-api-key.txt
+              name: api-key
+        - name: PulsarToken
+          valueFrom:
+            secretKeyRef:
+              key: superuser.jwt
+              name: token-superuser
+        - name: HTTPAuthImpl
+        - name: PulsarURL
+          value: pulsar://pulsar-cluster-broker:6650
+        - name: PulsarPublicKey
+          value: /pulsar/token-public-key/pulsar-public.key
+        - name: PulsarPrivateKey
+          value: /pulsar/token-private-key/pulsar-private.key
+        - name: CertFile
+          value: /pulsar/certs/tls.crt
+        - name: KeyFile
+          value: /pulsar/certs/tls.key
+        - name: TrustStore
+          value: /etc/ssl/certs/ca-bundle.crt
+        - name: FEDERATED_PROM_URL
+          value: http://pulsar-cluster-kub-prometheus:9090/federate
+        - name: FederatedPromURL
+          value: http://pulsar-cluster-kub-prometheus:9090/federate
+        - name: TenantsUsageDisabled
+        - name: TenantManagmentTopic
+          value: persistent://public/default/tenant-management
+        - name: LogLevel
+          value: info
+        - name: LogServerPort
+          value: :4040
+        - name: AdminRestPrefix
+          value: /admin/v2
+        - name: FunctionWorkerDomain
+          value: .pulsar-cluster-function.pulsar.svc.cluster.local
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        name: pulsar-cluster-proxy-burnell
+        ports:
+        - containerPort: 8964
+          name: burnell
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /pulsar/certs
+          name: certs
+          readOnly: true
+        - mountPath: /pulsar/token-private-key
+          name: token-private-key
+          readOnly: true
+        - mountPath: /pulsar/token-public-key
+          name: token-public-key
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - |-
+          until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
+            sleep 3;
+          done;
+        command:
+        - sh
+        - -c
+        image: pulsar:latest
+        imagePullPolicy: IfNotPresent
+        name: wait-bookkeeper-ready
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: pulsar-cluster-burnell
+      serviceAccountName: pulsar-cluster-burnell
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - name: certs
+        secret:
+          defaultMode: 420
+          secretName: pulsar-tls
+      - name: token-public-key
+        secret:
+          defaultMode: 420
+          secretName: token-public-key
+      - name: token-private-key
+        secret:
+          defaultMode: 420
+          secretName: token-private-key
+      - name: token-proxy
+        secret:
+          defaultMode: 420
+          secretName: token-proxy
+      - name: token-websocket
+        secret:
+          defaultMode: 420
+          secretName: token-websocket
+      - name: token-superuser
+        secret:
+          defaultMode: 420
+          secretName: token-superuser
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2023-02-09T14:13:06Z"
+    lastUpdateTime: "2023-02-09T14:13:06Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2022-04-11T14:02:48Z"
+    lastUpdateTime: "2023-02-16T15:23:02Z"
+    message: ReplicaSet "pulsar-cluster-proxy-7fbc65774d" has successfully
+      progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 138
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

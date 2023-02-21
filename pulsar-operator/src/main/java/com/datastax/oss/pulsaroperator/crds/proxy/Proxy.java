@@ -38,4 +38,3 @@ public class Proxy extends CustomResource<ProxyFullSpec, BaseComponentStatus> im
         return new BaseComponentStatus();
     }
 }
-

@@ -15,11 +15,11 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bastion;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;

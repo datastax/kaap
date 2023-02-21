@@ -15,9 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.utils;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.Issuer;
 import org.testng.Assert;

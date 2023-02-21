@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.autorecovery.AutorecoveryResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bastion.BastionResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
@@ -24,6 +23,7 @@ import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResou
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -35,7 +35,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +53,37 @@ public class SpecGenerator {
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
             .configure(SerializationFeature.INDENT_OUTPUT, true)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    public static final String ORIGINAL_PREFIX = "original";
+    public static final String GENERATED_PREFIX = "generated";
+    public static final String CRD_GENERATED_FIX = "crd-generated-pulsar-cluster";
 
     private final String outputDirectory;
     private final InputClusterSpecs inputSpecs;
+
+    @SneakyThrows
+    public static List<Path> getGeneratedResourcesFileFromDir(File dir) {
+        return Files.list(dir.toPath())
+                .filter(p -> p.toFile().getName().startsWith(GENERATED_PREFIX + "-") && p.toFile().getName()
+                        .endsWith(".json"))
+                .collect(Collectors.toList());
+    }
+
+    @SneakyThrows
+    public static List<Path> getOriginalResourcesFileFromDir(File dir) {
+        return Files.list(dir.toPath())
+                .filter(p -> p.toFile().getName().startsWith(ORIGINAL_PREFIX + "-") && p.toFile().getName()
+                        .endsWith(".json"))
+                .collect(Collectors.toList());
+    }
+
+    @SneakyThrows
+    public static Path getGeneratedPulsarClusterFileFromDir(File dir) {
+        return Files.list(dir.toPath())
+                .filter(p -> p.toFile().getName().startsWith(CRD_GENERATED_FIX + "-") && p.toFile().getName()
+                        .endsWith(".yaml"))
+                .findFirst()
+                .get();
+    }
 
 
     public SpecGenerator(String outputDirectory,
@@ -65,7 +97,10 @@ public class SpecGenerator {
         builder.withConfig(Config.autoConfigure(inputSpecs.context));
         @Cleanup
         KubernetesClient client = builder.build();
+        generate(client);
+    }
 
+    public void generate(KubernetesClient client) {
         final File fullOut = new File(outputDirectory, inputSpecs.context);
         final boolean mkdirs = fullOut.mkdirs();
         if (mkdirs) {
@@ -77,7 +112,6 @@ public class SpecGenerator {
         final PulsarCluster pulsarCluster =
                 generatePulsarClusterSpec(client, fullOut);
         dumpGeneratedResources(fullOut, pulsarCluster);
-
     }
 
     private void dumpGeneratedResources(File fullOut, PulsarCluster pulsarClusterSpec) {
@@ -91,7 +125,7 @@ public class SpecGenerator {
         generateFunctionsWorkerResources(pulsarClusterSpec, local);
 
         for (MockKubernetesClient.ResourceInteraction createdResource : local.getCreatedResources()) {
-            dumpToFile(fullOut.getAbsolutePath(), "generated", createdResource.getResource());
+            dumpToFile(fullOut.getAbsolutePath(), GENERATED_PREFIX, createdResource.getResource());
         }
     }
 
@@ -101,7 +135,7 @@ public class SpecGenerator {
         final PulsarCluster pulsarCluster = pulsarClusterSpecGenerator.generatePulsarClusterCustomResource();
         dumpToFile(fullOut.getAbsolutePath(), pulsarCluster);
         for (HasMetadata resource : pulsarClusterSpecGenerator.getAllResources()) {
-            dumpToFile(fullOut.getAbsolutePath(), "original", resource);
+            dumpToFile(fullOut.getAbsolutePath(), ORIGINAL_PREFIX, resource);
         }
         return pulsarCluster;
     }
@@ -209,15 +243,14 @@ public class SpecGenerator {
         asJson.remove("status");
 
         final File resultFileJson = new File(directory,
-                "crd-generated-pulsar-cluster-%s.json".formatted(spec.getMetadata().getName())
+                "%s-%s.json".formatted(CRD_GENERATED_FIX, spec.getMetadata().getName())
         );
 
         MAPPER.writeValue(resultFileJson, asJson);
         log.info("Resource PulsarClusterSpec exported to {}", resultFileJson.getAbsolutePath());
 
         final File resultFileYaml = new File(directory,
-                "crd-generated-pulsar-cluster-%s.yaml".formatted(spec.getMetadata().getName())
-        );
+                "%s-%s.yaml".formatted(CRD_GENERATED_FIX, spec.getMetadata().getName()));
         prettyPrintYaml(asJson, resultFileYaml);
         log.info("Resource PulsarClusterSpec exported to {}", resultFileYaml.getAbsolutePath());
     }

@@ -1,0 +1,60 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:30Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: function
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-function-ca
+  namespace: pulsar
+  resourceVersion: "269263556"
+  uid: 3c229623-4ce2-4644-9329-847c00d8954d
+spec:
+  clusterIP: 0.0.0.0
+  clusterIPs:
+  - 0.0.0.0
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 6750
+    protocol: TCP
+    targetPort: 6750
+  - name: https
+    port: 6751
+    protocol: TCP
+    targetPort: 6751
+  selector:
+    app: pulsar
+    component: function
+    release: pulsar-cluster
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

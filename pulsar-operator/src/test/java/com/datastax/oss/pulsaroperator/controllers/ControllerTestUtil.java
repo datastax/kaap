@@ -16,10 +16,10 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import static org.mockito.Mockito.mock;
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.CustomResource;

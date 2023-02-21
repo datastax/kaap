@@ -15,12 +15,12 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -1428,7 +1428,7 @@ public class ProxyControllerTest {
                         .get(0)
                         .getPorts()
                         .stream()
-                        .filter(p -> p.getName().equals("myport1"))
+                        .filter(p -> "myport1".equals(p.getName()))
                         .findFirst()
                         .get()
                         .getContainerPort()

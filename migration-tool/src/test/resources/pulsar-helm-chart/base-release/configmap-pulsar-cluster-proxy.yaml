@@ -1,0 +1,68 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+data:
+  PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_GC: -XX:+UseG1GC
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  PULSAR_MEM: -Xms400m -Xmx400m -XX:MaxDirectMemorySize=400m
+  PULSAR_PREFIX_authenticateMetricsEndpoint: "false"
+  authenticationEnabled: "true"
+  authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
+  authorizationEnabled: "true"
+  brokerClientAuthenticationParameters: file:///pulsar/token-proxy/proxy.jwt
+  brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  brokerClientTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+  brokerServicePortTls: "6651"
+  brokerServiceURL: pulsar://pulsar-cluster-broker:6650
+  brokerServiceURLTLS: pulsar+ssl://pulsar-cluster-broker:6651
+  brokerWebServiceURL: http://pulsar-cluster-broker:8080
+  brokerWebServiceURLTLS: https://pulsar-cluster-broker:8443
+  configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
+  functionWorkerWebServiceURL: http://pulsar-cluster-function-ca:6750
+  numHttpServerThreads: "8"
+  servicePortTls: "6651"
+  superUserRoles: superuser-backup,create-tenant,admin
+  tlsCertificateFilePath: /pulsar/certs/tls.crt
+  tlsEnabledInProxy: "true"
+  tlsEnabledWithBroker: "false"
+  tlsKeyFilePath: /pulsar/tls-pk8.key
+  tlsProtocols: TLSv1.3,TLSv1.2
+  tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+  tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+  webServicePortTls: "8443"
+  zookeeperServers: pulsar-cluster-zookeeper-ca:2181
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:27Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: proxy
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-proxy
+  namespace: pulsar
+  resourceVersion: "339980540"
+  uid: 9c079402-b51f-4dd5-815a-043b3a96330d

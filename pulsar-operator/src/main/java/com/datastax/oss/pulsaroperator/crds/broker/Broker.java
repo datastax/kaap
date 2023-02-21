@@ -38,4 +38,3 @@ public class Broker extends CustomResource<BrokerFullSpec, BaseComponentStatus> 
         return new BaseComponentStatus();
     }
 }
-

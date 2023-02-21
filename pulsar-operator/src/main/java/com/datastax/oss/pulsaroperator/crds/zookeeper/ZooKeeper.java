@@ -38,4 +38,3 @@ public class ZooKeeper extends CustomResource<ZooKeeperFullSpec, BaseComponentSt
         return new BaseComponentStatus();
     }
 }
-

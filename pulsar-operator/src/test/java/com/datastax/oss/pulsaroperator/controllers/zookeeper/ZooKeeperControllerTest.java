@@ -15,15 +15,15 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.zookeeper;
 
-import com.datastax.oss.pulsaroperator.MockKubernetesClient;
-import com.datastax.oss.pulsaroperator.MockResourcesResolver;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -414,7 +414,7 @@ public class ZooKeeperControllerTest {
                 .get(0)
                 .getEnv()
                 .stream()
-                .filter(e -> e.getName().equals("ZOOKEEPER_SERVERS"))
+                .filter(e -> "ZOOKEEPER_SERVERS".equals(e.getName()))
                 .findFirst()
                 .get()
                 .getValue(), "pul-zookeeper-0,pul-zookeeper-1,pul-zookeeper-2,pul-zookeeper-3,pul-zookeeper-4");
@@ -483,12 +483,12 @@ public class ZooKeeperControllerTest {
         Assert.assertEquals(data, expectedData);
 
         Assert.assertEquals(client.getCreatedResource(Service.class, "pul-zookeeper").getResource()
-                .getSpec().getPorts().stream().filter(p -> p.getName().equals("client-tls")).findFirst()
+                .getSpec().getPorts().stream().filter(p -> "client-tls".equals(p.getName())).findFirst()
                 .get()
                 .getPort().intValue(), 2281);
 
         Assert.assertEquals(client.getCreatedResource(Service.class, "pul-zookeeper-ca").getResource()
-                .getSpec().getPorts().stream().filter(p -> p.getName().equals("client-tls")).findFirst()
+                .getSpec().getPorts().stream().filter(p -> "client-tls".equals(p.getName())).findFirst()
                 .get()
                 .getPort().intValue(), 2281);
 
@@ -895,7 +895,7 @@ public class ZooKeeperControllerTest {
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
             public StatefulSet statefulSetWithName(String name) {
-                return baseStatefulSetBuilder(name, true).build();
+                return newStatefulSetBuilder(name, true).build();
             }
         });
         invokeController(zkCr, client);
@@ -985,7 +985,7 @@ public class ZooKeeperControllerTest {
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
             public StatefulSet statefulSetWithName(String name) {
-                return baseStatefulSetBuilder(name, true).build();
+                return newStatefulSetBuilder(name, true).build();
             }
         });
         invokeController(zkCr, client);
@@ -1497,9 +1497,9 @@ public class ZooKeeperControllerTest {
         for (MockKubernetesClient.ResourceInteraction<Service> service : services) {
             final ObjectMeta metadata = service.getResource().getMetadata();
             boolean isCaService = false;
-            if (metadata.getName().equals("pul-zookeeper-ca")) {
+            if ("pul-zookeeper-ca".equals(metadata.getName())) {
                 isCaService = true;
-            } else if (!metadata.getName().equals("pul-zookeeper")) {
+            } else if (!"pul-zookeeper".equals(metadata.getName())) {
                 Assert.fail("unexpected service " + metadata.getName());
             }
             Assert.assertEquals(metadata.getNamespace(), NAMESPACE);

@@ -50,7 +50,7 @@ public class ExistingK8sEnv implements K8sEnv {
             // hard parameter in order to ensure the caller has the right environment set
             throw new RuntimeException("pulsaroperator.tests.externalenv.kubeconfig.context not set");
         }
-        final String context = KUBECONFIG_CONTEXT.equals("current") ? null : KUBECONFIG_CONTEXT;
+        final String context = "current".equals(KUBECONFIG_CONTEXT) ? null : KUBECONFIG_CONTEXT;
         config = Config.autoConfigure(context);
     }
 

@@ -15,8 +15,8 @@
  */
 package com.datastax.oss.pulsaroperator.tests;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
@@ -176,7 +176,7 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
         for (Path yamlManifest : getYamlManifests()) {
-            if (yamlManifest.toFile().getName().equals("kubernetes.yml")) {
+            if ("kubernetes.yml".equals(yamlManifest.toFile().getName())) {
                 final List<HasMetadata> resources =
                         client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get();
                 resources
@@ -401,7 +401,7 @@ public abstract class BaseK8sEnvTest {
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
             Assert.assertTrue(pods.size() > 0);
-            Assert.assertTrue(pods.stream().filter(p -> p.getStatus().getPhase().equals("Running"))
+            Assert.assertTrue(pods.stream().filter(p -> "Running".equals(p.getStatus().getPhase()))
                     .count() > 0);
         });
     }

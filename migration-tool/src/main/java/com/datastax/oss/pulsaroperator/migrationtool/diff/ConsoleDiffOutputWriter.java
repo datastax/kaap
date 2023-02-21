@@ -48,7 +48,7 @@ public class ConsoleDiffOutputWriter extends BaseDiffOutputWriter {
         } else if (expectedValue == null) {
             log.info("""
                     - unexpected: '%s=%s'
-                    """.formatted(completeField, completeField, actualValue));
+                    """.formatted(completeField, actualValue));
         } else {
             log.info("""
                     - '%s' value differs:

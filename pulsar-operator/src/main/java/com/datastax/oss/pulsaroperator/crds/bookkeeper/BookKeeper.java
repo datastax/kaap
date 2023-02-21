@@ -38,4 +38,3 @@ public class BookKeeper extends CustomResource<BookKeeperFullSpec, BaseComponent
         return new BaseComponentStatus();
     }
 }
-

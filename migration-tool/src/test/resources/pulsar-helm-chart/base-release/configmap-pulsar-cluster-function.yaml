@@ -1,0 +1,87 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+data:
+  functions_worker.yml: "configurationStoreServers: pulsar-cluster-zookeeper-ca:2181\nzookeeperServers:
+    pulsar-cluster-zookeeper-ca:2181\nzooKeeperSessionTimeoutMillis: 30000\nuploadBuiltinSinksSources:
+    \"false\"\npulsarFunctionsCluster: \"pulsar-cluster\"\nworkerId: \"pulsar-cluster-function\"\nworkerHostname:
+    \"pulsar-cluster-function\"\nworkerPort: \"6750\"\nworkerPortTls: \"6751\"\ntlsCertificateFilePath:
+    \"/pulsar/certs/tls.crt\"\ntlsTrustCertsFilePath: \"/etc/ssl/certs/ca-certificates.crt\"\nbrokerClientTrustCertsFilePath:
+    \"/etc/ssl/certs/ca-certificates.crt\"\ntlsKeyFilePath: \"/pulsar/tls-pk8.key\"\npulsarServiceUrl:
+    \"pulsar://pulsar-cluster-broker:6650\"\npulsarWebServiceUrl: \"http://pulsar-cluster-broker:8080\"\nnumFunctionPackageReplicas:
+    \"2\"\ndownloadDirectory: \"/tmp/pulsar_functions\"\npulsarFunctionsNamespace:
+    \"public/functions\"\nfunctionMetadataTopicName: \"metadata\"\ninstallUserCodeDependencies:
+    \"true\"\nclusterCoordinationTopicName: \"coordinate\"\nnumHttpServerThreads:
+    \"16\"\nschedulerClassName: \"org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler\"\nfunctionAssignmentTopicName:
+    \"assignments\"\nfailureCheckFreqMs: \"30000\"\nrescheduleTimeoutMs: \"60000\"\ninitialBrokerReconnectMaxRetries:
+    \"60\"\nassignmentWriteMaxRetries: \"60\"\ninstanceLivenessCheckFreqMs: \"30000\"\ntopicCompactionFrequencySec:
+    \"1800\"\nincludeStandardPrometheusMetrics: \"true\"\nauthenticationEnabled: \"true\"\nauthorizationEnabled:
+    \"true\"\nauthorizationProvider: \"org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider\"\nfunctionAuthProviderClassName:
+    \"org.apache.pulsar.functions.auth.KubernetesSecretsTokenAuthProvider\"\nauthenticationProviders:
+    [org.apache.pulsar.broker.authentication.AuthenticationProviderToken, org.apache.pulsar.broker.authentication.AuthenticationProviderTls]\nproperties:\n
+    \ tokenPublicKey: \"file:///pulsar/token-public-key/pulsar-public.key\"\nclientAuthenticationPlugin:
+    \"org.apache.pulsar.client.impl.auth.AuthenticationToken\"\nclientAuthenticationParameters:
+    \"file:///pulsar/token-superuser/superuser.jwt\"\nsuperUserRoles:\n
+    \ - \"superuser-backup\"\n  - \"create-tenant\"\n
+    \ - \"admin\"\nconnectorsDirectory: \"./connectors\"\nsecretsProviderConfiguratorClassName:
+    org.apache.pulsar.functions.secretsproviderconfigurator.KubernetesSecretsProviderConfigurator\nkubernetesContainerFactory:\n
+    \ # uri to kubernetes cluster, leave it to empty and it will use the kubernetes
+    settings in function worker\n  k8Uri:\n  # the kubernetes namespace to run the
+    function instances. it is `default`, if this setting is left to be empty\n  jobNamespace:
+    pulsar \n  # the docker image to run function instance. by default it is `apachepulsar/pulsar`\n
+    \ pulsarDockerImageName: pulsar:latest\n  #
+    the root directory of pulsar home directory in `pulsarDockerImageName`. by default
+    it is `/pulsar`.\n  # if you are using your own built image in `pulsarDockerImageName`,
+    you need to set this setting accordingly\n  pulsarRootDir: /pulsar\n  # this setting
+    only takes effects if `k8Uri` is set to null. if your function worker is running
+    as a k8 pod,\n  # setting this to true is let function worker to submit functions
+    to the same k8s cluster as function worker\n  # is running. setting this to false
+    if your function worker is not running as a k8 pod.\n  submittingInsidePod: true\n
+    \ # setting the pulsar service url that pulsar function should use to connect
+    to pulsar\n  # if it is not set, it will use the pulsar service url configured
+    in worker service\n  pulsarServiceUrl: \"pulsar://pulsar-cluster-broker.pulsar:6650/\"\n
+    \ # setting the pulsar admin url that pulsar function should use to connect to
+    pulsar\n  # if it is not set, it will use the pulsar admin url configured in worker
+    service\n  pulsarAdminUrl: \"http://pulsar-cluster-function.pulsar:6750/\"\n
+    \ # the custom labels that function worker uses to select the nodes for pods\n
+    \ #customLabels:\n  # the directory for dropping extra function dependencies\n
+    \ # if it is not an absolute path, it is relative to `pulsarRootDir`\n  #extraFunctionDependenciesDir:\n
+    \ # Additional memory padding added on top of the memory requested by the function
+    per on a per instance basis\n  percentMemoryPadding: 50\n\nfunctionInstanceMinResources:\n
+    \ cpu: 0.1\n  ram: 307200000\n  disk: 10737418240\nruntimeCustomizerConfig:\n
+    \ extraLabels:\n  extraAnnotations:\n    prometheus.io/path: \"/metrics\"\n    prometheus.io/port:
+    \"9094\"\n    prometheus.io/scrape: \"true\"\n  nodeSelectorLabels:\n    astra-node:
+    \"functionworker\"\n  jobNamespace: pulsar\n  tolerations:\n  -\n    effect: NoSchedule\n
+    \   key: tier\n    value: funcworker\n\nruntimeCustomizerClassName: \"com.datastax.astrastreaming.FunctionsKubernetesManifestCustomizer\""
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:28Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: function
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-function
+  namespace: pulsar
+  resourceVersion: "339980534"
+  uid: 5ab8433f-4801-441e-a3dc-ff33efc17082

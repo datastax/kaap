@@ -1,0 +1,44 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+data:
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_GC: -XX:+UseG1GC
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  PULSAR_MEM: -XX:+ExitOnOutOfMemoryError
+  authParams: file:///pulsar/token-superuser-stripped.jwt
+  authPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:26Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: bastion
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-bastion
+  namespace: pulsar
+  resourceVersion: "2173407"
+  uid: 703f324e-5eb7-42df-bca8-51d683a3c304

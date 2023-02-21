@@ -38,4 +38,3 @@ public class PulsarCluster extends CustomResource<PulsarClusterSpec, BaseCompone
         return new BaseComponentStatus();
     }
 }
-

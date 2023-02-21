@@ -38,4 +38,3 @@ public class Bastion extends CustomResource<BastionFullSpec, BaseComponentStatus
         return new BaseComponentStatus();
     }
 }
-

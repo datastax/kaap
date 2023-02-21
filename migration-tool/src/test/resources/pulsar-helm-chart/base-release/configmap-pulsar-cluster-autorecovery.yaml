@@ -1,0 +1,42 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+data:
+  BOOKIE_GC: -XX:+UseG1GC
+  BOOKIE_MEM: -Xms2000m -Xmx2000m -XX:+ExitOnOutOfMemoryError
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  zkServers: pulsar-cluster-zookeeper-ca:2181
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:26Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: autorecovery
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-autorecovery
+  namespace: pulsar
+  resourceVersion: "306298509"
+  uid: 9e0bfa30-e36c-4f28-baaf-b02fb5a2a828

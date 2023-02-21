@@ -1,0 +1,100 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: pulsar-gcp-useast4.dev.streaming.datastax.com
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+    projectcontour.io/upstream-protocol.tls: https,8964
+  creationTimestamp: "2021-10-29T14:50:30Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: proxy
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-proxy
+  namespace: pulsar
+  resourceVersion: "2174485"
+  uid: a37d8072-4aa5-436e-870d-b85ec2908187
+spec:
+  allocateLoadBalancerNodePorts: true
+  clusterIP: 0.0.0.0
+  clusterIPs:
+  - 0.0.0.0
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: https
+    nodePort: 32625
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  - name: http
+    nodePort: 30932
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: pulsarssl
+    nodePort: 32254
+    port: 6651
+    protocol: TCP
+    targetPort: 6651
+  - name: wss
+    nodePort: 31910
+    port: 8001
+    protocol: TCP
+    targetPort: 8001
+  - name: wsstoken
+    nodePort: 30323
+    port: 8500
+    protocol: TCP
+    targetPort: 8500
+  - name: pulsarbeam
+    nodePort: 32041
+    port: 8085
+    protocol: TCP
+    targetPort: 8085
+  - name: burnell
+    nodePort: 30847
+    port: 8964
+    protocol: TCP
+    targetPort: 8964
+  - name: tokenserver
+    nodePort: 32480
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: pulsar
+    component: proxy
+    release: pulsar-cluster
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - ip: 0.0.0.0

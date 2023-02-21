@@ -1,0 +1,53 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+data:
+  PF_authenticateMetricsEndpoint: "false"
+  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+  PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
+  PULSAR_LOG_LEVEL: info
+  PULSAR_LOG_ROOT_LEVEL: info
+  PULSAR_MEM: -Xms500m -Xmx500m -XX:MaxDirectMemorySize=500m -Dio.netty.leakDetectionLevel=disabled
+    -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions
+    -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32
+    -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError
+    -XX:+PerfDisableSharedMem
+  authenticationEnabled: "true"
+  authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken,org.apache.pulsar.broker.authentication.AuthenticationProviderTls
+  authorizationEnabled: "true"
+  brokerClientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
+  brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+  superUserRoles: superuser-backup,create-tenant,admin
+  tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: pulsar-cluster
+    meta.helm.sh/release-namespace: pulsar
+  creationTimestamp: "2021-10-29T14:50:27Z"
+  labels:
+    app: pulsar
+    app.kubernetes.io/managed-by: Helm
+    chart: pulsar-1.0.32
+    cluster: pulsar-cluster
+    component: function
+    heritage: Helm
+    release: pulsar-cluster
+  name: pulsar-cluster-function-extra
+  namespace: pulsar
+  resourceVersion: "33057953"
+  uid: 427f8429-aec0-41b6-82a7-5752b3d350bb

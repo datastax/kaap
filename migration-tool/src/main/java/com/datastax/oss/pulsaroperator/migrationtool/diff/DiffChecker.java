@@ -15,8 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.SerializationUtil;
+import com.datastax.oss.pulsaroperator.migrationtool.SpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONAssertComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
@@ -26,10 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -54,42 +51,34 @@ public class DiffChecker {
 
     @SneakyThrows
     public static void diffFromDirectory(File inputDirectory) {
-        Collection<Pair<File, Map<String, Object>>> existingResources = new ArrayList<>();
-        Collection<Pair<File, Map<String, Object>>> generatedResources = new ArrayList<>();
         log.info("checking files at {}", inputDirectory.getAbsolutePath());
-        final AtomicReference<File> pulsarClusterCrd = new AtomicReference<>();
-        Files.list(inputDirectory.toPath())
-                .filter(p -> p.toFile().getName().endsWith(".json"))
-                .forEach(p -> {
-                    final File file = p.toFile();
-                    final String filename = file.getName();
-                    if (filename.startsWith("generated-")) {
-                        try {
-                            generatedResources.add(Pair.of(file, MAPPER.readValue(file, Map.class)));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else if (filename.startsWith("original-")) {
-                        try {
-                            existingResources.add(Pair.of(file, MAPPER.readValue(file, Map.class)));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else if (filename.startsWith("crd-")) {
-                        pulsarClusterCrd.set(file);
-                    }
-                });
+        Collection<Pair<File, Map<String, Object>>> originalResources =
+                readResourcesDirectory(SpecGenerator.getOriginalResourcesFileFromDir(inputDirectory));
+        Collection<Pair<File, Map<String, Object>>> generatedResources =
+                readResourcesDirectory(SpecGenerator.getGeneratedResourcesFileFromDir(inputDirectory));
+
+        File pulsarClusterCrd = SpecGenerator.getGeneratedPulsarClusterFileFromDir(inputDirectory).toFile();
         DiffChecker diffChecker = new DiffChecker(new MultiDiffOutputWriters(
                 List.of(
                         new HtmlFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.html"),
-                                pulsarClusterCrd.get()),
+                                pulsarClusterCrd),
                         new RawFileDiffOutputWriter(Path.of(inputDirectory.getAbsolutePath(), "diff.txt")),
                         new ConsoleDiffOutputWriter()
                 )
         ));
-        diffChecker.checkDiffsFromMaps(existingResources, generatedResources);
+        diffChecker.checkDiffsFromMaps(originalResources, generatedResources);
+    }
 
+    public static List<Pair<File, Map<String, Object>>> readResourcesDirectory(List<Path> inputDirectory) {
+        return inputDirectory
+                .stream()
+                .map(f -> Pair.of(f.toFile(), readJson(f.toFile())))
+                .collect(Collectors.toList());
+    }
 
+    @SneakyThrows
+    private static Map<String, Object> readJson(File file) {
+        return MAPPER.readValue(file, Map.class);
     }
 
     private final DiffOutputWriter diffOutputWriter;
@@ -98,7 +87,7 @@ public class DiffChecker {
         this.diffOutputWriter = diffOutputWriter;
     }
 
-    private void checkDiffsFromMaps(
+    public void checkDiffsFromMaps(
             Collection<Pair<File, Map<String, Object>>> existingResources,
             Collection<Pair<File, Map<String, Object>>> generatedResources) {
 
@@ -489,6 +478,3 @@ public class DiffChecker {
         return exiJson.get(name) == null ? Collections.emptyList() : (List<Map<String, Object>>) exiJson.get(name);
     }
 }
-
-
-

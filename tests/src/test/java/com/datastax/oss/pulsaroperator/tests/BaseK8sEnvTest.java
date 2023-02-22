@@ -342,35 +342,6 @@ public abstract class BaseK8sEnvTest {
                 .createOrReplace();
     }
 
-    protected void applyPulsarCluster(String content) {
-        final PulsarCluster pulsarCluster = client.resources(PulsarCluster.class)
-                .inNamespace(namespace)
-                .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
-                .createOrReplace();
-
-        Awaitility.await("waiting for pulsar cluster to be ready")
-                .until(() -> {
-                    final List<Condition> conditions = client.resources(PulsarCluster.class)
-                            .inNamespace(namespace)
-                            .withName(pulsarCluster.getMetadata().getName())
-                            .get().getStatus()
-                            .getConditions();
-                    final Condition readyCondition =
-                            conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
-                                    .findAny().orElse(null);
-                    if (readyCondition == null) {
-                        return false;
-                    }
-                    if (readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
-                        return true;
-                    }
-                    log.info("Pulsar cluster not ready, reason: {}", readyCondition.getReason());
-                    printPodLogs(getOperatorPodName(), 5);
-                    return false;
-                });
-
-    }
-
     @SneakyThrows
     protected void deleteManifestFromFile(Path path) {
         deleteManifest(Files.readAllBytes(path));

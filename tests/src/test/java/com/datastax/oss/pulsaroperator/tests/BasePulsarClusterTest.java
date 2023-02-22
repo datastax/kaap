@@ -16,12 +16,14 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
@@ -30,12 +32,15 @@ import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
+import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -204,6 +209,40 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         return defaultSpecs;
     }
 
+
+    protected void applyPulsarCluster(String content) {
+        final PulsarCluster pulsarCluster = client.resources(PulsarCluster.class)
+                .inNamespace(namespace)
+                .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
+                .createOrReplace();
+
+        // zookeeper is the first resource created
+        // sometimes the k3s cluster is not ready to create any resource
+        // let's start counting the time from when ZK is ready
+        awaitZooKeeperRunning();
+
+        Awaitility.await("waiting for pulsar cluster to be ready")
+                .until(() -> {
+                    final List<Condition> conditions = client.resources(PulsarCluster.class)
+                            .inNamespace(namespace)
+                            .withName(pulsarCluster.getMetadata().getName())
+                            .get().getStatus()
+                            .getConditions();
+                    final Condition readyCondition =
+                            conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
+                                    .findAny().orElse(null);
+                    if (readyCondition == null) {
+                        return false;
+                    }
+                    if (readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
+                        return true;
+                    }
+                    log.info("Pulsar cluster not ready, reason: {}", readyCondition.getReason());
+                    printPodLogs(getOperatorPodName(), 5);
+                    return false;
+                });
+
+    }
 
     protected void awaitInstalled() {
         awaitZooKeeperRunning();

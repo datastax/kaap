@@ -72,7 +72,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         }
     }
 
-    public static final Supplier<BrokerProbesConfig> DEFAULT_PROBE = () -> BrokerProbesConfig.brokerProbeConfigBuilder()
+    public static final Supplier<BrokerWithSetsSpec.BrokerProbesConfig>
+            DEFAULT_PROBE = () -> BrokerWithSetsSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
             .readiness(ProbesConfig.ProbeConfig.builder()
                     .enabled(true)
                     .initialDelaySeconds(10)
@@ -99,7 +100,7 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
             .maxUnavailable(1)
             .build();
 
-    public static final Supplier<ServiceConfig> DEFAULT_SERVICE_CONFIG = () -> ServiceConfig.builder()
+    public static final Supplier<BrokerWithSetsSpec.ServiceConfig> DEFAULT_SERVICE_CONFIG = () -> BrokerWithSetsSpec.ServiceConfig.builder()
             .type("ClusterIP")
             .build();
 
@@ -115,8 +116,8 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
             .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
             .build();
 
-    private static final Supplier<TransactionCoordinatorConfig> DEFAULT_TRANSACTION_COORDINATOR_CONFIG = () ->
-            TransactionCoordinatorConfig.builder()
+    private static final Supplier<BrokerWithSetsSpec.TransactionCoordinatorConfig> DEFAULT_TRANSACTION_COORDINATOR_CONFIG = () ->
+            BrokerWithSetsSpec.TransactionCoordinatorConfig.builder()
                     .enabled(false)
                     .partitions(16)
                     .build();
@@ -146,7 +147,7 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
         @JsonPropertyDescription("Number of coordinators to create.")
         private Integer partitions;
         @JsonPropertyDescription("Config for the init job.")
-        private TransactionCoordinatorInitJobConfig initJob;
+        private BrokerWithSetsSpec.TransactionCoordinatorInitJobConfig initJob;
     }
 
     @Data
@@ -163,11 +164,11 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @SchemaFrom(type = JsonNode.class)
     protected Map<String, Object> config;
     @JsonPropertyDescription(CRDConstants.DOC_PROBES)
-    private BrokerProbesConfig probes;
+    private BrokerWithSetsSpec.BrokerProbesConfig probes;
     @JsonPropertyDescription("Enable functions worker embedded in the broker.")
     private Boolean functionsWorkerEnabled;
     @JsonPropertyDescription("Enable transactions in the broker.")
-    private TransactionCoordinatorConfig transactions;
+    private BrokerWithSetsSpec.TransactionCoordinatorConfig transactions;
     @JsonPropertyDescription("Update strategy for the StatefulSet.")
     private StatefulSetUpdateStrategy updateStrategy;
     @JsonPropertyDescription("Pod management policy.")
@@ -179,7 +180,7 @@ public class BrokerSpec extends BaseComponentSpec<BrokerSpec> {
     @JsonPropertyDescription(CRDConstants.DOC_RESOURCES)
     private ResourceRequirements resources;
     @JsonPropertyDescription("Service configuration.")
-    private ServiceConfig service;
+    private BrokerWithSetsSpec.ServiceConfig service;
     @JsonPropertyDescription("Service account name for the Broker StatefulSet.")
     private String serviceAccountName;
     @JsonPropertyDescription("Autoscaling config.")

@@ -1756,6 +1756,27 @@ public class BrokerControllerTest {
     }
 
 
+    @Test
+    public void testBrokerSets() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                broker:
+                    sets:
+                      set1: {}
+                      set2: {}
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<StatefulSet> createdResource =
+                client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set1");
+        System.out.println(createdResource.getResourceYaml());
+
+    }
+
+
+
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
         controllerTestUtil

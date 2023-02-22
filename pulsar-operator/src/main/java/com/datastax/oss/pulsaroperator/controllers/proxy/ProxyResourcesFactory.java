@@ -90,7 +90,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     public ProxyResourcesFactory(KubernetesClient client, String namespace,
                                  ProxySpec spec, GlobalSpec global,
                                  OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

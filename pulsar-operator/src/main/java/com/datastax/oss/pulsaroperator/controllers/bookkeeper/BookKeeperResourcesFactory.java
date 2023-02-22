@@ -84,7 +84,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
                                       BookKeeperSpec spec, GlobalSpec global,
                                       OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

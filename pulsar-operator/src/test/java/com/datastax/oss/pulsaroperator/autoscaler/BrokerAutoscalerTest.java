@@ -102,7 +102,7 @@ public class BrokerAutoscalerTest {
             final int replicas = pulsarClusterSpec.getBroker().getReplicas();
 
             final BrokerResourcesFactory brokerResourcesFactory =
-                    new BrokerResourcesFactory(null, NAMESPACE, pulsarClusterSpec.getBroker(),
+                    new BrokerResourcesFactory(null, NAMESPACE, null, pulsarClusterSpec.getBroker(),
                             pulsarClusterSpec.getGlobal(), null);
 
             final Field field = brokerResourcesFactory.getClass().getDeclaredField("configMap");

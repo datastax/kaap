@@ -2552,6 +2552,11 @@ spec:
                           should be used.
                         type: string
                     type: object
+                  resourceSets:
+                    additionalProperties:
+                      type: object
+                    description: Resource sets.
+                    type: object
                   kubernetesClusterDomain:
                     description: |
                       The domain name for your kubernetes cluster.

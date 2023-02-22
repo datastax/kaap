@@ -50,6 +50,8 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
+    public static final String BROKER_DEFAULT_SET = "broker";
+
     public static final int DEFAULT_HTTP_PORT = 8080;
     public static final int DEFAULT_PULSAR_PORT = 6650;
     public static final int DEFAULT_HTTPS_PORT = 8443;
@@ -71,14 +73,24 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     private ConfigMap configMap;
 
     public BrokerResourcesFactory(KubernetesClient client, String namespace,
-                                  BrokerSpec spec, GlobalSpec global,
+                                  String brokerSetName, BrokerSpec spec, GlobalSpec global,
                                   OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global.getName(),
+                getComponentBaseName(global), Objects.requireNonNull(brokerSetName)), spec, global, ownerReference);
+        System.out.println("BrokerResourcesFactory" + resourceName);
     }
 
     @Override
     protected String getComponentBaseName() {
         return getComponentBaseName(global);
+    }
+
+    public static String getResourceName(String clusterName, String baseName, String brokerSetName) {
+        Objects.requireNonNull(brokerSetName);
+        if (BROKER_DEFAULT_SET.equals(brokerSetName)) {
+            return "%s-%s".formatted(clusterName, baseName);
+        }
+        return "%s-%s-%s".formatted(clusterName, baseName, brokerSetName);
     }
 
     @Override
@@ -319,6 +331,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .build();
         final List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(mainContainer);
+        System.out.println("patching sts " + resourceName);
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(resourceName)

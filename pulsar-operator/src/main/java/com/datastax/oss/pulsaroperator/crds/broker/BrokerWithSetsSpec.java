@@ -15,39 +15,25 @@
  */
 package com.datastax.oss.pulsaroperator.crds.broker;
 
-import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
-import javax.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class BrokerFullSpec implements FullSpecWithDefaults {
-    @Valid
-    @ValidSpec
-    GlobalSpec global;
-
-    @Valid
-    @ValidSpec
-    BrokerWithSetsSpec broker;
-
-
-    @Override
-    public GlobalSpec getGlobalSpec() {
-        return global;
-    }
+@SuperBuilder
+public class BrokerWithSetsSpec extends BrokerSpec {
+    @JsonPropertyDescription("Broker sets.")
+    private Map<String, BrokerSpec> sets;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
-        if (broker == null) {
-            broker = new BrokerWithSetsSpec();
-        }
-        broker.applyDefaults(globalSpec);
+        super.applyDefaults(globalSpec);
     }
+
 }

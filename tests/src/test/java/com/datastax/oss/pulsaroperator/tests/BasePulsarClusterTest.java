@@ -24,6 +24,7 @@ import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerWithSetsSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
@@ -152,7 +153,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .build())
                 .build());
 
-        defaultSpecs.setBroker(BrokerSpec.builder()
+        defaultSpecs.setBroker(BrokerWithSetsSpec.builder()
                 .replicas(1)
                 .resources(RESOURCE_REQUIREMENTS)
                 .config(

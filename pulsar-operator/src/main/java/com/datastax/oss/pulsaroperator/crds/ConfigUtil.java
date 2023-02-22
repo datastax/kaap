@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.crds;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.SneakyThrows;
@@ -40,6 +41,9 @@ public class ConfigUtil {
         }
         final List<Field> allFields = FieldUtils.getAllFieldsList(declaringClass);
         for (Field field : allFields) {
+            if (Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
             final Object newValue;
             if (field.getType().getName().startsWith("java.")) {
                 final Object parent = object;

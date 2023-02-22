@@ -83,7 +83,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     public FunctionsWorkerResourcesFactory(KubernetesClient client, String namespace,
                                            FunctionsWorkerSpec spec, GlobalSpec global,
                                            OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

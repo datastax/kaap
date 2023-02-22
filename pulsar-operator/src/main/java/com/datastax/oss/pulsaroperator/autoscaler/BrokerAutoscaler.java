@@ -18,7 +18,7 @@ package com.datastax.oss.pulsaroperator.autoscaler;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerWithSetsSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetrics;
@@ -205,7 +205,7 @@ public class BrokerAutoscaler implements Runnable {
                 return;
             }
 
-            final BrokerSpec broker = brokerCr.getSpec().getBroker();
+            final BrokerWithSetsSpec broker = brokerCr.getSpec().getBroker();
             broker.setReplicas(scaleTo);
             brokerCr.getSpec().setBroker(broker);
             client.resources(Broker.class)

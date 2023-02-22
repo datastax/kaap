@@ -22,6 +22,7 @@ import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerWithSetsSpec;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
@@ -56,7 +57,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
     @ValidSpec
     @Valid
-    private BrokerSpec broker;
+    private BrokerWithSetsSpec broker;
 
     @ValidSpec
     @Valid

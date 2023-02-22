@@ -58,7 +58,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
     public AutorecoveryResourcesFactory(KubernetesClient client, String namespace,
                                         AutorecoverySpec spec, GlobalSpec global,
                                         OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

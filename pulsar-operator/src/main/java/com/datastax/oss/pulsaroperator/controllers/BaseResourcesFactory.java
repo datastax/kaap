@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
@@ -94,18 +95,22 @@ public abstract class BaseResourcesFactory<T> {
     protected final OwnerReference ownerReference;
     private VersionInfo version;
 
-    public BaseResourcesFactory(KubernetesClient client, String namespace, T spec,
+    public BaseResourcesFactory(KubernetesClient client, String namespace, String resourceName, T spec,
                                 GlobalSpec global, OwnerReference ownerReference) {
         this.client = client;
         this.namespace = namespace;
         this.spec = spec;
         this.global = global;
-        this.resourceName = getResourceName();
+        this.resourceName = resourceName;
         this.ownerReference = ownerReference;
     }
 
     public static String getResourceName(String clusterName, String baseName) {
         return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
     }
 
     protected String getResourceName() {
@@ -299,10 +304,12 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     private String getBrokerWebServiceUrl(boolean tls) {
-        return "%s://%s-%s.%s:%d/".formatted(
+        final String brokerServiceName = BrokerResourcesFactory.getResourceName(global.getName(),
+                BrokerResourcesFactory.BROKER_DEFAULT_SET,
+                global.getComponents().getBrokerBaseName());
+        return "%s://%s.%s:%d/".formatted(
                 tls ? "https" : "http",
-                global.getName(),
-                global.getComponents().getBrokerBaseName(),
+                brokerServiceName,
                 getServiceDnsSuffix(), tls ? 8443 : 8080);
     }
 
@@ -320,10 +327,12 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     private String getBrokerServiceUrl(boolean tls) {
-        return "%s://%s-%s.%s:%d/".formatted(
+        final String brokerServiceName = BrokerResourcesFactory.getResourceName(global.getName(),
+                BrokerResourcesFactory.BROKER_DEFAULT_SET,
+                global.getComponents().getBrokerBaseName());
+        return "%s://%s.%s:%d/".formatted(
                 tls ? "pulsar+ssl" : "pulsar",
-                global.getName(),
-                global.getComponents().getBrokerBaseName(),
+                brokerServiceName,
                 getServiceDnsSuffix(), tls ? 6651 : 6650);
     }
 

@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSet;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
@@ -182,6 +183,8 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private AntiAffinityConfig antiAffinity;
     @JsonPropertyDescription("Priority class name to attach to each pod.")
     private String priorityClassName;
+    @JsonPropertyDescription("Resource sets.")
+    private Map<String, ResourceSet> resourceSets;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

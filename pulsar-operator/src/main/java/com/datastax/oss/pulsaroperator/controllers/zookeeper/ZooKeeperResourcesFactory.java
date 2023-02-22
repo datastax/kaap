@@ -83,7 +83,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     public ZooKeeperResourcesFactory(KubernetesClient client, String namespace,
                                      ZooKeeperSpec spec, GlobalSpec global,
                                      OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

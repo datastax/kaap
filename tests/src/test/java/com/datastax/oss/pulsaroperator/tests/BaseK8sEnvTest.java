@@ -17,11 +17,9 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
-import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;

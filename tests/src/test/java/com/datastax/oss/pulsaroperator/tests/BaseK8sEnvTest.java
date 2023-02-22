@@ -22,11 +22,11 @@ import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
-import io.fabric8.kubernetes.client.ApiVisitor;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
@@ -269,23 +269,18 @@ public abstract class BaseK8sEnvTest {
 
     private void deleteNamespaceSync() {
         client.namespaces().withName(namespace).delete();
-        client.visitResources((group, version, apiResource, operation) -> {
-            operation.inNamespace(namespace).delete();
-            return ApiVisitor.ApiVisitResult.CONTINUE;
-        });
+        client.pods().inNamespace(namespace).delete();
         Awaitility.await().untilAsserted(() -> {
-            List<String> resources = new ArrayList<>();
-            client.visitResources((group, version, apiResource, operation) -> {
-                operation.inNamespace(namespace)
-                        .list()
-                        .getItems()
-                        .stream()
-                        .map(r -> r.getKind() + "/" + r.getMetadata().getName())
-                        .forEach(resources::add);
-                return ApiVisitor.ApiVisitResult.CONTINUE;
-            });
-            log.info("resources in namespace {} after cleanup: {}", namespace, resources);
-            Assert.assertEquals(resources.size(), 0);
+            List<String> pods = client.pods()
+                    .inNamespace(namespace)
+                    .list()
+                    .getItems()
+                    .stream()
+                    .map(Pod::getMetadata)
+                    .map(ObjectMeta::getName)
+                    .collect(Collectors.toList());
+            log.info("pods in namespace {} after cleanup: {}", namespace, pods);
+            Assert.assertEquals(pods.size(), 0);
         });
     }
 

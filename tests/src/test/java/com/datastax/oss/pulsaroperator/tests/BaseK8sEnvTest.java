@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.events.v1.Event;
+import io.fabric8.kubernetes.client.ApiVisitor;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
@@ -250,7 +251,7 @@ public abstract class BaseK8sEnvTest {
                 deleteRBACManifests();
                 deleteOperatorDeploymentAndCRDs();
                 deleteCRDsSync();
-                client.namespaces().withName(namespace).delete();
+                deleteNamespaceSync();
             }
             env.cleanup();
         }
@@ -264,6 +265,28 @@ public abstract class BaseK8sEnvTest {
         if (!REUSE_ENV && env != null) {
             env.close();
         }
+    }
+
+    private void deleteNamespaceSync() {
+        client.namespaces().withName(namespace).delete();
+        client.visitResources((group, version, apiResource, operation) -> {
+            operation.inNamespace(namespace).delete();
+            return ApiVisitor.ApiVisitResult.CONTINUE;
+        });
+        Awaitility.await().untilAsserted(() -> {
+            List<String> resources = new ArrayList<>();
+            client.visitResources((group, version, apiResource, operation) -> {
+                operation.inNamespace(namespace)
+                        .list()
+                        .getItems()
+                        .stream()
+                        .map(r -> r.getKind() + "/" + r.getMetadata().getName())
+                        .forEach(resources::add);
+                return ApiVisitor.ApiVisitResult.CONTINUE;
+            });
+            log.info("resources in namespace {} after cleanup: {}", namespace, resources);
+            Assert.assertEquals(resources.size(), 0);
+        });
     }
 
     private void deleteCRDsSync() {
@@ -298,6 +321,7 @@ public abstract class BaseK8sEnvTest {
         log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
                 Collectors.toList()));
     }
+
     protected void printPodLogs(String podName) {
         printPodLogs(podName, 300);
     }
@@ -314,7 +338,8 @@ public abstract class BaseK8sEnvTest {
                                     .inContainer(container.getName())
                                     .tailingLines(tailingLines)
                                     .getLog();
-                            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName, container.getName(),
+                            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName,
+                                    container.getName(),
                                     tailingLines, containerLog, sep, sep);
                         });
 

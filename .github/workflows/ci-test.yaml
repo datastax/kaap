@@ -98,7 +98,7 @@ jobs:
             (time $@ || echo $cmd_name >> fail.txt) 2>&1 > $cmd_name.txt
           }
           mkdir -p ~/.kube
-          touch -p ~/.kube/config
+          touch ~/.kube/config
           run_bg localenv ./tests/src/test/scripts/local-k3s.sh &
           run_bg tests ./tests/src/test/scripts/local-k3s-run-test.sh -Dgroups='${{ matrix.group }}' &
           

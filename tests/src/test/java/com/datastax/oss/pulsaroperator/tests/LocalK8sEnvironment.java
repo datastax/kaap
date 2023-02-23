@@ -110,7 +110,13 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void addClusterToUserKubeConfig(Config containerKubeConfig) {
         final File defaultKubeConfigPath = Paths.get(System.getProperty("user.home"), ".kube", "config")
                 .toFile();
-        final Config currentKubeConfig = KubeConfigUtils.parseConfig(defaultKubeConfigPath);
+        final Config currentKubeConfig;
+        if (defaultKubeConfigPath.exists()) {
+            currentKubeConfig = KubeConfigUtils.parseConfig(defaultKubeConfigPath);
+        } else {
+            defaultKubeConfigPath.createNewFile();
+            currentKubeConfig = new Config();
+        }
 
         final String clusterName = CONTAINER_NAME;
         boolean foundCluster = false;

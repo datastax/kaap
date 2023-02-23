@@ -254,7 +254,7 @@ public abstract class BaseK8sEnvTest {
                 : "FAILED");
         if (testResult.getThrowable() != null) {
             log.error("Test {} failed with: {}", testResult.getMethod().getMethodName(),
-                    testResult.getThrowable(), testResult.getThrowable());
+                    testResult.getThrowable().getMessage(), testResult.getThrowable());
         }
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
             log.info("cleaning up namespace {}", namespace);

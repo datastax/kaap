@@ -82,6 +82,9 @@ public class LocalK3SContainer implements K8sEnv {
 
 
         public void beforeStartHelm3(Consumer<Helm3Container> consumer) {
+            if (helm3 != null) {
+                throw new IllegalStateException("helm already started!");
+            }
             helm3ContainerConsumer = consumer;
         }
 
@@ -131,6 +134,7 @@ public class LocalK3SContainer implements K8sEnv {
                         createAndMountImageDigest(BaseK8sEnvTest.PULSAR_IMAGE)
                 ).get();
             }
+
 
         } else {
             log.info("Reusing existing K3s container");

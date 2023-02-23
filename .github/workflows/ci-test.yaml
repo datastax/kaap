@@ -91,5 +91,22 @@ jobs:
       - name: Integration tests
         run: |
           #!/bin/bash
-          ./tests/src/test/scripts/local-k3s.sh &
-          ./tests/src/test/scripts/local-k3s-run-test.sh -Dgroups='${{ matrix.group }}'
+          set -ex
+          run_bg() {
+            local cmd_name=$1
+            shift
+            (time $@ || echo $cmd_name >> fail.txt) 2>&1 > $cmd_name.txt
+          }
+          mkdir -p ~/.kube
+          touch -p ~/.kube/config
+          run_bg localenv ./tests/src/test/scripts/local-k3s.sh &
+          run_bg tests ./tests/src/test/scripts/local-k3s-run-test.sh -Dgroups='${{ matrix.group }}' &
+          
+          wait
+          cat localenv.txt
+          cat tests.txt
+          
+          if [ -f fail.txt ]; then
+            cat fail.txt
+            exit 1
+          fi

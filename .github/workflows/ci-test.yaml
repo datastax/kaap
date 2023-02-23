@@ -86,10 +86,10 @@ jobs:
           java-version: 17
 
       - name: Build
-        run: mvn -B -T 1C -ntp -nsu install -DskipTests -pl pulsar-operator -am
+        run: mvn -B -T 1C -ntp -nsu install -DskipTests -pl pulsar-operator -am -Dcheckstyle.skip -Dspotbugs.skip
 
       - name: Integration tests
         run: |
           #!/bin/bash
-          ./tests/src/test/scripts/local-k3s.sh
+          ./tests/src/test/scripts/local-k3s.sh & \
           ./tests/src/test/scripts/local-k3s-run-test.sh -Dgroups='${{ matrix.group }}'

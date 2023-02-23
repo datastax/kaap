@@ -41,7 +41,7 @@ wait_image() {
   local image_name=$1
   while true; do
     docker_output=$(docker exec -it pulsaroperator-local-k3s ctr -a /run/k3s/containerd/containerd.sock image ls 2>&1)
-    if echo $docker_output | grep -q -v "$image_name"; then
+    if (echo "$docker_output" | grep -q $image_name); then
         break
     fi
     echo "waiting for the local k3s server to load image $image_name";

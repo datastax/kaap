@@ -73,7 +73,7 @@ public abstract class BaseK8sEnvTest {
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("pulsaroperator.tests.env.existing");
 
     private static final boolean REUSE_ENV = Boolean
-            .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "false"));
+            .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "true"));
     protected static final int DEFAULT_AWAIT_SECONDS = 360;
 
     protected String namespace;
@@ -102,13 +102,15 @@ public abstract class BaseK8sEnvTest {
         setDefaultAwaitilityTimings();
 
         namespace = "pulsar-operator-test-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
-        log.info("Starting test {}.{} using existing env: {}", testMethod.getDeclaringClass().getName(),
-                testMethod.getName(), USE_EXISTING_ENV);
+        log.info("Starting test {}.{} using existing env: {}, reuse env: {}", testMethod.getDeclaringClass().getName(),
+                testMethod.getName(), USE_EXISTING_ENV, REUSE_ENV);
 
-        if (USE_EXISTING_ENV) {
-            env = new ExistingK8sEnv();
-        } else {
-            env = new LocalK3SContainer();
+        if (env == null || !REUSE_ENV) {
+            if (USE_EXISTING_ENV) {
+                env = new ExistingK8sEnv();
+            } else {
+                env = new LocalK3SContainer();
+            }
         }
         env.start();
         log.info("Using namespace: {} env {}", namespace, env.getConfig().getCurrentContext().getName());

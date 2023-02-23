@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,8 +46,6 @@ import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testng.annotations.Test;
 
@@ -229,35 +226,6 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
                 })
                 .join();
     }
-
-
-    @SneakyThrows
-    protected static CompletableFuture<Void> downloadDockerImageInK3s(String imageName, GenericContainer container) {
-        return CompletableFuture.runAsync(new Runnable() {
-            @Override
-            @SneakyThrows
-            public void run() {
-                log.info("Downloading docker image {} in k3s", imageName);
-                long start = System.currentTimeMillis();
-                final Container.ExecResult execResult;
-                try {
-                    if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
-                        log.info("Image {} already exists in the k3s", imageName);
-                        return;
-                    }
-                    execResult = container.execInContainer("ctr", "images", "pull", "docker.io/" + imageName);
-                    if (execResult.getExitCode() != 0) {
-                        throw new RuntimeException("ctr images download failed: " + execResult.getStderr());
-                    }
-                    log.info("Downloaded docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        });
-    }
-
 
     public static class GenerateImageDigest {
 

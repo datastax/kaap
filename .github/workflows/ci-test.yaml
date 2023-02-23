@@ -91,7 +91,6 @@ jobs:
       - name: Integration tests
         run: |
           #!/bin/bash
-          set -ex
-          mkdir -p ~/.kube
-          ./tests/src/test/scripts/local-k3s.sh 2>&1 | tee k3s.log &
-          ./tests/src/test/scripts/local-k3s-run-test.sh -Dgroups='${{ matrix.group }}'
+          echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+          mvn -B -ntp -nsu test -pl tests \
+            -Dgroups='${{ matrix.group }}'

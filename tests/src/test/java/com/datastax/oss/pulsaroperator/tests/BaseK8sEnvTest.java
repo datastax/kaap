@@ -37,6 +37,7 @@ import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,6 +56,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -96,11 +98,12 @@ public abstract class BaseK8sEnvTest {
     }
 
     @BeforeMethod(alwaysRun = true)
-    public void before() throws Exception {
+    public void before(Method testMethod) throws Exception {
         setDefaultAwaitilityTimings();
 
         namespace = "pulsar-operator-test-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
-        log.info("Starting test using existing env: {}", USE_EXISTING_ENV);
+        log.info("Starting test {}.{} using existing env: {}", testMethod.getDeclaringClass().getName(),
+                testMethod.getName(), USE_EXISTING_ENV);
 
         if (USE_EXISTING_ENV) {
             env = new ExistingK8sEnv();
@@ -244,7 +247,13 @@ public abstract class BaseK8sEnvTest {
     }
 
     @AfterMethod(alwaysRun = true)
-    public void after() throws Exception {
+    public void after(ITestResult testResult) throws Exception {
+        log.info("test {}: {}", testResult.getMethod().getMethodName(), testResult.isSuccess() ? "SUCCESS"
+                : "FAILED");
+        if (testResult.getThrowable() != null) {
+            log.error("Test {} failed with: {}", testResult.getMethod().getMethodName(),
+                    testResult.getThrowable(), testResult.getThrowable());
+        }
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
             log.info("cleaning up namespace {}", namespace);
             if (client != null) {
@@ -327,7 +336,7 @@ public abstract class BaseK8sEnvTest {
                 client.pods().inNamespace(namespace)
                         .withName(podName)
                         .get().getSpec().getContainers().forEach(container -> {
-                            final String sep = "=".repeat(300);
+                            final String sep = "=".repeat(100);
                             final String containerLog = client.pods().inNamespace(namespace)
                                     .withName(podName)
                                     .inContainer(container.getName())

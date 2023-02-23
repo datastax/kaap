@@ -16,16 +16,13 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
-import com.datastax.oss.pulsaroperator.controllers.PulsarClusterController;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
-import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
@@ -35,7 +32,6 @@ import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
-import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -111,9 +107,9 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 )
                 .readiness(
                         ProbesConfig.ProbeConfig.builder()
-                                .initialDelaySeconds(1)
-                                .periodSeconds(2)
-                                .timeoutSeconds(65)
+                                .initialDelaySeconds(5)
+                                .periodSeconds(3)
+                                .timeoutSeconds(60)
                                 .failureThreshold(10)
                                 .build()
                 )
@@ -169,8 +165,9 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .probes(BrokerSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
                         .liveness(ProbesConfig.ProbeConfig.builder()
                                 .initialDelaySeconds(5)
-                                .periodSeconds(5)
+                                .periodSeconds(3)
                                 .timeoutSeconds(60)
+                                .failureThreshold(10)
                                 .build()
                         )
                         .readiness(
@@ -222,28 +219,9 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
                 .createOrReplace();
 
-        // zookeeper is the first resource created
-        // sometimes the k3s cluster is not ready to create any resource
-        // let's start counting the time from when ZK is ready
-        awaitZooKeeperRunning();
-
         Awaitility.await("waiting for pulsar cluster to be ready")
                 .with().pollInterval(5, TimeUnit.SECONDS)
                 .until(() -> {
-                    final String name = pulsarCluster.getSpec().getGlobal().getName();
-                    if (!isCrdReady(ZooKeeper.class,
-                            "%s-%s".formatted(name, PulsarClusterController.CUSTOM_RESOURCE_ZOOKEEPER))) {
-                        return false;
-                    }
-                    if (!isCrdReady(BookKeeper.class,
-                            "%s-%s".formatted(name, PulsarClusterController.CUSTOM_RESOURCE_BOOKKEEPER))) {
-                        return false;
-                    }
-
-                    if (!isCrdReady(Broker.class,
-                            "%s-%s".formatted(name, PulsarClusterController.CUSTOM_RESOURCE_BROKER))) {
-                        return false;
-                    }
                     if (isCrdReady(PulsarCluster.class, pulsarCluster.getMetadata().getName())) {
                         return true;
                     }

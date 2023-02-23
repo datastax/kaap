@@ -94,9 +94,7 @@ public class ScalingTest extends BasePulsarClusterTest {
         // use two different brokers to ensure broker's intra communication
         execInPod("pulsar-broker-2", "bin/pulsar-client produce -m test test-topic");
         execInPod("pulsar-broker-1", "bin/pulsar-client consume -s sub -p Earliest test-topic");
-        final String proxyPod =
-                client.pods().withLabel("component", "proxy").list().getItems().get(0).getMetadata().getName();
-
+        final String proxyPod = getPodNameByComponent("proxy");
         execInPodContainer(proxyPod, "pulsar-proxy-ws",
                 "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
         execInPodContainer(proxyPod, "pulsar-proxy", "bin/pulsar-client consume -s sub-proxy -p Earliest test-topic-proxy");

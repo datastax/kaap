@@ -91,5 +91,5 @@ jobs:
       - name: Integration tests
         run: |
           #!/bin/bash
-          ./tests/src/test/scripts/local-k3s.sh & \
+          ./tests/src/test/scripts/local-k3s.sh &
           ./tests/src/test/scripts/local-k3s-run-test.sh -Dgroups='${{ matrix.group }}'

@@ -75,7 +75,7 @@ public abstract class BaseK8sEnvTest {
     protected static final int DEFAULT_AWAIT_SECONDS = 360;
 
     protected String namespace;
-    protected K8sEnv env;
+    protected static K8sEnv env;
     protected KubernetesClient client;
     private Watch eventsWatch;
     private String rbacManifest;

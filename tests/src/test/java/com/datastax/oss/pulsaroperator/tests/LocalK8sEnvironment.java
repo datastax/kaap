@@ -59,7 +59,8 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static final boolean DEPLOY_OPERATOR_IMAGE = true;
 
     // not needed if you use quarkus dev mode
-    private static final boolean DEPLOY_PULSAR_IMAGE = false;
+    private static final boolean DOWNLOAD_PULSAR_IMAGE =
+            Boolean.getBoolean("pulsaroperator.tests.container.pulsar.download");
 
     public static final String NETWORK = "pulsaroperator-local-k3s-network";
     public static final String CONTAINER_NAME = "pulsaroperator-local-k3s";
@@ -97,7 +98,6 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
             container.kubectl().create.namespace.run("ns");
             log.info("To see k3s logs: docker logs {}", container.getContainerName());
             log.info("You can now access the K8s cluster, namespace 'ns'.");
-            final String tmpKubeConfig = getTmpKubeConfig(container);
             final Config containerKubeConfig = KubeConfigUtils.parseConfigFromString(container.getKubeconfig());
             addClusterToUserKubeConfig(containerKubeConfig);
             log.info("Checkout 'local-k3s-*' scripts at tests/src/test/scripts.");
@@ -193,7 +193,7 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void createAndMountImages(K3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
-        if (DEPLOY_PULSAR_IMAGE) {
+        if (!DOWNLOAD_PULSAR_IMAGE) {
             all.add(createAndMountImageDigest(PULSAR_IMAGE, container));
         }
         if (DEPLOY_OPERATOR_IMAGE) {
@@ -209,7 +209,7 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void restoreImages(K3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
-        if (DEPLOY_PULSAR_IMAGE) {
+        if (!DOWNLOAD_PULSAR_IMAGE) {
             all.add(restoreDockerImageInK3s(PULSAR_IMAGE, container));
         } else {
             all.add(downloadDockerImageInK3s(PULSAR_IMAGE, container));

@@ -28,23 +28,25 @@ mvn_or_mvnd() {
 
 wait_container() {
   local container_name=$1
+  echo "check for the container $container_name to be up and running"
   while true; do
     if docker inspect -f '{{.State.Running}}' $container_name 2>&1 | grep -q true; then
       break
     fi
-    echo "waiting for the container $container_name to be up and running";
+    echo "waiting for the container $container_name to be up and running"
     sleep 1
   done
 }
 
 wait_image() {
   local image_name=$1
+  echo "check for the local k3s server to load image $image_name"
   while true; do
     docker_output=$(docker exec -it pulsaroperator-local-k3s ctr -a /run/k3s/containerd/containerd.sock image ls 2>&1)
     if (echo "$docker_output" | grep -q $image_name); then
         break
     fi
-    echo "waiting for the local k3s server to load image $image_name";
+    echo "waiting for the local k3s server to load image $image_name"
     sleep 1
   done
 }

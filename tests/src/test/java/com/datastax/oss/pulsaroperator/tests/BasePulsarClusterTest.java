@@ -16,12 +16,16 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.PulsarClusterController;
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
@@ -31,6 +35,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
+import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -39,6 +44,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
+import io.fabric8.kubernetes.client.CustomResource;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -222,26 +228,49 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         awaitZooKeeperRunning();
 
         Awaitility.await("waiting for pulsar cluster to be ready")
+                .with().pollInterval(5, TimeUnit.SECONDS)
                 .until(() -> {
-                    final List<Condition> conditions = client.resources(PulsarCluster.class)
-                            .inNamespace(namespace)
-                            .withName(pulsarCluster.getMetadata().getName())
-                            .get().getStatus()
-                            .getConditions();
-                    final Condition readyCondition =
-                            conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
-                                    .findAny().orElse(null);
-                    if (readyCondition == null) {
+                    final String name = pulsarCluster.getSpec().getGlobal().getName();
+                    if (!isCrdReady(ZooKeeper.class,
+                            "%s-%s".formatted(name, PulsarClusterController.CUSTOM_RESOURCE_ZOOKEEPER))) {
                         return false;
                     }
-                    if (readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
+                    if (!isCrdReady(BookKeeper.class,
+                            "%s-%s".formatted(name, PulsarClusterController.CUSTOM_RESOURCE_BOOKKEEPER))) {
+                        return false;
+                    }
+
+                    if (!isCrdReady(Broker.class,
+                            "%s-%s".formatted(name, PulsarClusterController.CUSTOM_RESOURCE_BROKER))) {
+                        return false;
+                    }
+                    if (isCrdReady(PulsarCluster.class, pulsarCluster.getMetadata().getName())) {
                         return true;
                     }
-                    log.info("Pulsar cluster not ready, reason: {}", readyCondition.getReason());
-                    printPodLogs(getOperatorPodName(), 5);
+                    printPodLogs(getOperatorPodName(), 10);
                     return false;
                 });
 
+    }
+
+    private boolean isCrdReady(Class<? extends CustomResource<?, ? extends BaseComponentStatus>> resource,
+                               String name) {
+        final List<Condition> conditions = client.resources(resource)
+                .inNamespace(namespace)
+                .withName(name)
+                .get().getStatus()
+                .getConditions();
+        final Condition readyCondition =
+                conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
+                        .findAny().orElse(null);
+        if (readyCondition == null) {
+            return false;
+        }
+        if (readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
+            return true;
+        }
+        log.info("{} not ready, reason: {}", name, readyCondition.getReason());
+        return false;
     }
 
     protected void awaitInstalled() {

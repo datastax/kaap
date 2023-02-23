@@ -176,6 +176,11 @@ public class TlsTest extends BaseHelmTest {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();
             throw new RuntimeException(t);
+        } finally {
+            try (final InputStream in = new URL(CERT_MANAGER_CRDS)
+                    .openStream();) {
+                deleteManifest(in.readAllBytes());
+            }
         }
     }
 }

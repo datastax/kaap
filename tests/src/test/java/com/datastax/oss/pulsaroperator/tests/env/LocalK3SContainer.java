@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.tests.BaseK8sEnvTest;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.fabric8.kubernetes.client.Config;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -135,6 +136,7 @@ public class LocalK3SContainer implements K8sEnv {
             log.info("Reusing existing K3s container");
         }
         container.start();
+        printDebugInfo();
         if (DOWNLOAD_PULSAR_IMAGE) {
             CompletableFuture.allOf(
                     restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
@@ -307,6 +309,18 @@ public class LocalK3SContainer implements K8sEnv {
 
             }
         });
+    }
+
+    @SneakyThrows
+    private static String getTmpKubeConfig(K3sContainer container) {
+        File tmpKubeConfig = Paths.get("/tmp", "pulsaroperator-local-k3s-kube-config").toFile();
+        tmpKubeConfig.deleteOnExit();
+        Files.writeString(tmpKubeConfig.toPath(), container.getKubeconfig());
+        return tmpKubeConfig.getAbsolutePath();
+    }
+
+    private void printDebugInfo() {
+        log.info("export KUBECONFIG={}", getTmpKubeConfig(container));
     }
 
 }

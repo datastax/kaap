@@ -179,6 +179,10 @@ public class LocalK3SContainer implements K8sEnv {
 
     @Override
     public void cleanup() {
+        if (container.helm3 != null) {
+            container.helm3.stop();
+            container.helm3 = null;
+        }
     }
 
     @Override

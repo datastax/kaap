@@ -85,23 +85,37 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
             Assert.assertEquals(
                     client.apps().statefulSets()
                             .inNamespace(namespace)
-                            .withLabels(Map.of(CRDConstants.LABEL_COMPONENT, "proxy"))
-                            .list()
-                            .getItems().size(), 2);
-
-            Assert.assertEquals(
-                    client.apps().statefulSets()
-                            .inNamespace(namespace)
                             .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set1"))
                             .list()
-                            .getItems().size(), 2);
+                            .getItems().size(), 1);
 
             Assert.assertEquals(
                     client.apps().statefulSets()
                             .inNamespace(namespace)
                             .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set2"))
                             .list()
+                            .getItems().size(), 1);
+
+            Assert.assertEquals(
+                    client.apps().deployments()
+                            .inNamespace(namespace)
+                            .withLabels(Map.of(CRDConstants.LABEL_COMPONENT, "proxy"))
+                            .list()
                             .getItems().size(), 2);
+
+            Assert.assertEquals(
+                    client.apps().deployments()
+                            .inNamespace(namespace)
+                            .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set1"))
+                            .list()
+                            .getItems().size(), 1);
+
+            Assert.assertEquals(
+                    client.apps().deployments()
+                            .inNamespace(namespace)
+                            .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set2"))
+                            .list()
+                            .getItems().size(), 1);
 
             Assert.assertNotNull(getResource(StatefulSet.class, "pulsar-broker-set1"));
             Assert.assertNotNull(getResource(StatefulSet.class, "pulsar-broker-set2"));

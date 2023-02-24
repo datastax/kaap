@@ -17,6 +17,8 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.utils.CertManagerCertificatesProvisioner;
 import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
@@ -31,6 +33,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
@@ -55,6 +58,8 @@ import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.quarkus.runtime.ShutdownEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import lombok.SneakyThrows;
@@ -196,19 +201,38 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     }
 
     private void adjustBrokerReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
-        if (clusterSpec.getBroker() != null
-                && clusterSpec.getBroker().getAutoscaler() != null
-                && clusterSpec.getBroker().getAutoscaler().getEnabled()) {
-
+        if (clusterSpec.getBroker() != null) {
             final String crFullName = computeCustomResourceName(clusterSpec, CUSTOM_RESOURCE_BROKER);
             final Broker current = client.resources(Broker.class)
                     .inNamespace(currentNamespace)
                     .withName(crFullName)
                     .get();
-            if (current != null) {
-                final Integer currentReplicas = current.getSpec().getBroker().getReplicas();
-                // do not update replicas if patching, leave whatever the autoscaler have set
-                clusterSpec.getBroker().setReplicas(currentReplicas);
+            if (current == null) {
+                return;
+            }
+
+            final TreeMap<String, BrokerSetSpec> desiredBrokerSetSpecs =
+                    BrokerController.getBrokerSetSpecs(clusterSpec.getBroker());
+            final TreeMap<String, BrokerSetSpec> currentBrokerSetSpecs =
+                    BrokerController.getBrokerSetSpecs(current.getSpec().getBroker());
+            for (Map.Entry<String, BrokerSetSpec> currentSet : currentBrokerSetSpecs.entrySet()) {
+                final BrokerSetSpec desiredBrokerSetSpec = desiredBrokerSetSpecs.get(currentSet.getKey());
+                if (desiredBrokerSetSpec == null) {
+                    // remove the broker set
+                    clusterSpec.getBroker().getSets().get(currentSet.getKey()).setReplicas(0);
+                } else if (desiredBrokerSetSpec.getAutoscaler() != null
+                        && desiredBrokerSetSpec.getAutoscaler().getEnabled()) {
+                    final BrokerSetSpec currentBrokerSetSpec = currentSet.getValue();
+                    if (currentBrokerSetSpec.getReplicas() != null) {
+                        final Integer currentReplicas = currentBrokerSetSpec.getReplicas();
+                        // do not update replicas if patching, leave whatever the autoscaler have set
+                        if (currentSet.getKey().equals(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
+                            clusterSpec.getBroker().setReplicas(currentReplicas);
+                        } else {
+                            clusterSpec.getBroker().getSets().get(currentSet.getKey()).setReplicas(currentReplicas);
+                        }
+                    }
+                }
             }
         }
     }
@@ -390,7 +414,6 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
         return false;
     }
-
 
 
     protected <CR extends CustomResource<SPEC, ?>, SPEC> CR getExistingCustomResource(

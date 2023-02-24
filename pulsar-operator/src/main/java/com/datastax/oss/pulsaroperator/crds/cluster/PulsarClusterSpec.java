@@ -23,7 +23,6 @@ import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.ResourceSet;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
@@ -122,7 +121,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     }
 
     private boolean validateResourceSets(PulsarClusterSpec spec, ConstraintValidatorContext context) {
-        Map<String, ResourceSet> resourceSets = spec.getGlobal().getResourceSets();
+        Map<String, Map<String, Object>> resourceSets = spec.getGlobal().getResourceSets();
         if (resourceSets == null) {
             resourceSets = Collections.emptyMap();
         }
@@ -130,7 +129,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
     }
 
-    private boolean validateBrokerResourceSets(Map<String, ResourceSet> declaredResourceSets,
+    private boolean validateBrokerResourceSets(Map<String, Map<String, Object>> declaredResourceSets,
                                                BrokerSpec spec, ConstraintValidatorContext context) {
         final Map<String, BrokerSetSpec> sets = spec.getSets();
         if (sets == null || sets.isEmpty()) {

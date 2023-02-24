@@ -341,8 +341,9 @@ public class BrokerAutoscalerTest {
                 .build();) {
             server.start();
 
-            final AutoscalerDaemon.BrokerAutoscaler brokerAutoscaler =
-                    new AutoscalerDaemon.BrokerAutoscaler(server.server.getClient(), NAMESPACE, pulsarClusterSpec);
+            final BrokerSetAutoscaler brokerAutoscaler =
+                    new BrokerSetAutoscaler(server.server.getClient(), NAMESPACE,
+                            BrokerResourcesFactory.BROKER_DEFAULT_SET, pulsarClusterSpec);
             brokerAutoscaler.internalRun();
             return server;
         }

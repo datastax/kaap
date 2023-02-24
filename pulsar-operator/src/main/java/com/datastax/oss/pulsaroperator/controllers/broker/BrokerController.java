@@ -124,7 +124,10 @@ public class BrokerController extends AbstractController<Broker> {
     }
 
     public static TreeMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerFullSpec fullSpec) {
-        final BrokerSpec broker = fullSpec.getBroker();
+        return getBrokerSetSpecs(fullSpec.getBroker());
+    }
+
+    public static TreeMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerSpec broker) {
         Map<String, BrokerSetSpec> sets = broker.getSets();
         if (sets == null || sets.isEmpty()) {
             sets = Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET,

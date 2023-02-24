@@ -1,0 +1,95 @@
+#
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+operator:
+  image: datastax/lunastreaming-operator:latest-dev
+cluster:
+  create: true
+  spec:
+    global:
+      name: pulsar
+      image: datastax/lunastreaming-all:2.10_2.11
+      restartOnConfigMapChange: true
+      storage:
+        existingStorageClassName: default
+      resourceSets:
+        shared: {}
+        dedicated: {}
+      antiAffinity:
+        host:
+          enabled: false
+    zookeeper:
+      replicas: 1
+      dataVolume:
+        name: data
+        size: 100M
+      resources:
+        requests:
+          cpu: "0.2"
+          memory: "128Mi"
+    bookkeeper:
+      replicas: 1
+      volumes:
+        journal:
+          size: 1Gi
+        ledgers:
+          size: 1Gi
+      resources:
+        requests:
+          cpu: "0.2"
+          memory: "128Mi"
+    broker:
+      replicas: 1
+      config:
+        managedLedgerDefaultAckQuorum: 1
+        managedLedgerDefaultEnsembleSize: 1
+        managedLedgerDefaultWriteQuorum: 1
+      resources:
+        requests:
+          cpu: "0.2"
+          memory: "128Mi"
+      sets:
+        shared:
+          replicas: 2
+          autoscaler:
+            enabled: true
+            min: 1
+            lowerCpuThreshold: 0.9
+            stabilizationWindowMs: 10000
+        dedicated:
+          replicas: 2
+          resources:
+            requests:
+              cpu: "0.5"
+    proxy:
+      replicas: 1
+      resources:
+        requests:
+          cpu: "0.2"
+          memory: "128Mi"
+    autorecovery:
+      replicas: 1
+      resources:
+        requests:
+          cpu: "0.2"
+          memory: "128Mi"
+    bastion:
+      replicas: 1
+      resources:
+        requests:
+          cpu: "0.2"
+          memory: "128Mi"

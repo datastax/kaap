@@ -82,7 +82,6 @@ public class ConfigUtil {
         }
 
         final Object res = FieldUtils.readField(object, fieldName, true);
-        System.out.println("read field " + fieldName + " -> " + res);
         return res;
     }
 

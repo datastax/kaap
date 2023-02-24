@@ -43,6 +43,7 @@ public class BrokerAutoScalingTest extends BasePulsarClusterTest {
                         .autoscaler(BrokerAutoscalerSpec.builder()
                                 .enabled(true)
                                 .min(1)
+                                .max(2)
                                 .stabilizationWindowMs(10000L)
                                 .higherCpuThreshold(0.21)
                                 .lowerCpuThreshold(0.2)

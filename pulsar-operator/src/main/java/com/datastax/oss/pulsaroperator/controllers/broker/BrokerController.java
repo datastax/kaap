@@ -104,7 +104,6 @@ public class BrokerController extends AbstractController<Broker> {
     private List<BrokerSetInfo> getBrokerSets(Broker resource, String namespace, BrokerFullSpec spec) {
         List<BrokerSetInfo> result = new ArrayList<>();
         final OwnerReference ownerReference = getOwnerReference(resource);
-        final BrokerSpec mainBrokerSpec = spec.getBroker();
 
         for (Map.Entry<String, BrokerSetSpec> brokerSet : getBrokerSetSpecs(spec).entrySet()) {
             final String brokerSetName = brokerSet.getKey();

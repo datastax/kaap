@@ -55,6 +55,8 @@ public final class CRDConstants {
     public static final String DOC_PROBE_LIVENESS = "Liveness probe configuration.";
     public static final String DOC_PROBE_READINESS = "Readiness probe configuration.";
     public static final String DOC_CONTAINER_ENV = "Additional container env variables.";
+    public static final String DOC_SIDECARS = "Sidecar containers";
+    public static final String DOC_INIT_CONTAINERS = "Init containers";
 
     public static final String DOC_SERVICE_ANNOTATIONS = "Additional annotations to add to the Service.";
     public static final String DOC_SERVICE_PORTS = "Additional ports to add to the Service.";

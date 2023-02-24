@@ -57,7 +57,7 @@ public class HelmTest extends BaseHelmTest {
             awaitInstalled();
 
             specs.get("operator").put("replicas", 3);
-            helmUpgrade(SerializationUtil.writeAsYaml(specs));
+            helmUpgrade(Chart.OPERATOR, SerializationUtil.writeAsYaml(specs));
 
             Awaitility.await().untilAsserted(() -> {
                 Assert.assertTrue(getOperatorPods().size() >= 3);

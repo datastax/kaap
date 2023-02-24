@@ -141,6 +141,8 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(getEnv(container, ZooKeeperResourcesFactory.DEFAULT_ENV))
+                .initContainers(spec.getInitContainers())
+                .sidecars(getSidecars(spec, ZooKeeperResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

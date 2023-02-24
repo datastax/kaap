@@ -34,9 +34,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -59,6 +57,15 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getBrokerBaseName();
+    }
+
+
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
     }
 
     private ConfigMap configMap;
@@ -245,35 +252,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
         }
-
-        List<Container> initContainers = new ArrayList<>();
-
-        if (spec.getInitContainer() != null) {
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName("lib-data")
-                            .withNewEmptyDir().endEmptyDir()
-                            .build()
-            );
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName("lib-data")
-                            .withMountPath(spec.getInitContainer().getEmptyDirPath())
-                            .build()
-            );
-            initContainers.add(new ContainerBuilder()
-                    .withName("add-libs")
-                    .withImage(spec.getInitContainer().getImage())
-                    .withImagePullPolicy(spec.getInitContainer().getImagePullPolicy())
-                    .withCommand(spec.getInitContainer().getCommand())
-                    .withArgs(spec.getInitContainer().getArgs())
-                    .withVolumeMounts(new VolumeMountBuilder()
-                            .withName("lib-data")
-                            .withMountPath(spec.getInitContainer().getEmptyDirPath())
-                            .build())
-                    .build());
-        }
-
         String mainArg = "";
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
         if (tlsEnabledOnBroker) {
@@ -321,26 +299,26 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         }
 
 
-        List<Container> containers = List.of(
-                new ContainerBuilder()
+        final Container mainContainer = new ContainerBuilder()
+                .withName(getMainContainerName(resourceName))
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withLivenessProbe(createLivenessProbe())
+                .withReadinessProbe(createReadinessProbe())
+                .withResources(spec.getResources())
+                .withCommand("sh", "-c")
+                .withArgs(mainArg)
+                .withPorts(containerPorts)
+                .withEnvFrom(new EnvFromSourceBuilder()
+                        .withNewConfigMapRef()
                         .withName(resourceName)
-                        .withImage(spec.getImage())
-                        .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(createLivenessProbe())
-                        .withReadinessProbe(createReadinessProbe())
-                        .withResources(spec.getResources())
-                        .withCommand("sh", "-c")
-                        .withArgs(mainArg)
-                        .withPorts(containerPorts)
-                        .withEnvFrom(new EnvFromSourceBuilder()
-                                .withNewConfigMapRef()
-                                .withName(resourceName)
-                                .endConfigMapRef()
-                                .build())
-                        .withVolumeMounts(volumeMounts)
-                        .withEnv(spec.getEnv())
-                        .build()
-        );
+                        .endConfigMapRef()
+                        .build())
+                .withVolumeMounts(volumeMounts)
+                .withEnv(spec.getEnv())
+                .build();
+        final List<Container> containers = getSidecars(spec.getSidecars());
+        containers.add(mainContainer);
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(resourceName)
@@ -374,7 +352,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
-                .withInitContainers(initContainers)
+                .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withContainers(containers)
                 .withVolumes(volumes)
                 .endSpec()

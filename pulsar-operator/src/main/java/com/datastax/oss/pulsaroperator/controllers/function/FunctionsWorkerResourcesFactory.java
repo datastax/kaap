@@ -69,6 +69,14 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         return globalSpec.getComponents().getFunctionsWorkerBaseName();
     }
 
+    public static List<String> getContainerNames(String resourceName) {
+        return List.of(getMainContainerName(resourceName));
+    }
+
+    private static String getMainContainerName(String resourceName) {
+        return resourceName;
+    }
+
     private ConfigMap configMap;
     private ConfigMap extraConfigMap;
 
@@ -379,33 +387,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         .build()
         );
 
-        List<Container> initContainers = new ArrayList<>();
-        if (spec.getInitContainer() != null) {
-            volumes.add(
-                    new VolumeBuilder()
-                            .withName("lib-data")
-                            .withNewEmptyDir().endEmptyDir()
-                            .build()
-            );
-            volumeMounts.add(
-                    new VolumeMountBuilder()
-                            .withName("lib-data")
-                            .withMountPath(spec.getInitContainer().getEmptyDirPath())
-                            .build()
-            );
-            initContainers.add(new ContainerBuilder()
-                    .withName("add-libs")
-                    .withImage(spec.getInitContainer().getImage())
-                    .withImagePullPolicy(spec.getInitContainer().getImagePullPolicy())
-                    .withCommand(spec.getInitContainer().getCommand())
-                    .withArgs(spec.getInitContainer().getArgs())
-                    .withVolumeMounts(new VolumeMountBuilder()
-                            .withName("lib-data")
-                            .withMountPath(spec.getInitContainer().getEmptyDirPath())
-                            .build())
-                    .build());
-        }
-
         String mainArg = "";
         if (isAuthTokenEnabled()) {
             mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
@@ -455,26 +436,26 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .endValueFrom()
                 .build());
 
-        List<Container> containers = List.of(
-                new ContainerBuilder()
-                        .withName(resourceName)
-                        .withImage(spec.getImage())
-                        .withImagePullPolicy(spec.getImagePullPolicy())
-                        .withLivenessProbe(createLivenessProbe())
-                        .withReadinessProbe(createReadinessProbe())
-                        .withResources(spec.getResources())
-                        .withCommand("sh", "-c")
-                        .withArgs(mainArg)
-                        .withPorts(containerPorts)
-                        .withEnv(env)
-                        .withEnvFrom(new EnvFromSourceBuilder()
-                                .withNewConfigMapRef()
-                                .withName("%s-extra".formatted(resourceName))
-                                .endConfigMapRef()
-                                .build())
-                        .withVolumeMounts(volumeMounts)
-                        .build()
-        );
+        final Container mainContainer = new ContainerBuilder()
+                .withName(getMainContainerName(resourceName))
+                .withImage(spec.getImage())
+                .withImagePullPolicy(spec.getImagePullPolicy())
+                .withLivenessProbe(createLivenessProbe())
+                .withReadinessProbe(createReadinessProbe())
+                .withResources(spec.getResources())
+                .withCommand("sh", "-c")
+                .withArgs(mainArg)
+                .withPorts(containerPorts)
+                .withEnv(env)
+                .withEnvFrom(new EnvFromSourceBuilder()
+                        .withNewConfigMapRef()
+                        .withName("%s-extra".formatted(resourceName))
+                        .endConfigMapRef()
+                        .build())
+                .withVolumeMounts(volumeMounts)
+                .build();
+        final List<Container> containers = getSidecars(spec.getSidecars());
+        containers.add(mainContainer);
 
 
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();
@@ -523,7 +504,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
-                .withInitContainers(initContainers)
+                .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withNewSecurityContext()
                 .withFsGroup(0L)
                 .endSecurityContext()

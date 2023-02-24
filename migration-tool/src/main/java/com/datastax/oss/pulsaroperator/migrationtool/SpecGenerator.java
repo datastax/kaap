@@ -85,6 +85,15 @@ public class SpecGenerator {
                 .get();
     }
 
+    @SneakyThrows
+    public static Path getGeneratedPulsarClusterJSONFileFromDir(File dir) {
+        return Files.list(dir.toPath())
+                .filter(p -> p.toFile().getName().startsWith(CRD_GENERATED_FIX + "-") && p.toFile().getName()
+                        .endsWith(".json"))
+                .findFirst()
+                .get();
+    }
+
 
     public SpecGenerator(String outputDirectory,
                          InputClusterSpecs inputSpecs) {

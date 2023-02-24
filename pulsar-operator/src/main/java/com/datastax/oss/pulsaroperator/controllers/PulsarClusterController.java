@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.utils.CertManagerCertificatesProvisioner;
 import com.datastax.oss.pulsaroperator.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
@@ -355,6 +356,15 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                     return true;
                 } else {
                     return false;
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debugf("detected diff in %s, updating resource. Diff:\nCurrent: %s\nNew: %s",
+                            customResourceName,
+                            SerializationUtil.writeAsJson(currentSpec),
+                            SerializationUtil.writeAsJson(spec));
+                } else {
+                    log.infof("detected diff in %s, updating resource", customResourceName);
                 }
             }
         }

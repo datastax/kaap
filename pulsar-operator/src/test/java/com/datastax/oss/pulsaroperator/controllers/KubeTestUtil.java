@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.controllers;
 
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -101,5 +102,14 @@ public class KubeTestUtil {
                     KubeTestUtil.assertVolumeMount(volumeMounts, secret,
                             "/pulsar/%s".formatted(secret), true);
                 });
+    }
+
+    public static Container getContainerByName(Collection<Container> containers, String name) {
+        for (Container container : containers) {
+            if (container.getName().equals(name)) {
+                return container;
+            }
+        }
+        return null;
     }
 }

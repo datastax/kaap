@@ -139,6 +139,8 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .serviceAccountName(spec.getServiceAccountName())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(container.getEnv())
+                .initContainers(spec.getInitContainers())
+                .sidecars(getSidecars(spec, BrokerResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

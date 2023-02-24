@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+set -e
 mvn_or_mvnd() {
   if command -v mvnd &> /dev/null; then
     mvn $mvnmod "$@"

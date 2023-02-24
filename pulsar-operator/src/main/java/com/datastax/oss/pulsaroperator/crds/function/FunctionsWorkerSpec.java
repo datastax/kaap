@@ -19,7 +19,6 @@ import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.InitContainerConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
@@ -135,8 +134,6 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     private ResourceRequirements resources;
     @JsonPropertyDescription("Service configuration.")
     private ServiceConfig service;
-    @JsonPropertyDescription("Additional init container.")
-    private InitContainerConfig initContainer;
     @JsonPropertyDescription("Volume configuration for export function logs.")
     private VolumeConfig logsVolume;
     @JsonPropertyDescription("Runtime mode for functions.")

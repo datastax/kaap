@@ -140,6 +140,8 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                 .imagePullSecrets(spec.getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(container.getEnv())
+                .initContainers(getInitContainers(spec, BookKeeperResourcesFactory.getInitContainerNames(resourceName)))
+                .sidecars(getSidecars(spec, BookKeeperResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

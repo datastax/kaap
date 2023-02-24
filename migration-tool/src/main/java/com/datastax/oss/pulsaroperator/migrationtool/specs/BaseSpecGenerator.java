@@ -388,7 +388,6 @@ public abstract class BaseSpecGenerator<T> {
     }
 
     protected List<EnvVar> getEnv(Container container, List<String> excludes) {
-
         final List<EnvVar> env = container.getEnv();
         if (env == null) {
             return null;
@@ -397,6 +396,31 @@ public abstract class BaseSpecGenerator<T> {
             return env;
         }
         return env.stream().filter(e -> !excludes.contains(e.getName()))
+                .collect(Collectors.toList());
+    }
+
+
+    protected List<Container> getInitContainers(PodSpec podSpec, List<String> excludes) {
+        final List<Container> initContainers = podSpec.getInitContainers();
+        if (initContainers == null) {
+            return null;
+        }
+        if (excludes == null) {
+            return initContainers;
+        }
+        return initContainers.stream().filter(e -> !excludes.contains(e.getName()))
+                .collect(Collectors.toList());
+    }
+
+    protected List<Container> getSidecars(PodSpec podSpec, List<String> excludes) {
+        final List<Container> initContainers = podSpec.getContainers();
+        if (initContainers == null) {
+            return null;
+        }
+        if (excludes == null) {
+            return initContainers;
+        }
+        return initContainers.stream().filter(e -> !excludes.contains(e.getName()))
                 .collect(Collectors.toList());
     }
 

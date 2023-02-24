@@ -46,6 +46,9 @@ public class LocalK3SContainer implements K8sEnv {
     private static final boolean DEBUG_LOG_CONTAINER = Boolean
             .getBoolean("pulsaroperator.tests.container.log.debug");
 
+    private static final boolean DOWNLOAD_PULSAR_IMAGE = Boolean
+            .getBoolean("pulsaroperator.tests.container.images.pulsar.download");
+
     private static final DockerClient hostDockerClient = DockerClientFactory.lazyClient();
 
     public static class ReusableK3sContainer<T extends ReusableK3sContainer<T>> extends K3sContainer<T> {
@@ -79,13 +82,17 @@ public class LocalK3SContainer implements K8sEnv {
 
 
         public void beforeStartHelm3(Consumer<Helm3Container> consumer) {
+            if (helm3 != null) {
+                throw new IllegalStateException("helm already started!");
+            }
             helm3ContainerConsumer = consumer;
         }
 
         @Override
         public synchronized Helm3Container<?> helm3() {
             if (this.helm3 == null) {
-                this.helm3 = (Helm3Container) (new Helm3Container(DockerImageName.parse("alpine/helm:3.7.2"), this::getInternalKubeconfig))
+                this.helm3 = (Helm3Container) (new Helm3Container(DockerImageName.parse("alpine/helm:3.7.2"),
+                        this::getInternalKubeconfig))
                         .withNetworkMode("container:" + this.getContainerId());
                 if (helm3ContainerConsumer != null) {
                     helm3ContainerConsumer.accept(helm3);
@@ -112,21 +119,41 @@ public class LocalK3SContainer implements K8sEnv {
     public void start() {
         boolean containerWasNull = container == null;
         if (containerWasNull) {
+            log.info("Creating new K3s container");
             final KubernetesImageSpec<K3sContainerVersion> k3sImage =
                     new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
                             .withImage("rancher/k3s:v1.25.3-k3s1");
             container = new ReusableK3sContainer(k3sImage);
-            CompletableFuture.allOf(
-                    createAndMountImageDigest(BaseK8sEnvTest.OPERATOR_IMAGE),
-                    createAndMountImageDigest(BaseK8sEnvTest.PULSAR_IMAGE)
-            ).get();
+            if (DOWNLOAD_PULSAR_IMAGE) {
+                CompletableFuture.allOf(
+                        createAndMountImageDigest(BaseK8sEnvTest.OPERATOR_IMAGE)
+                ).get();
+            } else {
+                CompletableFuture.allOf(
+                        createAndMountImageDigest(BaseK8sEnvTest.OPERATOR_IMAGE),
+                        createAndMountImageDigest(BaseK8sEnvTest.PULSAR_IMAGE)
+                ).get();
+            }
+
+
+        } else {
+            log.info("Reusing existing K3s container");
         }
         container.start();
         printDebugInfo();
-        CompletableFuture.allOf(
-                restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
-                restoreDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE)
-        ).get();
+        if (DOWNLOAD_PULSAR_IMAGE) {
+            CompletableFuture.allOf(
+                    restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
+                    downloadDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE, container)
+            ).get();
+
+        } else {
+            CompletableFuture.allOf(
+                    restoreDockerImageInK3s(BaseK8sEnvTest.OPERATOR_IMAGE),
+                    restoreDockerImageInK3s(BaseK8sEnvTest.PULSAR_IMAGE)
+            ).get();
+        }
+
         container.followOutput((Consumer<OutputFrame>) outputFrame -> {
             if (DEBUG_LOG_CONTAINER) {
                 log.debug("k3s > {}", outputFrame.getUtf8String());
@@ -152,7 +179,10 @@ public class LocalK3SContainer implements K8sEnv {
 
     @Override
     public void cleanup() {
-        close();
+        if (container.helm3 != null) {
+            container.helm3.stop();
+            container.helm3 = null;
+        }
     }
 
     @Override
@@ -202,11 +232,8 @@ public class LocalK3SContainer implements K8sEnv {
                             long start = System.currentTimeMillis();
                             log.info("Local image {} digest not found in {}, generating", image,
                                     imageBinPath.toFile().getAbsolutePath());
-                            final InputStream saved = hostDockerClient.saveImageCmd(image).exec();
-                            try {
-                                Files.copy(saved, imageBinPath, StandardCopyOption.REPLACE_EXISTING);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
+                            try (final InputStream saved = hostDockerClient.saveImageCmd(image).exec();) {
+                                writeImage(saved, imageBinPath);
                             }
                             log.info("Local image {} digest generated in {} ms", image,
                                     (System.currentTimeMillis() - start));
@@ -259,15 +286,48 @@ public class LocalK3SContainer implements K8sEnv {
         });
     }
 
+
     @SneakyThrows
-    public static String getTmpKubeConfig(K3sContainer container) {
+    private static void writeImage(InputStream image, Path target) {
+        Files.copy(image, target, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    @SneakyThrows
+    protected static CompletableFuture<Void> downloadDockerImageInK3s(String imageName, GenericContainer container) {
+        return CompletableFuture.runAsync(new Runnable() {
+            @Override
+            @SneakyThrows
+            public void run() {
+                log.info("Downloading docker image {} in k3s", imageName);
+                long start = System.currentTimeMillis();
+                final Container.ExecResult execResult;
+                try {
+                    if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
+                        log.info("Image {} already exists in the k3s", imageName);
+                        return;
+                    }
+                    execResult = container.execInContainer("ctr", "images", "pull", "docker.io/" + imageName);
+                    if (execResult.getExitCode() != 0) {
+                        throw new RuntimeException("ctr images download failed: " + execResult.getStderr());
+                    }
+                    log.info("Downloaded docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        });
+    }
+
+    @SneakyThrows
+    private static String getTmpKubeConfig(K3sContainer container) {
         File tmpKubeConfig = Paths.get("/tmp", "pulsaroperator-local-k3s-kube-config").toFile();
         tmpKubeConfig.deleteOnExit();
         Files.writeString(tmpKubeConfig.toPath(), container.getKubeconfig());
         return tmpKubeConfig.getAbsolutePath();
     }
 
-    protected void printDebugInfo() {
+    private void printDebugInfo() {
         log.info("export KUBECONFIG={}", getTmpKubeConfig(container));
     }
 

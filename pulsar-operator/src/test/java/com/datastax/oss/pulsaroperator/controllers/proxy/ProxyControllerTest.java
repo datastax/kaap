@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -898,6 +899,96 @@ public class ProxyControllerTest {
     }
 
     @Test
+    public void testInitContainers() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    initContainers:
+                        - name: myinit
+                          image: myimage:latest
+                          command: ["echo test"]
+                          volumeMounts:
+                            - name: certs
+                              mountPath: /pulsar/certs
+                              readOnly: true
+                          resources:
+                            requests:
+                              cpu: 100m
+                              memory: 128Mi
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final List<Container> initContainers = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate().getSpec().getInitContainers();
+        Assert.assertEquals(initContainers.size(), 1);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(initContainers.get(0)),
+                """
+                        ---
+                        command:
+                        - echo test
+                        image: myimage:latest
+                        name: myinit
+                        resources:
+                          requests:
+                            cpu: 100m
+                            memory: 128Mi
+                        volumeMounts:
+                        - mountPath: /pulsar/certs
+                          name: certs
+                          readOnly: true
+                        """
+        );
+    }
+
+
+    @Test
+    public void testSidecars() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    sidecars:
+                        - name: mycontainer
+                          image: myimage:latest
+                          command: ["echo test"]
+                          volumeMounts:
+                            - name: certs
+                              mountPath: /pulsar/certs
+                              readOnly: true
+                          resources:
+                            requests:
+                              cpu: 100m
+                              memory: 128Mi
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final List<Container> containers = client.getCreatedResource(Deployment.class)
+                .getResource().getSpec().getTemplate().getSpec().getContainers();
+        Assert.assertEquals(containers.size(), 3);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        KubeTestUtil.getContainerByName(containers, "mycontainer")),
+                """
+                        ---
+                        command:
+                        - echo test
+                        image: myimage:latest
+                        name: mycontainer
+                        resources:
+                          requests:
+                            cpu: 100m
+                            memory: 128Mi
+                        volumeMounts:
+                        - mountPath: /pulsar/certs
+                          name: certs
+                          readOnly: true
+                        """
+        );
+    }
+
+    @Test
     public void testImagePullSecrets() throws Exception {
         String spec = """
                 global:
@@ -1415,26 +1506,6 @@ public class ProxyControllerTest {
         Assert.assertNull(service.getResource().getSpec().getClusterIP());
         Assert.assertEquals(service.getResource().getSpec().getType(), "ClusterIP");
         Assert.assertEquals(service.getResource().getSpec().getLoadBalancerIP(), "10.11.11.11");
-
-        final MockKubernetesClient.ResourceInteraction<Deployment> deployment =
-                client.getCreatedResource(Deployment.class);
-
-        Assert.assertEquals(
-                deployment.getResource()
-                        .getSpec()
-                        .getTemplate()
-                        .getSpec()
-                        .getContainers()
-                        .get(0)
-                        .getPorts()
-                        .stream()
-                        .filter(p -> "myport1".equals(p.getName()))
-                        .findFirst()
-                        .get()
-                        .getContainerPort()
-                        .intValue(),
-                3333
-        );
     }
 
     @Test

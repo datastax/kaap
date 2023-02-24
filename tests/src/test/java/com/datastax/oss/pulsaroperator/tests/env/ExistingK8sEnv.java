@@ -123,7 +123,7 @@ public class ExistingK8sEnv implements K8sEnv {
     @Override
     public Helm3Container helmContainer() {
         if (helm3Container == null) {
-            return helmContainer();
+            return withHelmContainer(null);
         }
         return helm3Container;
     }
@@ -132,6 +132,7 @@ public class ExistingK8sEnv implements K8sEnv {
     public void cleanup() {
         if (helm3Container != null) {
             helm3Container.stop();
+            helm3Container = null;
         }
     }
 

@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +36,8 @@ import org.testng.annotations.BeforeMethod;
 public class BaseHelmTest extends BasePulsarClusterTest {
 
     private static final String HELM_RELEASE_PREFIX = "pothr-";
+    public static final String HELM_BIND_PULSAR_OPERATOR = "/helm-pulsar-operator";
+    public static final String HELM_BIND_PULSAR_STACK = "/helm-pulsar-stack";
     protected String helmReleaseName;
 
     public enum Chart {
@@ -49,6 +50,13 @@ public class BaseHelmTest extends BasePulsarClusterTest {
         helmReleaseName = HELM_RELEASE_PREFIX
                 + namespace + "-r-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
         cleanupNonNamespaceableResources();
+        env.withHelmContainer(helm -> {
+            final Path operatorPath = Paths.get("..", "helm", "pulsar-operator");
+            final Path stackPath = Paths.get("..", "helm", "pulsar-stack");
+            helm.withFileSystemBind(operatorPath.toFile().getAbsolutePath(), HELM_BIND_PULSAR_OPERATOR);
+            helm.withFileSystemBind(stackPath.toFile().getAbsolutePath(), HELM_BIND_PULSAR_STACK);
+            log.info("loaded helm charts from {} and {}", operatorPath, stackPath);
+        });
     }
 
 
@@ -63,33 +71,34 @@ public class BaseHelmTest extends BasePulsarClusterTest {
 
     @SneakyThrows
     protected void helmInstall(Chart chart, String values) {
-        final Path helmHome;
-        if (chart == Chart.OPERATOR) {
-            helmHome = Paths.get("..", "helm", "pulsar-operator");
-        } else {
-            helmHome = Paths.get("..", "helm", "pulsar-stack");
-        }
-        final Helm3Container helm3Container = env.withHelmContainer((Consumer<Helm3Container>) helm -> {
-            helm.withFileSystemBind(helmHome.toFile().getAbsolutePath(), "/helm-pulsar-operator");
-        });
+
+        final Helm3Container helm3Container = env.helmContainer();
         helm3Container.copyFileToContainer(Transferable.of(values), "/test-values.yaml");
 
         helm3Container.execInContainer("helm", "delete", helmReleaseName, "-n", namespace);
         final String cmd =
-                "helm install --debug --timeout 360s %s -n %s /helm-pulsar-operator --values /test-values.yaml".formatted(
-                        helmReleaseName, namespace);
+                "helm install --debug --timeout 360s %s -n %s %s --values /test-values.yaml".formatted(
+                        helmReleaseName, namespace, getChartPath(chart));
         final Container.ExecResult exec = helm3Container.execInContainer(cmd.split(" "));
         if (exec.getExitCode() != 0) {
             throw new RuntimeException("Helm installation failed: " + exec.getStderr());
         }
     }
 
+    private static String getChartPath(Chart chart) {
+        if (chart == Chart.OPERATOR) {
+            return HELM_BIND_PULSAR_OPERATOR;
+        } else {
+            return HELM_BIND_PULSAR_STACK;
+        }
+    }
+
     @SneakyThrows
-    protected void helmUpgrade(String values) {
+    protected void helmUpgrade(Chart chart, String values) {
         env.helmContainer().copyFileToContainer(Transferable.of(values), "/test-values.yaml");
         final String cmd =
-                "helm upgrade %s -n %s /helm-pulsar-operator --values /test-values.yaml"
-                        .formatted(helmReleaseName, namespace);
+                "helm upgrade %s -n %s %s --values /test-values.yaml"
+                        .formatted(helmReleaseName, namespace, getChartPath(chart));
         final Container.ExecResult exec = env.helmContainer().execInContainer(cmd.split(" "));
         if (exec.getExitCode() != 0) {
             throw new RuntimeException("Helm upgrade failed: " + exec.getStderr());

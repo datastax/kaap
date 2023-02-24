@@ -26,23 +26,38 @@ mvn_or_mvnd() {
   fi
 }
 
+wait_container() {
+  local container_name=$1
+  echo "check for the container $container_name to be up and running"
+  while true; do
+    if docker inspect -f '{{.State.Running}}' $container_name 2>&1 | grep -q true; then
+      break
+    fi
+    echo "waiting for the container $container_name to be up and running"
+    sleep 1
+  done
+}
+
 wait_image() {
   local image_name=$1
-  docker_output=""
-  while $(echo $docker_output | grep -q -v "$image_name"); do
+  echo "check for the local k3s server to load image $image_name"
+  while true; do
     docker_output=$(docker exec -it pulsaroperator-local-k3s ctr -a /run/k3s/containerd/containerd.sock image ls 2>&1)
-    echo "waiting for the local k3s server to load image $image_name";
-    sleep 2
+    if (echo "$docker_output" | grep -q $image_name); then
+        break
+    fi
+    echo "waiting for the local k3s server to load image $image_name"
+    sleep 1
   done
 }
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 
+wait_container pulsaroperator-local-k3s
 wait_image lunastreaming-operator
 wait_image lunastreaming
 
-export KUBECONFIG=/tmp/pulsaroperator-local-k3s-kube-config
 mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dpulsaroperator.tests.env.existing \
-  -Dpulsaroperator.tests.existingenv.kubeconfig.context=default \
+  -Dpulsaroperator.tests.existingenv.kubeconfig.context=pulsaroperator-local-k3s \
   -Dpulsaroperator.tests.existingenv.helmcontainer.network=pulsaroperator-local-k3s-network \
   -Dpulsaroperator.tests.existingenv.kubeconfig.overrideserver="https://pulsaroperator-local-k3s:6443" \
   -Dpulsaroperator.tests.existingenv.storageclass=local-path "$@"

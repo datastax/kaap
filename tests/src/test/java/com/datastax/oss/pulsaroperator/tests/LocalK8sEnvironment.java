@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,8 +46,6 @@ import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testng.annotations.Test;
 
@@ -59,7 +56,8 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static final boolean DEPLOY_OPERATOR_IMAGE = true;
 
     // not needed if you use quarkus dev mode
-    private static final boolean DEPLOY_PULSAR_IMAGE = false;
+    private static final boolean DOWNLOAD_PULSAR_IMAGE =
+            Boolean.getBoolean("pulsaroperator.tests.container.pulsar.download");
 
     public static final String NETWORK = "pulsaroperator-local-k3s-network";
     public static final String CONTAINER_NAME = "pulsaroperator-local-k3s";
@@ -97,7 +95,6 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
             container.kubectl().create.namespace.run("ns");
             log.info("To see k3s logs: docker logs {}", container.getContainerName());
             log.info("You can now access the K8s cluster, namespace 'ns'.");
-            final String tmpKubeConfig = getTmpKubeConfig(container);
             final Config containerKubeConfig = KubeConfigUtils.parseConfigFromString(container.getKubeconfig());
             addClusterToUserKubeConfig(containerKubeConfig);
             log.info("Checkout 'local-k3s-*' scripts at tests/src/test/scripts.");
@@ -110,7 +107,13 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void addClusterToUserKubeConfig(Config containerKubeConfig) {
         final File defaultKubeConfigPath = Paths.get(System.getProperty("user.home"), ".kube", "config")
                 .toFile();
-        final Config currentKubeConfig = KubeConfigUtils.parseConfig(defaultKubeConfigPath);
+        final Config currentKubeConfig;
+        if (defaultKubeConfigPath.exists()) {
+            currentKubeConfig = KubeConfigUtils.parseConfig(defaultKubeConfigPath);
+        } else {
+            defaultKubeConfigPath.createNewFile();
+            currentKubeConfig = new Config();
+        }
 
         final String clusterName = CONTAINER_NAME;
         boolean foundCluster = false;
@@ -193,7 +196,7 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void createAndMountImages(K3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
-        if (DEPLOY_PULSAR_IMAGE) {
+        if (!DOWNLOAD_PULSAR_IMAGE) {
             all.add(createAndMountImageDigest(PULSAR_IMAGE, container));
         }
         if (DEPLOY_OPERATOR_IMAGE) {
@@ -209,7 +212,7 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     private static void restoreImages(K3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
-        if (DEPLOY_PULSAR_IMAGE) {
+        if (!DOWNLOAD_PULSAR_IMAGE) {
             all.add(restoreDockerImageInK3s(PULSAR_IMAGE, container));
         } else {
             all.add(downloadDockerImageInK3s(PULSAR_IMAGE, container));
@@ -223,35 +226,6 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
                 })
                 .join();
     }
-
-
-    @SneakyThrows
-    protected static CompletableFuture<Void> downloadDockerImageInK3s(String imageName, GenericContainer container) {
-        return CompletableFuture.runAsync(new Runnable() {
-            @Override
-            @SneakyThrows
-            public void run() {
-                log.info("Downloading docker image {} in k3s", imageName);
-                long start = System.currentTimeMillis();
-                final Container.ExecResult execResult;
-                try {
-                    if (container.execInContainer("ctr", "images", "list").getStdout().contains(imageName)) {
-                        log.info("Image {} already exists in the k3s", imageName);
-                        return;
-                    }
-                    execResult = container.execInContainer("ctr", "images", "pull", "docker.io/" + imageName);
-                    if (execResult.getExitCode() != 0) {
-                        throw new RuntimeException("ctr images download failed: " + execResult.getStderr());
-                    }
-                    log.info("Downloaded docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        });
-    }
-
 
     public static class GenerateImageDigest {
 

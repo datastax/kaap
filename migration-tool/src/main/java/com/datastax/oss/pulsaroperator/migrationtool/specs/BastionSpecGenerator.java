@@ -111,6 +111,8 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
                 .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(container.getEnv())
+                .initContainers(spec.getInitContainers())
+                .sidecars(getSidecars(spec, BastionResourcesFactory.getContainerNames(resourceName)))
                 .build();
     }
 

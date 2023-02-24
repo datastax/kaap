@@ -17,13 +17,12 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
-import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -38,6 +37,7 @@ import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,6 +56,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -72,11 +73,11 @@ public abstract class BaseK8sEnvTest {
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("pulsaroperator.tests.env.existing");
 
     private static final boolean REUSE_ENV = Boolean
-            .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "false"));
+            .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "true"));
     protected static final int DEFAULT_AWAIT_SECONDS = 360;
 
     protected String namespace;
-    protected K8sEnv env;
+    protected static K8sEnv env;
     protected KubernetesClient client;
     private Watch eventsWatch;
     private String rbacManifest;
@@ -97,16 +98,19 @@ public abstract class BaseK8sEnvTest {
     }
 
     @BeforeMethod(alwaysRun = true)
-    public void before() throws Exception {
+    public void before(Method testMethod) throws Exception {
         setDefaultAwaitilityTimings();
 
         namespace = "pulsar-operator-test-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
-        log.info("Starting test using existing env: {}", USE_EXISTING_ENV);
+        log.info("Starting test {}.{} using existing env: {}, reuse env: {}", testMethod.getDeclaringClass().getName(),
+                testMethod.getName(), USE_EXISTING_ENV, REUSE_ENV);
 
-        if (USE_EXISTING_ENV) {
-            env = new ExistingK8sEnv();
-        } else {
-            env = new LocalK3SContainer();
+        if (env == null || !REUSE_ENV) {
+            if (USE_EXISTING_ENV) {
+                env = new ExistingK8sEnv();
+            } else {
+                env = new LocalK3SContainer();
+            }
         }
         env.start();
         log.info("Using namespace: {} env {}", namespace, env.getConfig().getCurrentContext().getName());
@@ -245,14 +249,20 @@ public abstract class BaseK8sEnvTest {
     }
 
     @AfterMethod(alwaysRun = true)
-    public void after() throws Exception {
+    public void after(ITestResult testResult) throws Exception {
+        log.info("test {}: {}", testResult.getMethod().getMethodName(), testResult.isSuccess() ? "SUCCESS"
+                : "FAILED");
+        if (testResult.getThrowable() != null) {
+            log.error("Test {} failed with: {}", testResult.getMethod().getMethodName(),
+                    testResult.getThrowable().getMessage(), testResult.getThrowable());
+        }
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
             log.info("cleaning up namespace {}", namespace);
             if (client != null) {
                 deleteRBACManifests();
                 deleteOperatorDeploymentAndCRDs();
                 deleteCRDsSync();
-                client.namespaces().withName(namespace).delete();
+                deleteNamespaceSync();
             }
             env.cleanup();
         }
@@ -266,6 +276,23 @@ public abstract class BaseK8sEnvTest {
         if (!REUSE_ENV && env != null) {
             env.close();
         }
+    }
+
+    private void deleteNamespaceSync() {
+        client.namespaces().withName(namespace).delete();
+        client.pods().inNamespace(namespace).delete();
+        Awaitility.await().untilAsserted(() -> {
+            List<String> pods = client.pods()
+                    .inNamespace(namespace)
+                    .list()
+                    .getItems()
+                    .stream()
+                    .map(Pod::getMetadata)
+                    .map(ObjectMeta::getName)
+                    .collect(Collectors.toList());
+            log.info("pods in namespace {} after cleanup: {}", namespace, pods);
+            Assert.assertEquals(pods.size(), 0);
+        });
     }
 
     private void deleteCRDsSync() {
@@ -300,6 +327,7 @@ public abstract class BaseK8sEnvTest {
         log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
                 Collectors.toList()));
     }
+
     protected void printPodLogs(String podName) {
         printPodLogs(podName, 300);
     }
@@ -310,13 +338,14 @@ public abstract class BaseK8sEnvTest {
                 client.pods().inNamespace(namespace)
                         .withName(podName)
                         .get().getSpec().getContainers().forEach(container -> {
-                            final String sep = "=".repeat(300);
+                            final String sep = "=".repeat(100);
                             final String containerLog = client.pods().inNamespace(namespace)
                                     .withName(podName)
                                     .inContainer(container.getName())
                                     .tailingLines(tailingLines)
                                     .getLog();
-                            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName, container.getName(),
+                            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName,
+                                    container.getName(),
                                     tailingLines, containerLog, sep, sep);
                         });
 
@@ -340,35 +369,6 @@ public abstract class BaseK8sEnvTest {
         client.load(new ByteArrayInputStream(manifest))
                 .inNamespace(namespace)
                 .createOrReplace();
-    }
-
-    protected void applyPulsarCluster(String content) {
-        final PulsarCluster pulsarCluster = client.resources(PulsarCluster.class)
-                .inNamespace(namespace)
-                .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
-                .createOrReplace();
-
-        Awaitility.await("waiting for pulsar cluster to be ready")
-                .until(() -> {
-                    final List<Condition> conditions = client.resources(PulsarCluster.class)
-                            .inNamespace(namespace)
-                            .withName(pulsarCluster.getMetadata().getName())
-                            .get().getStatus()
-                            .getConditions();
-                    final Condition readyCondition =
-                            conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
-                                    .findAny().orElse(null);
-                    if (readyCondition == null) {
-                        return false;
-                    }
-                    if (readyCondition.getStatus().equals(CRDConstants.CONDITIONS_STATUS_TRUE)) {
-                        return true;
-                    }
-                    log.info("Pulsar cluster not ready, reason: {}", readyCondition.getReason());
-                    printPodLogs(getOperatorPodName(), 5);
-                    return false;
-                });
-
     }
 
     @SneakyThrows

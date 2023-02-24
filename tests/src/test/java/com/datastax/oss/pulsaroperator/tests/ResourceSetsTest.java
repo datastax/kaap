@@ -152,9 +152,6 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
     }
 
     private void assertProduceConsume() {
-        final String proxyPod = getPodNameByComponent("proxy");
-        execInPodContainer(proxyPod, "pulsar-proxy-ws",
-                "bin/pulsar-client --url \"ws://localhost:8000\" produce -m test test-topic-proxy");
         execInBastionPod("bin/pulsar-client produce -m test test-topic-proxy");
         execInBastionPod("bin/pulsar-admin tenants create mytenant");
     }

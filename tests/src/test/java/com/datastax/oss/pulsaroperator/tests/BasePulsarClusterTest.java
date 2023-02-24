@@ -207,7 +207,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 "cpu", 0.001d
                         )
                 ))
-                .probes(probe)
+                // default probe
                 .build());
         return defaultSpecs;
     }

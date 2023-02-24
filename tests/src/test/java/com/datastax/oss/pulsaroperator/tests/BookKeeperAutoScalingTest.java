@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 
 @Slf4j
 @Test(groups = "scaling")
-public class AutoScalingTest extends BasePulsarClusterTest {
+public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
 
     @Test
     public void testAutoscaling() throws Exception {

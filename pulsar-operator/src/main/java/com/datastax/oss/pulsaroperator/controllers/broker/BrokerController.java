@@ -18,7 +18,6 @@ package com.datastax.oss.pulsaroperator.controllers.broker;
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
-import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
@@ -59,7 +58,6 @@ public class BrokerController extends AbstractController<Broker> {
         private final String name;
         private final BrokerSetSpec setSpec;
         private final BrokerResourcesFactory brokerResourcesFactory;
-        private final boolean needDedicatedService;
 
 
     }
@@ -115,10 +113,7 @@ public class BrokerController extends AbstractController<Broker> {
                     resourcesFactory = new BrokerResourcesFactory(
                     client, namespace, brokerSetName, brokerSetSpec,
                     spec.getGlobal(), ownerReference);
-
-            boolean needDedicatedService =
-                    !SpecDiffer.specsAreEquals(brokerSetSpec.getService(), mainBrokerSpec.getService());
-            result.add(new BrokerSetInfo(brokerSetName, brokerSetSpec, resourcesFactory, needDedicatedService));
+            result.add(new BrokerSetInfo(brokerSetName, brokerSetSpec, resourcesFactory));
         }
         return result;
     }
@@ -149,9 +144,7 @@ public class BrokerController extends AbstractController<Broker> {
         resourcesFactory.patchPodDisruptionBudget();
         resourcesFactory.patchConfigMap();
         resourcesFactory.patchStatefulSet();
-        if (brokerSetInfo.isNeedDedicatedService()) {
-            resourcesFactory.patchService();
-        }
+        resourcesFactory.patchService();
     }
 
     private ReconciliationResult checkReady(Broker resource,

@@ -73,8 +73,12 @@ public class BrokerSetsControllerTest {
         assertPdbEqualsDefault("set2",
                 client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-broker-set2").getResource());
 
+        Assert.assertEquals(client.getCreatedResources(Service.class).size(), 3);
 
-        Assert.assertEquals(client.getCreatedResources(Service.class).size(), 1);
+        assertServiceEqualsDefault("set1",
+                client.getCreatedResource(Service.class, "pulsarname-broker-set1").getResource());
+        assertServiceEqualsDefault("set2",
+                client.getCreatedResource(Service.class, "pulsarname-broker-set2").getResource());
     }
 
 
@@ -90,6 +94,12 @@ public class BrokerSetsControllerTest {
                         common: commonvalue
                     sets:
                       set1:
+                        service:
+                            annotations:
+                                externaldns: myset1
+                            additionalPorts:
+                              - name: customport
+                                port: 8888
                         replicas: 3
                         config:
                             myname: set1
@@ -143,102 +153,26 @@ public class BrokerSetsControllerTest {
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 1);
-    }
 
-
-    @Test
-    public void testDedicatedService() throws Exception {
-        String spec = """
-                global:
-                    name: pulsarname
-                    image: apachepulsar/pulsar:global
-                broker:
-                    annotations:
-                      externaldns: common
-                    sets:
-                      set1:
-                        service:
-                            annotations:
-                                externaldns: myset1
-                            additionalPorts:
-                              - name: customport
-                                port: 8888
-                  
-                      set2: {}
-                """;
-        MockKubernetesClient client = invokeController(spec);
-        Assert.assertEquals(client.getCreatedResources(Service.class).size(), 2);
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker")
-                        .getResourceYaml(),
-                """
-                        ---
-                        apiVersion: v1
-                        kind: Service
-                        metadata:
-                          labels:
-                            app: pulsar
-                            cluster: pulsarname
-                            component: broker
-                            resource-set: broker
-                          name: pulsarname-broker
-                          namespace: ns
-                          ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
-                            kind: Broker
-                            blockOwnerDeletion: true
-                            controller: true
-                            name: pulsarname-cr
-                        spec:
-                          clusterIP: None
-                          ports:
-                          - name: http
-                            port: 8080
-                          - name: pulsar
-                            port: 6650
-                          selector:
-                            app: pulsar
-                            cluster: pulsarname
-                            component: broker
-                          type: ClusterIP
-                        """);
         Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker-set1")
-                        .getResourceYaml(),
-                """
-                        ---
-                        apiVersion: v1
-                        kind: Service
-                        metadata:
-                          annotations:
-                            externaldns: myset1
-                          labels:
-                            app: pulsar
-                            cluster: pulsarname
-                            component: broker
-                            resource-set: set1
-                          name: pulsarname-broker-set1
-                          namespace: ns
-                          ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
-                            kind: Broker
-                            blockOwnerDeletion: true
-                            controller: true
-                            name: pulsarname-cr
-                        spec:
-                          clusterIP: None
-                          ports:
-                          - name: http
-                            port: 8080
-                          - name: pulsar
-                            port: 6650
-                          - name: customport
-                            port: 8888
-                          selector:
-                            app: pulsar
-                            cluster: pulsarname
-                            component: broker
-                            resource-set: set1
-                          type: ClusterIP
-                        """);
+                .getResource()
+                .getMetadata()
+                .getAnnotations().get("externaldns"), "myset1");
+
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker-set1")
+                .getResource()
+                .getSpec()
+                .getPorts().size(), 3);
+
+        Assert.assertNull(client.getCreatedResource(Service.class, "pulsarname-broker-set2")
+                .getResource()
+                .getMetadata()
+                .getAnnotations());
+
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker-set2")
+                .getResource()
+                .getSpec()
+                .getPorts().size(), 2);
     }
 
     private void assertStsEqualsDefault(String setName, StatefulSet sts) {
@@ -317,6 +251,26 @@ public class BrokerSetsControllerTest {
         defaultPdb.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(pdb), SerializationUtil.writeAsYaml(defaultPdb));
+    }
+
+    private void assertServiceEqualsDefault(String setName, Service service) {
+        final Service defaultService = invokeController("""
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                """).getCreatedResource(Service.class).getResource();
+        final String resourceName = CLUSTER_NAME + "-broker-" + setName;
+        Assert.assertEquals(service.getMetadata().getName(), resourceName);
+        Assert.assertEquals(service.getMetadata().getLabels().get(CRDConstants.LABEL_RESOURCESET), setName);
+        Assert.assertEquals(service.getSpec().getSelector().get(CRDConstants.LABEL_RESOURCESET), setName);
+        service.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        service.getSpec().getSelector().remove(CRDConstants.LABEL_RESOURCESET);
+
+        final String defaultResourceName = defaultService.getMetadata().getName();
+        service.getMetadata().setName(defaultResourceName);
+        defaultService.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(service), SerializationUtil.writeAsYaml(defaultService));
     }
 
     private void assertResourceSetLabel(StatefulSet sts, String value) {

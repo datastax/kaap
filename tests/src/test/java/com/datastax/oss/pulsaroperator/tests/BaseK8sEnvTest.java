@@ -486,4 +486,15 @@ public abstract class BaseK8sEnvTest {
                 .getMetadata()
                 .getName();
     }
+
+    protected String getPodNameByLabels(Map<String, String> labels) {
+        return client.pods()
+                .inNamespace(namespace)
+                .withLabels(labels)
+                .list()
+                .getItems()
+                .get(0)
+                .getMetadata()
+                .getName();
+    }
 }

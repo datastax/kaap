@@ -23,6 +23,7 @@ public final class CRDConstants {
     public static final String LABEL_APP_VALUE = "pulsar";
     public static final String LABEL_COMPONENT = "component";
     public static final String LABEL_CLUSTER = "cluster";
+    public static final String LABEL_RESOURCESET = "resource-set";
 
     public static final String CONDITIONS_STATUS_TRUE = "True";
     public static final String CONDITIONS_STATUS_FALSE = "False";

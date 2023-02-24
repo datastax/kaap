@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.tests;
 
-import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +34,7 @@ public class FunctionsTest extends BasePulsarClusterTest {
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
         specs.getZookeeper().setReplicas(1);
         specs.getBroker().setConfig(
-                BaseComponentSpec.mergeMaps(specs.getBroker().getConfig(),
+                ConfigUtil.mergeMaps(specs.getBroker().getConfig(),
                         Map.of(
                                 "managedLedgerDefaultAckQuorum", "1",
                                 "managedLedgerDefaultEnsembleSize", "1",

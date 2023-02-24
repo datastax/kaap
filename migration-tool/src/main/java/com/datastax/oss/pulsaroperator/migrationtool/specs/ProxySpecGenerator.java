@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenerator;
@@ -54,7 +55,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
         super(inputSpecs, client);
         final String clusterName = inputSpecs.getClusterName();
         resourceName = ProxyResourcesFactory.getResourceName(clusterName,
-                inputSpecs.getProxy().getBaseName());
+                inputSpecs.getProxy().getBaseName(), ProxyResourcesFactory.PROXY_DEFAULT_SET);
         internalGenerateSpec();
     }
 
@@ -96,16 +97,16 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 .getSpec();
         final Container mainContainer = getContainerByName(spec.getContainers(), resourceName);
         final Container wsContainer = getContainerByName(spec.getContainers(), resourceName + "-ws");
-        final ProxySpec.WebSocketConfig wsConfig;
+        final ProxySetSpec.WebSocketConfig wsConfig;
         if (wsContainer != null) {
-            wsConfig = ProxySpec.WebSocketConfig.builder()
+            wsConfig = ProxySetSpec.WebSocketConfig.builder()
                     .enabled(true)
                     .resources(wsContainer.getResources())
                     .config(convertConfigMapData(configMapWs))
                     .probes(createProbeConfig(wsContainer))
                     .build();
         } else {
-            wsConfig = ProxySpec.WebSocketConfig.builder()
+            wsConfig = ProxySetSpec.WebSocketConfig.builder()
                     .enabled(false)
                     .build();
         }
@@ -214,14 +215,14 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 .build();
     }
 
-    private ProxySpec.ServiceConfig createServiceConfig(Service service) {
+    private ProxySetSpec.ServiceConfig createServiceConfig(Service service) {
         Map<String, String> annotations = service.getMetadata().getAnnotations();
         if (annotations == null) {
             annotations = new HashMap<>();
         }
         boolean hasPlainTextPort = service.getSpec().getPorts().stream()
                 .filter(p -> p.getPort() == ProxyResourcesFactory.DEFAULT_HTTP_PORT).findFirst().isPresent();
-        return ProxySpec.ServiceConfig.builder()
+        return ProxySetSpec.ServiceConfig.builder()
                 .annotations(annotations)
                 .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
                         ProxyResourcesFactory.DEFAULT_HTTP_PORT,

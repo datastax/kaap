@@ -77,13 +77,21 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         return resourceName;
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
+    }
+
     private ConfigMap configMap;
     private ConfigMap extraConfigMap;
 
     public FunctionsWorkerResourcesFactory(KubernetesClient client, String namespace,
                                            FunctionsWorkerSpec spec, GlobalSpec global,
                                            OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

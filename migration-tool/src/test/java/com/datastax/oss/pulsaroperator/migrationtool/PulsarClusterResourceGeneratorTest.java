@@ -65,7 +65,7 @@ public class PulsarClusterResourceGeneratorTest {
 
     private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
         final List<JSONComparator.FieldComparisonFailure> diffs = diff.getAll();
-        Assert.assertEquals(diffs.size(), 129);
+        Assert.assertEquals(diffs.size(), 140);
     }
 
     @SneakyThrows

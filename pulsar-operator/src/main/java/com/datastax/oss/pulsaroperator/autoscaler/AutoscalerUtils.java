@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
-import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
@@ -29,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,34 +39,34 @@ import lombok.extern.jbosslog.JBossLog;
 public class AutoscalerUtils {
 
     public static boolean isStsReadyToScale(KubernetesClient client, Long stabilizationWindowMs,
-                                               String clusterName, String namespace,
-                                               String baseName, String name,
-                                               int currentExpectedReplicas) {
+                                            String namespace, String statefulsetName,
+                                            Map<String, String> podSelector,
+                                            int currentExpectedReplicas) {
         final StatefulSet statefulSet = client.apps().statefulSets()
                 .inNamespace(namespace)
-                .withName(name)
+                .withName(statefulsetName)
                 .get();
+        if (statefulSet == null) {
+            log.warnf("Statefulset not found %s", statefulsetName);
+            return false;
+        }
 
         final int readyReplicas = Objects.requireNonNullElse(statefulSet.getStatus().getReadyReplicas(), 0);
         if (readyReplicas != currentExpectedReplicas) {
             log.infof("Not all sts replicas ready for %s, expected %d, got %d",
-                    baseName,
+                    statefulsetName,
                     currentExpectedReplicas,
                     readyReplicas);
             return false;
         }
 
-        final LinkedHashMap<String, String> withLabels = new LinkedHashMap<>();
-        withLabels.put(CRDConstants.LABEL_CLUSTER, clusterName);
-        withLabels.put(CRDConstants.LABEL_COMPONENT, baseName);
-
         final PodList allTargetPods = client.pods()
                 .inNamespace(namespace)
-                .withLabels(withLabels)
+                .withLabels(podSelector)
                 .list();
 
         if (allTargetPods.getItems().size() != currentExpectedReplicas) {
-            log.infof("Sts %s not in ready state", baseName);
+            log.infof("Sts %s not in ready state", statefulsetName);
             return false;
         }
         final Instant now = Instant.now();
@@ -93,8 +92,8 @@ public class AutoscalerUtils {
     }
 
     public static CompletableFuture<String> execInPod(KubernetesClient client,
-                                                 String namespace, String podName, String containerName,
-                                                 String... cmds) {
+                                                      String namespace, String podName, String containerName,
+                                                      String... cmds) {
 
         final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" "));
         if (log.isDebugEnabled()) {

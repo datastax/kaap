@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -55,7 +56,8 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         super(inputSpecs, client);
         final String clusterName = inputSpecs.getClusterName();
         resourceName = BrokerResourcesFactory.getResourceName(clusterName,
-                inputSpecs.getBroker().getBaseName());
+                inputSpecs.getBroker().getBaseName(),
+                BrokerResourcesFactory.BROKER_DEFAULT_SET);
         internalGenerateSpec();
 
     }
@@ -145,9 +147,9 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     }
 
 
-    private BrokerSpec.TransactionCoordinatorConfig getTransactionCoordinatorConfig(Map<String, Object> configMapData) {
+    private BrokerSetSpec.TransactionCoordinatorConfig getTransactionCoordinatorConfig(Map<String, Object> configMapData) {
         final boolean transactionCoordinatorEnabled = boolConfigMapValue(configMapData, "functionsWorkerEnabled");
-        return BrokerSpec.TransactionCoordinatorConfig.builder()
+        return BrokerSetSpec.TransactionCoordinatorConfig.builder()
                 .enabled(transactionCoordinatorEnabled)
                 .build();
     }
@@ -205,12 +207,12 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     }
 
 
-    private BrokerSpec.ServiceConfig createServiceConfig(Service service) {
+    private BrokerSetSpec.ServiceConfig createServiceConfig(Service service) {
         Map<String, String> annotations = service.getMetadata().getAnnotations();
         if (annotations == null) {
             annotations = new HashMap<>();
         }
-        return BrokerSpec.ServiceConfig.builder()
+        return BrokerSetSpec.ServiceConfig.builder()
                 .annotations(annotations)
                 .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
                         BrokerResourcesFactory.DEFAULT_HTTP_PORT,
@@ -240,8 +242,8 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 .build();
     }
 
-    protected static BrokerSpec.BrokerProbesConfig createBrokerProbeConfig(Container container) {
-        return BrokerSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
+    protected static BrokerSetSpec.BrokerProbesConfig createBrokerProbeConfig(Container container) {
+        return BrokerSetSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
                 .liveness(createProbeConfig(container.getLivenessProbe()))
                 .readiness(createProbeConfig(container.getReadinessProbe()))
                 .useHealthCheckForLiveness(detectedProbeUsingHealthCheck(container.getLivenessProbe()))

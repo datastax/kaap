@@ -86,6 +86,7 @@ public class BrokerControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: broker
+                            resource-set: broker
                           name: pulsarname-broker
                           namespace: ns
                           ownerReferences:
@@ -121,6 +122,7 @@ public class BrokerControllerTest {
                     app: pulsar
                     cluster: pulsarname
                     component: broker
+                    resource-set: broker
                   name: pulsarname-broker
                   namespace: ns
                   ownerReferences:
@@ -154,6 +156,7 @@ public class BrokerControllerTest {
                     app: pulsar
                     cluster: pulsarname
                     component: broker
+                    resource-set: broker
                   name: pulsarname-broker
                   namespace: ns
                   ownerReferences:
@@ -179,6 +182,7 @@ public class BrokerControllerTest {
                         app: pulsar
                         cluster: pulsarname
                         component: broker
+                        resource-set: broker
                     spec:
                       affinity:
                         podAntiAffinity:
@@ -248,6 +252,7 @@ public class BrokerControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: broker
+                            resource-set: broker
                           name: pulsarname-broker
                           namespace: ns
                           ownerReferences:
@@ -371,6 +376,7 @@ public class BrokerControllerTest {
                             app: pulsar
                             cluster: pul
                             component: broker
+                            resource-set: broker
                           name: pul-broker
                           namespace: ns
                           ownerReferences:
@@ -389,6 +395,7 @@ public class BrokerControllerTest {
                                 app: pulsar
                                 cluster: pul
                                 component: broker
+                                resource-set: broker
                             spec:
                               containers:
                               - args:
@@ -946,7 +953,8 @@ public class BrokerControllerTest {
                         "cluster", "pul",
                         "app", "pulsar",
                         "component", "broker",
-                        "label-2", "label2-value"
+                        "label-2", "label2-value",
+                        "resource-set", "broker"
                 )
         );
         Assert.assertEquals(
@@ -955,7 +963,8 @@ public class BrokerControllerTest {
                         "cluster", "pul",
                         "app", "pulsar",
                         "component", "broker",
-                        "label-1", "label1-value"
+                        "label-1", "label1-value",
+                        "resource-set", "broker"
                 )
         );
     }
@@ -1754,7 +1763,6 @@ public class BrokerControllerTest {
         KubeTestUtil.assertVolumeMount(podSpec.getContainers().get(0)
                 .getVolumeMounts(), "vol1", "/pulsar/custom", true);
     }
-
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {

@@ -15,17 +15,24 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.jbosslog.JBossLog;
 
@@ -34,19 +41,19 @@ public class AutoscalerDaemon implements AutoCloseable {
 
     private final KubernetesClient client;
     private final ScheduledExecutorService executorService;
-    private ScheduledFuture<?> brokerAutoscaler;
+    private final List<ScheduledFuture<?>> brokerSetAutoscalerTasks = new ArrayList<>();
     private ScheduledFuture<?> bkAutoscaler;
     private final Map<String, NamespaceContext> namespaces = new HashMap<>();
 
     @Data
     private static class NamespaceContext {
-        private BrokerAutoscalerSpec currentSpec;
+        private Map<String, BrokerAutoscalerSpec> currentBrokerAutoscalerSpecs;
         private BookKeeperAutoscalerSpec currentBkSpec;
 
-        private boolean brokerSpecChanged(BrokerAutoscalerSpec spec) {
-            if (currentSpec != null
+        private boolean brokerSpecChanged(Map<String, BrokerAutoscalerSpec> spec) {
+            if (currentBrokerAutoscalerSpecs != null
                     && spec != null
-                    && Objects.equals(spec, currentSpec)) {
+                    && Objects.equals(spec, currentBrokerAutoscalerSpecs)) {
                 return false;
             }
             return true;
@@ -70,21 +77,26 @@ public class AutoscalerDaemon implements AutoCloseable {
     public void onSpecChange(PulsarClusterSpec clusterSpec, String namespace) {
         final NamespaceContext namespaceContext = namespaces.getOrDefault(namespace,
                 new NamespaceContext());
+        Map<String, BrokerAutoscalerSpec> allBrokerAutoscalerSpecs = null;
         if (clusterSpec.getBroker() != null) {
-            final BrokerAutoscalerSpec spec = clusterSpec.getBroker().getAutoscaler();
-            if (namespaceContext.brokerSpecChanged(spec)) {
-                cancelCurrentTask();
-                boolean enabled = spec != null && spec.getEnabled();
-                if (enabled) {
-                    log.infof("Scheduling broker autoscaler every %d ms", spec.getPeriodMs());
-                    brokerAutoscaler = executorService.scheduleWithFixedDelay(
-                            new BrokerAutoscaler(client, namespace, clusterSpec),
-                            spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS);
-                } else {
-                    log.info("Broker autoscaler is disabled");
+            allBrokerAutoscalerSpecs = getBrokerAutoscalerSpecs(clusterSpec);
+            if (namespaceContext.brokerSpecChanged(allBrokerAutoscalerSpecs)) {
+                cancelBrokerAutoscalerTasks();
+                for (Map.Entry<String, BrokerAutoscalerSpec> brokerSetAutoscalers :
+                        allBrokerAutoscalerSpecs.entrySet()) {
+                    final BrokerAutoscalerSpec spec = brokerSetAutoscalers.getValue();
+                    if (spec.getEnabled()) {
+                        final String brokerSetName = brokerSetAutoscalers.getKey();
+                        log.infof("Scheduling broker autoscaler every %d ms for broker set %s",
+                                spec.getPeriodMs(), brokerSetName);
+                        brokerSetAutoscalerTasks.add(executorService.scheduleWithFixedDelay(
+                                new BrokerSetAutoscaler(client, namespace, brokerSetName, clusterSpec),
+                                spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS));
+                    }
+
                 }
             } else {
-                log.info("Broker autoscaler not changed");
+                log.debug("Broker autoscaler not changed");
             }
         }
 
@@ -99,34 +111,44 @@ public class AutoscalerDaemon implements AutoCloseable {
                             new BookKeeperAutoscaler(client, namespace, clusterSpec),
                             spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS);
                 } else {
-                    log.info("BK autoscaler is disabled");
+                    log.debug("BK autoscaler is disabled");
                 }
             } else {
-                log.info("BK autoscaler not changed");
+                log.debug("BK autoscaler not changed");
             }
         }
 
-        namespaceContext.setCurrentSpec(clusterSpec.getBroker() == null ? null : clusterSpec.getBroker().getAutoscaler());
+        namespaceContext.setCurrentBrokerAutoscalerSpecs(allBrokerAutoscalerSpecs);
         namespaceContext.setCurrentBkSpec(clusterSpec.getBookkeeper() == null
                 ? null
                 : clusterSpec.getBookkeeper().getAutoscaler());
         namespaces.put(namespace, namespaceContext);
     }
 
+    private Map<String, BrokerAutoscalerSpec> getBrokerAutoscalerSpecs(PulsarClusterSpec clusterSpec) {
+        final BrokerSpec broker = clusterSpec.getBroker();
+        final TreeMap<String, BrokerSetSpec> brokerSetSpecs =
+                BrokerController.getBrokerSetSpecs(broker);
+        return brokerSetSpecs.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getAutoscaler()));
+    }
+
     @Override
     public void close() {
-        cancelCurrentTask();
+        cancelBrokerAutoscalerTasks();
+        cancelCurrentBkTask();
         executorService.shutdownNow();
     }
 
-    private void cancelCurrentTask() {
-        if (brokerAutoscaler != null) {
-            brokerAutoscaler.cancel(true);
+    private void cancelBrokerAutoscalerTasks() {
+        brokerSetAutoscalerTasks.forEach(f -> {
+            f.cancel(true);
             try {
-                brokerAutoscaler.get();
+                f.get();
             } catch (Throwable ignore) {
             }
-        }
+        });
+        brokerSetAutoscalerTasks.clear();
     }
 
     private void cancelCurrentBkTask() {
@@ -138,5 +160,4 @@ public class AutoscalerDaemon implements AutoCloseable {
             }
         }
     }
-
 }

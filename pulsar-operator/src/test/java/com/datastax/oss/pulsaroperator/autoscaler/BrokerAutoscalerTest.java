@@ -102,7 +102,8 @@ public class BrokerAutoscalerTest {
             final int replicas = pulsarClusterSpec.getBroker().getReplicas();
 
             final BrokerResourcesFactory brokerResourcesFactory =
-                    new BrokerResourcesFactory(null, NAMESPACE, pulsarClusterSpec.getBroker(),
+                    new BrokerResourcesFactory(null, NAMESPACE, BrokerResourcesFactory.BROKER_DEFAULT_SET,
+                            pulsarClusterSpec.getBroker(),
                             pulsarClusterSpec.getGlobal(), null);
 
             final Field field = brokerResourcesFactory.getClass().getDeclaredField("configMap");
@@ -123,7 +124,8 @@ public class BrokerAutoscalerTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(clusterName))
+                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(
+                            clusterName))
                     .andReturn(HttpURLConnection.HTTP_OK, brokerCr)
                     .times(2);
 
@@ -176,9 +178,9 @@ public class BrokerAutoscalerTest {
                     .build();
             server.expect()
                     .get()
-                    // .withPath("/api/v1/namespaces/ns/pods?labelSelector=cluster%3Dpul%2Ccomponent%3Dbroker")
                     .withPath("/api/v1/namespaces/ns/pods?labelSelector=%s".formatted(
-                                    URLEncoder.encode("cluster=%s,component=broker".formatted(clusterName),
+                                    URLEncoder.encode("cluster=%s,component=broker,resource-set=broker"
+                                                    .formatted(clusterName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -192,7 +194,7 @@ public class BrokerAutoscalerTest {
             server.expect()
                     .get()
                     .withPath("/apis/metrics.k8s.io/v1beta1/namespaces/ns/pods?labelSelector=%s".formatted(
-                                    URLEncoder.encode("cluster=%s,component=broker".formatted(clusterName),
+                                    URLEncoder.encode("cluster=%s,component=broker,resource-set=broker".formatted(clusterName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -201,7 +203,8 @@ public class BrokerAutoscalerTest {
 
             server.expect()
                     .patch()
-                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(clusterName))
+                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(
+                            clusterName))
                     .andReply(HttpURLConnection.HTTP_OK, new BodyProvider<Object>() {
                         @Override
                         @SneakyThrows
@@ -338,8 +341,9 @@ public class BrokerAutoscalerTest {
                 .build();) {
             server.start();
 
-            final BrokerAutoscaler brokerAutoscaler =
-                    new BrokerAutoscaler(server.server.getClient(), NAMESPACE, pulsarClusterSpec);
+            final BrokerSetAutoscaler brokerAutoscaler =
+                    new BrokerSetAutoscaler(server.server.getClient(), NAMESPACE,
+                            BrokerResourcesFactory.BROKER_DEFAULT_SET, pulsarClusterSpec);
             brokerAutoscaler.internalRun();
             return server;
         }

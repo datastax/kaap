@@ -53,12 +53,20 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         return resourceName;
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
+    }
+
     private ConfigMap configMap;
 
     public AutorecoveryResourcesFactory(KubernetesClient client, String namespace,
                                         AutorecoverySpec spec, GlobalSpec global,
                                         OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

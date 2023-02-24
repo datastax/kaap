@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
@@ -162,7 +163,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                                 "managedLedgerDefaultWriteQuorum", "1"
                         )
                 )
-                .probes(BrokerSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
+                .probes(BrokerSetSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
                         .liveness(ProbesConfig.ProbeConfig.builder()
                                 .initialDelaySeconds(5)
                                 .periodSeconds(3)

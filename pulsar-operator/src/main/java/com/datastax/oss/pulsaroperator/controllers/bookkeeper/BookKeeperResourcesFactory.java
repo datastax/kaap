@@ -78,13 +78,21 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return globalSpec.getComponents().getBookkeeperBaseName();
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
+    }
+
 
     private ConfigMap configMap;
 
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
                                       BookKeeperSpec spec, GlobalSpec global,
                                       OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override

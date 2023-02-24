@@ -177,7 +177,7 @@ public class SpecGenerator {
     private void generateBrokerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
         final BrokerResourcesFactory brokerResourcesFactory =
                 new BrokerResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), pulsarCluster.getSpec().getBroker(),
+                        getNamespace(), BrokerResourcesFactory.BROKER_DEFAULT_SET, pulsarCluster.getSpec().getBroker(),
                         pulsarCluster.getSpec().getGlobal(), null);
 
         brokerResourcesFactory.patchPodDisruptionBudget();
@@ -209,7 +209,7 @@ public class SpecGenerator {
     private void generateProxyResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
         final ProxyResourcesFactory proxyResourcesFactory =
                 new ProxyResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), pulsarCluster.getSpec().getProxy(),
+                        getNamespace(), ProxyResourcesFactory.PROXY_DEFAULT_SET, pulsarCluster.getSpec().getProxy(),
                         pulsarCluster.getSpec().getGlobal(), null);
         proxyResourcesFactory.patchPodDisruptionBudget();
         proxyResourcesFactory.patchConfigMap();

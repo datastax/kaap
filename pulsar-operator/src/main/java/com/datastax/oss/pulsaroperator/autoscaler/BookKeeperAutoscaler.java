@@ -29,8 +29,10 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
@@ -310,9 +312,13 @@ public class BookKeeperAutoscaler implements Runnable {
 
     private boolean isBkReadyToScale(String clusterName, String bkBaseName, String bkName,
                                          int currentExpectedReplicas) {
+        final Map<String, String> podSelector = new TreeMap<>(Map.of(
+                CRDConstants.LABEL_CLUSTER, clusterName,
+                CRDConstants.LABEL_COMPONENT, bkBaseName
+        ));
         return AutoscalerUtils.isStsReadyToScale(client,
                 clusterSpec.getBookkeeper().getAutoscaler().getStabilizationWindowMs(),
-                clusterName, namespace, bkBaseName, bkName, currentExpectedReplicas);
+                namespace, bkName, podSelector, currentExpectedReplicas);
     }
 
 }

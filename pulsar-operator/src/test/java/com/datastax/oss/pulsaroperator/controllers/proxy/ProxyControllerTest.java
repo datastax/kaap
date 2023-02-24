@@ -80,6 +80,7 @@ public class ProxyControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: proxy
+                            resource-set: proxy
                           name: pulsarname-proxy
                           namespace: ns
                           ownerReferences:
@@ -115,6 +116,7 @@ public class ProxyControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: proxy
+                            resource-set: proxy
                           name: pulsarname-proxy-ws
                           namespace: ns
                           ownerReferences:
@@ -151,6 +153,7 @@ public class ProxyControllerTest {
                     app: pulsar
                     cluster: pulsarname
                     component: proxy
+                    resource-set: proxy
                   name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
@@ -185,6 +188,7 @@ public class ProxyControllerTest {
                     app: pulsar
                     cluster: pulsarname
                     component: proxy
+                    resource-set: proxy
                   name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
@@ -214,6 +218,7 @@ public class ProxyControllerTest {
                         app: pulsar
                         cluster: pulsarname
                         component: proxy
+                        resource-set: proxy
                     spec:
                       affinity:
                         podAntiAffinity:
@@ -301,6 +306,7 @@ public class ProxyControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: proxy
+                            resource-set: proxy
                           name: pulsarname-proxy
                           namespace: ns
                           ownerReferences:
@@ -836,6 +842,7 @@ public class ProxyControllerTest {
                         "cluster", "pul",
                         "app", "pulsar",
                         "component", "proxy",
+                        "resource-set", "proxy",
                         "label-2", "label2-value"
                 )
         );
@@ -845,6 +852,7 @@ public class ProxyControllerTest {
                         "cluster", "pul",
                         "app", "pulsar",
                         "component", "proxy",
+                        "resource-set", "proxy",
                         "label-1", "label1-value"
                 )
         );

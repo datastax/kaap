@@ -16,10 +16,11 @@
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
-import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -46,7 +47,9 @@ import java.util.Objects;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
+public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
+
+    public static final String PROXY_DEFAULT_SET = "proxy";
 
     private static final Map<String, String> DEFAULT_CONFIG_MAP =
             Map.of("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g",
@@ -71,6 +74,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     private static String getMainContainerName(String resourceName) {
         return resourceName;
     }
+
     private static String getWsContainerName(String resourceName) {
         return "%s-ws".formatted(getMainContainerName(resourceName));
     }
@@ -79,19 +83,36 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         return globalSpec.getComponents().getProxyBaseName();
     }
 
+    public static String getResourceName(String clusterName, String baseName, String proxySetName) {
+        Objects.requireNonNull(proxySetName);
+        if (PROXY_DEFAULT_SET.equals(proxySetName)) {
+            return "%s-%s".formatted(clusterName, baseName);
+        }
+        return "%s-%s-%s".formatted(clusterName, baseName, proxySetName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName, String proxySetName) {
+        return getResourceName(globalSpec.getName(), baseName, proxySetName);
+    }
+
+    private ConfigMap configMap;
+    private ConfigMap wsConfigMap;
+    private final String proxySet;
+
+    public ProxyResourcesFactory(KubernetesClient client, String namespace,
+                                 String proxySetName,
+                                 ProxySetSpec spec, GlobalSpec global,
+                                 OwnerReference ownerReference) {
+        super(client, namespace, getResourceName(global, getComponentBaseName(global), proxySetName), spec, global,
+                ownerReference);
+        this.proxySet = proxySetName;
+    }
+
     @Override
     protected boolean isComponentEnabled() {
         return spec.getReplicas() > 0;
     }
 
-    private ConfigMap configMap;
-    private ConfigMap wsConfigMap;
-
-    public ProxyResourcesFactory(KubernetesClient client, String namespace,
-                                 ProxySpec spec, GlobalSpec global,
-                                 OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
-    }
 
     @Override
     protected String getComponentBaseName() {
@@ -100,7 +121,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
 
     public void patchService() {
 
-        final ProxySpec.ServiceConfig serviceSpec = spec.getService();
+        final ProxySetSpec.ServiceConfig serviceSpec = spec.getService();
 
         Map<String, String> annotations = null;
         if (serviceSpec.getAnnotations() != null) {
@@ -228,7 +249,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     }
 
     public void patchConfigMapWsConfig() {
-        final ProxySpec.WebSocketConfig webSocketConfig = spec.getWebSocket();
+        final ProxySetSpec.WebSocketConfig webSocketConfig = spec.getWebSocket();
         if (!webSocketConfig.getEnabled()) {
             return;
         }
@@ -385,7 +406,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                         .withEnv(spec.getEnv())
                         .build()
         );
-        final ProxySpec.WebSocketConfig webSocket = spec.getWebSocket();
+        final ProxySetSpec.WebSocketConfig webSocket = spec.getWebSocket();
         if (webSocket.getEnabled()) {
 
             String wsArg = "";
@@ -418,9 +439,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                             .withPorts(List.of(
                                     tlsEnabledOnProxy
                                             ? new ContainerPortBuilder()
-                                                    .withName("wss")
-                                                    .withContainerPort(DEFAULT_WSS_PORT)
-                                                    .build() :
+                                            .withName("wss")
+                                            .withContainerPort(DEFAULT_WSS_PORT)
+                                            .build() :
                                             new ContainerPortBuilder()
                                                     .withName("ws")
                                                     .withContainerPort(DEFAULT_WS_PORT)
@@ -495,6 +516,30 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
     public void patchPodDisruptionBudget() {
         createPodDisruptionBudgetIfEnabled(spec.getPdb(), spec.getAnnotations(), spec.getLabels(),
                 spec.getMatchLabels());
+    }
+
+
+    @Override
+    protected Map<String, String> getLabels(Map<String, String> customLabels) {
+        final Map<String, String> labels = super.getLabels(customLabels);
+        labels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
+        return labels;
+    }
+
+    @Override
+    protected Map<String, String> getPodLabels(Map<String, String> customLabels) {
+        final Map<String, String> labels = super.getPodLabels(customLabels);
+        labels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
+        return labels;
+    }
+
+    @Override
+    protected Map<String, String> getMatchLabels(Map<String, String> customMatchLabels) {
+        final Map<String, String> matchLabels = super.getMatchLabels(customMatchLabels);
+        if (!proxySet.equals(PROXY_DEFAULT_SET)) {
+            matchLabels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
+        }
+        return matchLabels;
     }
 
 }

@@ -39,6 +39,10 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
+    public static String getComponentBaseName(GlobalSpec globalSpec) {
+        return globalSpec.getComponents().getBastionBaseName();
+    }
+
     public static List<String> getContainerNames(String resourceName) {
         return List.of(getMainContainerName(resourceName));
     }
@@ -47,17 +51,25 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         return resourceName;
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
+    }
+
     private ConfigMap configMap;
 
     public BastionResourcesFactory(KubernetesClient client, String namespace,
                                    BastionSpec spec, GlobalSpec global,
                                    OwnerReference ownerReference) {
-        super(client, namespace, spec, global, ownerReference);
+        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
 
     @Override
     protected String getComponentBaseName() {
-        return global.getComponents().getBastionBaseName();
+        return getComponentBaseName(global);
     }
 
     @Override

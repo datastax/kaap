@@ -739,6 +739,9 @@ public class PulsarClusterControllerTest {
                 broker:
                     sets:
                         set1: {}
+                proxy:
+                    sets: 
+                        set1: {}
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
@@ -748,7 +751,7 @@ public class PulsarClusterControllerTest {
     }
 
     @Test
-    public void testResourceSetsNotDefined() throws Exception {
+    public void testBrokerResourceSetsNotDefined() throws Exception {
         String spec = """
                 global:
                     name: pulsarname
@@ -767,7 +770,31 @@ public class PulsarClusterControllerTest {
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
         Assert.assertTrue(readyCondition.getMessage().contains(
-                "Broker resource set set1xx is not defined in global resource sets (.global.resourceSets), only [set1]")
+                "broker resource set set1xx is not defined in global resource sets (.global.resourceSets), only [set1]")
+        );
+    }
+
+    @Test
+    public void testProxyResourceSetsNotDefined() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                    auth:
+                        enabled: true
+                    resourceSets:
+                      set1: {}
+                proxy:
+                    sets:
+                        set1xx: {}
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
+        final Condition readyCondition = getReadyCondition(status.getResource().getStatus());
+        Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
+        Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
+        Assert.assertTrue(readyCondition.getMessage().contains(
+                "proxy resource set set1xx is not defined in global resource sets (.global.resourceSets), only [set1]")
         );
     }
 

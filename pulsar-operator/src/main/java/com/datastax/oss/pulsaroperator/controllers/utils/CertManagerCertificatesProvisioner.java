@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResource
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyController;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -225,10 +226,12 @@ public class CertManagerCertificatesProvisioner {
     }
 
     private List<String> getProxyDNSNames() {
-        final String proxyBase =
-                ProxyResourcesFactory.getResourceName(clusterName,
-                        ProxyResourcesFactory.getComponentBaseName(globalSpec));
-        return enumerateDnsNames(proxyBase, false);
+        final List<String> sets = ProxyController.enumerateProxySets(pulsarClusterSpec.getProxy());
+        final String componentBaseName = ProxyResourcesFactory.getComponentBaseName(globalSpec);
+        return sets.stream()
+                .map(set -> ProxyResourcesFactory.getResourceName(clusterName, componentBaseName, set))
+                .flatMap(set -> enumerateDnsNames(set, false).stream())
+                .collect(Collectors.toList());
     }
 
     private List<String> getBrokerDNSNames() {

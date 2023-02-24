@@ -81,6 +81,17 @@ cluster:
         requests:
           cpu: "0.2"
           memory: "128Mi"
+      sets:
+        shared:
+          replicas: 3
+        dedicated:
+          replicas: 2
+          service:
+            annotations:
+              external-dns.alpha.kubernetes.io/hostname: dedicated.proxy.pulsar.local
+          resources:
+            requests:
+              cpu: "0.5"
     autorecovery:
       replicas: 1
       resources:

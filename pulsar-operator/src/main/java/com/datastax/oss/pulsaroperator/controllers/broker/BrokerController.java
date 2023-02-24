@@ -58,8 +58,6 @@ public class BrokerController extends AbstractController<Broker> {
         private final String name;
         private final BrokerSetSpec setSpec;
         private final BrokerResourcesFactory brokerResourcesFactory;
-
-
     }
 
     public BrokerController(KubernetesClient client) {

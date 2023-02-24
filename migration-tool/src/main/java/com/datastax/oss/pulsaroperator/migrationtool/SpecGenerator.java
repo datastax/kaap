@@ -209,7 +209,7 @@ public class SpecGenerator {
     private void generateProxyResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
         final ProxyResourcesFactory proxyResourcesFactory =
                 new ProxyResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), pulsarCluster.getSpec().getProxy(),
+                        getNamespace(), ProxyResourcesFactory.PROXY_DEFAULT_SET, pulsarCluster.getSpec().getProxy(),
                         pulsarCluster.getSpec().getGlobal(), null);
         proxyResourcesFactory.patchPodDisruptionBudget();
         proxyResourcesFactory.patchConfigMap();

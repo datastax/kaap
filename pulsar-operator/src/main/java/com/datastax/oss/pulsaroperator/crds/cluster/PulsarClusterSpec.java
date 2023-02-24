@@ -24,6 +24,7 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
@@ -31,6 +32,7 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -125,7 +127,8 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
         if (resourceSets == null) {
             resourceSets = Collections.emptyMap();
         }
-        return validateBrokerResourceSets(resourceSets, spec.getBroker(), context);
+        return validateBrokerResourceSets(resourceSets, spec.getBroker(), context)
+                && validateProxyResourceSets(resourceSets, spec.getProxy(), context);
 
     }
 
@@ -135,12 +138,28 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
         if (sets == null || sets.isEmpty()) {
             return true;
         }
-        for (String s : sets.keySet()) {
+        return validateResourceSetNames(sets.keySet(), declaredResourceSets, "broker", context);
+    }
+
+    private boolean validateProxyResourceSets(Map<String, Map<String, Object>> declaredResourceSets,
+                                              ProxySpec spec, ConstraintValidatorContext context) {
+        final Map<String, ProxySetSpec> sets = spec.getSets();
+        if (sets == null || sets.isEmpty()) {
+            return true;
+        }
+        return validateResourceSetNames(sets.keySet(), declaredResourceSets, "proxy", context);
+    }
+
+    private boolean validateResourceSetNames(Set<String> sets,
+                                             Map<String, Map<String, Object>> declaredResourceSets,
+                                             String nameForError,
+                                             ConstraintValidatorContext context) {
+        for (String s : sets) {
             if (!declaredResourceSets.containsKey(s)) {
                 context.buildConstraintViolationWithTemplate(
-                                ("Broker resource set %s is not defined in global resource sets (.global.resourceSets)"
+                                ("%s resource set %s is not defined in global resource sets (.global.resourceSets)"
                                         + ", only %s")
-                                        .formatted(s, declaredResourceSets.keySet()))
+                                        .formatted(nameForError, s, declaredResourceSets.keySet()))
                         .addConstraintViolation();
                 return false;
             }

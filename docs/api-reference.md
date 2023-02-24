@@ -46636,7 +46636,7 @@ The default value is 'cluster.local'.
         <td>false</td>
       </tr><tr>
         <td><b>resourceSets</b></td>
-        <td>map[string]object</td>
+        <td>map[string]map[string]object</td>
         <td>
           Resource sets.<br/>
         </td>

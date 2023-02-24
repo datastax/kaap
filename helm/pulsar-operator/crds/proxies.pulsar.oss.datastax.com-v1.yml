@@ -2536,11 +2536,6 @@ spec:
                           should be used.
                         type: string
                     type: object
-                  resourceSets:
-                    additionalProperties:
-                      type: object
-                    description: Resource sets.
-                    type: object
                   kubernetesClusterDomain:
                     description: |
                       The domain name for your kubernetes cluster.
@@ -2548,6 +2543,13 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
+                  resourceSets:
+                    additionalProperties:
+                      additionalProperties:
+                        type: object
+                      type: object
+                    description: Resource sets.
+                    type: object
                   priorityClassName:
                     description: Priority class name to attach to each pod.
                     type: string

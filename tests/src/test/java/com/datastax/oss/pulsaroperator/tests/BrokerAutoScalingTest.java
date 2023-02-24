@@ -55,7 +55,6 @@ public class BrokerAutoScalingTest extends BasePulsarClusterTest {
 
         try {
             applyPulsarCluster(specsToYaml(specs));
-            awaitInstalled();
 
             execInBastionPod("bin/pulsar-admin ns-isolation-policy set --auto-failover-policy-type min_available "
                     + "--auto-failover-policy-params min_limit=1,usage_threshold=80 --namespaces public/default "

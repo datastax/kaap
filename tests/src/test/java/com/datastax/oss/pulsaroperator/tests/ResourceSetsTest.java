@@ -62,6 +62,11 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
                 "set2", ProxySetSpec.builder().build()
         ));
 
+        specs.getGlobal().setResourceSets(Map.of(
+                "set1", Map.of(),
+                "set2", Map.of()
+        ));
+
 
         specs.getGlobal()
                 .setAuth(AuthConfig.builder()
@@ -70,7 +75,6 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
 
         try {
             applyPulsarCluster(specsToYaml(specs));
-            awaitInstalled();
             Assert.assertEquals(
                     client.apps().statefulSets()
                             .inNamespace(namespace)

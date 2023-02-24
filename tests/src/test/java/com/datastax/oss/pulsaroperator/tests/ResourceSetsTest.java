@@ -148,7 +148,7 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
     }
 
     private <T extends HasMetadata> T getResource(Class<T> ofClass, String name) {
-        return client.resources(ofClass).inNamespace(name).withName(name).get();
+        return client.resources(ofClass).inNamespace(namespace).withName(name).get();
     }
 
     private void assertProduceConsume() {

@@ -51,6 +51,14 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         return resourceName;
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
+    }
+
     private ConfigMap configMap;
 
     public BastionResourcesFactory(KubernetesClient client, String namespace,

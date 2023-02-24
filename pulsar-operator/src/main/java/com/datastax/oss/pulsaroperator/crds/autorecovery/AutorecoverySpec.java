@@ -15,8 +15,8 @@
  */
 package com.datastax.oss.pulsaroperator.crds.autorecovery;
 
-import static com.datastax.oss.pulsaroperator.crds.BaseComponentSpec.mergeMaps;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
@@ -102,7 +102,7 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
         if (image == null) {
             image = globalSpec.getImage();
         }
-        nodeSelectors = mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }

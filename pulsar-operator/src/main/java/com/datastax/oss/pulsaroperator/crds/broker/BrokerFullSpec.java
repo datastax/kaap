@@ -35,7 +35,7 @@ public class BrokerFullSpec implements FullSpecWithDefaults {
 
     @Valid
     @ValidSpec
-    BrokerWithSetsSpec broker;
+    BrokerSpec broker;
 
 
     @Override
@@ -46,7 +46,7 @@ public class BrokerFullSpec implements FullSpecWithDefaults {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         if (broker == null) {
-            broker = new BrokerWithSetsSpec();
+            broker = new BrokerSpec();
         }
         broker.applyDefaults(globalSpec);
     }

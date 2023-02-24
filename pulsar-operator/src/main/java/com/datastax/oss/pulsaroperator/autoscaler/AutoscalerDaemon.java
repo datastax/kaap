@@ -15,11 +15,13 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -106,7 +108,8 @@ public class AutoscalerDaemon implements AutoCloseable {
             }
         }
 
-        namespaceContext.setCurrentSpec(clusterSpec.getBroker() == null ? null : clusterSpec.getBroker().getAutoscaler());
+        namespaceContext.setCurrentSpec(
+                clusterSpec.getBroker() == null ? null : clusterSpec.getBroker().getAutoscaler());
         namespaceContext.setCurrentBkSpec(clusterSpec.getBookkeeper() == null
                 ? null
                 : clusterSpec.getBookkeeper().getAutoscaler());
@@ -135,6 +138,35 @@ public class AutoscalerDaemon implements AutoCloseable {
             try {
                 bkAutoscaler.get();
             } catch (Throwable ignore) {
+            }
+        }
+    }
+
+
+    static class BrokerAutoscaler implements Runnable {
+        private final KubernetesClient client;
+        private final String namespace;
+        private final PulsarClusterSpec clusterSpec;
+
+        public BrokerAutoscaler(KubernetesClient client, String namespace,
+                                PulsarClusterSpec clusterSpec) {
+            this.client = client;
+            this.namespace = namespace;
+            this.clusterSpec = clusterSpec;
+        }
+
+        @Override
+        public void run() {
+            final List<String> brokerSets = BrokerController.enumerateBrokerSets(clusterSpec.getBroker());
+            for (String brokerSet : brokerSets) {
+                new BrokerSetAutoscaler(client, namespace, brokerSet, clusterSpec).run();
+            }
+        }
+
+        public void internalRun() {
+            final List<String> brokerSets = BrokerController.enumerateBrokerSets(clusterSpec.getBroker());
+            for (String brokerSet : brokerSets) {
+                new BrokerSetAutoscaler(client, namespace, brokerSet, clusterSpec).internalRun();
             }
         }
     }

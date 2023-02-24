@@ -73,6 +73,10 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     public static final String CUSTOM_RESOURCE_BASTION = "bastion";
     public static final String CUSTOM_RESOURCE_FUNCTIONS_WORKER = "functionsworker";
 
+    public static String computeCustomResourceName(PulsarClusterSpec clusterSpec, String customResourceName) {
+        return "%s-%s".formatted(clusterSpec.getGlobal().getName(), customResourceName);
+    }
+
     private final AutoscalerDaemon autoscaler;
 
     public PulsarClusterController(KubernetesClient client) {
@@ -196,7 +200,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 && clusterSpec.getBroker().getAutoscaler() != null
                 && clusterSpec.getBroker().getAutoscaler().getEnabled()) {
 
-            final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BROKER);
+            final String crFullName = computeCustomResourceName(clusterSpec, CUSTOM_RESOURCE_BROKER);
             final Broker current = client.resources(Broker.class)
                     .inNamespace(currentNamespace)
                     .withName(crFullName)
@@ -214,7 +218,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 && clusterSpec.getBookkeeper().getAutoscaler() != null
                 && clusterSpec.getBookkeeper().getAutoscaler().getEnabled()) {
 
-            final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), CUSTOM_RESOURCE_BOOKKEEPER);
+            final String crFullName = computeCustomResourceName(clusterSpec, CUSTOM_RESOURCE_BOOKKEEPER);
             final BookKeeper current = client.resources(BookKeeper.class)
                     .inNamespace(currentNamespace)
                     .withName(crFullName)
@@ -341,7 +345,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             throw new IllegalStateException(customResourceName + " CRD not found");
         }
 
-        final String crFullName = "%s-%s".formatted(clusterSpec.getGlobal().getName(), customResourceName);
+        final String crFullName = computeCustomResourceName(clusterSpec, customResourceName);
         final CR current = getExistingCustomResource(resourceClass, namespace, crFullName);
         if (current != null) {
             final SPEC currentSpec = current.getSpec();
@@ -387,6 +391,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         return false;
     }
 
+
+
     protected <CR extends CustomResource<SPEC, ?>, SPEC> CR getExistingCustomResource(
             Class<CR> resourceClass, String namespace,
             String crFullName) {
@@ -421,7 +427,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 || !certProvisioner.getSelfSigned().getEnabled()) {
             return;
         }
-        new CertManagerCertificatesProvisioner(client, namespace, clusterSpec.getGlobalSpec())
+        new CertManagerCertificatesProvisioner(client, namespace, clusterSpec)
                 .generateCertificates();
     }
 

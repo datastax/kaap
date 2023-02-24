@@ -77,6 +77,14 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         return resourceName;
     }
 
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
+    }
+
     private ConfigMap configMap;
     private ConfigMap extraConfigMap;
 

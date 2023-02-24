@@ -24,39 +24,6 @@ spec:
                   sets:
                     additionalProperties:
                       properties:
-                        service:
-                          description: Service configuration.
-                          properties:
-                            additionalPorts:
-                              description: Additional ports to add to the Service.
-                              items:
-                                properties:
-                                  targetPort:
-                                    anyOf:
-                                    - type: integer
-                                    - type: string
-                                    x-kubernetes-int-or-string: true
-                                  port:
-                                    type: integer
-                                  nodePort:
-                                    type: integer
-                                  name:
-                                    type: string
-                                  appProtocol:
-                                    type: string
-                                  protocol:
-                                    type: string
-                                type: object
-                              type: array
-                            annotations:
-                              additionalProperties:
-                                type: string
-                              description: Additional annotations to add to the Service.
-                              type: object
-                            type:
-                              description: Service type. Default value is 'ClusterIP'
-                              type: string
-                          type: object
                         updateStrategy:
                           description: Update strategy for the StatefulSet.
                           properties:
@@ -83,74 +50,6 @@ spec:
                         functionsWorkerEnabled:
                           description: Enable functions worker embedded in the broker.
                           type: boolean
-                        transactions:
-                          description: Enable transactions in the broker.
-                          properties:
-                            partitions:
-                              description: Number of coordinators to create.
-                              type: integer
-                            initJob:
-                              description: Config for the init job.
-                              properties:
-                                resources:
-                                  description: Resources requirements.
-                                  properties:
-                                    limits:
-                                      additionalProperties:
-                                        anyOf:
-                                        - type: integer
-                                        - type: string
-                                        x-kubernetes-int-or-string: true
-                                      type: object
-                                    requests:
-                                      additionalProperties:
-                                        anyOf:
-                                        - type: integer
-                                        - type: string
-                                        x-kubernetes-int-or-string: true
-                                      type: object
-                                  type: object
-                              type: object
-                            enabled:
-                              description: Initialize the transaction coordinator
-                                if it's not yet and configure the broker to accept
-                                transactions.
-                              type: boolean
-                          type: object
-                        autoscaler:
-                          description: Autoscaling config.
-                          properties:
-                            periodMs:
-                              minimum: 1000.0
-                              type: integer
-                            max:
-                              type: integer
-                            higherCpuThreshold:
-                              maximum: 1.0
-                              minimum: 0.0
-                              type: number
-                            enabled:
-                              type: boolean
-                            min:
-                              minimum: 1.0
-                              type: integer
-                            scaleUpBy:
-                              minimum: 1.0
-                              type: integer
-                            stabilizationWindowMs:
-                              minimum: 1.0
-                              type: integer
-                            lowerCpuThreshold:
-                              maximum: 1.0
-                              minimum: 0.0
-                              type: number
-                            scaleDownBy:
-                              minimum: 1.0
-                              type: integer
-                          type: object
-                        podManagementPolicy:
-                          description: Pod management policy.
-                          type: string
                         probes:
                           description: Liveness and readiness probes configuration.
                           properties:
@@ -221,6 +120,107 @@ spec:
                                   type: boolean
                               type: object
                           type: object
+                        transactions:
+                          description: Enable transactions in the broker.
+                          properties:
+                            partitions:
+                              description: Number of coordinators to create.
+                              type: integer
+                            enabled:
+                              description: Initialize the transaction coordinator
+                                if it's not yet and configure the broker to accept
+                                transactions.
+                              type: boolean
+                            initJob:
+                              description: Config for the init job.
+                              properties:
+                                resources:
+                                  description: Resources requirements.
+                                  properties:
+                                    limits:
+                                      additionalProperties:
+                                        anyOf:
+                                        - type: integer
+                                        - type: string
+                                        x-kubernetes-int-or-string: true
+                                      type: object
+                                    requests:
+                                      additionalProperties:
+                                        anyOf:
+                                        - type: integer
+                                        - type: string
+                                        x-kubernetes-int-or-string: true
+                                      type: object
+                                  type: object
+                              type: object
+                          type: object
+                        autoscaler:
+                          description: Autoscaling config.
+                          properties:
+                            periodMs:
+                              minimum: 1000.0
+                              type: integer
+                            max:
+                              type: integer
+                            higherCpuThreshold:
+                              maximum: 1.0
+                              minimum: 0.0
+                              type: number
+                            enabled:
+                              type: boolean
+                            min:
+                              minimum: 1.0
+                              type: integer
+                            scaleUpBy:
+                              minimum: 1.0
+                              type: integer
+                            stabilizationWindowMs:
+                              minimum: 1.0
+                              type: integer
+                            lowerCpuThreshold:
+                              maximum: 1.0
+                              minimum: 0.0
+                              type: number
+                            scaleDownBy:
+                              minimum: 1.0
+                              type: integer
+                          type: object
+                        service:
+                          description: Service configuration.
+                          properties:
+                            additionalPorts:
+                              description: Additional ports to add to the Service.
+                              items:
+                                properties:
+                                  targetPort:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    x-kubernetes-int-or-string: true
+                                  port:
+                                    type: integer
+                                  nodePort:
+                                    type: integer
+                                  name:
+                                    type: string
+                                  appProtocol:
+                                    type: string
+                                  protocol:
+                                    type: string
+                                type: object
+                              type: array
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description: Additional annotations to add to the Service.
+                              type: object
+                            type:
+                              description: Service type. Default value is 'ClusterIP'
+                              type: string
+                          type: object
+                        podManagementPolicy:
+                          description: Pod management policy.
+                          type: string
                         resources:
                           description: Resources requirements.
                           properties:
@@ -2118,39 +2118,6 @@ spec:
                       type: object
                     description: Broker sets.
                     type: object
-                  service:
-                    description: Service configuration.
-                    properties:
-                      additionalPorts:
-                        description: Additional ports to add to the Service.
-                        items:
-                          properties:
-                            targetPort:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              x-kubernetes-int-or-string: true
-                            port:
-                              type: integer
-                            nodePort:
-                              type: integer
-                            name:
-                              type: string
-                            appProtocol:
-                              type: string
-                            protocol:
-                              type: string
-                          type: object
-                        type: array
-                      annotations:
-                        additionalProperties:
-                          type: string
-                        description: Additional annotations to add to the Service.
-                        type: object
-                      type:
-                        description: Service type. Default value is 'ClusterIP'
-                        type: string
-                    type: object
                   updateStrategy:
                     description: Update strategy for the StatefulSet.
                     properties:
@@ -2177,73 +2144,6 @@ spec:
                   functionsWorkerEnabled:
                     description: Enable functions worker embedded in the broker.
                     type: boolean
-                  transactions:
-                    description: Enable transactions in the broker.
-                    properties:
-                      partitions:
-                        description: Number of coordinators to create.
-                        type: integer
-                      initJob:
-                        description: Config for the init job.
-                        properties:
-                          resources:
-                            description: Resources requirements.
-                            properties:
-                              limits:
-                                additionalProperties:
-                                  anyOf:
-                                  - type: integer
-                                  - type: string
-                                  x-kubernetes-int-or-string: true
-                                type: object
-                              requests:
-                                additionalProperties:
-                                  anyOf:
-                                  - type: integer
-                                  - type: string
-                                  x-kubernetes-int-or-string: true
-                                type: object
-                            type: object
-                        type: object
-                      enabled:
-                        description: Initialize the transaction coordinator if it's
-                          not yet and configure the broker to accept transactions.
-                        type: boolean
-                    type: object
-                  autoscaler:
-                    description: Autoscaling config.
-                    properties:
-                      periodMs:
-                        minimum: 1000.0
-                        type: integer
-                      max:
-                        type: integer
-                      higherCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: number
-                      enabled:
-                        type: boolean
-                      min:
-                        minimum: 1.0
-                        type: integer
-                      scaleUpBy:
-                        minimum: 1.0
-                        type: integer
-                      stabilizationWindowMs:
-                        minimum: 1.0
-                        type: integer
-                      lowerCpuThreshold:
-                        maximum: 1.0
-                        minimum: 0.0
-                        type: number
-                      scaleDownBy:
-                        minimum: 1.0
-                        type: integer
-                    type: object
-                  podManagementPolicy:
-                    description: Pod management policy.
-                    type: string
                   probes:
                     description: Liveness and readiness probes configuration.
                     properties:
@@ -2314,6 +2214,106 @@ spec:
                             type: boolean
                         type: object
                     type: object
+                  transactions:
+                    description: Enable transactions in the broker.
+                    properties:
+                      partitions:
+                        description: Number of coordinators to create.
+                        type: integer
+                      enabled:
+                        description: Initialize the transaction coordinator if it's
+                          not yet and configure the broker to accept transactions.
+                        type: boolean
+                      initJob:
+                        description: Config for the init job.
+                        properties:
+                          resources:
+                            description: Resources requirements.
+                            properties:
+                              limits:
+                                additionalProperties:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                              requests:
+                                additionalProperties:
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                            type: object
+                        type: object
+                    type: object
+                  autoscaler:
+                    description: Autoscaling config.
+                    properties:
+                      periodMs:
+                        minimum: 1000.0
+                        type: integer
+                      max:
+                        type: integer
+                      higherCpuThreshold:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: number
+                      enabled:
+                        type: boolean
+                      min:
+                        minimum: 1.0
+                        type: integer
+                      scaleUpBy:
+                        minimum: 1.0
+                        type: integer
+                      stabilizationWindowMs:
+                        minimum: 1.0
+                        type: integer
+                      lowerCpuThreshold:
+                        maximum: 1.0
+                        minimum: 0.0
+                        type: number
+                      scaleDownBy:
+                        minimum: 1.0
+                        type: integer
+                    type: object
+                  service:
+                    description: Service configuration.
+                    properties:
+                      additionalPorts:
+                        description: Additional ports to add to the Service.
+                        items:
+                          properties:
+                            targetPort:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              x-kubernetes-int-or-string: true
+                            port:
+                              type: integer
+                            nodePort:
+                              type: integer
+                            name:
+                              type: string
+                            appProtocol:
+                              type: string
+                            protocol:
+                              type: string
+                          type: object
+                        type: array
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Additional annotations to add to the Service.
+                        type: object
+                      type:
+                        description: Service type. Default value is 'ClusterIP'
+                        type: string
+                    type: object
+                  podManagementPolicy:
+                    description: Pod management policy.
+                    type: string
                   resources:
                     description: Resources requirements.
                     properties:

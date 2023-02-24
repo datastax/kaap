@@ -177,7 +177,7 @@ public class SpecGenerator {
     private void generateBrokerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
         final BrokerResourcesFactory brokerResourcesFactory =
                 new BrokerResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), null, pulsarCluster.getSpec().getBroker(),
+                        getNamespace(), BrokerResourcesFactory.BROKER_DEFAULT_SET, pulsarCluster.getSpec().getBroker(),
                         pulsarCluster.getSpec().getGlobal(), null);
 
         brokerResourcesFactory.patchPodDisruptionBudget();

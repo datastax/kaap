@@ -79,9 +79,12 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
         return globalSpec.getComponents().getProxyBaseName();
     }
 
-    @Override
-    protected boolean isComponentEnabled() {
-        return spec.getReplicas() > 0;
+    public static String getResourceName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
+        return getResourceName(globalSpec.getName(), baseName);
     }
 
     private ConfigMap configMap;
@@ -92,6 +95,12 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySpec> {
                                  OwnerReference ownerReference) {
         super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
     }
+
+    @Override
+    protected boolean isComponentEnabled() {
+        return spec.getReplicas() > 0;
+    }
+
 
     @Override
     protected String getComponentBaseName() {

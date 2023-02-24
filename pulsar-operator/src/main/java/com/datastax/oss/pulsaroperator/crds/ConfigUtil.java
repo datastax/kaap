@@ -17,14 +17,18 @@ package com.datastax.oss.pulsaroperator.crds;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 public class ConfigUtil {
-    private ConfigUtil() {}
+    private ConfigUtil() {
+    }
 
     @SneakyThrows
     public static <T> T applyDefaultsWithReflection(T object, Supplier<T> defaultObject) {
@@ -45,10 +49,19 @@ public class ConfigUtil {
                 continue;
             }
             final Object newValue;
-            if (field.getType().getName().startsWith("java.")) {
-                final Object parent = object;
+
+            if (Collection.class.isAssignableFrom(field.getType())) {
+                newValue = handleCollections(
+                        (Collection) readField(defaultObject.get(), field.getName()),
+                        (Collection) readField(object, field.getName()));
+            } else if (Map.class.isAssignableFrom(field.getType())) {
+                newValue = mergeMaps(
+                        (Map) readField(defaultObject.get(), field.getName()),
+                        (Map) readField(object, field.getName()));
+            } else if (field.getType().getName().startsWith("java.")) {
+                final Object finalObj = object;
                 newValue = ObjectUtils.getFirstNonNull(
-                        () -> readField(parent, field.getName()),
+                        () -> readField(finalObj, field.getName()),
                         () -> readField(defaultObject.get(), field.getName())
                 );
             } else {
@@ -67,6 +80,40 @@ public class ConfigUtil {
         if (object == null) {
             return null;
         }
-        return FieldUtils.readField(object, fieldName, true);
+
+        final Object res = FieldUtils.readField(object, fieldName, true);
+        System.out.println("read field " + fieldName + " -> " + res);
+        return res;
     }
+
+    public static <T> Map<String, T> mergeMaps(Map<String, T> parent, Map<String, T> child) {
+        if (parent == null) {
+            return child;
+        }
+        if (child == null) {
+            return parent;
+        }
+        Map<String, T> result = new HashMap<>(parent);
+        result.putAll(child);
+        return result;
+    }
+
+    @SneakyThrows
+    private static <T> Collection<T> handleCollections(Collection<T> parent,
+                                                       Collection<T> child) {
+        if (parent == null) {
+            return child;
+        }
+        if (child == null) {
+            return parent;
+        }
+        if (parent.isEmpty()) {
+            return child;
+        }
+        if (child.isEmpty()) {
+            return parent;
+        }
+        return child;
+    }
+
 }

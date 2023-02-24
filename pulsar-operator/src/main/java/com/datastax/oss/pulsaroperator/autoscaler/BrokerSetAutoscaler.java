@@ -15,10 +15,15 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.PulsarClusterController;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerWithSetsSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetrics;
@@ -27,79 +32,148 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 @JBossLog
-public class BrokerAutoscaler implements Runnable {
+public class BrokerSetAutoscaler implements Runnable {
 
     private final KubernetesClient client;
     private final String namespace;
     private final PulsarClusterSpec clusterSpec;
+    private final String brokerSetName;
+    private final BrokerSetSpec desiredBrokerSetSpec;
 
-    public BrokerAutoscaler(KubernetesClient client, String namespace,
-                            PulsarClusterSpec clusterSpec) {
+    public BrokerSetAutoscaler(KubernetesClient client, String namespace,
+                               String brokerSetName, PulsarClusterSpec clusterSpec) {
         this.client = client;
         this.namespace = namespace;
+        this.brokerSetName = brokerSetName;
         this.clusterSpec = clusterSpec;
+        this.desiredBrokerSetSpec = BrokerController.getBrokerSetSpecs(
+                        new BrokerFullSpec(clusterSpec.getGlobal(), clusterSpec.getBroker()))
+                .get(brokerSetName);
     }
 
     @Override
     public void run() {
         try {
-            log.infof("Broker autoscaler starting");
+            log.infof("Broker autoscaler starting for broker set %s", brokerSetName);
             internalRun();
+            log.infof("Broker autoscaler finished for broker set %s", brokerSetName);
         } catch (Throwable tt) {
             if (ExceptionUtils.indexOfThrowable(tt, RejectedExecutionException.class) >= 0) {
                 return;
             }
-            log.error("Broker autoscaler error", tt);
+            log.errorf("Broker (broker set %s) autoscaler error", brokerSetName, tt);
         }
     }
 
     @SneakyThrows
     void internalRun() {
-        final BrokerAutoscalerSpec autoscalerSpec = clusterSpec.getBroker().getAutoscaler();
+        final BrokerAutoscalerSpec autoscalerSpec = desiredBrokerSetSpec.getAutoscaler();
         Objects.requireNonNull(autoscalerSpec);
 
         final String clusterName = clusterSpec.getGlobal().getName();
-        final String brokerBaseName = clusterSpec.getGlobal()
-                .getComponents().getBrokerBaseName();
-        final String brokerName = "%s-%s".formatted(clusterName, brokerBaseName);
-
+        final String brokerCustomResourceName = PulsarClusterController.computeCustomResourceName(clusterSpec,
+                PulsarClusterController.CUSTOM_RESOURCE_BROKER);
         final Broker brokerCr = client.resources(Broker.class)
                 .inNamespace(namespace)
-                .withName(brokerName)
+                .withName(brokerCustomResourceName)
                 .get();
         if (brokerCr == null) {
             log.warnf("Broker custom resource not found in namespace %s", namespace);
             return;
         }
-        final int currentExpectedReplicas = brokerCr.getSpec().getBroker().getReplicas().intValue();
+
+        final GlobalSpec currentGlobalSpec = brokerCr.getSpec().getGlobal();
+        final BrokerSetSpec currentBrokerSetSpec = BrokerController.getBrokerSetSpecs(
+                new BrokerFullSpec(currentGlobalSpec, brokerCr.getSpec().getBroker())
+        ).get(brokerSetName);
+
+        final int currentExpectedReplicas = currentBrokerSetSpec.getReplicas().intValue();
 
 
-        if (!isBrokerReadyToScale(clusterName, brokerBaseName, brokerName, currentExpectedReplicas)) {
+        final String statefulsetName = BrokerResourcesFactory.getResourceName(clusterName,
+                currentGlobalSpec.getComponents().getBrokerBaseName(), brokerSetName);
+        final String componentLabelValue = BrokerResourcesFactory.getComponentBaseName(currentGlobalSpec);
+
+        final Map<String, String> podSelector = new TreeMap<>(Map.of(
+                CRDConstants.LABEL_CLUSTER, clusterName,
+                CRDConstants.LABEL_COMPONENT, componentLabelValue,
+                CRDConstants.LABEL_RESOURCESET, brokerSetName));
+
+        if (!AutoscalerUtils.isStsReadyToScale(client,
+                autoscalerSpec.getStabilizationWindowMs(),
+                namespace, statefulsetName, podSelector, currentExpectedReplicas)) {
             return;
         }
-
-        final LinkedHashMap<String, String> withLabels = new LinkedHashMap<>();
-        withLabels.put(CRDConstants.LABEL_CLUSTER, clusterName);
-        withLabels.put(CRDConstants.LABEL_COMPONENT, brokerBaseName);
 
         final PodMetricsList metrics =
                 client.top()
                         .pods()
-                        .withLabels(withLabels)
+                        .withLabels(podSelector)
                         .inNamespace(namespace)
                         .metrics();
 
         log.infof("Got %d broker pod metrics", metrics.getItems().size());
 
+        Boolean scaleUpOrDown = decideScaleUpOrDown(autoscalerSpec, metrics);
+
+        if (scaleUpOrDown != null) {
+            int scaleTo = scaleUpOrDown
+                    ? currentExpectedReplicas + autoscalerSpec.getScaleUpBy()
+                    : currentExpectedReplicas - autoscalerSpec.getScaleDownBy();
+
+            final Integer min = autoscalerSpec.getMin();
+            if (scaleTo <= 0 || (min != null && scaleTo < min)) {
+                log.debugf("Can't scale down, "
+                                + "replicas is already the min. Current %d, min %d, scaleDownBy %d",
+                        currentExpectedReplicas,
+                        min,
+                        autoscalerSpec.getScaleDownBy()
+                );
+                return;
+            }
+            final Integer max = autoscalerSpec.getMax();
+            if (max != null && scaleTo > max) {
+                log.debugf("Can't scale down, "
+                                + "replicas is already the max. Current %d, max %d, scaleUpBy %d",
+                        currentExpectedReplicas,
+                        max,
+                        autoscalerSpec.getScaleUpBy()
+                );
+                return;
+            }
+
+
+            applyScaleTo(brokerCr, scaleTo);
+            client.resources(Broker.class)
+                    .inNamespace(namespace)
+                    .withName(brokerCustomResourceName)
+                    .patch(brokerCr);
+            log.infof("Scaled brokers for broker set %s from %d to %d",
+                    brokerSetName, currentExpectedReplicas, scaleTo);
+        } else {
+            log.infof("System is stable, no scaling needed");
+        }
+    }
+
+    private void applyScaleTo(Broker brokerCr, int scaleTo) {
+        if (brokerSetName.equals(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
+            brokerCr.getSpec().getBroker().setReplicas(scaleTo);
+        } else {
+            brokerCr.getSpec().getBroker().getSets().get(brokerSetName).setReplicas(scaleTo);
+        }
+    }
+
+    private Boolean decideScaleUpOrDown(BrokerAutoscalerSpec autoscalerSpec, PodMetricsList metrics) {
         Boolean scaleUpOrDown = null;
 
         float cpuLowerThreshold = autoscalerSpec.getLowerCpuThreshold().floatValue();
@@ -177,45 +251,7 @@ public class BrokerAutoscaler implements Runnable {
                 break;
             }
         }
-
-
-        if (scaleUpOrDown != null) {
-            int scaleTo = scaleUpOrDown
-                    ? currentExpectedReplicas + autoscalerSpec.getScaleUpBy()
-                    : currentExpectedReplicas - autoscalerSpec.getScaleDownBy();
-
-            final Integer min = autoscalerSpec.getMin();
-            if (scaleTo <= 0 || (min != null && scaleTo < min)) {
-                log.debugf("Can't scale down, "
-                                + "replicas is already the min. Current %d, min %d, scaleDownBy %d",
-                        currentExpectedReplicas,
-                        min,
-                        autoscalerSpec.getScaleDownBy()
-                );
-                return;
-            }
-            final Integer max = autoscalerSpec.getMax();
-            if (max != null && scaleTo > max) {
-                log.debugf("Can't scale down, "
-                                + "replicas is already the max. Current %d, max %d, scaleUpBy %d",
-                        currentExpectedReplicas,
-                        max,
-                        autoscalerSpec.getScaleUpBy()
-                );
-                return;
-            }
-
-            final BrokerWithSetsSpec broker = brokerCr.getSpec().getBroker();
-            broker.setReplicas(scaleTo);
-            brokerCr.getSpec().setBroker(broker);
-            client.resources(Broker.class)
-                    .inNamespace(namespace)
-                    .withName(clusterName + "-" + brokerBaseName)
-                    .patch(brokerCr);
-            log.infof("Scaled brokers from %d to %d", currentExpectedReplicas, scaleTo);
-        } else {
-            log.infof("System is stable, no scaling needed");
-        }
+        return scaleUpOrDown;
     }
 
     private float quantityToBytes(Quantity quantity) {
@@ -224,10 +260,4 @@ public class BrokerAutoscaler implements Runnable {
                 .floatValue();
     }
 
-    private boolean isBrokerReadyToScale(String clusterName, String brokerBaseName, String brokerName,
-                                         int currentExpectedReplicas) {
-        return AutoscalerUtils.isStsReadyToScale(client,
-                clusterSpec.getBroker().getAutoscaler().getStabilizationWindowMs(),
-                clusterName, namespace, brokerBaseName, brokerName, currentExpectedReplicas);
-    }
 }

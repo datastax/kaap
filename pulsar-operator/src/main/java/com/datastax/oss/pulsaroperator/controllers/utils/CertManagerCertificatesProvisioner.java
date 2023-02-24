@@ -17,11 +17,13 @@ package com.datastax.oss.pulsaroperator.controllers.utils;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateBuilder;
@@ -31,6 +33,7 @@ import io.fabric8.certmanager.api.model.v1.IssuerBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -38,6 +41,7 @@ import org.apache.commons.lang3.ObjectUtils;
 public class CertManagerCertificatesProvisioner {
     private final KubernetesClient client;
     private final String namespace;
+    private final PulsarClusterSpec pulsarClusterSpec;
     private final GlobalSpec globalSpec;
     private final TlsConfig.SelfSignedCertProvisionerConfig selfSigned;
     private final String clusterName;
@@ -45,10 +49,12 @@ public class CertManagerCertificatesProvisioner {
     private final String caIssuerName;
     private final String serviceDnsSuffix;
 
-    public CertManagerCertificatesProvisioner(KubernetesClient client, String namespace, GlobalSpec globalSpec) {
+    public CertManagerCertificatesProvisioner(KubernetesClient client, String namespace,
+                                              PulsarClusterSpec pulsarClusterSpec) {
         this.client = client;
         this.namespace = namespace;
-        this.globalSpec = globalSpec;
+        this.pulsarClusterSpec = pulsarClusterSpec;
+        this.globalSpec = pulsarClusterSpec.getGlobalSpec();
         if (globalSpec.getTls() == null
                 || !globalSpec.getTls().getEnabled()
                 || globalSpec.getTls().getCertProvisioner() == null
@@ -226,10 +232,12 @@ public class CertManagerCertificatesProvisioner {
     }
 
     private List<String> getBrokerDNSNames() {
-        final String brokerBase =
-                BrokerResourcesFactory.getResourceName(clusterName,
-                        BrokerResourcesFactory.getComponentBaseName(globalSpec));
-        return enumerateDnsNames(brokerBase, true);
+        final List<String> sets = BrokerController.enumerateBrokerSets(pulsarClusterSpec.getBroker());
+        final String componentBaseName = BrokerResourcesFactory.getComponentBaseName(globalSpec);
+        return sets.stream()
+                .map(set -> BrokerResourcesFactory.getResourceName(clusterName, componentBaseName, set))
+                .flatMap(set -> enumerateDnsNames(set, true).stream())
+                .collect(Collectors.toList());
     }
 
     private List<String> enumerateDnsNames(final String serviceName, boolean wildcard) {

@@ -16,8 +16,9 @@
 package com.datastax.oss.pulsaroperator.controllers.broker;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -48,7 +49,7 @@ import java.util.Objects;
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
+public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> {
 
     public static final String BROKER_DEFAULT_SET = "broker";
 
@@ -71,13 +72,14 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
     }
 
     private ConfigMap configMap;
+    private final String brokerSet;
 
     public BrokerResourcesFactory(KubernetesClient client, String namespace,
-                                  String brokerSetName, BrokerSpec spec, GlobalSpec global,
+                                  String brokerSetName, BrokerSetSpec spec, GlobalSpec global,
                                   OwnerReference ownerReference) {
         super(client, namespace, getResourceName(global.getName(),
                 getComponentBaseName(global), Objects.requireNonNull(brokerSetName)), spec, global, ownerReference);
-        System.out.println("BrokerResourcesFactory" + resourceName);
+        brokerSet = brokerSetName;
     }
 
     @Override
@@ -100,7 +102,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
 
     public void patchService() {
 
-        final BrokerSpec.ServiceConfig serviceSpec = spec.getService();
+        final BrokerSetSpec.ServiceConfig serviceSpec = spec.getService();
 
         Map<String, String> annotations = null;
         if (serviceSpec.getAnnotations() != null) {
@@ -331,7 +333,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 .build();
         final List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(mainContainer);
-        System.out.println("patching sts " + resourceName);
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(resourceName)
@@ -379,7 +380,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
         if (isJobCompleted(resourceName)) {
             return;
         }
-        final BrokerSpec.TransactionCoordinatorConfig transactions = spec.getTransactions();
+        final BrokerSetSpec.TransactionCoordinatorConfig transactions = spec.getTransactions();
         if (transactions == null || !transactions.getEnabled()) {
             return;
         }
@@ -481,4 +482,26 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSpec> {
                 spec.getMatchLabels());
     }
 
+    @Override
+    protected Map<String, String> getLabels(Map<String, String> customLabels) {
+        final Map<String, String> labels = super.getLabels(customLabels);
+        labels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
+        return labels;
+    }
+
+    @Override
+    protected Map<String, String> getPodLabels(Map<String, String> customLabels) {
+        final Map<String, String> labels = super.getPodLabels(customLabels);
+        labels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
+        return labels;
+    }
+
+    @Override
+    protected Map<String, String> getMatchLabels(Map<String, String> customMatchLabels) {
+        final Map<String, String> matchLabels = super.getMatchLabels(customMatchLabels);
+        if (!brokerSet.equals(BROKER_DEFAULT_SET)) {
+            matchLabels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
+        }
+        return matchLabels;
+    }
 }

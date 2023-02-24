@@ -18,10 +18,11 @@ package com.datastax.oss.pulsaroperator.controllers.broker;
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
+import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerWithSetsSpec;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -33,12 +34,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.jbosslog.JBossLog;
 
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-broker-controller")
 @JBossLog
 public class BrokerController extends AbstractController<Broker> {
+
+    public static List<String> enumerateBrokerSets(BrokerSpec broker) {
+        Map<String, BrokerSetSpec> sets = broker.getSets();
+        if (sets == null || sets.isEmpty()) {
+            return List.of(BrokerResourcesFactory.BROKER_DEFAULT_SET);
+        } else {
+            final TreeMap<String, BrokerSetSpec> sorted = new TreeMap<>(sets);
+            return new ArrayList<>(sorted.keySet());
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class BrokerSetInfo {
+        private final String name;
+        private final BrokerSetSpec setSpec;
+        private final BrokerResourcesFactory brokerResourcesFactory;
+        private final boolean needDedicatedService;
+
+
+    }
 
     public BrokerController(KubernetesClient client) {
         super(client);
@@ -49,21 +73,12 @@ public class BrokerController extends AbstractController<Broker> {
         final String namespace = resource.getMetadata().getNamespace();
         final BrokerFullSpec spec = resource.getSpec();
 
-        List<BrokerResourcesFactory> factories = new ArrayList<>();
-        TreeMap<String, BrokerSpec> sets = getBrokerSets(spec);
-        final OwnerReference ownerReference = getOwnerReference(resource);
-        for (Map.Entry<String, BrokerSpec> stringBrokerSpecEntry : sets.entrySet()) {
-            final BrokerResourcesFactory
-                    resourcesFactory = new BrokerResourcesFactory(
-                    client, namespace, stringBrokerSpecEntry.getKey(), stringBrokerSpecEntry.getValue(),
-                    spec.getGlobal(), ownerReference);
-            factories.add(resourcesFactory);
-        }
+        List<BrokerSetInfo> brokerSets = getBrokerSets(resource, namespace, spec);
 
         if (!areSpecChanged(resource)) {
             ReconciliationResult lastResult = null;
-            for (BrokerResourcesFactory factory : factories) {
-                final ReconciliationResult result = checkReady(resource, factory);
+            for (BrokerSetInfo brokerSetInfo : brokerSets) {
+                final ReconciliationResult result = checkReady(resource, brokerSetInfo);
                 if (result.isReschedule()) {
                     return result;
                 }
@@ -74,11 +89,12 @@ public class BrokerController extends AbstractController<Broker> {
             final BrokerResourcesFactory
                     defaultResourceFactory = new BrokerResourcesFactory(
                     client, namespace, BrokerResourcesFactory.BROKER_DEFAULT_SET, spec.getBroker(),
-                    spec.getGlobal(), ownerReference);
+                    spec.getGlobal(), getOwnerReference(resource));
+            // always create default service
             defaultResourceFactory.patchService();
 
-            for (BrokerResourcesFactory factory : factories) {
-                patchAll(factory);
+            for (BrokerSetInfo brokerSet : brokerSets) {
+                patchAll(brokerSet);
             }
             return new ReconciliationResult(
                     true,
@@ -87,16 +103,36 @@ public class BrokerController extends AbstractController<Broker> {
         }
     }
 
-    private TreeMap<String, BrokerSpec> getBrokerSets(BrokerFullSpec fullSpec) {
-        final BrokerWithSetsSpec broker = fullSpec.getBroker();
-        Map<String, BrokerSpec> sets = broker.getSets();
+    private List<BrokerSetInfo> getBrokerSets(Broker resource, String namespace, BrokerFullSpec spec) {
+        List<BrokerSetInfo> result = new ArrayList<>();
+        final OwnerReference ownerReference = getOwnerReference(resource);
+        final BrokerSpec mainBrokerSpec = spec.getBroker();
+
+        for (Map.Entry<String, BrokerSetSpec> brokerSet : getBrokerSetSpecs(spec).entrySet()) {
+            final String brokerSetName = brokerSet.getKey();
+            final BrokerSetSpec brokerSetSpec = brokerSet.getValue();
+            final BrokerResourcesFactory
+                    resourcesFactory = new BrokerResourcesFactory(
+                    client, namespace, brokerSetName, brokerSetSpec,
+                    spec.getGlobal(), ownerReference);
+
+            boolean needDedicatedService =
+                    !SpecDiffer.specsAreEquals(brokerSetSpec.getService(), mainBrokerSpec.getService());
+            result.add(new BrokerSetInfo(brokerSetName, brokerSetSpec, resourcesFactory, needDedicatedService));
+        }
+        return result;
+    }
+
+    public static TreeMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerFullSpec fullSpec) {
+        final BrokerSpec broker = fullSpec.getBroker();
+        Map<String, BrokerSetSpec> sets = broker.getSets();
         if (sets == null || sets.isEmpty()) {
             sets = Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET,
-                    ConfigUtil.applyDefaultsWithReflection(new BrokerSpec(),
+                    ConfigUtil.applyDefaultsWithReflection(new BrokerSetSpec(),
                             () -> broker));
         } else {
             sets = new HashMap<>(sets);
-            for (Map.Entry<String, BrokerSpec> set : sets.entrySet()) {
+            for (Map.Entry<String, BrokerSetSpec> set : sets.entrySet()) {
                 sets.put(set.getKey(),
                         ConfigUtil.applyDefaultsWithReflection(set.getValue(), () -> broker)
                 );
@@ -105,14 +141,19 @@ public class BrokerController extends AbstractController<Broker> {
         return new TreeMap<>(sets);
     }
 
-    private void patchAll(BrokerResourcesFactory resourcesFactory) {
+    private void patchAll(BrokerSetInfo brokerSetInfo) {
+        final BrokerResourcesFactory resourcesFactory = brokerSetInfo.getBrokerResourcesFactory();
         resourcesFactory.patchPodDisruptionBudget();
         resourcesFactory.patchConfigMap();
         resourcesFactory.patchStatefulSet();
+        if (brokerSetInfo.isNeedDedicatedService()) {
+            resourcesFactory.patchService();
+        }
     }
 
     private ReconciliationResult checkReady(Broker resource,
-                                            BrokerResourcesFactory resourcesFactory) {
+                                            BrokerSetInfo brokerSetInfo) {
+        final BrokerResourcesFactory resourcesFactory = brokerSetInfo.getBrokerResourcesFactory();
         if (!resourcesFactory.isComponentEnabled()) {
             return new ReconciliationResult(
                     false,
@@ -121,7 +162,7 @@ public class BrokerController extends AbstractController<Broker> {
         }
         final StatefulSet sts = resourcesFactory.getStatefulSet();
         if (sts == null) {
-            patchAll(resourcesFactory);
+            patchAll(brokerSetInfo);
             return new ReconciliationResult(
                     true,
                     List.of(createNotReadyInitializingCondition(resource))

@@ -21,14 +21,17 @@ import com.datastax.oss.pulsaroperator.crds.WithDefaults;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerWithSetsSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSet;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidSpec;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Map;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -41,6 +44,8 @@ import lombok.SneakyThrows;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Valid
+@ValidSpec
 public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implements FullSpecWithDefaults {
 
     @ValidSpec
@@ -57,7 +62,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
     @ValidSpec
     @Valid
-    private BrokerWithSetsSpec broker;
+    private BrokerSpec broker;
 
     @ValidSpec
     @Valid
@@ -88,7 +93,8 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     }
 
     @SneakyThrows
-    private <T extends WithDefaults> void initDefaultsForComponent(Class<T> componentClass, String fieldName, GlobalSpec globalSpec) {
+    private <T extends WithDefaults> void initDefaultsForComponent(Class<T> componentClass, String fieldName,
+                                                                   GlobalSpec globalSpec) {
         final Field field = PulsarClusterSpec.class.getDeclaredField(fieldName);
         T current = (T) field.get(this);
         if (current == null) {
@@ -105,12 +111,41 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
     @Override
     public boolean isValid(PulsarClusterSpec value, ConstraintValidatorContext context) {
-        return global.isValid(value.getGlobal(), context)
-                && zookeeper.isValid(value.getZookeeper(), context)
-                && bookkeeper.isValid(value.getBookkeeper(), context)
-                && broker.isValid(value.getBroker(), context)
-                && proxy.isValid(value.getProxy(), context)
-                && autorecovery.isValid(value.getAutorecovery(), context)
-                && bastion.isValid(value.getBastion(), context);
+        return value.getGlobal().isValid(value.getGlobal(), context)
+                && value.getZookeeper().isValid(value.getZookeeper(), context)
+                && value.getBookkeeper().isValid(value.getBookkeeper(), context)
+                && value.getBroker().isValid(value.getBroker(), context)
+                && value.getProxy().isValid(value.getProxy(), context)
+                && value.getAutorecovery().isValid(value.getAutorecovery(), context)
+                && value.getBastion().isValid(value.getBastion(), context)
+                && validateResourceSets(value, context);
+    }
+
+    private boolean validateResourceSets(PulsarClusterSpec spec, ConstraintValidatorContext context) {
+        Map<String, ResourceSet> resourceSets = spec.getGlobal().getResourceSets();
+        if (resourceSets == null) {
+            resourceSets = Collections.emptyMap();
+        }
+        return validateBrokerResourceSets(resourceSets, spec.getBroker(), context);
+
+    }
+
+    private boolean validateBrokerResourceSets(Map<String, ResourceSet> declaredResourceSets,
+                                               BrokerSpec spec, ConstraintValidatorContext context) {
+        final Map<String, BrokerSetSpec> sets = spec.getSets();
+        if (sets == null || sets.isEmpty()) {
+            return true;
+        }
+        for (String s : sets.keySet()) {
+            if (!declaredResourceSets.containsKey(s)) {
+                context.buildConstraintViolationWithTemplate(
+                                ("Broker resource set %s is not defined in global resource sets (.global.resourceSets)"
+                                        + ", only %s")
+                                        .formatted(s, declaredResourceSets.keySet()))
+                        .addConstraintViolation();
+                return false;
+            }
+        }
+        return true;
     }
 }

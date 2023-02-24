@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.tests;
 
-import com.datastax.oss.pulsaroperator.crds.BaseComponentSpec;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +46,7 @@ public class ScalingTest extends BasePulsarClusterTest {
 
             specs.getBookkeeper().setReplicas(3);
             specs.getBroker().setConfig(
-                    BaseComponentSpec.mergeMaps(
+                    ConfigUtil.mergeMaps(
                             specs.getBroker().getConfig(),
                             Map.of(
                                     "managedLedgerDefaultAckQuorum", "2",

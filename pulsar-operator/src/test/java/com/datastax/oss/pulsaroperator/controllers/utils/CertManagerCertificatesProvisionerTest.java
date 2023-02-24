@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.utils;
 
-import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.certmanager.api.model.v1.Certificate;
@@ -452,11 +451,12 @@ public class CertManagerCertificatesProvisionerTest {
     }
 
     private MockKubernetesClient generateCertificates(String spec) {
-        final GlobalSpec globalSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class).getGlobalSpec();
+        final PulsarClusterSpec pulsarClusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
 
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
-        globalSpec.applyDefaults(null);
-        new CertManagerCertificatesProvisioner(mockKubernetesClient.getClient(), NAMESPACE, globalSpec)
+        pulsarClusterSpec.getGlobal().applyDefaults(null);
+        pulsarClusterSpec.applyDefaults(pulsarClusterSpec.getGlobalSpec());
+        new CertManagerCertificatesProvisioner(mockKubernetesClient.getClient(), NAMESPACE, pulsarClusterSpec)
                 .generateCertificates();
         return mockKubernetesClient;
     }

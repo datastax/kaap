@@ -25,7 +25,6 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Toleration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -84,7 +83,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (image == null) {
             image = globalSpec.getImage();
         }
-        nodeSelectors = mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
@@ -102,17 +101,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         }
     }
 
-    public static <T> Map<String, T> mergeMaps(Map<String, T> parent, Map<String, T> child) {
-        if (parent == null) {
-            return child;
-        }
-        if (child == null) {
-            return parent;
-        }
-        Map<String, T> result = new HashMap<>(parent);
-        result.putAll(child);
-        return result;
-    }
 
 
     protected abstract PodDisruptionBudgetConfig getDefaultPdb();

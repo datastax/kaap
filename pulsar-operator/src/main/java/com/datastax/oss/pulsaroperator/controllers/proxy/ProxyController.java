@@ -32,7 +32,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.jbosslog.JBossLog;
@@ -70,12 +72,13 @@ public class ProxyController extends AbstractController<Proxy> {
         final String namespace = resource.getMetadata().getNamespace();
         final ProxyFullSpec spec = resource.getSpec();
 
-        List<ProxySetInfo> proxySets = getProxySets(resource, namespace, spec);
+        final OwnerReference ownerReference = getOwnerReference(resource);
+        List<ProxySetInfo> proxySets = getProxySets(ownerReference, namespace, spec);
 
         if (!areSpecChanged(resource)) {
             ReconciliationResult lastResult = null;
-            for (ProxySetInfo brokerSetInfo : proxySets) {
-                final ReconciliationResult result = checkReady(resource, brokerSetInfo);
+            for (ProxySetInfo proxySetInfo : proxySets) {
+                final ReconciliationResult result = checkReady(resource, proxySetInfo);
                 if (result.isReschedule()) {
                     return result;
                 }
@@ -86,13 +89,14 @@ public class ProxyController extends AbstractController<Proxy> {
             final ProxyResourcesFactory
                     defaultResourceFactory = new ProxyResourcesFactory(
                     client, namespace, ProxyResourcesFactory.PROXY_DEFAULT_SET, spec.getProxy(),
-                    spec.getGlobal(), getOwnerReference(resource));
+                    spec.getGlobal(), ownerReference);
             // always create default service
             defaultResourceFactory.patchService();
 
             for (ProxySetInfo proxySet : proxySets) {
                 patchAll(proxySet.getProxyResourcesFactory());
             }
+            cleanupDeletedProxySets(resource, namespace, proxySets);
             return new ReconciliationResult(
                     true,
                     List.of(createNotReadyInitializingCondition(resource))
@@ -106,6 +110,14 @@ public class ProxyController extends AbstractController<Proxy> {
         controller.patchConfigMapWsConfig();
         controller.patchService();
         controller.patchDeployment();
+    }
+
+
+    private void deleteAll(ProxyResourcesFactory controller) {
+        controller.deletePodDisruptionBudget();
+        controller.deleteConfigMap();
+        controller.deleteService();
+        controller.deleteDeployment();
     }
 
 
@@ -138,20 +150,40 @@ public class ProxyController extends AbstractController<Proxy> {
         }
     }
 
+    private void cleanupDeletedProxySets(Proxy resource, String namespace, List<ProxySetInfo> proxySets) {
+        final ProxyFullSpec lastAppliedResource = getLastAppliedResource(resource, ProxyFullSpec.class);
+        if (lastAppliedResource != null) {
+            final Set<String> currentProxySets = proxySets.stream().map(ProxySetInfo::getName)
+                    .collect(Collectors.toSet());
+            final List<ProxySetInfo> toDeleteProxySets =
+                    getProxySets(null, namespace, lastAppliedResource, currentProxySets);
+            for (ProxySetInfo proxySet : toDeleteProxySets) {
+                deleteAll(proxySet.getProxyResourcesFactory());
+                log.infof("Deleted proxy set: %s", proxySet.getName());
+            }
+        }
+    }
 
 
-    private List<ProxySetInfo> getProxySets(Proxy resource, String namespace, ProxyFullSpec spec) {
+    private List<ProxySetInfo> getProxySets(OwnerReference ownerReference, String namespace, ProxyFullSpec spec) {
+        return getProxySets(ownerReference, namespace, spec, Set.of());
+    }
+
+    private List<ProxySetInfo> getProxySets(OwnerReference ownerReference, String namespace, ProxyFullSpec spec,
+                                            Set<String> excludes) {
         List<ProxySetInfo> result = new ArrayList<>();
-        final OwnerReference ownerReference = getOwnerReference(resource);
 
         for (Map.Entry<String, ProxySetSpec> proxySpec : getProxySetSpecs(spec).entrySet()) {
             final String proxySetName = proxySpec.getKey();
-            final ProxySetSpec brokerSetSpec = proxySpec.getValue();
+            if (excludes.contains(proxySetName)) {
+                continue;
+            }
+            final ProxySetSpec proxySetSpec = proxySpec.getValue();
             final ProxyResourcesFactory
                     resourcesFactory = new ProxyResourcesFactory(
-                    client, namespace, proxySetName, brokerSetSpec,
+                    client, namespace, proxySetName, proxySetSpec,
                     spec.getGlobal(), ownerReference);
-            result.add(new ProxySetInfo(proxySetName, brokerSetSpec, resourcesFactory));
+            result.add(new ProxySetInfo(proxySetName, proxySetSpec, resourcesFactory));
         }
         return result;
     }

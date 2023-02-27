@@ -108,10 +108,10 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 )
                 .readiness(
                         ProbesConfig.ProbeConfig.builder()
-                                .initialDelaySeconds(5)
-                                .periodSeconds(3)
+                                .initialDelaySeconds(10)
+                                .periodSeconds(10)
                                 .timeoutSeconds(60)
-                                .failureThreshold(10)
+                                .failureThreshold(5)
                                 .build()
                 )
                 .build();

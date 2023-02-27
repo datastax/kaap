@@ -32,7 +32,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.jbosslog.JBossLog;
@@ -69,7 +71,8 @@ public class BrokerController extends AbstractController<Broker> {
         final String namespace = resource.getMetadata().getNamespace();
         final BrokerFullSpec spec = resource.getSpec();
 
-        List<BrokerSetInfo> brokerSets = getBrokerSets(resource, namespace, spec);
+        final OwnerReference ownerReference = getOwnerReference(resource);
+        List<BrokerSetInfo> brokerSets = getBrokerSets(ownerReference, namespace, spec);
 
         if (!areSpecChanged(resource)) {
             ReconciliationResult lastResult = null;
@@ -85,13 +88,14 @@ public class BrokerController extends AbstractController<Broker> {
             final BrokerResourcesFactory
                     defaultResourceFactory = new BrokerResourcesFactory(
                     client, namespace, BrokerResourcesFactory.BROKER_DEFAULT_SET, spec.getBroker(),
-                    spec.getGlobal(), getOwnerReference(resource));
+                    spec.getGlobal(), ownerReference);
             // always create default service
             defaultResourceFactory.patchService();
 
             for (BrokerSetInfo brokerSet : brokerSets) {
                 patchAll(brokerSet);
             }
+            cleanupDeletedBrokerSets(resource, namespace, brokerSets);
             return new ReconciliationResult(
                     true,
                     List.of(createNotReadyInitializingCondition(resource))
@@ -99,12 +103,34 @@ public class BrokerController extends AbstractController<Broker> {
         }
     }
 
-    private List<BrokerSetInfo> getBrokerSets(Broker resource, String namespace, BrokerFullSpec spec) {
+    private void cleanupDeletedBrokerSets(Broker resource, String namespace, List<BrokerSetInfo> brokerSets) {
+        final BrokerFullSpec lastAppliedResource = getLastAppliedResource(resource, BrokerFullSpec.class);
+        if (lastAppliedResource != null) {
+            final Set<String> currentBrokerSets = brokerSets.stream().map(BrokerSetInfo::getName)
+                    .collect(Collectors.toSet());
+            final List<BrokerSetInfo> toDeleteBrokerSets =
+                    getBrokerSets(null, namespace, lastAppliedResource, currentBrokerSets);
+            for (BrokerSetInfo brokerSet : toDeleteBrokerSets) {
+                deleteAll(brokerSet);
+                log.infof("Deleted broker set: %s", brokerSet.getName());
+            }
+        }
+    }
+
+    private List<BrokerSetInfo> getBrokerSets(OwnerReference ownerReference, String namespace, BrokerFullSpec spec) {
+        return getBrokerSets(ownerReference, namespace, spec, Set.of());
+    }
+
+
+    private List<BrokerSetInfo> getBrokerSets(OwnerReference ownerReference, String namespace, BrokerFullSpec spec,
+                                              Set<String> excludes) {
         List<BrokerSetInfo> result = new ArrayList<>();
-        final OwnerReference ownerReference = getOwnerReference(resource);
 
         for (Map.Entry<String, BrokerSetSpec> brokerSet : getBrokerSetSpecs(spec).entrySet()) {
             final String brokerSetName = brokerSet.getKey();
+            if (excludes.contains(brokerSetName)) {
+                continue;
+            }
             final BrokerSetSpec brokerSetSpec = brokerSet.getValue();
             final BrokerResourcesFactory
                     resourcesFactory = new BrokerResourcesFactory(
@@ -142,6 +168,14 @@ public class BrokerController extends AbstractController<Broker> {
         resourcesFactory.patchConfigMap();
         resourcesFactory.patchStatefulSet();
         resourcesFactory.patchService();
+    }
+
+    private void deleteAll(BrokerSetInfo brokerSetInfo) {
+        final BrokerResourcesFactory resourcesFactory = brokerSetInfo.getBrokerResourcesFactory();
+        resourcesFactory.deletePodDisruptionBudget();
+        resourcesFactory.deleteConfigMap();
+        resourcesFactory.deleteStatefulSet();
+        resourcesFactory.deleteService();
     }
 
     private ReconciliationResult checkReady(Broker resource,

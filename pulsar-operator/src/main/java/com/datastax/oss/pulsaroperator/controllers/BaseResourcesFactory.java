@@ -158,18 +158,43 @@ public abstract class BaseResourcesFactory<T> {
         }
     }
 
-    protected void deleteStatefulSet() {
+    public void deleteStatefulSet() {
         client.apps().statefulSets()
                 .inNamespace(namespace)
                 .withName(resourceName)
                 .delete();
     }
 
-    protected void deleteDeployment() {
+    public void deleteDeployment() {
         client.apps().deployments()
                 .inNamespace(namespace)
                 .withName(resourceName)
                 .delete();
+    }
+
+    public void deleteService() {
+        client.services()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .delete();
+    }
+
+    public void deletePodDisruptionBudget() {
+        client.policy().v1().podDisruptionBudget()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .delete();
+    }
+
+    protected void deleteConfigMap(String resourceName) {
+        client.services()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .delete();
+    }
+
+    public void deleteConfigMap() {
+        deleteConfigMap(resourceName);
     }
 
     protected Map<String, String> getLabels(Map<String, String> customLabels) {

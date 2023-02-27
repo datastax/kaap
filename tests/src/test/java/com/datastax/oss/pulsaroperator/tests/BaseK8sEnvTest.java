@@ -64,6 +64,8 @@ import org.testng.annotations.BeforeMethod;
 @Slf4j
 public abstract class BaseK8sEnvTest {
 
+    public static final Path PULSAR_OPERATOR_CHART_PATH = Paths.get("..", "helm", "pulsar-operator");
+
     public static final String OPERATOR_IMAGE = System.getProperty("pulsaroperator.tests.operator.image",
             "datastax/lunastreaming-operator:latest-dev");
 
@@ -83,11 +85,19 @@ public abstract class BaseK8sEnvTest {
     private String rbacManifest;
 
     @SneakyThrows
-    private static List<Path> getYamlManifests() {
+    private static List<Path> getOperatorYamlManifests() {
         return Files.list(
                         Path.of(MountableFile
                                 .forClasspathResource("/manifests")
                                 .getResolvedPath())
+                ).filter(p -> p.toFile().getName().endsWith(".yml"))
+                .collect(Collectors.toList());
+    }
+
+    @SneakyThrows
+    private static List<Path> getCRDsManifests() {
+        return Files.list(
+                        Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "crds")
                 ).filter(p -> p.toFile().getName().endsWith(".yml"))
                 .collect(Collectors.toList());
     }
@@ -148,10 +158,10 @@ public abstract class BaseK8sEnvTest {
     private String getRbacManifest() throws IOException {
         List<String> allRbac = new ArrayList<>();
         allRbac.addAll(Files.readAllLines(
-                Paths.get("..", "helm", "pulsar-operator", "templates", "rbac.yaml")));
+                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac.yaml")));
         allRbac.add("---");
         allRbac.addAll(Files.readAllLines(
-                Paths.get("..", "helm", "pulsar-operator", "templates", "serviceaccount.yaml")));
+                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "serviceaccount.yaml")));
 
         final Map<String, String> vars = Map.of(
                 ".Release.Namespace", namespace,
@@ -179,7 +189,7 @@ public abstract class BaseK8sEnvTest {
 
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
-        for (Path yamlManifest : getYamlManifests()) {
+        for (Path yamlManifest : getOperatorYamlManifests()) {
             if ("kubernetes.yml".equals(yamlManifest.toFile().getName())) {
                 final List<HasMetadata> resources =
                         client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get();
@@ -198,18 +208,20 @@ public abstract class BaseK8sEnvTest {
                                     deployment.getSpec().getTemplate()));
                         });
             } else {
-                applyManifestFromFile(yamlManifest);
-                log.info("Applied {}", yamlManifest);
-
+                // skip generated yml, we only use the kubernetes.yml.
+                // CRDs are applied separately from the helm chart directory.
+                // In this way we ensure correctness of released crds and we can skip generating them in the CI
+                log.debug("skipping {}", yamlManifest);
             }
         }
+        getCRDsManifests().forEach(this::applyManifestFromFile);
         awaitOperatorRunning();
     }
 
 
     @SneakyThrows
     protected void deleteOperatorDeploymentAndCRDs() {
-        for (Path yamlManifest : getYamlManifests()) {
+        for (Path yamlManifest : getOperatorYamlManifests()) {
 
             if (yamlManifest.getFileName().equals("kubernetes.yml")) {
                 client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get()
@@ -221,12 +233,9 @@ public abstract class BaseK8sEnvTest {
                                     .delete();
                             log.info("Deleted operator deployment");
                         });
-            } else {
-                deleteManifestFromFile(yamlManifest);
-                log.info("Deleted {}", yamlManifest);
-
             }
         }
+        getCRDsManifests().forEach(this::deleteManifestFromFile);
     }
 
 
@@ -358,6 +367,7 @@ public abstract class BaseK8sEnvTest {
 
     @SneakyThrows
     protected void applyManifestFromFile(Path path) {
+        log.info("applying manifest from file {}", path);
         applyManifest(Files.readAllBytes(path));
     }
 

@@ -38,6 +38,7 @@ public class BaseHelmTest extends BasePulsarClusterTest {
     private static final String HELM_RELEASE_PREFIX = "pothr-";
     public static final String HELM_BIND_PULSAR_OPERATOR = "/helm-pulsar-operator";
     public static final String HELM_BIND_PULSAR_STACK = "/helm-pulsar-stack";
+
     protected String helmReleaseName;
 
     public enum Chart {
@@ -51,7 +52,7 @@ public class BaseHelmTest extends BasePulsarClusterTest {
                 + namespace + "-r-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
         cleanupNonNamespaceableResources();
         env.withHelmContainer(helm -> {
-            final Path operatorPath = Paths.get("..", "helm", "pulsar-operator");
+            final Path operatorPath = PULSAR_OPERATOR_CHART_PATH;
             final Path stackPath = Paths.get("..", "helm", "pulsar-stack");
             helm.withFileSystemBind(operatorPath.toFile().getAbsolutePath(), HELM_BIND_PULSAR_OPERATOR);
             helm.withFileSystemBind(stackPath.toFile().getAbsolutePath(), HELM_BIND_PULSAR_STACK);

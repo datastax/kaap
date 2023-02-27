@@ -78,7 +78,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                                   String brokerSetName, BrokerSetSpec spec, GlobalSpec global,
                                   OwnerReference ownerReference) {
         super(client, namespace, getResourceName(global.getName(),
-                getComponentBaseName(global), Objects.requireNonNull(brokerSetName)), spec, global, ownerReference);
+                getComponentBaseName(global), Objects.requireNonNull(brokerSetName), spec.getOverrideResourceName()),
+                spec, global, ownerReference);
         brokerSet = brokerSetName;
     }
 
@@ -87,8 +88,12 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         return getComponentBaseName(global);
     }
 
-    public static String getResourceName(String clusterName, String baseName, String brokerSetName) {
+    public static String getResourceName(String clusterName, String baseName, String brokerSetName,
+                                         String overrideResourceName) {
         Objects.requireNonNull(brokerSetName);
+        if (overrideResourceName != null) {
+            return overrideResourceName;
+        }
         if (BROKER_DEFAULT_SET.equals(brokerSetName)) {
             return "%s-%s".formatted(clusterName, baseName);
         }

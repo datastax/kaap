@@ -121,14 +121,20 @@ public class PulsarClusterResourceGenerator {
                 specGeneratorByName(ZooKeeperSpecGenerator.SPEC_NAME).getTlsEntryConfig();
         final TlsConfig.TlsEntryConfig bkTlsEntryConfig =
                 specGeneratorByName(BookKeeperSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final BaseSpecGenerator brokerSpecGenerator = specGeneratorByName(BrokerSpecGenerator.SPEC_NAME);
         final TlsConfig.TlsEntryConfig brokerTlsEntryConfig =
-                specGeneratorByName(BrokerSpecGenerator.SPEC_NAME).getTlsEntryConfig();
+                brokerSpecGenerator.getTlsEntryConfig();
+
+        final Map<String, TlsConfig.TlsEntryConfig> tlsEntryConfigForBrokerResourceSets =
+                ((BrokerSpecGenerator) brokerSpecGenerator).getTlsEntryConfigForResourceSets();
+
+
         final TlsConfig.TlsEntryConfig autorecoveryTlsEntryConfig =
                 specGeneratorByName(AutorecoverySpecGenerator.SPEC_NAME).getTlsEntryConfig();
         final BaseSpecGenerator proxySpecGenerator = specGeneratorByName(ProxySpecGenerator.SPEC_NAME);
         final TlsConfig.TlsEntryConfig proxyTlsEntryConfig =
                 proxySpecGenerator.getTlsEntryConfig();
-        final Map<String, TlsConfig.ProxyTlsEntryConfig> tlsEntryConfigForResourceSets =
+        final Map<String, TlsConfig.ProxyTlsEntryConfig> tlsEntryConfigForProxyResourceSets =
                 ((ProxySpecGenerator) proxySpecGenerator).getTlsEntryConfigForResourceSets();
 
         final TlsConfig.TlsEntryConfig functionTlsEntryConfig =
@@ -138,9 +144,10 @@ public class PulsarClusterResourceGenerator {
         if (zkTlsEntryConfig == null
                 && bkTlsEntryConfig == null
                 && brokerTlsEntryConfig == null
+                && tlsEntryConfigForBrokerResourceSets == null
                 && autorecoveryTlsEntryConfig == null
                 && proxyTlsEntryConfig == null
-                && tlsEntryConfigForResourceSets == null
+                && tlsEntryConfigForProxyResourceSets == null
                 && functionTlsEntryConfig == null) {
             return TlsConfig.builder()
                     .enabled(false)
@@ -157,9 +164,10 @@ public class PulsarClusterResourceGenerator {
                 .zookeeper(zkTlsEntryConfig)
                 .bookkeeper(bkTlsEntryConfig)
                 .broker(brokerTlsEntryConfig)
+                .brokerResourceSets(tlsEntryConfigForBrokerResourceSets)
                 .autorecovery(autorecoveryTlsEntryConfig)
                 .proxy((TlsConfig.ProxyTlsEntryConfig) proxyTlsEntryConfig)
-                .proxyResourceSets(tlsEntryConfigForResourceSets)
+                .proxyResourceSets(tlsEntryConfigForProxyResourceSets)
                 .functionsWorker((TlsConfig.FunctionsWorkerTlsEntryConfig) functionTlsEntryConfig)
                 .ssCa(ssCaEntryConfig)
                 .caPath(caPath)

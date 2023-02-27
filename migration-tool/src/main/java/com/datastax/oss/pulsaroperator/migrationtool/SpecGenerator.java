@@ -18,11 +18,13 @@ package com.datastax.oss.pulsaroperator.migrationtool;
 import com.datastax.oss.pulsaroperator.controllers.autorecovery.AutorecoveryResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bastion.BastionResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyController;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
@@ -197,15 +199,21 @@ public class SpecGenerator {
     }
 
     private void generateBrokerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
-        final BrokerResourcesFactory brokerResourcesFactory =
-                new BrokerResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), BrokerResourcesFactory.BROKER_DEFAULT_SET, pulsarCluster.getSpec().getBroker(),
-                        pulsarCluster.getSpec().getGlobal(), null);
+        final TreeMap<String, BrokerSetSpec> proxySetSpecs = BrokerController.getBrokerSetSpecs(
+                pulsarCluster.getSpec().getBroker());
+        for (Map.Entry<String, BrokerSetSpec> brokerSet : proxySetSpecs.entrySet()) {
 
-        brokerResourcesFactory.patchPodDisruptionBudget();
-        brokerResourcesFactory.patchConfigMap();
-        brokerResourcesFactory.patchService();
-        brokerResourcesFactory.patchStatefulSet();
+            final BrokerResourcesFactory brokerResourcesFactory =
+                    new BrokerResourcesFactory(local.getClient(), inputSpecs.
+                            getNamespace(), brokerSet.getKey(),
+                            brokerSet.getValue(),
+                            pulsarCluster.getSpec().getGlobal(), null);
+
+            brokerResourcesFactory.patchPodDisruptionBudget();
+            brokerResourcesFactory.patchConfigMap();
+            brokerResourcesFactory.patchService();
+            brokerResourcesFactory.patchStatefulSet();
+        }
     }
 
     private void generateAutorecoveryResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {

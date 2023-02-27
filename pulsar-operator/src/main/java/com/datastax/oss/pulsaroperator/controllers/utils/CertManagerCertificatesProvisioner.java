@@ -234,10 +234,9 @@ public class CertManagerCertificatesProvisioner {
     }
 
     private List<String> getBrokerDNSNames() {
-        final List<String> sets = BrokerController.enumerateBrokerSets(pulsarClusterSpec.getBroker());
         final String componentBaseName = BrokerResourcesFactory.getComponentBaseName(globalSpec);
-        return sets.stream()
-                .map(set -> BrokerResourcesFactory.getResourceName(clusterName, componentBaseName, set))
+        return BrokerController
+                .enumerateBrokerSets(clusterName, componentBaseName, pulsarClusterSpec.getBroker()).stream()
                 .flatMap(set -> enumerateDnsNames(set, true).stream())
                 .collect(Collectors.toList());
     }

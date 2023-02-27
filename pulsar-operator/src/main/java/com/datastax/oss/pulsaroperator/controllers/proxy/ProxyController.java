@@ -48,7 +48,7 @@ public class ProxyController extends AbstractController<Proxy> {
         Map<String, ProxySetSpec> sets = proxy.getSets();
         if (sets == null || sets.isEmpty()) {
             return List.of(ProxyResourcesFactory.getResourceName(clusterName, componentBaseName,
-                    ProxyResourcesFactory.PROXY_DEFAULT_SET, (String) null));
+                    ProxyResourcesFactory.PROXY_DEFAULT_SET, proxy.getOverrideResourceName()));
         } else {
             final TreeMap<String, ProxySetSpec> sorted = new TreeMap<>(sets);
             List<String> names = new ArrayList<>();

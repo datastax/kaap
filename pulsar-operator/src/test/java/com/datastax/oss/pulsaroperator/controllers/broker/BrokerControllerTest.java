@@ -1018,6 +1018,23 @@ public class BrokerControllerTest {
     }
 
     @Test
+    public void testResourceNameOverride() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                broker:
+                    overrideResourceName: broker-override
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "broker-override"));
+        Assert.assertNotNull(client.getCreatedResource(ConfigMap.class, "broker-override"));
+        Assert.assertNotNull(client.getCreatedResource(Service.class, "broker-override"));
+        Assert.assertNotNull(client.getCreatedResource(PodDisruptionBudget.class, "broker-override"));
+    }
+
+    @Test
     public void testInitContainers() throws Exception {
         String spec = """
                 global:

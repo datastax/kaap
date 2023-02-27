@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -89,7 +90,16 @@ public class InputClusterSpecs {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ProxySpecs {
+
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class AdditionalProxy {
+            String name;
+            String overrideName;
+        }
         String baseName = "proxy";
+        List<AdditionalProxy> additionalProxies = List.of();
     }
 
     @Data

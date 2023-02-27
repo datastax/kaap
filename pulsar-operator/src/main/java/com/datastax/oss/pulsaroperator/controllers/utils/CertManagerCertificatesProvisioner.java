@@ -226,10 +226,9 @@ public class CertManagerCertificatesProvisioner {
     }
 
     private List<String> getProxyDNSNames() {
-        final List<String> sets = ProxyController.enumerateProxySets(pulsarClusterSpec.getProxy());
         final String componentBaseName = ProxyResourcesFactory.getComponentBaseName(globalSpec);
-        return sets.stream()
-                .map(set -> ProxyResourcesFactory.getResourceName(clusterName, componentBaseName, set))
+        return ProxyController
+                .enumerateProxySets(clusterName, componentBaseName, pulsarClusterSpec.getProxy()).stream()
                 .flatMap(set -> enumerateDnsNames(set, false).stream())
                 .collect(Collectors.toList());
     }

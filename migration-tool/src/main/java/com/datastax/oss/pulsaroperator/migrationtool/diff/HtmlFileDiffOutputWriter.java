@@ -24,8 +24,11 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -99,10 +102,7 @@ public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
     @Override
     public void diffOk(Pair<DiffChecker.Resource, DiffChecker.Resource> resources) {
         final String fqName = resources.getLeft().getFullQualifedName();
-        if (ulOpen) {
-            builder.append("</ul>\n");
-            ulOpen = false;
-        }
+        closeULIfOpen();
         builder.append("<h3>%s: OK</h3>\n".formatted(fqName));
         appendResourceLinks(resources);
     }
@@ -115,8 +115,12 @@ public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
     }
 
     private void addResourceLink(String text, File fileRef) {
-        builder.append("<p class=\"resource-link\"><a href=\"%s\">%s</a></p>".formatted(
-                fileRef.getAbsolutePath(), text));
+        builder.append(genResourceLink(text, fileRef));
+    }
+
+    private String genResourceLink(String text, File fileRef) {
+        return "<p class=\"resource-link\"><a href=\"%s\">%s</a></p>".formatted(
+                fileRef.getAbsolutePath(), text);
     }
 
 
@@ -125,10 +129,7 @@ public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
                            List<JSONComparator.FieldComparisonFailure> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
         final String fqName = resources.getLeft().getFullQualifedName();
-        if (ulOpen) {
-            builder.append("</ul>\n");
-            ulOpen = false;
-        }
+        closeULIfOpen();
         builder.append("<h3>%s: FAILED</h3>\n".formatted(fqName));
         appendResourceLinks(resources);
         builder.append("<ul>");
@@ -179,6 +180,44 @@ public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
             return MAPPER.writeValueAsString(MAPPER.readValue(value, clazz));
         } catch (JsonProcessingException e) {
             return value;
+        }
+    }
+
+    @Override
+    public void missingResources(Collection<DiffChecker.Resource> missingResources) {
+        closeULIfOpen();
+        addResourcesRawList(missingResources, "Untouched resources");
+    }
+
+    @Override
+    public void newResources(Collection<DiffChecker.Resource> newResources) {
+        closeULIfOpen();
+        addResourcesRawList(newResources, "New resources");
+    }
+
+    private void addResourcesRawList(Collection<DiffChecker.Resource> resources, String title) {
+        if (resources.isEmpty()) {
+            return;
+        }
+        builder.append("<h3>%s</h3>\n".formatted(title));
+
+        final Map<String, List<DiffChecker.Resource>> byKind =
+                resources.stream().collect(Collectors.groupingBy(r -> r.getKind()));
+
+        for (Map.Entry<String, List<DiffChecker.Resource>> kind : byKind.entrySet()) {
+            builder.append("<h4>%s</h4>\n".formatted(kind.getKey()));
+            for (DiffChecker.Resource resource : kind.getValue().stream().sorted(Comparator.comparing(s -> s.getName()))
+                    .collect(Collectors.toList())) {
+                builder.append("%s\n".formatted(
+                        genResourceLink(resource.getName(), resource.getFileReference())));
+            }
+        }
+    }
+
+    private void closeULIfOpen() {
+        if (ulOpen) {
+            builder.append("</ul>\n");
+            ulOpen = false;
         }
     }
 

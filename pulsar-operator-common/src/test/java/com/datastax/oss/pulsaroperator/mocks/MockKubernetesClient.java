@@ -22,19 +22,31 @@ import static org.mockito.Mockito.when;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.ListMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.V1NetworkAPIGroupDSL;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.client.dsl.AppsAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.BatchAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.Gettable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
+import io.fabric8.kubernetes.client.dsl.NetworkAPIGroupDSL;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PolicyAPIGroupDSL;
+import io.fabric8.kubernetes.client.dsl.RbacAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
@@ -92,7 +104,9 @@ public class MockKubernetesClient {
 
     private void mockExistingResources(String namespace) {
         final V1BatchAPIGroupDSL v1BatchAPIGroupDSL = mockBatchV1();
-        mockJobs(namespace, v1BatchAPIGroupDSL);
+        when(v1BatchAPIGroupDSL.jobs()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, Job.class, name -> resourcesResolver.jobWithName(name))
+        );
         final MixedOperation resourceOp = Mockito.mock(MixedOperation.class);
         when(resourceOp.inNamespace(eq(namespace))).thenReturn(resourceOp);
 
@@ -121,6 +135,26 @@ public class MockKubernetesClient {
         when(v1PolicyAPIGroupDSL.podDisruptionBudget()).thenAnswer(__ ->
                 mockExistingResourceByName(namespace, PodDisruptionBudget.class,
                         name -> resourcesResolver.podDisruptionBudgetWithName(name)));
+
+
+        final V1NetworkAPIGroupDSL v1NetworkAPIGroupDSL = mockNetwork();
+        when(v1NetworkAPIGroupDSL.ingresses()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, Ingress.class,
+                        name -> null));
+
+        when(client.serviceAccounts()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, ServiceAccount.class,
+                        name -> null));
+
+        final RbacAPIGroupDSL rbacAPIGroupDSL = mockRbac();
+        when(rbacAPIGroupDSL.roles()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, Role.class,
+                        name -> null));
+
+        when(rbacAPIGroupDSL.roleBindings()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, RoleBinding.class,
+                        name -> null));
+
     }
 
     private void mockAndInterceptResourceCreation(String namespace) {
@@ -163,13 +197,6 @@ public class MockKubernetesClient {
         });
     }
 
-    private void mockJobs(String namespace, V1BatchAPIGroupDSL v1BatchAPIGroupDSL) {
-        final MixedOperation jobs = Mockito.mock(MixedOperation.class);
-        when(v1BatchAPIGroupDSL.jobs()).thenReturn(jobs);
-        when(jobs.inNamespace(eq(namespace))).thenReturn(jobs);
-        when(jobs.withName(any())).thenReturn(Mockito.mock(ScalableResource.class));
-    }
-
     private V1BatchAPIGroupDSL mockBatchV1() {
         final V1BatchAPIGroupDSL v1BatchAPIGroupDSL = Mockito.mock(V1BatchAPIGroupDSL.class);
         final BatchAPIGroupDSL batch = Mockito.mock(BatchAPIGroupDSL.class);
@@ -192,12 +219,27 @@ public class MockKubernetesClient {
         return v1;
     }
 
+    private V1NetworkAPIGroupDSL mockNetwork() {
+        final NetworkAPIGroupDSL network = Mockito.mock(NetworkAPIGroupDSL.class);
+        final V1NetworkAPIGroupDSL v1 = Mockito.mock(V1NetworkAPIGroupDSL.class);
+        when(network.v1()).thenReturn(v1);
+        when(client.network()).thenReturn(network);
+        return v1;
+    }
+
+    private RbacAPIGroupDSL mockRbac() {
+        final RbacAPIGroupDSL rbac = Mockito.mock(RbacAPIGroupDSL.class);
+        when(client.rbac()).thenReturn(rbac);
+        return rbac;
+    }
+
     private <T extends HasMetadata> MixedOperation mockExistingResourceByName(String namespace, Class<T> resourceClass,
-                                                      Function<String, T> resolver) {
+                                                                              Function<String, T> resolver) {
 
 
         final MixedOperation resourceOp = Mockito.mock(MixedOperation.class);
-        when(resourceOp.inNamespace(eq(namespace))).thenReturn(resourceOp);
+        final NonNamespaceOperation nonNamespaceOperation = Mockito.mock(NonNamespaceOperation.class);
+        when(resourceOp.inNamespace(eq(namespace))).thenReturn(nonNamespaceOperation);
 
         doAnswer(get -> {
             final Class<? extends Gettable> rClass;
@@ -205,6 +247,8 @@ public class MockKubernetesClient {
                 rClass = ServiceResource.class;
             } else if (resourceClass == StatefulSet.class || resourceClass == Deployment.class) {
                 rClass = RollableScalableResource.class;
+            } else if (resourceClass == Job.class) {
+                rClass = ScalableResource.class;
             } else {
                 rClass = Resource.class;
             }
@@ -215,7 +259,20 @@ public class MockKubernetesClient {
                 return resolver.apply(name);
             }).when(resource).get();
             return resource;
-        }).when(resourceOp).withName(any());
+        }).when(nonNamespaceOperation).withName(any());
+
+        class ListImpl implements KubernetesResourceList, KubernetesResource {
+            @Override
+            public ListMeta getMetadata() {
+                return null;
+            }
+
+            @Override
+            public List getItems() {
+                return resourcesResolver.getResources(resourceClass);
+            }
+        }
+        doAnswer(get -> new ListImpl()).when(nonNamespaceOperation).list();
         return resourceOp;
     }
 

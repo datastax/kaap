@@ -26,7 +26,9 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.internal.collections.Pair;
 
@@ -45,6 +47,13 @@ public class MockResourcesResolver {
 
     private <T extends HasMetadata> T getResourceByName(Class<T> clazz, String name) {
         return (T) resources.get(computeKey(clazz, name));
+    }
+
+    public <T extends HasMetadata> List<T> getResources(Class<T> clazz) {
+        return resources.values().stream()
+                .filter(r -> clazz.isAssignableFrom(r.getClass()))
+                .map(r -> (T) r)
+                .collect(Collectors.toList());
     }
 
     public Secret secretWithName(String name) {

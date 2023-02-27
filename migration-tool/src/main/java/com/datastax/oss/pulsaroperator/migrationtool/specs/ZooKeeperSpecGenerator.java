@@ -22,7 +22,6 @@ import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeperSpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
@@ -35,7 +34,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,12 +64,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
     }
 
     @Override
-    public List<HasMetadata> getAllResources() {
-        return resources;
-    }
-
-
-    @Override
     public ZooKeeperSpec generateSpec() {
         return generatedSpec;
     }
@@ -82,12 +74,6 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
         final Service mainService = requireService(resourceName);
         final Service caService = requireService(resourceName + "-ca");
         final StatefulSet statefulSet = requireStatefulSet(resourceName);
-
-        addResource(podDisruptionBudget);
-        addResource(configMap);
-        addResource(mainService);
-        addResource(statefulSet);
-        addResource(caService);
 
         verifyLabelsEquals(mainService, caService);
         verifyLabelsEquals(podDisruptionBudget, statefulSet, configMap);

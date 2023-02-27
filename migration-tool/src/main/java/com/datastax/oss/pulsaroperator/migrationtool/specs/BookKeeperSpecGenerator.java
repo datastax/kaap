@@ -22,7 +22,6 @@ import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
@@ -66,12 +65,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     }
 
     @Override
-    public List<HasMetadata> getAllResources() {
-        return resources;
-    }
-
-
-    @Override
     public BookKeeperSpec generateSpec() {
         return generatedSpec;
     }
@@ -81,10 +74,6 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
         final ConfigMap configMap = requireConfigMap(resourceName);
         final Service mainService = requireService(resourceName);
         final StatefulSet statefulSet = requireStatefulSet(resourceName);
-        addResource(podDisruptionBudget);
-        addResource(configMap);
-        addResource(mainService);
-        addResource(statefulSet);
 
         verifyLabelsEquals(podDisruptionBudget, statefulSet, configMap);
 

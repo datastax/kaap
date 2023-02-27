@@ -20,9 +20,11 @@ import com.datastax.oss.pulsaroperator.controllers.bastion.BastionResourcesFacto
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyController;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
+import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
@@ -143,10 +146,29 @@ public class SpecGenerator {
                 pulsarClusterSpecGenerator = new PulsarClusterResourceGenerator(inputSpecs, client);
         final PulsarCluster pulsarCluster = pulsarClusterSpecGenerator.generatePulsarClusterCustomResource();
         dumpToFile(fullOut.getAbsolutePath(), pulsarCluster);
-        for (HasMetadata resource : pulsarClusterSpecGenerator.getAllResources()) {
-            dumpToFile(fullOut.getAbsolutePath(), ORIGINAL_PREFIX, resource);
-        }
+        dumpOriginalResources(client, fullOut);
         return pulsarCluster;
+    }
+
+    private void dumpOriginalResources(KubernetesClient client, File fullOut) {
+        List.of(
+                        client.policy().v1().podDisruptionBudget(),
+                        client.apps().statefulSets(),
+                        client.apps().deployments(),
+                        client.configMaps(),
+                        client.services(),
+                        client.secrets(),
+                        client.batch().v1().jobs(),
+                        client.network().v1().ingresses(),
+                        client.serviceAccounts(),
+                        client.rbac().roles(),
+                        client.rbac().roleBindings()
+                ).stream()
+                .map(p -> p.inNamespace(inputSpecs.getNamespace())
+                        .list()
+                        .getItems())
+                .flatMap(List::stream)
+                .forEach(r -> dumpToFile(fullOut.getAbsolutePath(), ORIGINAL_PREFIX, r));
     }
 
     private void generateZkResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
@@ -207,15 +229,19 @@ public class SpecGenerator {
     }
 
     private void generateProxyResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
-        final ProxyResourcesFactory proxyResourcesFactory =
-                new ProxyResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), ProxyResourcesFactory.PROXY_DEFAULT_SET, pulsarCluster.getSpec().getProxy(),
-                        pulsarCluster.getSpec().getGlobal(), null);
-        proxyResourcesFactory.patchPodDisruptionBudget();
-        proxyResourcesFactory.patchConfigMap();
-        proxyResourcesFactory.patchConfigMapWsConfig();
-        proxyResourcesFactory.patchService();
-        proxyResourcesFactory.patchDeployment();
+        final TreeMap<String, ProxySetSpec> proxySetSpecs = ProxyController.getProxySetSpecs(
+                pulsarCluster.getSpec().getProxy());
+        for (Map.Entry<String, ProxySetSpec> proxySet : proxySetSpecs.entrySet()) {
+            final ProxyResourcesFactory proxyResourcesFactory =
+                    new ProxyResourcesFactory(local.getClient(), inputSpecs.
+                            getNamespace(), proxySet.getKey(), proxySet.getValue(),
+                            pulsarCluster.getSpec().getGlobal(), null);
+            proxyResourcesFactory.patchPodDisruptionBudget();
+            proxyResourcesFactory.patchConfigMap();
+            proxyResourcesFactory.patchConfigMapWsConfig();
+            proxyResourcesFactory.patchService();
+            proxyResourcesFactory.patchDeployment();
+        }
     }
 
     private void generateFunctionsWorkerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {

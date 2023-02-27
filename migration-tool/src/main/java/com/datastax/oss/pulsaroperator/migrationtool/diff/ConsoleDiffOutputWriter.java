@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,22 @@ public class ConsoleDiffOutputWriter extends BaseDiffOutputWriter {
                     expectedValue,
                     actualValue
             ));
+        }
+    }
+
+    @Override
+    public void missingResources(Collection<DiffChecker.Resource> missingResources) {
+        log.info("Missing resources:");
+        for (DiffChecker.Resource resource : missingResources) {
+            log.info(" - {}", resource.getFullQualifedName());
+        }
+    }
+
+    @Override
+    public void newResources(Collection<DiffChecker.Resource> newResources) {
+        log.info("New resources:");
+        for (DiffChecker.Resource resource : newResources) {
+            log.info(" - {}", resource.getFullQualifedName());
         }
     }
 

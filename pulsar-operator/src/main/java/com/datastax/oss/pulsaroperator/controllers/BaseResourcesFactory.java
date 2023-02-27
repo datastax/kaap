@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
@@ -286,6 +287,27 @@ public abstract class BaseResourcesFactory<T> {
                 && global.getTls().getProxy().getEnabled();
     }
 
+    protected boolean isTlsEnabledOnProxySet(String proxySet) {
+        final boolean tlsEnabledGlobally = isTlsEnabledGlobally();
+        if (!tlsEnabledGlobally) {
+            return false;
+        }
+        final TlsConfig.ProxyTlsEntryConfig tlsConfigForProxySet = getTlsConfigForProxySet(proxySet);
+        return tlsConfigForProxySet != null && tlsConfigForProxySet.getEnabled();
+    }
+
+    protected TlsConfig.ProxyTlsEntryConfig getTlsConfigForProxySet(String proxySet) {
+        if (proxySet.equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)
+                || global.getTls().getProxy() == null
+                || global.getTls().getProxyResourceSets() == null
+                || !global.getTls().getProxyResourceSets().containsKey(proxySet)) {
+            return global.getTls().getProxy();
+        }
+        return ObjectUtils.firstNonNull(
+                global.getTls().getProxyResourceSets().get(proxySet),
+                global.getTls().getProxy());
+    }
+
     protected boolean isTlsEnabledOnFunctionsWorker() {
         return isTlsEnabledGlobally()
                 && global.getTls().getFunctionsWorker() != null
@@ -450,6 +472,14 @@ public abstract class BaseResourcesFactory<T> {
     protected String getTlsSecretNameForProxy() {
         final String name = global.getTls().getProxy() == null
                 ? null : global.getTls().getProxy().getSecretName();
+        return ObjectUtils.firstNonNull(
+                name,
+                global.getTls().getDefaultSecretName());
+    }
+
+    protected String getTlsSecretNameForProxySet(String proxySet) {
+        final TlsConfig.ProxyTlsEntryConfig tlsConfigForProxySet = getTlsConfigForProxySet(proxySet);
+        final String name = tlsConfigForProxySet.getSecretName();
         return ObjectUtils.firstNonNull(
                 name,
                 global.getTls().getDefaultSecretName());

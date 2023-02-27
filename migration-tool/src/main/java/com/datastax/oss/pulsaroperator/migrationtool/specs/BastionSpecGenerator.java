@@ -21,7 +21,6 @@ import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -29,7 +28,6 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -60,12 +58,6 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
     }
 
     @Override
-    public List<HasMetadata> getAllResources() {
-        return resources;
-    }
-
-
-    @Override
     public BastionSpec generateSpec() {
         return generatedSpec;
     }
@@ -73,8 +65,6 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
     public void internalGenerateSpec() {
         final ConfigMap configMap = requireConfigMap(resourceName);
         final Deployment deployment = requireDeployment(resourceName);
-        addResource(configMap);
-        addResource(deployment);
 
         verifyLabelsEquals(deployment, configMap);
 

@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
-import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
@@ -44,7 +43,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +53,6 @@ import java.util.stream.Collectors;
 public abstract class BaseSpecGenerator<T> {
     protected final InputClusterSpecs inputSpecs;
     protected final KubernetesClient client;
-    protected List<HasMetadata> resources = new ArrayList<>();
 
     public static final List<String> HELM_ANNOTATIONS = List.of(
             "meta.helm.sh/release-name",
@@ -77,8 +74,6 @@ public abstract class BaseSpecGenerator<T> {
 
     public abstract String getSpecName();
 
-    public abstract List<HasMetadata> getAllResources();
-
     public abstract T generateSpec();
 
     public abstract PodDNSConfig getPodDnsConfig();
@@ -96,10 +91,6 @@ public abstract class BaseSpecGenerator<T> {
     public abstract String getTlsCaPath();
 
     public abstract String getAuthPublicKeyFile();
-
-    protected void addResource(HasMetadata resource) {
-        resources.add(SerializationUtil.deepCloneObject(resource));
-    }
 
     protected PodDisruptionBudget getPodDisruptionBudget(String name) {
         return client.policy()

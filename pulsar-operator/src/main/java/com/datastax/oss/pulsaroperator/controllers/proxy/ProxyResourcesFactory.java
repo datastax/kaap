@@ -316,6 +316,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         return "%s-ws".formatted(resourceName);
     }
 
+    @Override
+    public void deleteConfigMap() {
+        deleteConfigMap(resourceName);
+        deleteConfigMap(getWsConfigMapName());
+    }
 
     public void patchDeployment() {
         if (!isComponentEnabled()) {

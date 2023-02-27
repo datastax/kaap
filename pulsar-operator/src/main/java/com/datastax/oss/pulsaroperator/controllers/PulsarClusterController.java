@@ -217,10 +217,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                     BrokerController.getBrokerSetSpecs(current.getSpec().getBroker());
             for (Map.Entry<String, BrokerSetSpec> currentSet : currentBrokerSetSpecs.entrySet()) {
                 final BrokerSetSpec desiredBrokerSetSpec = desiredBrokerSetSpecs.get(currentSet.getKey());
-                if (desiredBrokerSetSpec == null) {
-                    // remove the broker set
-                    clusterSpec.getBroker().getSets().get(currentSet.getKey()).setReplicas(0);
-                } else if (desiredBrokerSetSpec.getAutoscaler() != null
+                if (desiredBrokerSetSpec != null
+                        && desiredBrokerSetSpec.getAutoscaler() != null
                         && desiredBrokerSetSpec.getAutoscaler().getEnabled()) {
                     final BrokerSetSpec currentBrokerSetSpec = currentSet.getValue();
                     if (currentBrokerSetSpec.getReplicas() != null) {

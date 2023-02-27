@@ -86,7 +86,7 @@ jobs:
           java-version: 17
 
       - name: Build
-        run: mvn -B -T 1C -ntp -nsu clean install -DskipTests -pl tests -am -Dcheckstyle.skip -Dspotbugs.skip
+        run: mvn -B -T 1C -ntp -nsu clean install -DskipTests -pl tests -am -Dcheckstyle.skip -Dspotbugs.skip -Dquarkus.operator-sdk.crd.generate=false
 
       - name: Integration tests
         run: |

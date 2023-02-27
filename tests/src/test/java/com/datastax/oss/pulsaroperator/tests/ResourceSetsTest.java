@@ -27,8 +27,11 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -139,6 +142,32 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
             assertProduceConsume();
 
 
+            specs.getBroker().setSets(Map.of(
+                    "set1", BrokerSetSpec.builder().build()
+            ));
+
+            specs.getProxy().setSets(Map.of(
+                    "set1", ProxySetSpec.builder().build()
+            ));
+            applyPulsarCluster(specsToYaml(specs));
+
+
+            Awaitility.await().untilAsserted(() -> {
+                assertListEmpty(client.apps().statefulSets().inNamespace(namespace)
+                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+
+                assertListEmpty(client.apps().deployments().inNamespace(namespace)
+                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+
+                assertListEmpty(client.configMaps().inNamespace(namespace)
+                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+
+                assertListEmpty(client.services().inNamespace(namespace)
+                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+
+                assertListEmpty(client.policy().v1().podDisruptionBudget().inNamespace(namespace)
+                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+            });
 
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
@@ -154,6 +183,12 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
     private void assertProduceConsume() {
         execInBastionPod("bin/pulsar-client produce -m test test-topic-proxy");
         execInBastionPod("bin/pulsar-admin tenants create mytenant");
+    }
+
+    private void assertListEmpty(final List<? extends HasMetadata> list) {
+        Assert.assertTrue(list.isEmpty(),
+                "Found resources for set2: " + list.stream().map(HasMetadata::getMetadata).collect(
+                        Collectors.toList()));
     }
 
 }

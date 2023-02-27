@@ -217,6 +217,14 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         return !SpecDiffer.specsAreEquals(cr.getSpec(), lastApplied.getBytes(StandardCharsets.UTF_8));
     }
 
+    protected  <SPEC> SPEC getLastAppliedResource(T cr, Class<SPEC> toClass) {
+        final String lastApplied = cr.getStatus().getLastApplied();
+        if (lastApplied == null) {
+            return null;
+        }
+        return SerializationUtil.readJson(lastApplied, toClass);
+    }
+
     public static Condition createReadyCondition(CustomResource resource) {
         return createReadyCondition(resource.getMetadata().getGeneration());
     }

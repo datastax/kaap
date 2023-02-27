@@ -70,7 +70,15 @@ public class InputClusterSpecs {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BrokerSpecs {
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class AdditionalBroker {
+            String name;
+            String overrideName;
+        }
         String baseName = "broker";
+        List<AdditionalBroker> additionalBrokers = List.of();
     }
 
     @Data

@@ -18,46 +18,55 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
+import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenerator;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
-import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
 
     public static final String SPEC_NAME = "Broker";
-    private final String resourceName;
+    private final Map<String, BaseSpecGenerator> generators = new TreeMap<>();
     private BrokerSpec generatedSpec;
-    private PodDNSConfig podDNSConfig;
-    private boolean isRestartOnConfigMapChange;
-    private String priorityClassName;
-    private Map<String, Object> config;
-    private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public BrokerSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
-        final String clusterName = inputSpecs.getClusterName();
-        resourceName = BrokerResourcesFactory.getResourceName(clusterName,
-                inputSpecs.getBroker().getBaseName(),
-                BrokerResourcesFactory.BROKER_DEFAULT_SET);
-        internalGenerateSpec();
+        internalGenerateSpec(inputSpecs, client);
+    }
 
+    private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
+        final List<InputClusterSpecs.BrokerSpecs.AdditionalBroker> additionalBrokers =
+                inputSpecs.getBroker().getAdditionalBrokers();
+        generatedSpec = new BrokerSpec();
+        if (additionalBrokers == null || additionalBrokers.isEmpty()) {
+            final BrokerSetSpecGenerator brokerSetSpecGenerator = new BrokerSetSpecGenerator(
+                    inputSpecs,
+                    new InputClusterSpecs.BrokerSpecs.AdditionalBroker(BrokerResourcesFactory.BROKER_DEFAULT_SET, null),
+                    client
+            );
+            generators.put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSetSpecGenerator);
+            final BrokerSpec brokerSpec = brokerSetSpecGenerator.generateSpec();
+            generatedSpec.setSets(Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSpec));
+        } else {
+            Map<String, BrokerSetSpec> sets = new TreeMap<>();
+            additionalBrokers.stream().map(
+                    setConfig -> Pair.of(setConfig.getName(), new BrokerSetSpecGenerator(inputSpecs, setConfig, client))
+            ).forEach(pair -> {
+                generators.put(pair.getLeft(), pair.getRight());
+                sets.put(pair.getLeft(), pair.getRight().generateSpec());
+            });
+            generatedSpec.setSets(sets);
+        }
     }
 
     @Override
@@ -70,91 +79,18 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         return generatedSpec;
     }
 
-    public void internalGenerateSpec() {
-        final PodDisruptionBudget podDisruptionBudget = getPodDisruptionBudget(resourceName);
-        final ConfigMap configMap = requireConfigMap(resourceName);
-        final Service mainService = requireService(resourceName);
-        final StatefulSet statefulSet = requireStatefulSet(resourceName);
-        verifyLabelsEquals(podDisruptionBudget, statefulSet, configMap);
-
-
-        final StatefulSetSpec statefulSetSpec = statefulSet.getSpec();
-        final PodSpec spec = statefulSetSpec.getTemplate()
-                .getSpec();
-        final Container container = spec
-                .getContainers()
-                .get(0);
-        PodDisruptionBudgetConfig podDisruptionBudgetConfig =
-                createPodDisruptionBudgetConfig(podDisruptionBudget);
-
-
-        config = convertConfigMapData(configMap);
-        container.getEnv().forEach(envVar -> {
-            config.put(envVar.getName().replace("PULSAR_PREFIX_", ""), envVar.getValue());
-        });
-
-
-        podDNSConfig = spec.getDnsConfig();
-        isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
-        priorityClassName = spec.getPriorityClassName();
-        tlsEntryConfig = createTlsEntryConfig(statefulSet);
-        final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
-        final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
-
-
-        generatedSpec = BrokerSpec.builder()
-                .annotations(statefulSet.getMetadata().getAnnotations())
-                .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
-                .image(container.getImage())
-                .imagePullPolicy(container.getImagePullPolicy())
-                .nodeSelectors(spec.getNodeSelector())
-                .replicas(statefulSetSpec.getReplicas())
-                .probes(createBrokerProbeConfig(container))
-                .nodeAffinity(nodeAffinity)
-                .pdb(podDisruptionBudgetConfig)
-                .labels(statefulSet.getMetadata().getLabels())
-                .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
-                .matchLabels(matchLabels)
-                .config(config)
-                .podManagementPolicy(statefulSetSpec.getPodManagementPolicy())
-                .updateStrategy(statefulSetSpec.getUpdateStrategy())
-                .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
-                        spec.getTerminationGracePeriodSeconds().intValue())
-                .resources(container.getResources())
-                .tolerations(spec.getTolerations())
-                .service(createServiceConfig(mainService))
-                .imagePullSecrets(statefulSetSpec.getTemplate().getSpec().getImagePullSecrets())
-                .functionsWorkerEnabled(isFunctionsWorkerEnabled(config))
-                .transactions(getTransactionCoordinatorConfig(config))
-                .serviceAccountName(spec.getServiceAccountName())
-                .antiAffinity(createAntiAffinityConfig(spec))
-                .env(container.getEnv())
-                .initContainers(spec.getInitContainers())
-                .sidecars(getSidecars(spec, BrokerResourcesFactory.getContainerNames(resourceName)))
-                .build();
-    }
-
-
-    private BrokerSetSpec.TransactionCoordinatorConfig getTransactionCoordinatorConfig(Map<String, Object> configMapData) {
-        final boolean transactionCoordinatorEnabled = boolConfigMapValue(configMapData, "functionsWorkerEnabled");
-        return BrokerSetSpec.TransactionCoordinatorConfig.builder()
-                .enabled(transactionCoordinatorEnabled)
-                .build();
-    }
-
-
-    private boolean isFunctionsWorkerEnabled(Map<String, Object> configMapData) {
-        return boolConfigMapValue(configMapData, "functionsWorkerEnabled");
-    }
-
     @Override
     public PodDNSConfig getPodDnsConfig() {
-        return podDNSConfig;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.getPodDnsConfig(), false, "PodDnsConfig",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
     public boolean isRestartOnConfigMapChange() {
-        return isRestartOnConfigMapChange;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.isRestartOnConfigMapChange(), false, "RestartOnConfigMapChange",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
@@ -164,22 +100,36 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
 
     @Override
     public String getPriorityClassName() {
-        return priorityClassName;
+        return PulsarClusterResourceGenerator.getValueAssertSame(BaseSpecGenerator::getPriorityClassName, false,
+                "priorityClassName", new ArrayList<>(generators.values()));
     }
 
     @Override
     public Map<String, Object> getConfig() {
-        return config;
+        return getBrokerSpecGenerator(BrokerResourcesFactory.BROKER_DEFAULT_SET).getConfig();
     }
 
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
-        return tlsEntryConfig;
+        final BaseSpecGenerator defaultSet = getBrokerSpecGenerator(BrokerResourcesFactory.BROKER_DEFAULT_SET);
+        if (defaultSet == null) {
+            return null;
+        }
+        return defaultSet.getTlsEntryConfig();
+    }
+
+    public Map<String, TlsConfig.TlsEntryConfig> getTlsEntryConfigForResourceSets() {
+        return generators.entrySet()
+                .stream()
+                .filter(entry -> !Objects.equals(entry.getKey(), BrokerResourcesFactory.BROKER_DEFAULT_SET))
+                .map(p -> Pair.of(p.getKey(), p.getValue().getTlsEntryConfig()))
+                .filter(p -> p.getRight() != null)
+                .collect(Collectors.toMap(p -> p.getKey(), p -> p.getRight()));
     }
 
     @Override
     public String getTlsCaPath() {
-        if (tlsEntryConfig != null) {
+        if (getBrokerSpecGenerator(BrokerResourcesFactory.BROKER_DEFAULT_SET).getTlsCaPath() != null) {
             return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
         }
         return null;
@@ -194,56 +144,8 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         return getPublicKeyFileFromFileURL(tokenPublicKey);
     }
 
-
-    private BrokerSetSpec.ServiceConfig createServiceConfig(Service service) {
-        Map<String, String> annotations = service.getMetadata().getAnnotations();
-        if (annotations == null) {
-            annotations = new HashMap<>();
-        }
-        return BrokerSetSpec.ServiceConfig.builder()
-                .annotations(annotations)
-                .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
-                        BrokerResourcesFactory.DEFAULT_HTTP_PORT,
-                        BrokerResourcesFactory.DEFAULT_HTTPS_PORT,
-                        BrokerResourcesFactory.DEFAULT_PULSAR_PORT,
-                        BrokerResourcesFactory.DEFAULT_PULSARSSL_PORT
-                ))
-                .type(service.getSpec().getType())
-                .build();
-    }
-
-
-    private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
-        boolean tlsEnabled = parseConfigValueBool(getConfig(), "tlsEnabled");
-        if (!tlsEnabled) {
-            return null;
-        }
-        final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> "certs".equals(v.getName()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
-        final String secretName = certs.getSecret().getSecretName();
-
-        return TlsConfig.TlsEntryConfig.builder()
-                .enabled(true)
-                .secretName(secretName)
-                .build();
-    }
-
-    protected static BrokerSetSpec.BrokerProbesConfig createBrokerProbeConfig(Container container) {
-        return BrokerSetSpec.BrokerProbesConfig.brokerProbeConfigBuilder()
-                .liveness(createProbeConfig(container.getLivenessProbe()))
-                .readiness(createProbeConfig(container.getReadinessProbe()))
-                .useHealthCheckForLiveness(detectedProbeUsingHealthCheck(container.getLivenessProbe()))
-                .useHealthCheckForReadiness(detectedProbeUsingHealthCheck(container.getReadinessProbe()))
-                .build();
-    }
-
-    private static boolean detectedProbeUsingHealthCheck(Probe probe) {
-        if (probe.getHttpGet() != null) {
-            return probe.getHttpGet().getPath().contains("/brokers/health");
-        }
-        return true;
+    private BaseSpecGenerator getBrokerSpecGenerator(String setName) {
+        return generators.get(setName);
     }
 
 }

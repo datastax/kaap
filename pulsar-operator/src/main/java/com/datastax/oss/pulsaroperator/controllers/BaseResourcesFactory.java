@@ -343,7 +343,7 @@ public abstract class BaseResourcesFactory<T> {
     private String getBrokerWebServiceUrl(boolean tls) {
         final String brokerServiceName = BrokerResourcesFactory.getResourceName(global.getName(),
                 BrokerResourcesFactory.BROKER_DEFAULT_SET,
-                global.getComponents().getBrokerBaseName());
+                global.getComponents().getBrokerBaseName(), null);
         return "%s://%s.%s:%d/".formatted(
                 tls ? "https" : "http",
                 brokerServiceName,
@@ -366,7 +366,7 @@ public abstract class BaseResourcesFactory<T> {
     private String getBrokerServiceUrl(boolean tls) {
         final String brokerServiceName = BrokerResourcesFactory.getResourceName(global.getName(),
                 BrokerResourcesFactory.BROKER_DEFAULT_SET,
-                global.getComponents().getBrokerBaseName());
+                global.getComponents().getBrokerBaseName(), null);
         return "%s://%s.%s:%d/".formatted(
                 tls ? "pulsar+ssl" : "pulsar",
                 brokerServiceName,

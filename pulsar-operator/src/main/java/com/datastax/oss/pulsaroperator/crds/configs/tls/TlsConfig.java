@@ -46,6 +46,8 @@ public class TlsConfig {
     TlsEntryConfig bookkeeper;
     @JsonPropertyDescription("TLS configurations related to the Broker component.")
     TlsEntryConfig broker;
+    @JsonPropertyDescription("TLS configurations related to the Broker resource sets.")
+    Map<String, TlsEntryConfig> brokerResourceSets;
     @JsonPropertyDescription("TLS configurations related to the Proxy component.")
     ProxyTlsEntryConfig proxy;
     @JsonPropertyDescription("TLS configurations related to the Proxy resource sets.")

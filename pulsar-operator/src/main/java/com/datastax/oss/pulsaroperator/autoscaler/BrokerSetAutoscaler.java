@@ -101,7 +101,8 @@ public class BrokerSetAutoscaler implements Runnable {
 
 
         final String statefulsetName = BrokerResourcesFactory.getResourceName(clusterName,
-                currentGlobalSpec.getComponents().getBrokerBaseName(), brokerSetName);
+                currentGlobalSpec.getComponents().getBrokerBaseName(), brokerSetName,
+                currentBrokerSetSpec.getOverrideResourceName());
         final String componentLabelValue = BrokerResourcesFactory.getComponentBaseName(currentGlobalSpec);
 
         final Map<String, String> podSelector = new TreeMap<>(Map.of(

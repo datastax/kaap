@@ -44,13 +44,19 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class BrokerController extends AbstractController<Broker> {
 
-    public static List<String> enumerateBrokerSets(BrokerSpec broker) {
+    public static List<String> enumerateBrokerSets(String clusterName, String componentBaseName, BrokerSpec broker) {
         Map<String, BrokerSetSpec> sets = broker.getSets();
         if (sets == null || sets.isEmpty()) {
-            return List.of(BrokerResourcesFactory.BROKER_DEFAULT_SET);
+            return List.of(BrokerResourcesFactory.getResourceName(clusterName, componentBaseName,
+                    BrokerResourcesFactory.BROKER_DEFAULT_SET, broker.getOverrideResourceName()));
         } else {
             final TreeMap<String, BrokerSetSpec> sorted = new TreeMap<>(sets);
-            return new ArrayList<>(sorted.keySet());
+            List<String> names = new ArrayList<>();
+            for (Map.Entry<String, BrokerSetSpec> set : sorted.entrySet()) {
+                names.add(BrokerResourcesFactory.getResourceName(clusterName, componentBaseName,
+                        set.getKey(), set.getValue().getOverrideResourceName()));
+            }
+            return names;
         }
     }
 

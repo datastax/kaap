@@ -19,6 +19,7 @@ import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -71,6 +72,22 @@ public class RawFileDiffOutputWriter extends BaseDiffOutputWriter {
                     expectedValue,
                     actualValue
             ));
+        }
+    }
+
+    @Override
+    public void missingResources(Collection<DiffChecker.Resource> missingResources) {
+        builder.append("Missing resources:");
+        for (DiffChecker.Resource resource : missingResources) {
+            builder.append(" - %s".formatted(resource.getFullQualifedName()));
+        }
+    }
+
+    @Override
+    public void newResources(Collection<DiffChecker.Resource> newResources) {
+        builder.append("New resources:");
+        for (DiffChecker.Resource resource : newResources) {
+            builder.append(" - %s".formatted(resource.getFullQualifedName()));
         }
     }
 

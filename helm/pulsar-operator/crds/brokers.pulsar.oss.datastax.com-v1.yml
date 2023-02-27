@@ -4249,6 +4249,23 @@ spec:
                             description: Enable TLS.
                             type: boolean
                         type: object
+                      proxyResourceSets:
+                        additionalProperties:
+                          properties:
+                            enabledWithBroker:
+                              description: Enable TLS for the proxy to broker connections.
+                              type: boolean
+                            secretName:
+                              description: Override the default secret name from where
+                                to load the certificates.
+                              type: string
+                            enabled:
+                              description: Enable TLS.
+                              type: boolean
+                          type: object
+                        description: TLS configurations related to the Proxy resource
+                          sets.
+                        type: object
                       defaultSecretName:
                         description: Secret name used by each component to load TLS
                           certificates. Each component can load a different secret

@@ -17,11 +17,13 @@ package com.datastax.oss.pulsaroperator.crds.configs.tls;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -46,6 +48,8 @@ public class TlsConfig {
     TlsEntryConfig broker;
     @JsonPropertyDescription("TLS configurations related to the Proxy component.")
     ProxyTlsEntryConfig proxy;
+    @JsonPropertyDescription("TLS configurations related to the Proxy resource sets.")
+    Map<String, ProxyTlsEntryConfig> proxyResourceSets;
     @JsonPropertyDescription("TLS configurations related to the Functions worker component.")
     FunctionsWorkerTlsEntryConfig functionsWorker;
     @JsonPropertyDescription("TLS configurations related to the Autorecovery component.")
@@ -76,6 +80,7 @@ public class TlsConfig {
     @NoArgsConstructor
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
+    @ToString(callSuper = true)
     public static class ProxyTlsEntryConfig extends TlsEntryConfig {
 
         @Builder(builderMethodName = "proxyBuilder")
@@ -92,6 +97,7 @@ public class TlsConfig {
     @NoArgsConstructor
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
+    @ToString(callSuper = true)
     public static class FunctionsWorkerTlsEntryConfig extends TlsEntryConfig {
         @Builder(builderMethodName = "functionsWorkerBuilder")
         public FunctionsWorkerTlsEntryConfig(Boolean enabled, String secretName, Boolean enabledWithBroker) {

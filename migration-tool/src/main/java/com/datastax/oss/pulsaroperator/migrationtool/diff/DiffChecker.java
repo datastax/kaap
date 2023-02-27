@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -198,15 +199,19 @@ public class DiffChecker {
         final List<Resource> sortedGenResources = generatedResources.stream()
                 .sorted(Comparator.comparing(Resource::getName).thenComparing(Resource::getKind))
                 .collect(Collectors.toList());
+        final List<Resource> newGenResources = new ArrayList<>();
         for (Resource generatedResource : sortedGenResources) {
-            final String name = generatedResource.getName();
-
             final Resource original = findEquivalent(generatedResource, existingResources);
             if (original == null) {
-                throw new IllegalStateException("Generated resource that didn't existed before: " + name);
+                newGenResources.add(generatedResource);
+                continue;
             }
+            existingResources.remove(original);
             compare(generatedResource, original);
         }
+
+        diffOutputWriter.missingResources(existingResources);
+        diffOutputWriter.newResources(newGenResources);
         diffOutputWriter.flush();
     }
 

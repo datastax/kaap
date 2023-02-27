@@ -23,7 +23,6 @@ import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -35,7 +34,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -68,12 +66,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     }
 
     @Override
-    public List<HasMetadata> getAllResources() {
-        return resources;
-    }
-
-
-    @Override
     public BrokerSpec generateSpec() {
         return generatedSpec;
     }
@@ -83,10 +75,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
         final ConfigMap configMap = requireConfigMap(resourceName);
         final Service mainService = requireService(resourceName);
         final StatefulSet statefulSet = requireStatefulSet(resourceName);
-        addResource(podDisruptionBudget);
-        addResource(configMap);
-        addResource(mainService);
-        addResource(statefulSet);
         verifyLabelsEquals(podDisruptionBudget, statefulSet, configMap);
 
 

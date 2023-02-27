@@ -21,42 +21,52 @@ import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenerator;
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
-import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
 
     public static final String SPEC_NAME = "Proxy";
-    private final String resourceName;
+    private final Map<String, BaseSpecGenerator> generators = new TreeMap<>();
     private ProxySpec generatedSpec;
-    private PodDNSConfig podDNSConfig;
-    private boolean isRestartOnConfigMapChange;
-    private String priorityClassName;
-    private Map<String, Object> config;
-    private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public ProxySpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
-        final String clusterName = inputSpecs.getClusterName();
-        resourceName = ProxyResourcesFactory.getResourceName(clusterName,
-                inputSpecs.getProxy().getBaseName(), ProxyResourcesFactory.PROXY_DEFAULT_SET);
-        internalGenerateSpec();
+        internalGenerateSpec(inputSpecs, client);
+    }
+
+    private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
+        final List<InputClusterSpecs.ProxySpecs.AdditionalProxy> additionalProxies =
+                inputSpecs.getProxy().getAdditionalProxies();
+        generatedSpec = new ProxySpec();
+        if (additionalProxies == null || additionalProxies.isEmpty()) {
+            final ProxySetSpecGenerator proxySetSpecGenerator = new ProxySetSpecGenerator(
+                    inputSpecs,
+                    new InputClusterSpecs.ProxySpecs.AdditionalProxy(ProxyResourcesFactory.PROXY_DEFAULT_SET, null),
+                    client
+            );
+            generators.put(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySetSpecGenerator);
+            final ProxySpec proxySpec = proxySetSpecGenerator.generateSpec();
+            generatedSpec.setSets(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySpec));
+        } else {
+            Map<String, ProxySetSpec> sets = new TreeMap<>();
+            additionalProxies.stream().map(
+                    setConfig -> Pair.of(setConfig.getName(), new ProxySetSpecGenerator(inputSpecs, setConfig, client))
+            ).forEach(pair -> {
+                generators.put(pair.getLeft(), pair.getRight());
+                sets.put(pair.getLeft(), pair.getRight().generateSpec());
+            });
+            generatedSpec.setSets(sets);
+        }
     }
 
     @Override
@@ -65,99 +75,22 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     }
 
     @Override
-    public List<HasMetadata> getAllResources() {
-        return resources;
-    }
-
-
-    @Override
     public ProxySpec generateSpec() {
         return generatedSpec;
     }
 
-    public void internalGenerateSpec() {
-        final ConfigMap configMap = requireConfigMap(resourceName);
-        final ConfigMap configMapWs = getConfigMap(resourceName + "-ws");
-        final Deployment deployment = requireDeployment(resourceName);
-        final PodDisruptionBudget pdb = getPodDisruptionBudget(resourceName);
-        final Service service = requireService(resourceName);
-        addResource(configMap);
-        if (configMapWs != null) {
-            assertConfigMapsCompatible(configMap.getData(), configMapWs.getData());
-            addResource(configMapWs);
-        }
-        addResource(deployment);
-        addResource(pdb);
-        addResource(service);
-
-        verifyLabelsEquals(deployment, configMap, configMapWs, pdb);
-
-        final DeploymentSpec deploymentSpec = deployment.getSpec();
-        final PodSpec spec = deploymentSpec.getTemplate()
-                .getSpec();
-        final Container mainContainer = getContainerByName(spec.getContainers(), resourceName);
-        final Container wsContainer = getContainerByName(spec.getContainers(), resourceName + "-ws");
-        final ProxySetSpec.WebSocketConfig wsConfig;
-        if (wsContainer != null) {
-            wsConfig = ProxySetSpec.WebSocketConfig.builder()
-                    .enabled(true)
-                    .resources(wsContainer.getResources())
-                    .config(convertConfigMapData(configMapWs))
-                    .probes(createProbeConfig(wsContainer))
-                    .build();
-        } else {
-            wsConfig = ProxySetSpec.WebSocketConfig.builder()
-                    .enabled(false)
-                    .build();
-        }
-
-
-        podDNSConfig = spec.getDnsConfig();
-        isRestartOnConfigMapChange = isPodDependantOnConfigMap(deploymentSpec.getTemplate());
-        priorityClassName = spec.getPriorityClassName();
-        config = convertConfigMapData(configMap);
-        tlsEntryConfig = createTlsEntryConfig(deployment);
-
-        final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
-        final Map<String, String> matchLabels = getMatchLabels(deploymentSpec.getSelector());
-        generatedSpec = ProxySpec.builder()
-                .annotations(deployment.getMetadata().getAnnotations())
-                .podAnnotations(deploymentSpec.getTemplate().getMetadata().getAnnotations())
-                .image(mainContainer.getImage())
-                .imagePullPolicy(mainContainer.getImagePullPolicy())
-                .nodeSelectors(spec.getNodeSelector())
-                .replicas(deploymentSpec.getReplicas())
-                .nodeAffinity(nodeAffinity)
-                .probes(createProbeConfig(mainContainer))
-                .labels(deployment.getMetadata().getLabels())
-                .podLabels(deploymentSpec.getTemplate().getMetadata().getLabels())
-                .matchLabels(matchLabels)
-                .config(config)
-                .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
-                        spec.getTerminationGracePeriodSeconds().intValue())
-                .resources(mainContainer.getResources())
-                .tolerations(deploymentSpec.getTemplate().getSpec().getTolerations())
-                .imagePullSecrets(deploymentSpec.getTemplate().getSpec().getImagePullSecrets())
-                .service(createServiceConfig(service))
-                .updateStrategy(deploymentSpec.getStrategy())
-                .pdb(createPodDisruptionBudgetConfig(pdb))
-                .webSocket(wsConfig)
-                .antiAffinity(createAntiAffinityConfig(spec))
-                .env(mainContainer.getEnv())
-                .initContainers(spec.getInitContainers())
-                .sidecars(getSidecars(spec, ProxyResourcesFactory.getContainerNames(resourceName)))
-                .build();
-    }
-
-
     @Override
     public PodDNSConfig getPodDnsConfig() {
-        return podDNSConfig;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.getPodDnsConfig(), false, "PodDnsConfig",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
     public boolean isRestartOnConfigMapChange() {
-        return isRestartOnConfigMapChange;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.isRestartOnConfigMapChange(), false, "RestartOnConfigMapChange",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
@@ -167,22 +100,36 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
 
     @Override
     public String getPriorityClassName() {
-        return priorityClassName;
+        return PulsarClusterResourceGenerator.getValueAssertSame(BaseSpecGenerator::getPriorityClassName, false,
+                "priorityClassName", new ArrayList<>(generators.values()));
     }
 
     @Override
     public Map<String, Object> getConfig() {
-        return config;
+        return getProxySetGenerator(ProxyResourcesFactory.PROXY_DEFAULT_SET).getConfig();
     }
 
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
-        return tlsEntryConfig;
+        final BaseSpecGenerator defaultSet = getProxySetGenerator(ProxyResourcesFactory.PROXY_DEFAULT_SET);
+        if (defaultSet == null) {
+            return null;
+        }
+        return defaultSet.getTlsEntryConfig();
+    }
+
+    public Map<String, TlsConfig.ProxyTlsEntryConfig> getTlsEntryConfigForResourceSets() {
+        return generators.entrySet()
+                .stream()
+                .filter(entry -> !Objects.equals(entry.getKey(), ProxyResourcesFactory.PROXY_DEFAULT_SET))
+                .map(p -> Pair.of(p.getKey(), p.getValue().getTlsEntryConfig()))
+                .filter(p -> p.getRight() != null)
+                .collect(Collectors.toMap(p -> p.getKey(), p -> (TlsConfig.ProxyTlsEntryConfig) p.getRight()));
     }
 
     @Override
     public String getTlsCaPath() {
-        if (tlsEntryConfig != null) {
+        if (getProxySetGenerator(ProxyResourcesFactory.PROXY_DEFAULT_SET).getTlsCaPath() != null) {
             return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
         }
         return null;
@@ -197,65 +144,8 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
         return getPublicKeyFileFromFileURL(tokenPublicKey);
     }
 
-    private TlsConfig.ProxyTlsEntryConfig createTlsEntryConfig(Deployment deployment) {
-        boolean tlsEnabled = parseConfigValueBool(getConfig(), "tlsEnabledInProxy");
-        if (!tlsEnabled) {
-            return null;
-        }
-        final Volume certs = deployment.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> "certs".equals(v.getName()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
-        final String secretName = certs.getSecret().getSecretName();
-
-        return TlsConfig.ProxyTlsEntryConfig.proxyBuilder()
-                .enabled(true)
-                .enabledWithBroker(parseConfigValueBool(getConfig(), "tlsEnabledWithBroker"))
-                .secretName(secretName)
-                .build();
-    }
-
-    private ProxySetSpec.ServiceConfig createServiceConfig(Service service) {
-        Map<String, String> annotations = service.getMetadata().getAnnotations();
-        if (annotations == null) {
-            annotations = new HashMap<>();
-        }
-        boolean hasPlainTextPort = service.getSpec().getPorts().stream()
-                .filter(p -> p.getPort() == ProxyResourcesFactory.DEFAULT_HTTP_PORT).findFirst().isPresent();
-        return ProxySetSpec.ServiceConfig.builder()
-                .annotations(annotations)
-                .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
-                        ProxyResourcesFactory.DEFAULT_HTTP_PORT,
-                        ProxyResourcesFactory.DEFAULT_HTTPS_PORT,
-                        ProxyResourcesFactory.DEFAULT_PULSAR_PORT,
-                        ProxyResourcesFactory.DEFAULT_PULSARSSL_PORT,
-                        ProxyResourcesFactory.DEFAULT_WSS_PORT,
-                        ProxyResourcesFactory.DEFAULT_WS_PORT
-                ))
-                .loadBalancerIP(service.getSpec().getLoadBalancerIP())
-                .type(service.getSpec().getType())
-                .enablePlainTextWithTLS(hasPlainTextPort)
-                .build();
-    }
-
-    private static void assertConfigMapsCompatible(Map<String, String> configMap, Map<String, String> wsConfigMap) {
-        assertSameEntryValue(configMap, wsConfigMap, "authenticationEnabled");
-        if (boolConfigMapValue(configMap, "authenticationEnabled")) {
-            PulsarClusterResourceGenerator
-                    .checkAuthenticationProvidersContainTokenAuth(configMap, SPEC_NAME);
-            PulsarClusterResourceGenerator
-                    .checkAuthenticationProvidersContainTokenAuth(wsConfigMap, SPEC_NAME + " WS");
-        }
-        assertSameEntryValue(configMap, wsConfigMap, "tlsTrustCertsFilePath");
-    }
-
-    private static void assertSameEntryValue(Map<String, String> configMap, Map<String, String> wsConfigMap,
-                                             String prop) {
-        if (!Objects.equals(configMap.get(prop), wsConfigMap.get(prop))) {
-            throw new IllegalArgumentException(
-                    "Incompatible proxy config maps: " + prop + " must be the same, got " + configMap.get(prop)
-                            + " and " + wsConfigMap.get(prop));
-        }
+    private BaseSpecGenerator getProxySetGenerator(String setName) {
+        return generators.get(setName);
     }
 
 }

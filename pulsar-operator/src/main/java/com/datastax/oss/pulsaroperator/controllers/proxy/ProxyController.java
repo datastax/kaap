@@ -44,13 +44,19 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class ProxyController extends AbstractController<Proxy> {
 
-    public static List<String> enumerateProxySets(ProxySpec proxy) {
+    public static List<String> enumerateProxySets(String clusterName, String componentBaseName, ProxySpec proxy) {
         Map<String, ProxySetSpec> sets = proxy.getSets();
         if (sets == null || sets.isEmpty()) {
-            return List.of(ProxyResourcesFactory.PROXY_DEFAULT_SET);
+            return List.of(ProxyResourcesFactory.getResourceName(clusterName, componentBaseName,
+                    ProxyResourcesFactory.PROXY_DEFAULT_SET, (String) null));
         } else {
             final TreeMap<String, ProxySetSpec> sorted = new TreeMap<>(sets);
-            return new ArrayList<>(sorted.keySet());
+            List<String> names = new ArrayList<>();
+            for (Map.Entry<String, ProxySetSpec> set : sorted.entrySet()) {
+                names.add(ProxyResourcesFactory.getResourceName(clusterName, componentBaseName,
+                        set.getKey(), set.getValue()));
+            }
+            return names;
         }
     }
 

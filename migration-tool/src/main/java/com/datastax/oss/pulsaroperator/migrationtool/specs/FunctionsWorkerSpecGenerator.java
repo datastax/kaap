@@ -23,7 +23,6 @@ import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
@@ -66,12 +65,6 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
     }
 
     @Override
-    public List<HasMetadata> getAllResources() {
-        return resources;
-    }
-
-
-    @Override
     public FunctionsWorkerSpec generateSpec() {
         return generatedSpec;
     }
@@ -83,12 +76,6 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
         final PodDisruptionBudget pdb = getPodDisruptionBudget(resourceName);
         final Service service = requireService(resourceName);
         final Service caService = requireService(resourceName + "-ca");
-        addResource(configMap);
-        addResource(configMapExtra);
-        addResource(statefulSet);
-        addResource(pdb);
-        addResource(service);
-        addResource(caService);
 
         verifyLabelsEquals(statefulSet, configMap, configMapExtra, pdb);
         verifyLabelsEquals(service, caService);

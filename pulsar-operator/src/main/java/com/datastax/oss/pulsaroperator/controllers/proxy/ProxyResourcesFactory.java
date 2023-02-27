@@ -83,16 +83,27 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         return globalSpec.getComponents().getProxyBaseName();
     }
 
-    public static String getResourceName(String clusterName, String baseName, String proxySetName) {
+    public static String getResourceName(String clusterName, String baseName, String proxySetName,
+                                         String overrideResourceName) {
         Objects.requireNonNull(proxySetName);
+        if (overrideResourceName != null) {
+            return overrideResourceName;
+        }
         if (PROXY_DEFAULT_SET.equals(proxySetName)) {
             return "%s-%s".formatted(clusterName, baseName);
         }
         return "%s-%s-%s".formatted(clusterName, baseName, proxySetName);
+
     }
 
-    public static String getResourceName(GlobalSpec globalSpec, String baseName, String proxySetName) {
-        return getResourceName(globalSpec.getName(), baseName, proxySetName);
+    public static String getResourceName(String clusterName, String baseName, String proxySetName,
+                                         ProxySetSpec setSpec) {
+        return getResourceName(clusterName, baseName, proxySetName, setSpec.getOverrideResourceName());
+    }
+
+    public static String getResourceName(GlobalSpec globalSpec, String baseName, String proxySetName,
+                                         ProxySetSpec setSpec) {
+        return getResourceName(globalSpec.getName(), baseName, proxySetName, setSpec);
     }
 
     private ConfigMap configMap;
@@ -103,7 +114,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                                  String proxySetName,
                                  ProxySetSpec spec, GlobalSpec global,
                                  OwnerReference ownerReference) {
-        super(client, namespace, getResourceName(global, getComponentBaseName(global), proxySetName), spec, global,
+        super(client, namespace, getResourceName(global, getComponentBaseName(global), proxySetName, spec), spec,
+                global,
                 ownerReference);
         this.proxySet = proxySetName;
     }
@@ -128,7 +140,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             annotations = serviceSpec.getAnnotations();
         }
         List<ServicePort> ports = new ArrayList<>();
-        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxy();
+        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxySet(proxySet);
         if (tlsEnabledOnProxy) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
@@ -210,7 +222,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
         }
-        if (isTlsEnabledOnProxy()) {
+        if (isTlsEnabledOnProxySet(proxySet)) {
             data.put("tlsEnabledWithKeyStore", "true");
             data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
             data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
@@ -224,7 +236,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("brokerServicePortTls", "6651");
             data.put("webServicePortTls", "8443");
             data.put("servicePortTls", "6651");
-            if (global.getTls().getProxy().getEnabledWithBroker()) {
+            if (getTlsConfigForProxySet(proxySet).getEnabledWithBroker()) {
                 data.put("tlsEnabledWithBroker", "true");
                 data.put("tlsHostnameVerificationEnabled", "true");
             }
@@ -278,7 +290,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
         }
-        if (isTlsEnabledOnProxy()) {
+        if (isTlsEnabledOnProxySet(proxySet)) {
             data.put("webServicePortTls", "8001");
             data.put("tlsEnabled", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
@@ -286,7 +298,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("tlsEnabledWithKeyStore", "true");
             data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
             data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
-            if (global.getTls().getProxy().getEnabledWithBroker()) {
+            if (getTlsConfigForProxySet(proxySet).getEnabledWithBroker()) {
                 data.put("brokerClientTlsEnabled", "true");
                 final String fullCaPath = getFullCaPath();
                 data.put("tlsTrustCertsFilePath", fullCaPath);
@@ -339,9 +351,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxy();
+        final boolean tlsEnabledOnProxy = isTlsEnabledOnProxySet(proxySet);
         if (tlsEnabledOnProxy) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxy());
+            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxySet(proxySet));
         }
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
@@ -546,5 +558,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         }
         return matchLabels;
     }
+
+
+
 
 }

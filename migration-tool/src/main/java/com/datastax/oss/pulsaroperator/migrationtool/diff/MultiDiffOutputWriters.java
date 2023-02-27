@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,6 +39,16 @@ public class MultiDiffOutputWriters implements DiffOutputWriter {
                            List<JSONComparator.FieldComparisonFailure> fieldFailures, Map<String, Object> genJson,
                            Map<String, Object> originalJson) {
         writers.forEach(w -> w.diffFailed(resources, fieldFailures, genJson, originalJson));
+    }
+
+    @Override
+    public void missingResources(Collection<DiffChecker.Resource> missingResources) {
+        writers.forEach(w -> w.missingResources(missingResources));
+    }
+
+    @Override
+    public void newResources(Collection<DiffChecker.Resource> newResources) {
+        writers.forEach(w -> w.newResources(newResources));
     }
 
     @Override

@@ -907,6 +907,23 @@ public class ProxyControllerTest {
     }
 
     @Test
+    public void testResourceNameOverride() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    overrideResourceName: proxy-override
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "proxy-override"));
+        Assert.assertNotNull(client.getCreatedResource(ConfigMap.class, "proxy-override"));
+        Assert.assertNotNull(client.getCreatedResource(Service.class, "proxy-override"));
+        Assert.assertNotNull(client.getCreatedResource(PodDisruptionBudget.class, "proxy-override"));
+    }
+
+    @Test
     public void testInitContainers() throws Exception {
         String spec = """
                 global:

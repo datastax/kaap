@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
 import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -37,6 +38,14 @@ public class DiffCollectorOutputWriter implements DiffOutputWriter {
     public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources, List<JSONComparator.FieldComparisonFailure> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
         all.addAll(failures);
+    }
+
+    @Override
+    public void missingResources(Collection<DiffChecker.Resource> missingResources) {
+    }
+
+    @Override
+    public void newResources(Collection<DiffChecker.Resource> newResources) {
     }
 
     @Override

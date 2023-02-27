@@ -29,7 +29,6 @@ import com.datastax.oss.pulsaroperator.migrationtool.specs.FunctionsWorkerSpecGe
 import com.datastax.oss.pulsaroperator.migrationtool.specs.ProxySpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.ZooKeeperSpecGenerator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -86,14 +85,6 @@ public class PulsarClusterResourceGenerator {
         return generatedResource;
     }
 
-    public List<HasMetadata> getAllResources() {
-        return specGenerators.stream()
-                .map(BaseSpecGenerator::getAllResources)
-                .flatMap(List::stream)
-                .toList();
-    }
-
-
     private void internalGenerateSpec() {
 
         final GlobalSpec global = GlobalSpec.builder()
@@ -134,8 +125,12 @@ public class PulsarClusterResourceGenerator {
                 specGeneratorByName(BrokerSpecGenerator.SPEC_NAME).getTlsEntryConfig();
         final TlsConfig.TlsEntryConfig autorecoveryTlsEntryConfig =
                 specGeneratorByName(AutorecoverySpecGenerator.SPEC_NAME).getTlsEntryConfig();
+        final BaseSpecGenerator proxySpecGenerator = specGeneratorByName(ProxySpecGenerator.SPEC_NAME);
         final TlsConfig.TlsEntryConfig proxyTlsEntryConfig =
-                specGeneratorByName(ProxySpecGenerator.SPEC_NAME).getTlsEntryConfig();
+                proxySpecGenerator.getTlsEntryConfig();
+        final Map<String, TlsConfig.ProxyTlsEntryConfig> tlsEntryConfigForResourceSets =
+                ((ProxySpecGenerator) proxySpecGenerator).getTlsEntryConfigForResourceSets();
+
         final TlsConfig.TlsEntryConfig functionTlsEntryConfig =
                 specGeneratorByName(FunctionsWorkerSpecGenerator.SPEC_NAME).getTlsEntryConfig();
 
@@ -145,6 +140,7 @@ public class PulsarClusterResourceGenerator {
                 && brokerTlsEntryConfig == null
                 && autorecoveryTlsEntryConfig == null
                 && proxyTlsEntryConfig == null
+                && tlsEntryConfigForResourceSets == null
                 && functionTlsEntryConfig == null) {
             return TlsConfig.builder()
                     .enabled(false)
@@ -163,6 +159,7 @@ public class PulsarClusterResourceGenerator {
                 .broker(brokerTlsEntryConfig)
                 .autorecovery(autorecoveryTlsEntryConfig)
                 .proxy((TlsConfig.ProxyTlsEntryConfig) proxyTlsEntryConfig)
+                .proxyResourceSets(tlsEntryConfigForResourceSets)
                 .functionsWorker((TlsConfig.FunctionsWorkerTlsEntryConfig) functionTlsEntryConfig)
                 .ssCa(ssCaEntryConfig)
                 .caPath(caPath)
@@ -289,6 +286,11 @@ public class PulsarClusterResourceGenerator {
         final List<BaseSpecGenerator> filteredGenerators = specGenerators.stream()
                 .filter(filter)
                 .collect(Collectors.toList());
+        return getValueAssertSame(mapper, skipNulls, configName, filteredGenerators);
+    }
+
+    public static <T> T getValueAssertSame(Function<BaseSpecGenerator, T> mapper, boolean skipNulls, String configName,
+                       List<BaseSpecGenerator> filteredGenerators) {
         if (filteredGenerators.isEmpty()) {
             throw new IllegalStateException("No spec generators found for " + configName + " after filtering");
         }

@@ -14035,6 +14035,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>bookieUrl</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
         <td><b>cleanUpPvcs</b></td>
         <td>boolean</td>
         <td>

@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -34,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
-import org.apache.commons.compress.utils.IOUtils;
 
 @JBossLog
 public class AutoscalerUtils {
@@ -169,12 +169,22 @@ public class AutoscalerUtils {
 
         final ExecWatch execToClose = exec;
         response.whenComplete((s, ex) -> {
-            IOUtils.closeQuietly(execToClose);
-            IOUtils.closeQuietly(out);
-            IOUtils.closeQuietly(error);
+            closeQuietly(execToClose);
+            closeQuietly(out);
+            closeQuietly(error);
         });
 
         return response;
+    }
+
+    public static void closeQuietly(Closeable c) {
+        if (c != null) {
+            try {
+                c.close();
+            } catch (IOException e) {
+                log.infof(e, "Exception on attempt to close %s", c);
+            }
+        }
     }
 
     private AutoscalerUtils() {

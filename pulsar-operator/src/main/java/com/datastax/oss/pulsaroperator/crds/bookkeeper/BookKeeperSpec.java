@@ -102,6 +102,7 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
             .diskUsageToleranceHwm(0.92d)
             .diskUsageToleranceLwm(0.75d)
             .cleanUpPvcs(true)
+            .bookieUrl("http://localhost:8080")
             .build();
 
 
@@ -244,6 +245,10 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
         autoscaler.setCleanUpPvcs(ObjectUtils.getFirstNonNull(
                 () -> autoscaler.getCleanUpPvcs(),
                 () -> DEFAULT_BK_CONFIG.get().getCleanUpPvcs()
+        ));
+        autoscaler.setBookieUrl(ObjectUtils.getFirstNonNull(
+                () -> autoscaler.getBookieUrl(),
+                () -> DEFAULT_BK_CONFIG.get().getBookieUrl()
         ));
     }
 

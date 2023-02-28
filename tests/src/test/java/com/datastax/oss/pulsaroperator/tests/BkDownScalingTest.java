@@ -48,6 +48,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
         specs.getBookkeeper().getAutoscaler().setEnabled(true);
         specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
         specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
+        specs.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
 
         try {
             applyPulsarCluster(specsToYaml(specs));

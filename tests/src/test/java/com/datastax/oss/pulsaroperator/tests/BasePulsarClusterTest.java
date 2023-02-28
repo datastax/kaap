@@ -150,6 +150,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .stabilizationWindowMs(10000L)
                         .minWritableBookies(1)
                         .cleanUpPvcs(true)
+                        .bookieUrl("http://localhost:8080")
                         .enabled(false)
                         .build())
                 .build());

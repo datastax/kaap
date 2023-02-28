@@ -96,6 +96,7 @@ public class BookKeeperAutoscalerTest {
             pulsarClusterSpec.getBookkeeper().applyDefaults(pulsarClusterSpec.getGlobalSpec());
 
             pulsarClusterSpec.getBookkeeper().getAutoscaler().setCleanUpPvcs(false);
+            pulsarClusterSpec.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
 
             final BookKeeper bkCr = new BookKeeper();
             bkCr.setSpec(BookKeeperFullSpec.builder()
@@ -276,7 +277,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/bookie/info"))
+                                        "curl -s http://localhost:8000/api/v1/bookie/info"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage(bookieInfoOk))
                                 .done()
@@ -287,7 +288,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/bookie/state"))
+                                        "curl -s http://localhost:8000/api/v1/bookie/state"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage(response))
                                 .done()
@@ -296,7 +297,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -556,7 +557,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -567,7 +568,7 @@ public class BookKeeperAutoscalerTest {
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
                                         "curl -s -X PUT -H \"Content-Type: application/json\" "
                                                 + "-d '{\"readOnly\":true}' "
-                                                + "localhost:8000/api/v1/bookie/state/readonly"))
+                                                + "http://localhost:8000/api/v1/bookie/state/readonly"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("dummy"))
                                 .done()
@@ -618,7 +619,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("blah blah"))
                                 .done()
@@ -795,14 +796,16 @@ public class BookKeeperAutoscalerTest {
             if (bookieInfofunc != null) {
                 bkAutoscaler = Mockito.spy(bkAutoscaler);
                 Mockito.doAnswer(invocation ->
-                                bookieInfofunc.apply(invocation.getArgument(1)))
-                        .when(bkAutoscaler).getBoookieInfo(Mockito.any(), Mockito.any());
+                                bookieInfofunc.apply(invocation.getArgument(2)))
+                        .when(bkAutoscaler).getBoookieInfo(Mockito.any(), Mockito.any(), Mockito.any());
                 Mockito.doReturn("mockId").when(bkAutoscaler)
                         .getBookieId(Mockito.any());
                 Mockito.doReturn(true).when(bkAutoscaler)
                         .runBookieRecovery(Mockito.any());
                 Mockito.doReturn(true).when(bkAutoscaler)
                         .deleteCookie(Mockito.any());
+                Mockito.doNothing().when(bkAutoscaler)
+                        .setReadOnly(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             }
 
             bkAutoscaler.internalRun();

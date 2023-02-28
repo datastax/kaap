@@ -251,8 +251,8 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBookkeeper());
         }
 
-        final String journalVolumeName = getJournalVolumeName(spec, resourceName);
-        final String ledgersVolumeName = getLedgersVolumeName(spec, resourceName);
+        final String journalVolumeName = getJournalPvPrefix(spec, resourceName);
+        final String ledgersVolumeName = getLedgersPvPrefix(spec, resourceName);
 
         volumeMounts.add(new VolumeMountBuilder()
                 .withName(journalVolumeName)
@@ -354,14 +354,14 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return statefulSet;
     }
 
-    public static String getJournalVolumeName(BookKeeperSpec spec, String resourceName) {
+    public static String getJournalPvPrefix(BookKeeperSpec spec, String resourceName) {
         return "%s%s-%s".formatted(
                 ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
                 resourceName,
                 spec.getVolumes().getJournal().getName());
     }
 
-    public static String getLedgersVolumeName(BookKeeperSpec spec, String resourceName) {
+    public static String getLedgersPvPrefix(BookKeeperSpec spec, String resourceName) {
         return "%s%s-%s".formatted(
                 ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
                 resourceName,

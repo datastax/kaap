@@ -16,9 +16,12 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerUtils;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import io.fabric8.kubernetes.api.model.Pod;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
@@ -35,6 +38,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
         specs.getGlobal().getAuth().setEnabled(false);
+
         specs.getBroker().setReplicas(0);
         specs.getBastion().setReplicas(0);
         specs.getFunctionsWorker().setReplicas(0);
@@ -66,10 +70,17 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
             log.info("STARTED 3 bookies");
 
+            Pod bookiePod = client.pods().inNamespace(namespace)
+                    .withLabel("component", "bookkeeper").resources().findFirst().get().get();
+
+            // place some entries on bookies about to go read-only
+            log.info("CREATING ledgers");
+            generateLedgers(bookiePod, 5, 300);
+
             log.info("SWITCHING bookies to r/o and waiting for the 3 extra added");
             client.pods().inNamespace(namespace)
                     .withLabel("component", "bookkeeper").resources().forEach(pod -> {
-                        CompletableFuture<String> readonly = AutoscalerUtils.execInPod(client, namespace,
+                        AutoscalerUtils.execInPod(client, namespace,
                                 pod.get().getMetadata().getName(),
                                 pod.get().getSpec().getContainers().get(0).getName(),
                                 "curl -s -X PUT -H \"Content-Type: application/json\" "
@@ -85,6 +96,10 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
             log.info("STARTED 6 bookies");
 
+            // place some entries on bookies to be scaled down later
+            log.info("CREATING ledgers");
+            generateLedgers(bookiePod, 10, 100);
+
             log.info("SWITCHING bookies to r/w and waiting for the 3 extra removed");
             client.pods().inNamespace(namespace)
                     .withLabel("component", "bookkeeper").resources().forEach(pod -> {
@@ -96,6 +111,14 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
                                         + "localhost:8000/api/v1/bookie/state/readonly");
                     });
 
+            // write entries on bookies while scaling down
+            log.info("CREATING ledgers");
+            for (int i = 0; i < 15; i++) {
+                Thread.sleep(25);
+                generateLedgers(bookiePod, 1, 500);
+                log.info("CREATED {} ledgers", i);
+            }
+
             client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withName("pulsar-bookkeeper")
@@ -103,6 +126,9 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
                             && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             log.info("REMOVED extra bookies");
+
+            log.info("Triggering audit");
+            triggerAudit(bookiePod);
 
             Awaitility.waitAtMost(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS).untilAsserted(() -> {
                 long count = client.persistentVolumeClaims()
@@ -116,11 +142,49 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
             });
             log.info("REMOVED extra PVCs");
 
+            log.info("Waiting for the auditor to run");
+            // no better way now AFAIK
+            Thread.sleep(10000);
+
+            log.info("Listing under replicated ledgers");
+            String urLedgersOut = listUnderReplicated(bookiePod);
+            assertTrue(urLedgersOut.contains("No under replicated ledgers found"));
+
             log.info("DONE");
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();
             throw new RuntimeException(t);
+        }
+    }
+
+    private String listUnderReplicated(Pod bookiePod) throws InterruptedException, ExecutionException {
+        String urLedgersOut = AutoscalerUtils.execInPod(client, namespace,
+                bookiePod.getMetadata().getName(),
+                bookiePod.getSpec().getContainers().get(0).getName(),
+                "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/").get();
+        return urLedgersOut;
+    }
+
+    private void triggerAudit(Pod bookiePod) throws InterruptedException, ExecutionException {
+        String res = AutoscalerUtils.execInPod(client, namespace,
+                bookiePod.getMetadata().getName(),
+                bookiePod.getSpec().getContainers().get(0).getName(),
+                "curl -s -X PUT localhost:8000/api/v1/autorecovery/trigger_audit")
+                .get();
+        log.info("Trigger audit response: {}", res);
+    }
+
+    private void generateLedgers(Pod bookiePod, int ledgerCount, int numEntries)
+            throws ExecutionException, InterruptedException {
+        for (int i = 0; i < ledgerCount; i++) {
+            String res = AutoscalerUtils.execInPod(client, namespace,
+                            bookiePod.getMetadata().getName(),
+                            bookiePod.getSpec().getContainers().get(0).getName(),
+                            "bin/bookkeeper shell simpletest "
+                                    + "-ensemble 3 -writeQuorum 1 -ackQuorum 1 -numEntries " + numEntries)
+                    .get();
+            assertTrue(res.contains("entries written to ledger"));
         }
     }
 }

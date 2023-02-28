@@ -30,11 +30,13 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -182,37 +184,93 @@ public class BookKeeperAutoscaler implements Runnable {
                         clusterStats.writableBookiesTotal - targetWritableBookiesCount);
                 log.infof("Some writable bookies can be released, removing %d",
                         Math.abs(desiredScaleChange));
+            } else {
+                log.infof("Cannot scale down");
+                return;
+            }
+        }
+
+        if (desiredScaleChange < 0) {
+            log.infof("Downscaling is needed");
+            int sz = bookieInfos.size();
+            Set<BookieInfo> bookiesToUnset = new HashSet<>(sz);
+
+            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
+                bookiesToUnset.add(bookieInfos.get(i));
+                setReadOnly(bookieInfos.get(i), true);
+            }
+
+            // wait for bookies to be read-only
+            Thread.sleep(3000);
+
+            boolean success = true;
+            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
+                String bookieName = bookieInfos.get(i).getPodResource().get().getMetadata().getName();
+                log.infof("Attempting downscale of bookie %s with bookieId = %s",
+                        bookieName, getBookieId(bookieInfos.get(i).getPodResource()));
+
+                if (!runBookieRecovery(bookieInfos.get(i))) {
+                    log.warnf("Can't scale down, failed to recover %s with bookieId = %s",
+                            bookieName,
+                            getBookieId(bookieInfos.get(i).getPodResource()));
+                    success = false;
+                    break;
+                }
+            }
+
+            if (success && doesNotHaveUnderReplicatedLedgers()) {
+                log.infof("ledgers recovered successfully, proceeding with cookie removal");
+            } else {
+                log.warnf("Can't scale down, there are under replicated ledgers after recovery");
+                success = false;
+            }
+
+            if (success) {
+                for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
+                    // todo: I think it is possible to get into a bad state here
+                    // if the cookie delete passes but connection fails and k8s client returns error.
+                    // or if the disk cookie deletion fails due to some k8s/network error
+                    // Cookie on the disk will persist, PVC will be preserved,
+                    // and on restart the bookie will fail
+                    if (!deleteCookie(bookieInfos.get(i))) {
+                        log.warnf("Can't scale down, failed to delete cookie for %s",
+                                bookieInfos.get(i).getPodResource().get().getMetadata().getName());
+                        success = false;
+                        break;
+                    }
+                    bookiesToUnset.remove(bookieInfos.get(i));
+                }
+            }
+
+            if (!success || bookiesToUnset.size() > 0) {
+
+                int partiallySucceeded = sz - bookiesToUnset.size();
+
+                if (partiallySucceeded > 0 && partiallySucceeded < (-1 * desiredScaleChange)) {
+                    log.warnf("Downscale partially succeeded, %d bookies can be removed",
+                            partiallySucceeded);
+                    desiredScaleChange = -1 * partiallySucceeded;
+                } else {
+                    log.warnf("Downscale failed, will retry again later");
+                    desiredScaleChange = 0;
+                }
+                /*
+                log.warnf("Downscale failed, will retry again later, %d bookiesToUnset: %s",
+                        bookiesToUnset.size(),
+                        String.join(", ", bookiesToUnset.stream()
+                                .map(bi -> getBookieId(bi.getPodResource()))
+                                .toList()));
+                desiredScaleChange = 0;
+                 */
+                for (BookieInfo bInfo: bookiesToUnset) {
+                    setReadOnly(bInfo, false);
+                }
             }
         }
 
         if (desiredScaleChange == 0) {
             log.infof("System is stable, no scaling needed");
             return;
-        }
-
-        if (desiredScaleChange < 0) {
-            log.infof("Downscaling is needed");
-            int sz = bookieInfos.size();
-            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
-                makeReadOnly(bookieInfos.get(i));
-            }
-            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
-                String bookieName = bookieInfos.get(i).getPodResource().get().getMetadata().getName();
-
-                if (!runBookieRecoveryAndRemoveCookie(bookieInfos.get(i))) {
-                    log.warnf("Can't scale down, failed to recover %s", bookieName);
-                    return;
-                }
-
-                if (doesNotHaveUnderReplicatedLedgers()) {
-                    log.infof("ledgers recovered and cookie is deleted for %s, proceeding with downscale",
-                            bookieName);
-                } else {
-                    log.warnf("Can't scale down, there are under replicated ledgers after recovering of %s",
-                            bookieName);
-                    return;
-                }
-            }
         }
 
         int scaleTo = currentExpectedReplicas + desiredScaleChange;
@@ -227,21 +285,81 @@ public class BookKeeperAutoscaler implements Runnable {
         log.infof("Bookies scaled up/down from %d to %d", currentExpectedReplicas, scaleTo);
     }
 
-    protected boolean runBookieRecoveryAndRemoveCookie(BookieInfo bookieInfo) {
+    protected boolean runBookieRecovery(BookieInfo bookieInfo) {
         boolean success = false;
         try {
-            recoverAndDeleteCookieInZk(bookieInfo);
-            // todo: figure out better way to check if cookie got deleted or change recover command
-            if (recoverAndDeleteCookieInZk(bookieInfo).contains("No cookie to remove")) {
-                // have to do that, otherwise init bookie will fail if PVC survives
-                deleteCookieOnDisk(bookieInfo);
-                success = true;
+            String res = recoverAndDeleteCookieInZk(bookieInfo, false);
+            if (!res.contains("Recover bookie operation completed with rc: OK: No problem")) {
+                log.warnf("Recovery failed for bookie %s \n %s",
+                        bookieInfo.getPodResource().get().getMetadata().getName(), res);
+                return false;
             }
+
+            if (existLedgerOnBookie(bookieInfo)) {
+                log.warnf("Bookie %s still has ledgers assigned to it, will not delete cookie",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+                return false;
+            }
+
+            success = true;
         } catch (Exception e) {
             log.errorf(e, "Error while recovering bookie %s",
                     bookieInfo.getPodResource().get().getMetadata().getName());
         }
         return success;
+    }
+
+    protected boolean deleteCookie(BookieInfo bookieInfo) {
+        boolean success = false;
+        try {
+            if (existLedgerOnBookie(bookieInfo)) {
+                log.warnf("Bookie %s has ledgers assigned to it, will not delete cookie",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+                return false;
+            }
+
+            for (int i = 0; i < 2; i++) {
+                // todo: figure out better way to check if cookie got deleted or change recover command
+                String res = recoverAndDeleteCookieInZk(bookieInfo, true);
+                if (res.contains("cookie is deleted") || res.contains("No cookie to remove")) {
+                    // have to do that, otherwise init bookie will fail if PVC survives
+                    deleteCookieOnDisk(bookieInfo);
+                    success = true;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.errorf(e, "Error while deleting a cookie for bookie %s",
+                    bookieInfo.getPodResource().get().getMetadata().getName());
+        }
+        return success;
+    }
+
+    @SneakyThrows
+    private boolean existLedgerOnBookie(BookieInfo bookieInfo) {
+        CompletableFuture<String> out = AutoscalerUtils.execInPod(client, namespace,
+                bookieInfo.getPodResource().get().getMetadata().getName(),
+                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
+                "bin/bookkeeper shell listledgers -meta -bookieid "
+                        + getBookieId(bookieInfo.getPodResource()));
+        out.whenComplete((s, e) -> {
+            if (e != null) {
+                log.errorf(e, "Error running listledgers for bookie %s",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+            } else {
+                log.infof("listledgers for %s succeeded",
+                        bookieInfo.getPodResource().get().getMetadata().getName());
+            }
+        });
+        String res = out.get();
+        log.infof("listledgers output: %s", res);
+        // error getting the info, err on the safe side
+        if (res.contains("Unable to read the ledger")
+            || res.contains("Received error return value while processing ledgers")
+            || res.contains("Received Exception while processing ledgers")) {
+            return true;
+        }
+        return res.contains("ledgerID: ");
     }
 
     private boolean checkIfCanScaleDown(double diskUsageLwm, List<BookieInfo> bookieInfos) {
@@ -269,7 +387,10 @@ public class BookKeeperAutoscaler implements Runnable {
         }
 
         boolean doesNotHaveUnderReplicatedLedgers = doesNotHaveUnderReplicatedLedgers();
-        canScaleDown = canScaleDown && doesNotHaveUnderReplicatedLedgers;
+        if (!doesNotHaveUnderReplicatedLedgers) {
+            log.infof("Found underreplicated ledgers, can't scale down");
+            canScaleDown = false;
+        }
 
         return canScaleDown;
     }
@@ -347,11 +468,11 @@ public class BookKeeperAutoscaler implements Runnable {
     }
 
     @SneakyThrows
-    private String recoverAndDeleteCookieInZk(BookieInfo bookieInfo) {
+    private String recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
         CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
                 bookieInfo.getPodResource().get().getMetadata().getName(),
                 BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "bin/bookkeeper shell recover -f -d "
+                "bin/bookkeeper shell recover -f " + (deleteCookie ? "-d " : "")
                         + getBookieId(bookieInfo.getPodResource()));
         recoverOut.whenComplete((s, e) -> {
             if (e != null) {
@@ -380,7 +501,7 @@ public class BookKeeperAutoscaler implements Runnable {
                 log.errorf(e, "Error deleting cookie at %s",
                         bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
-                log.infof("Bookie/s %s cookie is deleted",
+                log.infof("Bookie's %s cookie is deleted",
                         bookieInfo.getPodResource().get().getMetadata().getName());
             }
         });
@@ -388,9 +509,15 @@ public class BookKeeperAutoscaler implements Runnable {
         log.infof("Cookie delete output: %s", res);
     }
 
-    private String getBookieId(PodResource podResource) {
+    protected String getBookieId(PodResource podResource) {
         Pod pod = podResource.get();
-        return pod.getSpec().getHostname() + ":3181";
+        return String.format("%s.%s-%s.%s.svc.%s:%s",
+                pod.getSpec().getHostname(),
+                clusterSpec.getGlobalSpec().getName(),
+                clusterSpec.getGlobalSpec().getComponents().getBookkeeperBaseName(),
+                namespace,
+                clusterSpec.getGlobalSpec().getKubernetesClusterDomain(),
+                "3181");
     }
 
     @SneakyThrows
@@ -401,10 +528,10 @@ public class BookKeeperAutoscaler implements Runnable {
                 "curl -s -X PUT localhost:8000/api/v1/autorecovery/trigger_audit");
         curlOut.whenComplete((s, e) -> {
             if (e != null) {
-                log.errorf(e, "Error making bookie read-only %s",
+                log.errorf(e, "Error triggering audit %s",
                         bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
-                log.infof("Bookie %s is set to read-only",
+                log.infof("Triggered audit",
                         bookieInfo.getPodResource().get().getMetadata().getName());
             }
         });
@@ -412,19 +539,20 @@ public class BookKeeperAutoscaler implements Runnable {
     }
 
     @SneakyThrows
-    private void makeReadOnly(BookieInfo bookieInfo) {
+    private void setReadOnly(BookieInfo bookieInfo, boolean roStatus) {
         CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
                 bookieInfo.getPodResource().get().getMetadata().getName(),
                 BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
                 "curl -s -X PUT -H \"Content-Type: application/json\" "
-                        + "-d '{\"readOnly\":true}' "
+                        + "-d '{\"readOnly\":" + roStatus + "}' "
                         + "localhost:8000/api/v1/bookie/state/readonly");
         curlOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error making bookie read-only %s",
                         bookieInfo.getPodResource().get().getMetadata().getName());
             } else {
-                log.infof("Bookie %s is set to read-only",
+                log.infof("Bookie %s is set to read-only %b",
+                        roStatus,
                         bookieInfo.getPodResource().get().getMetadata().getName());
             }
         });

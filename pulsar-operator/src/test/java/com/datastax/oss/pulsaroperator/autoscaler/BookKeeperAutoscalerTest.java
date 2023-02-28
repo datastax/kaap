@@ -797,8 +797,12 @@ public class BookKeeperAutoscalerTest {
                 Mockito.doAnswer(invocation ->
                                 bookieInfofunc.apply(invocation.getArgument(1)))
                         .when(bkAutoscaler).getBoookieInfo(Mockito.any(), Mockito.any());
+                Mockito.doReturn("mockId").when(bkAutoscaler)
+                        .getBookieId(Mockito.any());
                 Mockito.doReturn(true).when(bkAutoscaler)
-                        .runBookieRecoveryAndRemoveCookie(Mockito.any());
+                        .runBookieRecovery(Mockito.any());
+                Mockito.doReturn(true).when(bkAutoscaler)
+                        .deleteCookie(Mockito.any());
             }
 
             bkAutoscaler.internalRun();

@@ -123,6 +123,9 @@ public class BookKeeperAutoscaler implements Runnable {
         final int bookieSafeStepDown = bkScalerSpec.getScaleDownBy();
         final boolean cleanUpPvcs = bkScalerSpec.getCleanUpPvcs();
         final String bookieUrl = bkScalerSpec.getBookieUrl();
+        if (log.isDebugEnabled()) {
+            log.debugf("Using bookie url %s to access REST API", bookieUrl);
+        }
 
         final BookKeeper bkCr = client.resources(BookKeeper.class)
                 .inNamespace(namespace)

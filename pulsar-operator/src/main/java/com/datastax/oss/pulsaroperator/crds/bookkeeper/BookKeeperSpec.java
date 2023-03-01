@@ -102,7 +102,7 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
             .diskUsageToleranceHwm(0.92d)
             .diskUsageToleranceLwm(0.75d)
             .cleanUpPvcs(true)
-            .bookieUrl("http://localhost:8080")
+            .bookieUrl("http://localhost:8000")
             .build();
 
 

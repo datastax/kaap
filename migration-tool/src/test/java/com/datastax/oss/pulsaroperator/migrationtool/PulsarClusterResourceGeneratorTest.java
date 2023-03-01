@@ -386,7 +386,7 @@ public class PulsarClusterResourceGeneratorTest {
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
                               cleanUpPvcs: true
-                              bookieUrl: http://localhost:8080
+                              bookieUrl: http://localhost:8000
                           broker:
                             imagePullPolicy: IfNotPresent
                             replicas: 3

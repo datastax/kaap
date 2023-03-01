@@ -16,10 +16,10 @@
 package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
-import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
-import com.datastax.oss.pulsaroperator.migrationtool.SpecGenerator;
 import com.datastax.oss.pulsaroperator.common.json.JSONAssertComparator;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.migrationtool.SpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;

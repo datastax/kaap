@@ -16,10 +16,10 @@
 package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.migrationtool.diff.DiffChecker;
 import com.datastax.oss.pulsaroperator.migrationtool.diff.DiffCollectorOutputWriter;
-import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import java.io.File;

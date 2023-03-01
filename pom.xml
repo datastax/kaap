@@ -57,6 +57,7 @@
         <sundrio.version>0.93.2</sundrio.version>
         <testcontainers.version>1.17.6</testcontainers.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <jsonassert.version>1.5.1</jsonassert.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -141,6 +142,11 @@
                 <artifactId>testcontainers</artifactId>
                 <version>${testcontainers.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.skyscreamer</groupId>
+                <artifactId>jsonassert</artifactId>
+                <version>${jsonassert.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

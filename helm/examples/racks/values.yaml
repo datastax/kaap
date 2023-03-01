@@ -1,0 +1,112 @@
+#
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+operator:
+  image: datastax/lunastreaming-operator:latest-dev
+cluster:
+  create: true
+  spec:
+    global:
+      name: pulsar
+      image: datastax/lunastreaming-all:2.10_2.11
+      restartOnConfigMapChange: true
+      storage:
+        existingStorageClassName: default
+      racks:
+        az1:
+          host:
+              enabled: true
+          zone:
+            enabled: false
+        az2:
+          host:
+            enabled: true
+          zone:
+            enabled: false
+      resourceSets:
+        rsaz1:
+          rack: az1
+        rsaz2:
+          rack: az2
+        customer1: {}
+      antiAffinity:
+        host:
+          enabled: true
+    zookeeper:
+      replicas: 1
+      dataVolume:
+        name: data
+        size: 100M
+      resources:
+        requests:
+          cpu: "0.1"
+          memory: "128Mi"
+    bookkeeper:
+      replicas: 1
+      volumes:
+        journal:
+          size: 1Gi
+        ledgers:
+          size: 1Gi
+      resources:
+        requests:
+          cpu: "0.1"
+          memory: "128Mi"
+    broker:
+      replicas: 1
+      config:
+        managedLedgerDefaultAckQuorum: 1
+        managedLedgerDefaultEnsembleSize: 1
+        managedLedgerDefaultWriteQuorum: 1
+      resources:
+        requests:
+          cpu: "0.1"
+          memory: "128Mi"
+      sets:
+        customer1:
+          replicas: 2
+        rsaz1:
+          replicas: 2
+        rsaz2:
+          replicas: 2
+    proxy:
+      replicas: 1
+      webSocket:
+        enabled: false
+      resources:
+        requests:
+          cpu: "0.1"
+          memory: "128Mi"
+      sets:
+        customer1:
+          replicas: 2
+        rsaz1:
+          replicas: 2
+        rsaz2:
+          replicas: 2
+    autorecovery:
+      replicas: 0
+      resources:
+        requests:
+          cpu: "0.1"
+          memory: "128Mi"
+    bastion:
+      replicas: 1
+      resources:
+        requests:
+          cpu: "0.1"
+          memory: "128Mi"

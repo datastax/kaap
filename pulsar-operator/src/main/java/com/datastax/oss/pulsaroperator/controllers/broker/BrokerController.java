@@ -114,6 +114,7 @@ public class BrokerController extends AbstractController<Broker> {
         if (lastAppliedResource != null) {
             final Set<String> currentBrokerSets = brokerSets.stream().map(BrokerSetInfo::getName)
                     .collect(Collectors.toSet());
+            currentBrokerSets.add(BrokerResourcesFactory.BROKER_DEFAULT_SET);
             final List<BrokerSetInfo> toDeleteBrokerSets =
                     getBrokerSets(null, namespace, lastAppliedResource, currentBrokerSets);
             for (BrokerSetInfo brokerSet : toDeleteBrokerSets) {

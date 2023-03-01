@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.pulsaroperator.migrationtool.json;
+package com.datastax.oss.pulsaroperator.crds.configs;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface JSONComparator {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ResourceSetConfig {
 
-    record FieldComparisonFailure(String field, Object expected, Object actual) {
-    }
-
-    interface Result {
-        boolean passed();
-
-        List<FieldComparisonFailure> failures();
-    }
-
-    Result compare(String json1, String json2);
+    @JsonPropertyDescription("Place this resource set to a specific rack, defined at .global.racks.")
+    private String rack;
 }

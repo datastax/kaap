@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.utils.CertManagerCertificatesProvisioner;
@@ -371,8 +372,11 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         final CR current = getExistingCustomResource(resourceClass, namespace, crFullName);
         if (current != null) {
             final SPEC currentSpec = current.getSpec();
-            final boolean specEquals = SpecDiffer.specsAreEquals(currentSpec, spec);
-            if (specEquals) {
+
+            final String currentAsJson = SerializationUtil.writeAsJson(currentSpec);
+            final String newSpecAsJson = SerializationUtil.writeAsJson(spec);
+            final JSONComparator.Result diff = SpecDiffer.generateDiff(currentAsJson, newSpecAsJson);
+            if (diff.areEquals()) {
                 final BaseComponentStatus currentStatus = (BaseComponentStatus) current.getStatus();
                 final Condition readyCondition = currentStatus.getConditions().stream()
                         .filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
@@ -384,14 +388,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                     return false;
                 }
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debugf("detected diff in %s, updating resource. Diff:\nCurrent: %s\nNew: %s",
-                            customResourceName,
-                            SerializationUtil.writeAsJson(currentSpec),
-                            SerializationUtil.writeAsJson(spec));
-                } else {
-                    log.infof("detected diff in %s, updating resource", customResourceName);
-                }
+                log.infof("detected diff in %s, updating resource", customResourceName);
+                logDetailedSpecDiff(diff, currentAsJson, newSpecAsJson);
             }
         }
 
@@ -411,6 +409,34 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 .createOrReplace();
         log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
         return false;
+    }
+
+    private <SPEC> void logDetailedSpecDiff(JSONComparator.Result diff, String currentAsJson, String newSpecAsJson) {
+        log.infof("logging detailed diff: \nwas: %s\nnow: %s", currentAsJson, newSpecAsJson);
+        for (JSONComparator.FieldComparisonDiff failure : diff.diffs()) {
+            final String actualValue = failure.actual();
+            final String completeField = failure.field();
+            final String expectedValue = failure.expected();
+            if (actualValue == null) {
+                log.infof("""
+                        was: '%s=%s', now removed
+                        """.formatted(completeField, expectedValue));
+            } else if (expectedValue == null) {
+                log.infof("""
+                        was empty, now: '%s=%s'
+                        """.formatted(completeField, actualValue));
+            } else {
+                log.infof("""
+                        '%s' value differs:
+                            was: %s
+                            now: %s
+                        """.formatted(
+                        completeField,
+                        expectedValue,
+                        actualValue
+                ));
+            }
+        }
     }
 
 

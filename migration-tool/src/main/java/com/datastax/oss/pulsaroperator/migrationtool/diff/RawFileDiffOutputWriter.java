@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
-import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,7 +44,7 @@ public class RawFileDiffOutputWriter extends BaseDiffOutputWriter {
 
 
     @Override
-    public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources, List<JSONComparator.FieldComparisonFailure> failures,
+    public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources, List<JSONComparator.FieldComparisonDiff> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
         builder.append(resources.getLeft().getFullQualifedName() + ": FAILED\n");
         super.diffFailed(resources, failures, genJson, originalJson);

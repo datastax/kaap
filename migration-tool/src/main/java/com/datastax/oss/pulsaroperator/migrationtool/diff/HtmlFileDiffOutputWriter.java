@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.diff;
 
-import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -126,7 +126,7 @@ public class HtmlFileDiffOutputWriter extends BaseDiffOutputWriter {
 
     @Override
     public void diffFailed(Pair<DiffChecker.Resource, DiffChecker.Resource> resources,
-                           List<JSONComparator.FieldComparisonFailure> failures,
+                           List<JSONComparator.FieldComparisonDiff> failures,
                            Map<String, Object> genJson, Map<String, Object> originalJson) {
         final String fqName = resources.getLeft().getFullQualifedName();
         closeULIfOpen();

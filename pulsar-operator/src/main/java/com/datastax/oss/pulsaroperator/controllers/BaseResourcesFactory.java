@@ -25,6 +25,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.RackConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.VolumeConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -39,6 +40,8 @@ import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.PodAffinity;
+import io.fabric8.kubernetes.api.model.PodAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -88,6 +91,8 @@ import org.apache.commons.lang3.StringUtils;
 @JBossLog
 public abstract class BaseResourcesFactory<T> {
 
+    public static final String TOPOLOGY_KEY_ZONE = "failure-domain.beta.kubernetes.io/zone";
+    public static final String TOPOLOGY_KEY_HOST = "kubernetes.io/hostname";
     protected final KubernetesClient client;
     protected final String namespace;
     protected final T spec;
@@ -105,7 +110,6 @@ public abstract class BaseResourcesFactory<T> {
         this.resourceName = resourceName;
         this.ownerReference = ownerReference;
     }
-
 
 
     protected abstract String getComponentBaseName();
@@ -910,7 +914,8 @@ public abstract class BaseResourcesFactory<T> {
 
             final Map<String, String> sslClientAndQuorumOpts = new HashMap<>(sslClientOpts);
             sslClientAndQuorumOpts.put("zookeeper.sslQuorum", "true");
-            sslClientAndQuorumOpts.put("zookeeper.serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
+            sslClientAndQuorumOpts.put("zookeeper.serverCnxnFactory",
+                    "org.apache.zookeeper.server.NettyServerCnxnFactory");
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.location", keyStoreLocation);
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.location", trustStoreLocation);
@@ -958,57 +963,145 @@ public abstract class BaseResourcesFactory<T> {
     protected Affinity getAffinity(NodeAffinity nodeAffinity,
                                    AntiAffinityConfig overrideGlobalAntiAffinity,
                                    Map<String, String> customMatchLabels) {
+        return getAffinity(nodeAffinity, overrideGlobalAntiAffinity, customMatchLabels, null);
+    }
 
-        List<PodAffinityTerm> requiredTerms = new ArrayList<>();
-        List<WeightedPodAffinityTerm> preferredTerms = new ArrayList<>();
+    protected Affinity getAffinity(NodeAffinity nodeAffinity,
+                                   AntiAffinityConfig overrideGlobalAntiAffinity,
+                                   Map<String, String> customMatchLabels,
+                                   String rack) {
+
+        List<PodAffinityTerm> requiredAntiAffinityTerms = new ArrayList<>();
+        List<WeightedPodAffinityTerm> preferredAntiAffinityTerms = new ArrayList<>();
+        List<PodAffinityTerm> requiredAffinityTerms = new ArrayList<>();
+        List<WeightedPodAffinityTerm> preferredAffinityTerms = new ArrayList<>();
 
         final AntiAffinityConfig antiAffinityConfig =
                 ObjectUtils.firstNonNull(overrideGlobalAntiAffinity, global.getAntiAffinity());
-
-        if (antiAffinityConfig != null) {
-            final AntiAffinityConfig.HostAntiAffinityConfig host = antiAffinityConfig.getHost();
-
-            if (host != null
-                    && host.getEnabled() != null
-                    && host.getEnabled()) {
-
-                final PodAffinityTerm podAffinityTerm = createPodAffinityTerm(
-                        "kubernetes.io/hostname",
-                        customMatchLabels);
-                if (host.getRequired() != null && host.getRequired()) {
-                    requiredTerms.add(podAffinityTerm);
-                } else {
-                    preferredTerms.add(createWeightedPodAffinityTerm(
-                            "kubernetes.io/hostname",
-                            customMatchLabels));
-                }
+        if (rack != null) {
+            final Map<String, RackConfig> racks = global.getRacks();
+            if (racks == null || racks.isEmpty()) {
+                throw new IllegalArgumentException("Rack is specified but no racks are configured");
             }
-            final AntiAffinityConfig.ZoneAntiAffinityConfig zone = antiAffinityConfig.getZone();
-            if (zone != null
-                    && zone.getEnabled() != null
-                    && zone.getEnabled()) {
-                final WeightedPodAffinityTerm weightedPodAffinityTerm =
-                        createWeightedPodAffinityTerm(
-                                "failure-domain.beta.kubernetes.io/zone",
-                                customMatchLabels);
-                preferredTerms.add(weightedPodAffinityTerm);
+            final RackConfig rackConfig = racks.get(rack);
+            if (rackConfig == null) {
+                throw new IllegalArgumentException("Rack is specified but no rack config is found for rack " + rack);
             }
+            handleRackAffinityRules(rack,
+                    TOPOLOGY_KEY_HOST,
+                    rackConfig.getHost(),
+                    requiredAntiAffinityTerms,
+                    preferredAntiAffinityTerms, requiredAffinityTerms,
+                    preferredAffinityTerms);
+
+            handleRackAffinityRules(rack,
+                    TOPOLOGY_KEY_ZONE,
+                    rackConfig.getZone(),
+                    requiredAntiAffinityTerms,
+                    preferredAntiAffinityTerms, requiredAffinityTerms,
+                    preferredAffinityTerms);
+        } else if (antiAffinityConfig != null) {
+            handleAntiAffinityTypeConfig(antiAffinityConfig.getHost(), TOPOLOGY_KEY_HOST, customMatchLabels,
+                    requiredAntiAffinityTerms,
+                    preferredAntiAffinityTerms);
+
+            handleAntiAffinityTypeConfig(antiAffinityConfig.getZone(), TOPOLOGY_KEY_ZONE, customMatchLabels,
+                    requiredAntiAffinityTerms,
+                    preferredAntiAffinityTerms);
         }
 
         PodAntiAffinity podAntiAffinity = null;
-        if (!preferredTerms.isEmpty() || !requiredTerms.isEmpty()) {
+        if (!preferredAntiAffinityTerms.isEmpty() || !requiredAntiAffinityTerms.isEmpty()) {
             podAntiAffinity = new PodAntiAffinityBuilder()
-                    .withPreferredDuringSchedulingIgnoredDuringExecution(preferredTerms)
-                    .withRequiredDuringSchedulingIgnoredDuringExecution(requiredTerms)
+                    .withPreferredDuringSchedulingIgnoredDuringExecution(preferredAntiAffinityTerms)
+                    .withRequiredDuringSchedulingIgnoredDuringExecution(requiredAntiAffinityTerms)
                     .build();
         }
-        if (podAntiAffinity != null || nodeAffinity != null) {
+        PodAffinity podAffinity = null;
+        if (!requiredAffinityTerms.isEmpty() || !preferredAffinityTerms.isEmpty()) {
+            podAffinity = new PodAffinityBuilder()
+                    .withRequiredDuringSchedulingIgnoredDuringExecution(requiredAffinityTerms)
+                    .withPreferredDuringSchedulingIgnoredDuringExecution(preferredAffinityTerms)
+                    .build();
+        }
+        if (podAntiAffinity != null || nodeAffinity != null || podAffinity != null) {
             return new AffinityBuilder()
+                    .withPodAffinity(podAffinity)
                     .withNodeAffinity(nodeAffinity)
                     .withPodAntiAffinity(podAntiAffinity)
                     .build();
         }
         return null;
+    }
+
+    private void handleAntiAffinityTypeConfig(AntiAffinityConfig.AntiAffinityTypeConfig config, String topologyKey,
+                                              Map<String, String> customMatchLabels,
+                                              List<PodAffinityTerm> requiredAntiAffinityTerms,
+                                              List<WeightedPodAffinityTerm> preferredAntiAffinityTerms) {
+        if (config != null
+                && config.getEnabled() != null
+                && config.getEnabled()) {
+            if (config.getRequired() != null && config.getRequired()) {
+                final PodAffinityTerm podAffinityTerm = createPodAffinityTerm(
+                        topologyKey,
+                        customMatchLabels);
+                requiredAntiAffinityTerms.add(podAffinityTerm);
+            } else {
+                preferredAntiAffinityTerms.add(createWeightedPodAffinityTerm(
+                        topologyKey,
+                        customMatchLabels));
+            }
+        }
+    }
+
+    private void handleRackAffinityRules(String rack, String topologyKey, RackConfig.RackTypeConfig rackConfig,
+                                         List<PodAffinityTerm> requiredAntiAffinityTerms,
+                                         List<WeightedPodAffinityTerm> preferredAntiAffinityTerms,
+                                         List<PodAffinityTerm> requiredAffinityTerms,
+                                         List<WeightedPodAffinityTerm> preferredAffinityTerms) {
+        if (rackConfig == null || !rackConfig.getEnabled()) {
+            return;
+        }
+
+        final PodAffinityTerm affinity = new PodAffinityTermBuilder()
+                .withNewLabelSelector()
+                .addNewMatchExpression()
+                .withKey(CRDConstants.LABEL_RACK)
+                .withOperator("In")
+                .withValues(rack)
+                .endMatchExpression()
+                .endLabelSelector()
+                .withTopologyKey(topologyKey)
+                .build();
+        if (rackConfig.getRequireRackAffinity()) {
+            requiredAffinityTerms.add(affinity);
+        } else {
+            preferredAffinityTerms.add(new WeightedPodAffinityTermBuilder()
+                    .withWeight(100)
+                    .withPodAffinityTerm(affinity)
+                    .build());
+        }
+
+        final List<String> otherRacks =
+                global.getRacks().keySet().stream().filter(r -> !r.equals(rack)).collect(Collectors.toList());
+        final PodAffinityTerm antiAffinity = new PodAffinityTermBuilder()
+                .withNewLabelSelector()
+                .addNewMatchExpression()
+                .withKey(CRDConstants.LABEL_RACK)
+                .withOperator("In")
+                .withValues(otherRacks)
+                .endMatchExpression()
+                .endLabelSelector()
+                .withTopologyKey(topologyKey)
+                .build();
+        if (rackConfig.getRequireRackAntiAffinity()) {
+            requiredAntiAffinityTerms.add(antiAffinity);
+        } else {
+            preferredAntiAffinityTerms.add(new WeightedPodAffinityTermBuilder()
+                    .withWeight(100)
+                    .withPodAffinityTerm(antiAffinity)
+                    .build());
+        }
     }
 
     private PodAffinityTerm createPodAffinityTerm(String topologyKey, Map<String, String> customMatchLabels) {

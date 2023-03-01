@@ -18,6 +18,7 @@ package com.datastax.oss.pulsaroperator.tests;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,8 @@ public class BrokerAutoScalingTest extends BasePulsarClusterTest {
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
         specs.getGlobal().getAuth().setEnabled(false);
 
-        specs.getGlobal().setResourceSets(Map.of("shared", Map.of(), "dedicated", Map.of()));
+        specs.getGlobal().setResourceSets(Map.of("shared", ResourceSetConfig.builder().build(),
+                "dedicated", ResourceSetConfig.builder().build()));
         specs.getBroker().setSets(Map.of(
                 "dedicated", BrokerSetSpec.builder()
                         .autoscaler(BrokerAutoscalerSpec.builder()

@@ -23,6 +23,8 @@ import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.RackConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorkerSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
@@ -123,16 +125,36 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     }
 
     private boolean validateResourceSets(PulsarClusterSpec spec, ConstraintValidatorContext context) {
-        Map<String, Map<String, Object>> resourceSets = spec.getGlobal().getResourceSets();
+        Map<String, ResourceSetConfig> resourceSets = spec.getGlobal().getResourceSets();
         if (resourceSets == null) {
             resourceSets = Collections.emptyMap();
         }
-        return validateBrokerResourceSets(resourceSets, spec.getBroker(), context)
+
+        return validateResourceSetsRacks(resourceSets, spec.getGlobal().getRacks(), context)
+                && validateBrokerResourceSets(resourceSets, spec.getBroker(), context)
                 && validateProxyResourceSets(resourceSets, spec.getProxy(), context);
 
     }
 
-    private boolean validateBrokerResourceSets(Map<String, Map<String, Object>> declaredResourceSets,
+    private boolean validateResourceSetsRacks(Map<String, ResourceSetConfig> resourceSets,
+                                              Map<String, RackConfig> racks, ConstraintValidatorContext context) {
+        for (Map.Entry<String, ResourceSetConfig> set : resourceSets.entrySet()) {
+            final ResourceSetConfig value = set.getValue();
+            if (value != null && value.getRack() != null) {
+                if (racks == null || !racks.containsKey(value.getRack())) {
+                    context.buildConstraintViolationWithTemplate(
+                                    ("Resource set %s references a rack %s that does not exist. You must define racks "
+                                            + "in .global.racks")
+                                            .formatted(set.getKey(), value.getRack()))
+                            .addConstraintViolation();
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean validateBrokerResourceSets(Map<String, ResourceSetConfig> declaredResourceSets,
                                                BrokerSpec spec, ConstraintValidatorContext context) {
         final Map<String, BrokerSetSpec> sets = spec.getSets();
         if (sets == null || sets.isEmpty()) {
@@ -141,7 +163,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
         return validateResourceSetNames(sets.keySet(), declaredResourceSets, "broker", context);
     }
 
-    private boolean validateProxyResourceSets(Map<String, Map<String, Object>> declaredResourceSets,
+    private boolean validateProxyResourceSets(Map<String, ResourceSetConfig> declaredResourceSets,
                                               ProxySpec spec, ConstraintValidatorContext context) {
         final Map<String, ProxySetSpec> sets = spec.getSets();
         if (sets == null || sets.isEmpty()) {
@@ -151,7 +173,7 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
     }
 
     private boolean validateResourceSetNames(Set<String> sets,
-                                             Map<String, Map<String, Object>> declaredResourceSets,
+                                             Map<String, ResourceSetConfig> declaredResourceSets,
                                              String nameForError,
                                              ConstraintValidatorContext context) {
         for (String s : sets) {

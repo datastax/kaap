@@ -2063,17 +2063,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -4193,17 +4197,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -5422,17 +5430,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -7522,17 +7534,21 @@ spec:
                           description: Pod anti-affinity configuration. This override
                             the global value if set.
                           properties:
-                            zone:
-                              description: Indicates the provisioner property for
+                            host:
+                              description: Indicates the reclaimPolicy property for
                                 the StorageClass.
                               properties:
+                                required:
+                                  description: Indicates the reclaimPolicy property
+                                    for the StorageClass.
+                                  type: boolean
                                 enabled:
                                   description: Indicates the reclaimPolicy property
                                     for the StorageClass.
                                   type: boolean
                               type: object
-                            host:
-                              description: Indicates the reclaimPolicy property for
+                            zone:
+                              description: Indicates the provisioner property for
                                 the StorageClass.
                               properties:
                                 required:
@@ -9616,17 +9632,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -11694,17 +11714,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -13817,17 +13841,21 @@ spec:
                           description: Pod anti-affinity configuration. This override
                             the global value if set.
                           properties:
-                            zone:
-                              description: Indicates the provisioner property for
+                            host:
+                              description: Indicates the reclaimPolicy property for
                                 the StorageClass.
                               properties:
+                                required:
+                                  description: Indicates the reclaimPolicy property
+                                    for the StorageClass.
+                                  type: boolean
                                 enabled:
                                   description: Indicates the reclaimPolicy property
                                     for the StorageClass.
                                   type: boolean
                               type: object
-                            host:
-                              description: Indicates the reclaimPolicy property for
+                            zone:
+                              description: Indicates the provisioner property for
                                 the StorageClass.
                               properties:
                                 required:
@@ -15935,17 +15963,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -17160,17 +17192,21 @@ spec:
                     description: Pod anti-affinity configuration. This override the
                       global value if set.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for
@@ -17581,6 +17617,16 @@ spec:
                     description: |
                       If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptyDir
                     type: boolean
+                  resourceSets:
+                    additionalProperties:
+                      properties:
+                        rack:
+                          description: "Place this resource set to a specific rack,\
+                            \ defined at .global.racks."
+                          type: string
+                      type: object
+                    description: Resource sets.
+                    type: object
                   dnsName:
                     description: Public dns name for the cluster's load balancer.
                     type: string
@@ -17624,19 +17670,54 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
-                  resourceSets:
-                    additionalProperties:
-                      additionalProperties:
-                        type: object
-                      type: object
-                    description: Resource sets.
-                    type: object
                   priorityClassName:
                     description: Priority class name to attach to each pod.
                     type: string
                   name:
                     description: Pulsar cluster name.
                     type: string
+                  racks:
+                    additionalProperties:
+                      properties:
+                        host:
+                          description: Enable rack rules based on the hostname of
+                            the node.
+                          properties:
+                            enabled:
+                              description: Enable the rack affinity rules.
+                              type: boolean
+                            requireRackAntiAffinity:
+                              description: "Indicates if the podAntiAffinity rules\
+                                \ will be enforced. Default is true. If required,\
+                                \ the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'."
+                              type: boolean
+                            requireRackAffinity:
+                              description: "Indicates if the podAffinity rules will\
+                                \ be enforced. Default is false. If required, the\
+                                \ affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'."
+                              type: boolean
+                          type: object
+                        zone:
+                          description: Enable rack rules based on the failure domain
+                            (availability zone) of the node.
+                          properties:
+                            enabled:
+                              description: Enable the rack affinity rules.
+                              type: boolean
+                            requireRackAntiAffinity:
+                              description: "Indicates if the podAntiAffinity rules\
+                                \ will be enforced. Default is true. If required,\
+                                \ the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'."
+                              type: boolean
+                            requireRackAffinity:
+                              description: "Indicates if the podAffinity rules will\
+                                \ be enforced. Default is false. If required, the\
+                                \ affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'."
+                              type: boolean
+                          type: object
+                      type: object
+                    description: Racks configuration.
+                    type: object
                   nodeSelectors:
                     additionalProperties:
                       type: string
@@ -17651,17 +17732,21 @@ spec:
                   antiAffinity:
                     description: Pod anti affinity configuration.
                     properties:
-                      zone:
-                        description: Indicates the provisioner property for the StorageClass.
+                      host:
+                        description: Indicates the reclaimPolicy property for the
+                          StorageClass.
                         properties:
+                          required:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: boolean
                           enabled:
                             description: Indicates the reclaimPolicy property for
                               the StorageClass.
                             type: boolean
                         type: object
-                      host:
-                        description: Indicates the reclaimPolicy property for the
-                          StorageClass.
+                      zone:
+                        description: Indicates the provisioner property for the StorageClass.
                         properties:
                           required:
                             description: Indicates the reclaimPolicy property for

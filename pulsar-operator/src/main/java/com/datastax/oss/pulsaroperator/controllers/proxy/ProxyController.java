@@ -161,6 +161,7 @@ public class ProxyController extends AbstractController<Proxy> {
         if (lastAppliedResource != null) {
             final Set<String> currentProxySets = proxySets.stream().map(ProxySetInfo::getName)
                     .collect(Collectors.toSet());
+            currentProxySets.add(ProxyResourcesFactory.PROXY_DEFAULT_SET);
             final List<ProxySetInfo> toDeleteProxySets =
                     getProxySets(null, namespace, lastAppliedResource, currentProxySets);
             for (ProxySetInfo proxySet : toDeleteProxySets) {

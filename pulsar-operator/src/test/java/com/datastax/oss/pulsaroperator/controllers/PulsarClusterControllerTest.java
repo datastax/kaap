@@ -799,4 +799,56 @@ public class PulsarClusterControllerTest {
     }
 
 
+    @Test
+    public void testRacksOk() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                    auth:
+                        enabled: true
+                    racks:
+                        rack1: {}
+                    resourceSets:
+                      set1: {}
+                      set2:
+                        rack: rack1
+                      set3:
+                        rack: rack1
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
+        final Condition readyCondition = getReadyCondition(status.getResource().getStatus());
+        Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
+        Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
+    }
+
+
+    @Test
+    public void testRacks() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                    auth:
+                        enabled: true
+                    racks:
+                        rack2: {}
+                    resourceSets:
+                      set1: {}
+                      set2:
+                        rack: rack1
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
+        final Condition readyCondition = getReadyCondition(status.getResource().getStatus());
+        Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
+        Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
+        Assert.assertTrue(readyCondition.getMessage().contains(
+                "Resource set set2 references a rack rack1 that does not exist. You must define racks in .global.racks"),
+                readyCondition.getMessage()
+        );
+    }
+
+
 }

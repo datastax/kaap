@@ -187,8 +187,10 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getEnvFrom().get(0)
                 .getConfigMapRef().getName(), resourceName + "-ws");
 
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getName(), resourceName);
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getName(), resourceName + "-ws");
+        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getName(),
+                resourceName);
+        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getName(),
+                resourceName + "-ws");
 
         deployment.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
         deployment.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
@@ -296,6 +298,237 @@ public class ProxySetsControllerTest {
                         Proxy.class,
                         ProxyFullSpec.class,
                         ProxyController.class);
+    }
+
+    @Test
+    public void testRacks() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                    resourceSets:
+                        set1norack: {}
+                        set2norack: {}
+                        setdefault:
+                            rack: rdefault
+                        set1:
+                            rack: rack1
+                        set2:
+                            rack: rack2
+                        set3:
+                            rack: rack3
+                    racks:
+                        rdefault: {}
+                        rack1:
+                            zone:
+                                enabled: true
+                                requireRackAffinity: true
+                                requireRackAntiAffinity: false
+                            host:
+                                enabled: false
+                        rack2:
+                            host:
+                                enabled: true
+                                requireRackAffinity: true
+                                requireRackAntiAffinity: false
+                            zone:
+                                enabled: false
+                        rack3:
+                            host:
+                                enabled: true
+                                requireRackAffinity: false
+                                requireRackAntiAffinity: false
+                            zone:
+                                enabled: true
+                                requireRackAffinity: true
+                                requireRackAntiAffinity: true
+                proxy:
+                    sets:
+                      set1norack: {}
+                      set2norack:
+                        antiAffinity:
+                            zone:
+                                enabled: true
+                            host:
+                                enabled: true
+                      setdefault: {}
+                      set1: {}
+                      set2: {}
+                      set3: {}
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 6);
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1norack")
+                                .getResource()
+                                .getSpec()
+                                .getTemplate().getSpec().getAffinity()
+                ),
+                """
+                        ---
+                        podAntiAffinity:
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchLabels:
+                                app: pulsar
+                                cluster: pulsarname
+                                component: proxy
+                                resource-set: set1norack
+                            topologyKey: kubernetes.io/hostname
+                        """);
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2norack")
+                                .getResource()
+                                .getSpec()
+                                .getTemplate().getSpec().getAffinity()
+                ),
+                """
+                        ---
+                        podAntiAffinity:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                          - podAffinityTerm:
+                              labelSelector:
+                                matchLabels:
+                                  app: pulsar
+                                  cluster: pulsarname
+                                  component: proxy
+                                  resource-set: set2norack
+                              topologyKey: kubernetes.io/hostname
+                            weight: 100
+                          - podAffinityTerm:
+                              labelSelector:
+                                matchLabels:
+                                  app: pulsar
+                                  cluster: pulsarname
+                                  component: proxy
+                                  resource-set: set2norack
+                              topologyKey: failure-domain.beta.kubernetes.io/zone
+                            weight: 100
+                        """);
+
+        Assert.assertNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setdefault")
+                .getResource()
+                .getSpec()
+                .getTemplate().getSpec().getAffinity()
+        );
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1")
+                                .getResource()
+                                .getSpec()
+                                .getTemplate().getSpec().getAffinity()
+                ),
+                """
+                        ---
+                        podAffinity:
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchExpressions:
+                              - key: rack
+                                operator: In
+                                values:
+                                - rack1
+                            topologyKey: failure-domain.beta.kubernetes.io/zone
+                        podAntiAffinity:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                          - podAffinityTerm:
+                              labelSelector:
+                                matchExpressions:
+                                - key: rack
+                                  operator: In
+                                  values:
+                                  - rdefault
+                                  - rack3
+                                  - rack2
+                              topologyKey: failure-domain.beta.kubernetes.io/zone
+                            weight: 100
+                        """);
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2")
+                                .getResource()
+                                .getSpec()
+                                .getTemplate().getSpec().getAffinity()
+                ),
+                """
+                        ---
+                        podAffinity:
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchExpressions:
+                              - key: rack
+                                operator: In
+                                values:
+                                - rack2
+                            topologyKey: kubernetes.io/hostname
+                        podAntiAffinity:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                          - podAffinityTerm:
+                              labelSelector:
+                                matchExpressions:
+                                - key: rack
+                                  operator: In
+                                  values:
+                                  - rdefault
+                                  - rack3
+                                  - rack1
+                              topologyKey: kubernetes.io/hostname
+                            weight: 100
+                        """);
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(
+                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set3")
+                                .getResource()
+                                .getSpec()
+                                .getTemplate().getSpec().getAffinity()
+                ),
+                """
+                        ---
+                        podAffinity:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                          - podAffinityTerm:
+                              labelSelector:
+                                matchExpressions:
+                                - key: rack
+                                  operator: In
+                                  values:
+                                  - rack3
+                              topologyKey: kubernetes.io/hostname
+                            weight: 100
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchExpressions:
+                              - key: rack
+                                operator: In
+                                values:
+                                - rack3
+                            topologyKey: failure-domain.beta.kubernetes.io/zone
+                        podAntiAffinity:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                          - podAffinityTerm:
+                              labelSelector:
+                                matchExpressions:
+                                - key: rack
+                                  operator: In
+                                  values:
+                                  - rdefault
+                                  - rack1
+                                  - rack2
+                              topologyKey: kubernetes.io/hostname
+                            weight: 100
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchExpressions:
+                              - key: rack
+                                operator: In
+                                values:
+                                - rdefault
+                                - rack1
+                                - rack2
+                            topologyKey: failure-domain.beta.kubernetes.io/zone
+                        """);
     }
 
 }

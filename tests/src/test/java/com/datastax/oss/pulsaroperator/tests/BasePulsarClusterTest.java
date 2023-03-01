@@ -92,7 +92,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .build()
                 )
                 .antiAffinity(AntiAffinityConfig.builder()
-                        .host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                        .host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                                 .enabled(false)
                                 .build())
                         .build())

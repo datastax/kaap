@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -66,8 +67,8 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
         ));
 
         specs.getGlobal().setResourceSets(Map.of(
-                "set1", Map.of(),
-                "set2", Map.of()
+                "set1", ResourceSetConfig.builder().build(),
+                "set2", ResourceSetConfig.builder().build()
         ));
 
 

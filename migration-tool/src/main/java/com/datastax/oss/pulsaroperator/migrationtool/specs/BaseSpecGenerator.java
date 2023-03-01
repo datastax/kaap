@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
@@ -223,10 +224,10 @@ public abstract class BaseSpecGenerator<T> {
 
     protected static AntiAffinityConfig createAntiAffinityConfig(PodSpec podSpec) {
         final AntiAffinityConfig.AntiAffinityConfigBuilder builder = AntiAffinityConfig.builder()
-                .host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                .host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                         .enabled(false)
                         .build())
-                .zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
+                .zone(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                         .enabled(false)
                         .build());
 
@@ -242,8 +243,13 @@ public abstract class BaseSpecGenerator<T> {
                 podAntiAffinity.getPreferredDuringSchedulingIgnoredDuringExecution();
         if (required != null) {
             for (PodAffinityTerm podAffinityTerm : required) {
-                if ("kubernetes.io/hostname".equals(podAffinityTerm.getTopologyKey())) {
-                    builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                if (BaseResourcesFactory.TOPOLOGY_KEY_HOST.equals(podAffinityTerm.getTopologyKey())) {
+                    builder.host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
+                            .enabled(true)
+                            .required(true)
+                            .build());
+                } else if (BaseResourcesFactory.TOPOLOGY_KEY_ZONE.equals(podAffinityTerm.getTopologyKey())) {
+                    builder.zone(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .required(true)
                             .build());
@@ -257,13 +263,13 @@ public abstract class BaseSpecGenerator<T> {
         if (preferred != null) {
             for (WeightedPodAffinityTerm weightedPodAffinityTerm : preferred) {
                 final String topologyKey = weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey();
-                if ("kubernetes.io/hostname".equals(topologyKey)) {
-                    builder.host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+                if (BaseResourcesFactory.TOPOLOGY_KEY_HOST.equals(topologyKey)) {
+                    builder.host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .required(false)
                             .build());
-                } else if ("failure-domain.beta.kubernetes.io/zone".equals(topologyKey)) {
-                    builder.zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
+                } else if (BaseResourcesFactory.TOPOLOGY_KEY_ZONE.equals(topologyKey)) {
+                    builder.zone(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .build());
                 } else {

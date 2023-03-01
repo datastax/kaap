@@ -25,22 +25,31 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AntiAffinityConfig {
+public class RackConfig {
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class AntiAffinityTypeConfig {
-        @JsonPropertyDescription("Indicates the reclaimPolicy property for the StorageClass.")
-        private Boolean enabled;
-        @JsonPropertyDescription("Indicates the reclaimPolicy property for the StorageClass.")
-        private Boolean required;
+    public static class RackTypeConfig {
 
+        @JsonPropertyDescription("Enable the rack affinity rules.")
+        private Boolean enabled;
+
+        @JsonPropertyDescription("Indicates if the podAffinity rules will be enforced. Default is false. "
+                + "If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.")
+        private Boolean requireRackAffinity;
+
+        @JsonPropertyDescription("Indicates if the podAntiAffinity rules will be enforced. Default is true. "
+                + "If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.")
+        private Boolean requireRackAntiAffinity;
     }
 
-    @JsonPropertyDescription("Indicates the reclaimPolicy property for the StorageClass.")
-    private AntiAffinityTypeConfig host;
-    @JsonPropertyDescription("Indicates the provisioner property for the StorageClass.")
-    private AntiAffinityTypeConfig zone;
+
+    @JsonPropertyDescription("Enable rack rules based on the hostname of the node.")
+    private RackTypeConfig host;
+
+    @JsonPropertyDescription("Enable rack rules based on the failure domain (availability zone) of the node.")
+    private RackTypeConfig zone;
+
 }

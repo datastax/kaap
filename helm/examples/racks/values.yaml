@@ -16,13 +16,13 @@
 #
 
 operator:
-  image: nicoloboschi/pulsar-operator:v2
+  image: datastax/lunastreaming-operator:latest-dev
 cluster:
   create: true
   spec:
     global:
       name: pulsar
-      image: datastax/lunastreaming-core:2.10_2.11
+      image: datastax/lunastreaming-all:2.10_2.11
       restartOnConfigMapChange: true
       storage:
         existingStorageClassName: default

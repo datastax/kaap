@@ -382,6 +382,13 @@ Indicates the provisioner property for the StorageClass.
           Indicates the reclaimPolicy property for the StorageClass.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -5631,6 +5638,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
@@ -14010,6 +14024,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
@@ -23103,6 +23124,13 @@ Indicates the provisioner property for the StorageClass.
           Indicates the reclaimPolicy property for the StorageClass.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -29687,6 +29715,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
@@ -41035,6 +41070,13 @@ Indicates the provisioner property for the StorageClass.
           Indicates the reclaimPolicy property for the StorageClass.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -46649,8 +46691,15 @@ The default value is 'cluster.local'.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>resourceSets</b></td>
-        <td>map[string]map[string]object</td>
+        <td><b><a href="#pulsarclusterspecglobalrackskey">racks</a></b></td>
+        <td>map[string]object</td>
+        <td>
+          Racks configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalresourcesetskey">resourceSets</a></b></td>
+        <td>map[string]object</td>
         <td>
           Resource sets.<br/>
         </td>
@@ -46764,6 +46813,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
@@ -46996,6 +47052,145 @@ DNS config for each pod.
         <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.racks[key]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobalrackskeyhost">host</a></b></td>
+        <td>object</td>
+        <td>
+          Enable rack rules based on the hostname of the node.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobalrackskeyzone">zone</a></b></td>
+        <td>object</td>
+        <td>
+          Enable rack rules based on the failure domain (availability zone) of the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.racks[key].host
+
+
+
+Enable rack rules based on the hostname of the node.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable the rack affinity rules.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requireRackAffinity</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the podAffinity rules will be enforced. Default is false. If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requireRackAntiAffinity</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the podAntiAffinity rules will be enforced. Default is true. If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.racks[key].zone
+
+
+
+Enable rack rules based on the failure domain (availability zone) of the node.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable the rack affinity rules.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requireRackAffinity</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the podAffinity rules will be enforced. Default is false. If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requireRackAntiAffinity</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the podAntiAffinity rules will be enforced. Default is true. If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.resourceSets[key]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>rack</b></td>
+        <td>string</td>
+        <td>
+          Place this resource set to a specific rack, defined at .global.racks.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -51535,6 +51730,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
@@ -58005,6 +58207,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
@@ -69543,6 +69752,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>required</b></td>
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>

@@ -187,8 +187,10 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getEnvFrom().get(0)
                 .getConfigMapRef().getName(), resourceName + "-ws");
 
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getName(), resourceName);
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getName(), resourceName + "-ws");
+        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getName(),
+                resourceName);
+        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getName(),
+                resourceName + "-ws");
 
         deployment.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
         deployment.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
@@ -406,39 +408,11 @@ public class ProxySetsControllerTest {
                             weight: 100
                         """);
 
-        Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-setdefault")
-                                .getResource()
-                                .getSpec()
-                                .getTemplate().getSpec().getAffinity()
-                ),
-                """
-                        ---
-                        podAffinity:
-                          preferredDuringSchedulingIgnoredDuringExecution:
-                          - podAffinityTerm:
-                              labelSelector:
-                                matchExpressions:
-                                - key: rack
-                                  operator: NotIn
-                                  values:
-                                  - rack3
-                                  - rack1
-                                  - rack2
-                              topologyKey: kubernetes.io/hostname
-                            weight: 100
-                        podAntiAffinity:
-                          requiredDuringSchedulingIgnoredDuringExecution:
-                          - labelSelector:
-                              matchExpressions:
-                              - key: rack
-                                operator: In
-                                values:
-                                - rack3
-                                - rack1
-                                - rack2
-                            topologyKey: kubernetes.io/hostname
-                        """);
+        Assert.assertNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setdefault")
+                .getResource()
+                .getSpec()
+                .getTemplate().getSpec().getAffinity()
+        );
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
                         client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1")

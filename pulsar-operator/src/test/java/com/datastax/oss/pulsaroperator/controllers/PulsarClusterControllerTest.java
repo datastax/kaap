@@ -845,7 +845,8 @@ public class PulsarClusterControllerTest {
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
         Assert.assertTrue(readyCondition.getMessage().contains(
-                "resource set set2 references a rack rack1 that does not exist. You must define racks in .global.racks")
+                "Resource set set2 references a rack rack1 that does not exist. You must define racks in .global.racks"),
+                readyCondition.getMessage()
         );
     }
 

@@ -28,11 +28,17 @@ cluster:
         existingStorageClassName: default
       racks:
         az1:
-          type: host
-          requireRackAffinity: false
+          host:
+              enabled: true
+              requireRackAffinity: false
+          zone:
+            enabled: false
         az2:
-          type: host
-          requireRackAffinity: false
+          host:
+            enabled: true
+            requireRackAffinity: false
+          zone:
+            enabled: false
       resourceSets:
         rsaz1:
           rack: az1

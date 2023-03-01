@@ -104,7 +104,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     private static final Supplier<RackConfig> DEFAULT_RACK_CONFIG = () -> RackConfig.builder()
             .host(RackConfig.RackTypeConfig.builder()
-                    .enabled(true)
+                    .enabled(false)
                     .requireRackAffinity(false)
                     .requireRackAntiAffinity(true)
                     .build())

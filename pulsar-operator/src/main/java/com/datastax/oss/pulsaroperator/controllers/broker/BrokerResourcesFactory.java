@@ -21,6 +21,7 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -367,7 +368,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                 .withAffinity(getAffinity(
                         spec.getNodeAffinity(),
                         spec.getAntiAffinity(),
-                        spec.getMatchLabels()
+                        spec.getMatchLabels(),
+                        getRack()
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
@@ -491,6 +493,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
     protected Map<String, String> getLabels(Map<String, String> customLabels) {
         final Map<String, String> labels = super.getLabels(customLabels);
         labels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
+        setRackLabel(labels);
         return labels;
     }
 
@@ -498,6 +501,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
     protected Map<String, String> getPodLabels(Map<String, String> customLabels) {
         final Map<String, String> labels = super.getPodLabels(customLabels);
         labels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
+        setRackLabel(labels);
         return labels;
     }
 
@@ -507,6 +511,24 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         if (!brokerSet.equals(BROKER_DEFAULT_SET)) {
             matchLabels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
         }
+        setRackLabel(matchLabels);
         return matchLabels;
+    }
+
+    private void setRackLabel(Map<String, String> labels) {
+        final String rack = getRack();
+        if (rack != null) {
+            labels.put(CRDConstants.LABEL_RACK, rack);
+        }
+    }
+
+    private String getRack() {
+        if (global.getResourceSets() != null) {
+            final ResourceSetConfig resourceSet = global.getResourceSets().get(brokerSet);
+            if (resourceSet != null) {
+                return resourceSet.getRack();
+            }
+        }
+        return null;
     }
 }

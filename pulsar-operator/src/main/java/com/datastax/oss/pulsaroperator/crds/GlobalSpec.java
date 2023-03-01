@@ -17,6 +17,8 @@ package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.RackConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.StorageClassConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.validation.ValidableSpec;
@@ -29,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -90,12 +93,25 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             .build();
 
     private static final Supplier<AntiAffinityConfig> DEFAULT_ANTI_AFFINITY_CONFIG = () -> AntiAffinityConfig.builder()
-            .host(AntiAffinityConfig.HostAntiAffinityConfig.builder()
+            .host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                     .enabled(true)
                     .required(true)
                     .build())
-            .zone(AntiAffinityConfig.ZoneAntiAffinityConfig.builder()
+            .zone(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                     .enabled(false)
+                    .build())
+            .build();
+
+    private static final Supplier<RackConfig> DEFAULT_RACK_CONFIG = () -> RackConfig.builder()
+            .host(RackConfig.RackTypeConfig.builder()
+                    .enabled(true)
+                    .requireRackAffinity(false)
+                    .requireRackAntiAffinity(true)
+                    .build())
+            .zone(RackConfig.RackTypeConfig.builder()
+                    .enabled(false)
+                    .requireRackAffinity(false)
+                    .requireRackAntiAffinity(true)
                     .build())
             .build();
 
@@ -183,8 +199,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     @JsonPropertyDescription("Priority class name to attach to each pod.")
     private String priorityClassName;
     @JsonPropertyDescription("Resource sets.")
-    // the value is a map for future extensibility
-    private Map<String, Map<String, Object>> resourceSets;
+    private Map<String, ResourceSetConfig> resourceSets;
+    @JsonPropertyDescription("Racks configuration.")
+    private Map<String, RackConfig> racks;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -217,6 +234,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         applyTlsDefaults();
         applyAuthDefaults();
         applyAntiAffinityDefaults();
+        applyRacksDefaults();
     }
 
     private void applyTlsDefaults() {
@@ -257,6 +275,18 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
             antiAffinity = DEFAULT_ANTI_AFFINITY_CONFIG.get();
         } else {
             antiAffinity = ConfigUtil.applyDefaultsWithReflection(antiAffinity, DEFAULT_ANTI_AFFINITY_CONFIG);
+        }
+    }
+
+    private void applyRacksDefaults() {
+        if (racks != null) {
+            racks = racks.entrySet().stream()
+                    .map(entry ->
+                            Map.entry(
+                                    entry.getKey(),
+                                    ConfigUtil.applyDefaultsWithReflection(entry.getValue(), DEFAULT_RACK_CONFIG)
+                            ))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
     }
 

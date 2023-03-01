@@ -25,22 +25,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AntiAffinityConfig {
+public class ResourceSetConfig {
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class AntiAffinityTypeConfig {
-        @JsonPropertyDescription("Indicates the reclaimPolicy property for the StorageClass.")
-        private Boolean enabled;
-        @JsonPropertyDescription("Indicates the reclaimPolicy property for the StorageClass.")
-        private Boolean required;
-
-    }
-
-    @JsonPropertyDescription("Indicates the reclaimPolicy property for the StorageClass.")
-    private AntiAffinityTypeConfig host;
-    @JsonPropertyDescription("Indicates the provisioner property for the StorageClass.")
-    private AntiAffinityTypeConfig zone;
+    @JsonPropertyDescription("Place this resource set to a specific rack, defined at .global.racks.")
+    private String rack;
 }

@@ -17581,6 +17581,16 @@ spec:
                     description: |
                       If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptyDir
                     type: boolean
+                  resourceSets:
+                    additionalProperties:
+                      properties:
+                        rack:
+                          description: Indicates the reclaimPolicy property for the
+                            StorageClass.
+                          type: string
+                      type: object
+                    description: Resource sets.
+                    type: object
                   dnsName:
                     description: Public dns name for the cluster's load balancer.
                     type: string
@@ -17624,19 +17634,30 @@ spec:
                       It's used to fully qualify service names when configuring Pulsar.
                       The default value is 'cluster.local'.
                     type: string
-                  resourceSets:
-                    additionalProperties:
-                      additionalProperties:
-                        type: object
-                      type: object
-                    description: Resource sets.
-                    type: object
                   priorityClassName:
                     description: Priority class name to attach to each pod.
                     type: string
                   name:
                     description: Pulsar cluster name.
                     type: string
+                  racks:
+                    additionalProperties:
+                      properties:
+                        type:
+                          description: Indicates the reclaimPolicy property for the
+                            StorageClass.
+                          type: string
+                        requireRackAntiAffinity:
+                          description: Indicates the reclaimPolicy property for the
+                            StorageClass.
+                          type: boolean
+                        requireRackAffinity:
+                          description: Indicates the reclaimPolicy property for the
+                            StorageClass.
+                          type: boolean
+                      type: object
+                    description: Racks.
+                    type: object
                   nodeSelectors:
                     additionalProperties:
                       type: string

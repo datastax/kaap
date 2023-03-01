@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -502,7 +503,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                 .withAffinity(getAffinity(
                         spec.getNodeAffinity(),
                         spec.getAntiAffinity(),
-                        spec.getMatchLabels()
+                        spec.getMatchLabels(),
+                        getRack()
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
@@ -540,6 +542,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
     protected Map<String, String> getLabels(Map<String, String> customLabels) {
         final Map<String, String> labels = super.getLabels(customLabels);
         labels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
+        setRackLabel(labels);
         return labels;
     }
 
@@ -547,6 +550,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
     protected Map<String, String> getPodLabels(Map<String, String> customLabels) {
         final Map<String, String> labels = super.getPodLabels(customLabels);
         labels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
+        setRackLabel(labels);
         return labels;
     }
 
@@ -556,10 +560,24 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         if (!proxySet.equals(PROXY_DEFAULT_SET)) {
             matchLabels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
         }
+        setRackLabel(matchLabels);
         return matchLabels;
     }
 
+    private void setRackLabel(Map<String, String> labels) {
+        final String rack = getRack();
+        if (rack != null) {
+            labels.put(CRDConstants.LABEL_RACK, rack);
+        }
+    }
 
-
-
+    private String getRack() {
+        if (global.getResourceSets() != null) {
+            final ResourceSetConfig resourceSet = global.getResourceSets().get(proxySet);
+            if (resourceSet != null) {
+                return resourceSet.getRack();
+            }
+        }
+        return null;
+    }
 }

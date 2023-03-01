@@ -1062,14 +1062,13 @@ public abstract class BaseResourcesFactory<T> {
         if (rackConfig == null || !rackConfig.getEnabled()) {
             return;
         }
-        final List<String> otherRacks =
-                global.getRacks().keySet().stream().filter(r -> !r.equals(rack)).collect(Collectors.toList());
+
         final PodAffinityTerm affinity = new PodAffinityTermBuilder()
                 .withNewLabelSelector()
                 .addNewMatchExpression()
                 .withKey(CRDConstants.LABEL_RACK)
-                .withOperator("NotIn")
-                .withValues(otherRacks)
+                .withOperator("In")
+                .withValues(rack)
                 .endMatchExpression()
                 .endLabelSelector()
                 .withTopologyKey(topologyKey)
@@ -1083,7 +1082,8 @@ public abstract class BaseResourcesFactory<T> {
                     .build());
         }
 
-
+        final List<String> otherRacks =
+                global.getRacks().keySet().stream().filter(r -> !r.equals(rack)).collect(Collectors.toList());
         final PodAffinityTerm antiAffinity = new PodAffinityTermBuilder()
                 .withNewLabelSelector()
                 .addNewMatchExpression()

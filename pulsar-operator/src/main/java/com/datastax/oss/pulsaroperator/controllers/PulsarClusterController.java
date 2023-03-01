@@ -428,7 +428,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             } else {
                 log.infof("""
                         '%s' value differs:
-                            was:  %s
+                            was: %s
                             now: %s
                         """.formatted(
                         completeField,

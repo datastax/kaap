@@ -427,11 +427,9 @@ public class ProxySetsControllerTest {
                           - labelSelector:
                               matchExpressions:
                               - key: rack
-                                operator: NotIn
+                                operator: In
                                 values:
-                                - rdefault
-                                - rack3
-                                - rack2
+                                - rack1
                             topologyKey: failure-domain.beta.kubernetes.io/zone
                         podAntiAffinity:
                           preferredDuringSchedulingIgnoredDuringExecution:
@@ -461,11 +459,9 @@ public class ProxySetsControllerTest {
                           - labelSelector:
                               matchExpressions:
                               - key: rack
-                                operator: NotIn
+                                operator: In
                                 values:
-                                - rdefault
-                                - rack3
-                                - rack1
+                                - rack2
                             topologyKey: kubernetes.io/hostname
                         podAntiAffinity:
                           preferredDuringSchedulingIgnoredDuringExecution:
@@ -496,22 +492,18 @@ public class ProxySetsControllerTest {
                               labelSelector:
                                 matchExpressions:
                                 - key: rack
-                                  operator: NotIn
+                                  operator: In
                                   values:
-                                  - rdefault
-                                  - rack1
-                                  - rack2
+                                  - rack3
                               topologyKey: kubernetes.io/hostname
                             weight: 100
                           requiredDuringSchedulingIgnoredDuringExecution:
                           - labelSelector:
                               matchExpressions:
                               - key: rack
-                                operator: NotIn
+                                operator: In
                                 values:
-                                - rdefault
-                                - rack1
-                                - rack2
+                                - rack3
                             topologyKey: failure-domain.beta.kubernetes.io/zone
                         podAntiAffinity:
                           preferredDuringSchedulingIgnoredDuringExecution:

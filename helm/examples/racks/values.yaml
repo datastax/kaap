@@ -30,13 +30,11 @@ cluster:
         az1:
           host:
               enabled: true
-              requireRackAffinity: false
           zone:
             enabled: false
         az2:
           host:
             enabled: true
-            requireRackAffinity: false
           zone:
             enabled: false
       resourceSets:
@@ -55,7 +53,7 @@ cluster:
         size: 100M
       resources:
         requests:
-          cpu: "0.5"
+          cpu: "0.1"
           memory: "128Mi"
     bookkeeper:
       replicas: 1
@@ -66,7 +64,7 @@ cluster:
           size: 1Gi
       resources:
         requests:
-          cpu: "0.5"
+          cpu: "0.1"
           memory: "128Mi"
     broker:
       replicas: 1
@@ -76,32 +74,39 @@ cluster:
         managedLedgerDefaultWriteQuorum: 1
       resources:
         requests:
-          cpu: "0.5"
+          cpu: "0.1"
           memory: "128Mi"
+      sets:
+        customer1:
+          replicas: 2
+        rsaz1:
+          replicas: 2
+        rsaz2:
+          replicas: 2
     proxy:
       replicas: 1
       webSocket:
         enabled: false
       resources:
         requests:
-          cpu: "0.5"
+          cpu: "0.1"
           memory: "128Mi"
       sets:
         customer1:
           replicas: 2
         rsaz1:
-          replicas: 3
+          replicas: 2
         rsaz2:
-          replicas: 3
+          replicas: 2
     autorecovery:
       replicas: 0
       resources:
         requests:
-          cpu: "0.2"
+          cpu: "0.1"
           memory: "128Mi"
     bastion:
-      replicas: 0
+      replicas: 1
       resources:
         requests:
-          cpu: "0.2"
+          cpu: "0.1"
           memory: "128Mi"

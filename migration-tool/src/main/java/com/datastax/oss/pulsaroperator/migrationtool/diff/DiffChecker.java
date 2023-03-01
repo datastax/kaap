@@ -18,8 +18,8 @@ package com.datastax.oss.pulsaroperator.migrationtool.diff;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.migrationtool.SpecGenerator;
-import com.datastax.oss.pulsaroperator.migrationtool.json.JSONAssertComparator;
-import com.datastax.oss.pulsaroperator.migrationtool.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.common.json.JSONAssertComparator;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -231,14 +231,14 @@ public class DiffChecker {
 
         JSONComparator comparator = new JSONAssertComparator();
         final JSONComparator.Result result = comparator.compare(originalStr, genStr);
-        if (result.passed()) {
+        if (result.areEquals()) {
             diffOutputWriter.diffOk(resources);
             return;
         }
 
-        final List<JSONComparator.FieldComparisonFailure> failures = result.failures()
+        final List<JSONComparator.FieldComparisonDiff> failures = result.diffs()
                 .stream()
-                .sorted(Comparator.comparing(JSONComparator.FieldComparisonFailure::field))
+                .sorted(Comparator.comparing(JSONComparator.FieldComparisonDiff::field))
                 .collect(Collectors.toList());
 
         diffOutputWriter.diffFailed(resources, failures, genJson, existingJson);

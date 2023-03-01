@@ -28,6 +28,7 @@
 
     <properties>
         <quarkus.container-image.build>true</quarkus.container-image.build>
+
     </properties>
     <dependencies>
         <dependency>

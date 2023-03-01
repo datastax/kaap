@@ -13,20 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.pulsaroperator.migrationtool.json;
-
-import java.util.List;
-
-public interface JSONComparator {
-
-    record FieldComparisonFailure(String field, Object expected, Object actual) {
-    }
-
-    interface Result {
-        boolean passed();
-
-        List<FieldComparisonFailure> failures();
-    }
-
-    Result compare(String json1, String json2);
-}
+package com.datastax.oss.pulsaroperator.common.json;

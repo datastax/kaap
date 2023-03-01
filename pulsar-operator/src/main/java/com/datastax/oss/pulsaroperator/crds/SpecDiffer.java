@@ -16,37 +16,84 @@
 package com.datastax.oss.pulsaroperator.crds;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
-import java.util.Arrays;
+import com.datastax.oss.pulsaroperator.common.json.JSONAssertComparator;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
+import java.util.List;
 
 public class SpecDiffer {
+
+    private static final JSONComparator.Result WAS_NULL_RESULT = new JSONComparator.Result() {
+        @Override
+        public boolean areEquals() {
+            return false;
+        }
+
+        @Override
+        public List<JSONComparator.FieldComparisonDiff> diffs() {
+            throw new IllegalStateException("one of the spec (or both) was null");
+        }
+    };
 
     private SpecDiffer() {
     }
 
-    public static boolean specsAreEquals(Object spec1, Object spec2) {
-        if (spec1 == null && spec2 == null) {
-            return true;
+    public static JSONComparator.Result generateDiff(String json1, String json2) {
+        if (json1 == null && json2 == null) {
+            return JSONComparator.RESULT_EQUALS;
         }
-        if (spec1 == null) {
-            return false;
+        if (json1 == null) {
+            return WAS_NULL_RESULT;
         }
-        if (spec2 == null) {
-            return false;
+        if (json2 == null) {
+            return WAS_NULL_RESULT;
         }
-        return Arrays.equals(SerializationUtil.writeAsJsonBytes(spec1), SerializationUtil.writeAsJsonBytes(spec2));
+        return new JSONAssertComparator()
+                .compare(json1, json2);
+
     }
 
-    public static boolean specsAreEquals(Object spec1, byte[] spec2) {
+    public static JSONComparator.Result generateDiff(Object spec1, Object spec2) {
         if (spec1 == null && spec2 == null) {
-            return true;
+            return JSONComparator.RESULT_EQUALS;
         }
         if (spec1 == null) {
-            return false;
+            return WAS_NULL_RESULT;
         }
         if (spec2 == null) {
-            return false;
+            return WAS_NULL_RESULT;
         }
-        return Arrays.equals(SerializationUtil.writeAsJsonBytes(spec1), spec2);
+        final String expectedStr = SerializationUtil.writeAsJson(spec1);
+        final String actualStr = SerializationUtil.writeAsJson(spec2);
+        return generateDiff(expectedStr, actualStr);
     }
+
+    public static JSONComparator.Result generateDiff(Object spec1, String json2) {
+        if (spec1 == null && json2 == null) {
+            return JSONComparator.RESULT_EQUALS;
+        }
+        if (spec1 == null) {
+            return WAS_NULL_RESULT;
+        }
+        if (json2 == null) {
+            return WAS_NULL_RESULT;
+        }
+        final String expectedStr = SerializationUtil.writeAsJson(spec1);
+        return generateDiff(expectedStr, json2);
+    }
+
+    public static JSONComparator.Result generateDiff(String json1, Object spec2) {
+        if (json1 == null && spec2 == null) {
+            return JSONComparator.RESULT_EQUALS;
+        }
+        if (json1 == null) {
+            return WAS_NULL_RESULT;
+        }
+        if (spec2 == null) {
+            return WAS_NULL_RESULT;
+        }
+        final String actualStr = SerializationUtil.writeAsJson(spec2);
+        return generateDiff(json1, actualStr);
+    }
+
 
 }

@@ -39,7 +39,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -214,7 +213,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         if (lastApplied == null) {
             return true;
         }
-        return !SpecDiffer.specsAreEquals(cr.getSpec(), lastApplied.getBytes(StandardCharsets.UTF_8));
+        return !SpecDiffer.generateDiff(cr.getSpec(), lastApplied).areEquals();
     }
 
     protected  <SPEC> SPEC getLastAppliedResource(T cr, Class<SPEC> toClass) {

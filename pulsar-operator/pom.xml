@@ -237,6 +237,12 @@
                 <quarkus.build.skip>true</quarkus.build.skip>
             </properties>
         </profile>
+        <profile>
+            <id>skip-crds</id>
+            <properties>
+                <quarkus.operator-sdk.crd.generate>false</quarkus.operator-sdk.crd.generate>
+            </properties>
+        </profile>
     </profiles>
 
 </project>

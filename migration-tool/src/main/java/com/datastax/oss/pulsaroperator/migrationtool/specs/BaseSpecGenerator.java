@@ -52,8 +52,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class BaseSpecGenerator<T> {
-    protected final InputClusterSpecs inputSpecs;
-    protected final KubernetesClient client;
 
     public static final List<String> HELM_ANNOTATIONS = List.of(
             "meta.helm.sh/release-name",
@@ -66,6 +64,8 @@ public abstract class BaseSpecGenerator<T> {
             "heritage",
             "release"
     );
+    protected final InputClusterSpecs inputSpecs;
+    protected final KubernetesClient client;
 
 
     public BaseSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
@@ -363,7 +363,7 @@ public abstract class BaseSpecGenerator<T> {
     protected static Map<String, Object> convertConfigMapData(ConfigMap configMap) {
         Map<String, Object> res = new HashMap<>();
         configMap.getData().forEach((k, v) -> {
-            res.put(k.replace("PULSAR_PREFIX_", ""), v);
+            res.put(k.replace(BaseResourcesFactory.CONFIG_PULSAR_PREFIX, ""), v);
         });
         return res;
     }

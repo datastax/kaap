@@ -52,7 +52,6 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
         specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.999d);
         specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.9999d);
         specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
-        specs.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
 
         try {
             applyPulsarCluster(specsToYaml(specs));

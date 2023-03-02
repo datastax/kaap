@@ -316,7 +316,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (spec.getConfig() != null) {
             spec.getConfig().forEach((k, v) -> {
                 // keep PULSAR_PREFIX_ but skip PULSAR_MEM and family. They are handled by the extra config map
-                if (k.startsWith("PULSAR_PREFIX_") || !k.startsWith("PULSAR_")) {
+                if (k.startsWith(BaseResourcesFactory.CONFIG_PULSAR_PREFIX) || !k.startsWith("PULSAR_")) {
                     data.put(k, v);
                 }
             });

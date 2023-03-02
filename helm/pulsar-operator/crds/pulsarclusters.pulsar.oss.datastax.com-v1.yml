@@ -2329,10 +2329,6 @@ spec:
                       scaleDownBy:
                         minimum: 1.0
                         type: integer
-                      bookieUrl:
-                        type: string
-                    required:
-                    - bookieUrl
                     type: object
                   resources:
                     description: Resources requirements.

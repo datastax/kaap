@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
@@ -122,10 +123,6 @@ public class BookKeeperAutoscaler implements Runnable {
         final int bookieSafeStepUp = bkScalerSpec.getScaleUpBy();
         final int bookieSafeStepDown = bkScalerSpec.getScaleDownBy();
         final boolean cleanUpPvcs = bkScalerSpec.getCleanUpPvcs();
-        final String bookieUrl = bkScalerSpec.getBookieUrl();
-        if (log.isDebugEnabled()) {
-            log.debugf("Using bookie url %s to access REST API", bookieUrl);
-        }
 
         final BookKeeper bkCr = client.resources(BookKeeper.class)
                 .inNamespace(namespace)
@@ -144,6 +141,10 @@ public class BookKeeperAutoscaler implements Runnable {
             log.infof("BookKeeper cluster %s %s is not ready to scale, expect replicas: %d",
                     clusterName, bkName, currentExpectedReplicas);
             return;
+        }
+        final String bookieUrl = computeBookieUrl();
+        if (log.isDebugEnabled()) {
+            log.debugf("Using bookie url %s to access REST API", bookieUrl);
         }
 
         final LinkedHashMap<String, String> withLabels = new LinkedHashMap<>();
@@ -289,6 +290,22 @@ public class BookKeeperAutoscaler implements Runnable {
         log.infof("Bookies scaled up/down from %d to %d", currentExpectedReplicas, scaleTo);
     }
 
+    private String computeBookieUrl() {
+        final String configKey = "%s%s".formatted(BaseResourcesFactory.CONFIG_PULSAR_PREFIX, "httpServerPort");
+        final Map<String, Object> config = clusterSpec.getBookkeeper().getConfig();
+        final Object port;
+        if (config == null || !config.containsKey(configKey)) {
+            port = BookKeeperResourcesFactory.DEFAULT_HTTP_PORT;
+        } else {
+            port = config.getOrDefault(configKey, BookKeeperResourcesFactory.DEFAULT_HTTP_PORT);
+        }
+        return "%s://%s:%s".formatted(
+                BaseResourcesFactory.isTlsEnabledOnBookKeeper(clusterSpec.getGlobal()) ? "https" : "http",
+                "localhost",
+                String.valueOf(port)
+        );
+    }
+
     protected boolean runBookieRecovery(BookieInfo bookieInfo) {
         boolean success = false;
         try {
@@ -383,7 +400,7 @@ public class BookKeeperAutoscaler implements Runnable {
                     // cannot estimate data distribution after removal of the bookie,
                     // don't want to go back and forth if bookies disk usage may result in
                     // switch to read-only/scale up soon
-                    log.infof("Not all disks are ready for %s, can't scale down",
+                    log.infof("Not all disks are ready for %s",
                             info.getPodResource().get().getMetadata().getName());
                     return false;
                 }

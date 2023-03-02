@@ -93,6 +93,7 @@ public abstract class BaseResourcesFactory<T> {
 
     public static final String TOPOLOGY_KEY_ZONE = "failure-domain.beta.kubernetes.io/zone";
     public static final String TOPOLOGY_KEY_HOST = "kubernetes.io/hostname";
+    public static final String CONFIG_PULSAR_PREFIX = "PULSAR_PREFIX_";
     protected final KubernetesClient client;
     protected final String namespace;
     protected final T spec;
@@ -263,8 +264,12 @@ public abstract class BaseResourcesFactory<T> {
         return version;
     }
 
-    protected boolean isTlsEnabledGlobally() {
+    public static boolean isTlsEnabledGlobally(GlobalSpec global) {
         return global.getTls() != null && global.getTls().getEnabled();
+    }
+
+    protected boolean isTlsEnabledGlobally() {
+        return isTlsEnabledGlobally(global);
     }
 
     protected boolean isTlsEnabledOnZooKeeper() {
@@ -273,10 +278,14 @@ public abstract class BaseResourcesFactory<T> {
                 && global.getTls().getZookeeper().getEnabled();
     }
 
-    protected boolean isTlsEnabledOnBookKeeper() {
-        return isTlsEnabledGlobally()
+    public static boolean isTlsEnabledOnBookKeeper(GlobalSpec global) {
+        return isTlsEnabledGlobally(global)
                 && global.getTls().getBookkeeper() != null
                 && global.getTls().getBookkeeper().getEnabled();
+    }
+
+    protected boolean isTlsEnabledOnBookKeeper() {
+        return isTlsEnabledOnBookKeeper(global);
     }
 
     protected boolean isTlsEnabledOnBroker() {
@@ -838,7 +847,7 @@ public abstract class BaseResourcesFactory<T> {
             if (k.startsWith("PULSAR_") || k.startsWith("BOOKIE_")) {
                 newKey = k;
             } else {
-                newKey = "PULSAR_PREFIX_%s".formatted(k);
+                newKey = "%s%s".formatted(BaseResourcesFactory.CONFIG_PULSAR_PREFIX, k);
             }
             newData.put(newKey, v);
         });

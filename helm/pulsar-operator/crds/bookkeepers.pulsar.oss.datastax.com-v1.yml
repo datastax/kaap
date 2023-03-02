@@ -238,6 +238,8 @@ spec:
                         maximum: 1.0
                         minimum: 0.0
                         type: number
+                      cleanUpPvcs:
+                        type: boolean
                       diskUsageToleranceHwm:
                         maximum: 1.0
                         minimum: 0.0
@@ -256,6 +258,10 @@ spec:
                       scaleDownBy:
                         minimum: 1.0
                         type: integer
+                      bookieUrl:
+                        type: string
+                    required:
+                    - bookieUrl
                     type: object
                   resources:
                     description: Resources requirements.

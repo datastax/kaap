@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -122,7 +123,16 @@ public class AutoscalerUtils {
                         cmd,
                         error.toString(StandardCharsets.UTF_8),
                         out.toString(StandardCharsets.UTF_8),
-                        failureResponse.code(), t);
+                        failureResponse == null ? "(null)" : failureResponse.code(),
+                        t);
+                if (log.isDebugEnabled() && failureResponse != null) {
+                    try {
+                        log.debugf("Failure response details for %s: code: %s, body: %s",
+                                cmd, failureResponse.code(), failureResponse.body());
+                    } catch (IOException e) {
+                        log.debugf("Can't get failureResponse.body() for %s", cmd, e);
+                    }
+                }
                 response.completeExceptionally(t);
             }
 
@@ -159,25 +169,22 @@ public class AutoscalerUtils {
 
         final ExecWatch execToClose = exec;
         response.whenComplete((s, ex) -> {
-            if (execToClose != null) {
-                execToClose.close();
-            }
-
-            try {
-                out.close();
-            } catch (IOException e) {
-                log.warn("stream close resulted in exception", e);
-            }
-
-            try {
-                error.close();
-            } catch (IOException e) {
-                log.warn("stream close resulted in exception", e);
-            }
-
+            closeQuietly(execToClose);
+            closeQuietly(out);
+            closeQuietly(error);
         });
 
         return response;
+    }
+
+    public static void closeQuietly(Closeable c) {
+        if (c != null) {
+            try {
+                c.close();
+            } catch (IOException e) {
+                log.infof(e, "Exception on attempt to close %s", c);
+            }
+        }
     }
 
     private AutoscalerUtils() {

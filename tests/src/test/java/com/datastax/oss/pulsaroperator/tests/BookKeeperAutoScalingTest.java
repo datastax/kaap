@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.tests;
 
+import static org.testng.Assert.assertEquals;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import java.util.Map;
@@ -32,17 +33,29 @@ public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
         applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+
         specs.getGlobal().getAuth().setEnabled(false);
+        specs.getBroker().setReplicas(0);
+        specs.getBastion().setReplicas(0);
+        specs.getFunctionsWorker().setReplicas(0);
+        specs.getProxy().setReplicas(0);
+
+        specs.getZookeeper().setReplicas(1);
+        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.999d);
+        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.9999d);
+
         try {
             applyPulsarCluster(specsToYaml(specs));
 
-            awaitInstalled();
+            awaitZooKeeperRunning();
+            awaitBookKeeperRunning(1);
+            awaitAutorecoveryRunning();
 
             client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withName("pulsar-zookeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() == 1, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             specs.getBookkeeper().getAutoscaler().setEnabled(true);
             specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
@@ -62,7 +75,12 @@ public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withName("pulsar-bookkeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() >= 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+
+            assertEquals(3, client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withName("pulsar-bookkeeper")
+                    .get().getStatus().getReadyReplicas());
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();

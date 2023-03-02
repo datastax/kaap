@@ -149,6 +149,8 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .periodMs(5000L)
                         .stabilizationWindowMs(10000L)
                         .minWritableBookies(1)
+                        .cleanUpPvcs(true)
+                        .bookieUrl("http://localhost:8000")
                         .enabled(false)
                         .build())
                 .build());
@@ -259,10 +261,9 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         awaitProxyRunning();
         awaitAutorecoveryRunning();
         awaitBastionRunning();
-
     }
 
-    private void awaitZooKeeperRunning() {
+    protected void awaitZooKeeperRunning() {
         Awaitility.await().untilAsserted(() -> {
             Assert.assertTrue(client.pods()
                     .inNamespace(namespace)
@@ -303,11 +304,15 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         awaitJobCompleted("pulsar-zookeeper-metadata");
     }
 
-    private void awaitBookKeeperRunning() {
+    protected void awaitBookKeeperRunning() {
+        awaitBookKeeperRunning(1);
+    }
+
+    protected void awaitBookKeeperRunning(int expectedCount) {
         Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
-                    .withLabel("component", "bookkeeper").list().getItems().size(), 1);
+                    .withLabel("component", "bookkeeper").list().getItems().size(), expectedCount);
             Assert.assertEquals(client.policy().v1().podDisruptionBudget()
                     .inNamespace(namespace)
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
@@ -322,15 +327,16 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     .withLabel("component", "bookkeeper").list().getItems().size(), 1);
         });
 
-        log.info("awaiting bk pod up");
-        client.pods()
-                .inNamespace(namespace)
-                .withName("pulsar-bookkeeper-0")
-                .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
-
+        for (int i = 0; i < expectedCount; i++) {
+            log.info("awaiting bk pod {} up", i);
+            client.pods()
+                    .inNamespace(namespace)
+                    .withName("pulsar-bookkeeper-" + i)
+                    .waitUntilReady(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+        }
     }
 
-    private void awaitBrokerRunning() {
+    protected void awaitBrokerRunning() {
         Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
@@ -357,7 +363,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
 
     }
 
-    private void awaitProxyRunning() {
+    protected void awaitProxyRunning() {
         Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
@@ -385,7 +391,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     }
 
 
-    private void awaitAutorecoveryRunning() {
+    protected void awaitAutorecoveryRunning() {
         Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)
@@ -407,7 +413,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     }
 
 
-    private void awaitBastionRunning() {
+    protected void awaitBastionRunning() {
         Awaitility.await().untilAsserted(() -> {
             Assert.assertEquals(client.pods()
                     .inNamespace(namespace)

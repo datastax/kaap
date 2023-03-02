@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
@@ -93,6 +94,9 @@ public class BookKeeperAutoscalerTest {
         void start() {
             pulsarClusterSpec.getGlobal().applyDefaults(null);
             pulsarClusterSpec.getBookkeeper().applyDefaults(pulsarClusterSpec.getGlobalSpec());
+
+            pulsarClusterSpec.getBookkeeper().getAutoscaler().setCleanUpPvcs(false);
+            pulsarClusterSpec.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
 
             final BookKeeper bkCr = new BookKeeper();
             bkCr.setSpec(BookKeeperFullSpec.builder()
@@ -273,7 +277,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/bookie/info"))
+                                        "curl -s http://localhost:8000/api/v1/bookie/info"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage(bookieInfoOk))
                                 .done()
@@ -284,7 +288,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/bookie/state"))
+                                        "curl -s http://localhost:8000/api/v1/bookie/state"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage(response))
                                 .done()
@@ -293,7 +297,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -331,12 +335,25 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
         final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
                 bookieInfofunc);
         Assert.assertNull(mockServer.patchOp);
+    }
+
+    private PodResource getMockPodResource() {
+        return getMockPodResource("dummyPodName");
+    }
+
+    private PodResource getMockPodResource(String podName) {
+        PodResource pr = Mockito.mock(PodResource.class);
+        ObjectMeta meta = new ObjectMeta();
+        meta.setName(podName);
+        Mockito.when(pr.get()).thenReturn(new PodBuilder().withMetadata(meta).build());
+        return pr;
     }
 
     /**
@@ -373,6 +390,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -408,6 +426,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -444,6 +463,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -488,6 +508,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -510,7 +531,8 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        final AtomicInteger count = new AtomicInteger(0);
+        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
             boolean isWritable = true;
             long usedBytes = 10000;
 
@@ -524,6 +546,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource("pul-bookkeeper-" + count.getAndIncrement()))
                     .build();
         };
 
@@ -534,9 +557,20 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
+                                .done()
+                                .always();
+
+                        server.server.expect()
+                                .get()
+                                .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
+                                        "curl -s -X PUT -H \"Content-Type: application/json\" "
+                                                + "-d '{\"readOnly\":true}' "
+                                                + "http://localhost:8000/api/v1/bookie/state/readonly"))
+                                .andUpgradeToWebSocket()
+                                .open(new OutputStreamMessage("dummy"))
                                 .done()
                                 .always();
                     }
@@ -573,6 +607,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -584,7 +619,7 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                        "curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("blah blah"))
                                 .done()
@@ -622,6 +657,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable.getAndSet(true))
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -658,11 +694,13 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
         final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
                 bookieInfofunc);
+
         Assert.assertNull(mockServer.patchOp);
     }
 
@@ -689,6 +727,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -722,6 +761,7 @@ public class BookKeeperAutoscalerTest {
             return BookKeeperAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
+                    .podResource(getMockPodResource())
                     .build();
         };
 
@@ -756,8 +796,16 @@ public class BookKeeperAutoscalerTest {
             if (bookieInfofunc != null) {
                 bkAutoscaler = Mockito.spy(bkAutoscaler);
                 Mockito.doAnswer(invocation ->
-                                bookieInfofunc.apply(invocation.getArgument(1)))
-                        .when(bkAutoscaler).getBoookieInfo(Mockito.any(), Mockito.any());
+                                bookieInfofunc.apply(invocation.getArgument(2)))
+                        .when(bkAutoscaler).getBoookieInfo(Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.doReturn("mockId").when(bkAutoscaler)
+                        .getBookieId(Mockito.any());
+                Mockito.doReturn(true).when(bkAutoscaler)
+                        .runBookieRecovery(Mockito.any());
+                Mockito.doReturn(true).when(bkAutoscaler)
+                        .deleteCookie(Mockito.any());
+                Mockito.doNothing().when(bkAutoscaler)
+                        .setReadOnly(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
             }
 
             bkAutoscaler.internalRun();

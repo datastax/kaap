@@ -251,15 +251,8 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBookkeeper());
         }
 
-        final String journalVolumeName = "%s%s-%s".formatted(
-                ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
-                resourceName,
-                spec.getVolumes().getJournal().getName());
-
-        final String ledgersVolumeName = "%s%s-%s".formatted(
-                ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
-                resourceName,
-                spec.getVolumes().getLedgers().getName());
+        final String journalVolumeName = getJournalPvPrefix(spec, resourceName);
+        final String ledgersVolumeName = getLedgersPvPrefix(spec, resourceName);
 
         volumeMounts.add(new VolumeMountBuilder()
                 .withName(journalVolumeName)
@@ -361,6 +354,19 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return statefulSet;
     }
 
+    public static String getJournalPvPrefix(BookKeeperSpec spec, String resourceName) {
+        return "%s%s-%s".formatted(
+                ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
+                resourceName,
+                spec.getVolumes().getJournal().getName());
+    }
+
+    public static String getLedgersPvPrefix(BookKeeperSpec spec, String resourceName) {
+        return "%s%s-%s".formatted(
+                ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
+                resourceName,
+                spec.getVolumes().getLedgers().getName());
+    }
 
     private Probe createProbe(ProbesConfig.ProbeConfig specProbe) {
         if (specProbe == null || !specProbe.getEnabled()) {

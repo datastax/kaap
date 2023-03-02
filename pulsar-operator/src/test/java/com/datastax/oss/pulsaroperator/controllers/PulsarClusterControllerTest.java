@@ -582,7 +582,6 @@ public class PulsarClusterControllerTest {
                       scaleDownBy: 1
                       stabilizationWindowMs: 300000
                       cleanUpPvcs: true
-                      bookieUrl: http://localhost:8000
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));

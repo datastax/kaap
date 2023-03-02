@@ -325,16 +325,24 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void printAllPodsLogs() {
-        client.pods().inNamespace(namespace).list().getItems()
-                .forEach(pod -> printPodLogs(pod.getMetadata().getName()));
+        try {
+            client.pods().inNamespace(namespace).list().getItems()
+                    .forEach(pod -> printPodLogs(pod.getMetadata().getName()));
+        } catch (Throwable t) {
+            log.error("failed to list pods", t.getMessage());
+        }
     }
 
     protected void printRunningPods() {
-        final List<Pod> pods = client.pods()
-                .inNamespace(namespace)
-                .withLabel("app", "pulsar").list().getItems();
-        log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
-                Collectors.toList()));
+        try {
+            final List<Pod> pods = client.pods()
+                    .inNamespace(namespace)
+                    .withLabel("app", "pulsar").list().getItems();
+            log.info("found {} pods: {}", pods.size(), pods.stream().map(p -> p.getMetadata().getName()).collect(
+                    Collectors.toList()));
+        } catch (Throwable t) {
+            log.error("failed to print running pods", t.getMessage());
+        }
     }
 
     protected void printPodLogs(String podName) {

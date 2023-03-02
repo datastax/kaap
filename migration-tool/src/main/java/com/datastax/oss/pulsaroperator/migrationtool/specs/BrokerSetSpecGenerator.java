@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
@@ -93,7 +94,7 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
 
         config = convertConfigMapData(configMap);
         container.getEnv().forEach(envVar -> {
-            config.put(envVar.getName().replace("PULSAR_PREFIX_", ""), envVar.getValue());
+            config.put(envVar.getName().replace(BaseResourcesFactory.CONFIG_PULSAR_PREFIX, ""), envVar.getValue());
         });
 
 

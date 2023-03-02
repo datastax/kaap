@@ -45,14 +45,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
         specs.getProxy().setReplicas(0);
 
         specs.getZookeeper().setReplicas(1);
-
         specs.getBookkeeper().setReplicas(3);
-        specs.getBookkeeper().getAutoscaler().setEnabled(true);
-        specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
-        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.999d);
-        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.9999d);
-        specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
-        specs.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
 
         try {
             applyPulsarCluster(specsToYaml(specs));
@@ -61,24 +54,19 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
             awaitBookKeeperRunning(3);
             awaitAutorecoveryRunning();
 
-            client.apps().statefulSets()
-                    .inNamespace(namespace)
-                    .withName("pulsar-zookeeper")
-                    .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 1, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
-
-            client.apps().statefulSets()
-                    .inNamespace(namespace)
-                    .withName("pulsar-bookkeeper")
-                    .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() >= 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
-
             assertEquals(3, client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withName("pulsar-bookkeeper")
                     .get().getStatus().getReadyReplicas());
 
             log.info("STARTED 3 bookies");
+
+            specs.getBookkeeper().getAutoscaler().setEnabled(true);
+            specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
+            specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.999d);
+            specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.9999d);
+            specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
+            applyPulsarCluster(specsToYaml(specs));
 
             Pod bookiePod = client.pods().inNamespace(namespace)
                     .withLabel("component", "bookkeeper").resources().findFirst().get().get();

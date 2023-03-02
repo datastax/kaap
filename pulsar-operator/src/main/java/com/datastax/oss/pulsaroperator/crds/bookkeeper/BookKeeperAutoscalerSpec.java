@@ -61,7 +61,4 @@ public class BookKeeperAutoscalerSpec {
     Long stabilizationWindowMs;
 
     Boolean cleanUpPvcs;
-
-    @javax.validation.constraints.NotNull
-    String bookieUrl;
 }

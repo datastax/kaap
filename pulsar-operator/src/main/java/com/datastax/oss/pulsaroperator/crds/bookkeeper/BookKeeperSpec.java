@@ -43,7 +43,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.ObjectUtils;
 
 @Data
 @NoArgsConstructor
@@ -102,7 +101,6 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
             .diskUsageToleranceHwm(0.92d)
             .diskUsageToleranceLwm(0.75d)
             .cleanUpPvcs(true)
-            .bookieUrl("http://localhost:8000")
             .build();
 
 
@@ -208,48 +206,9 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
     private void applyAutoscalerDefaults() {
         if (autoscaler == null) {
             autoscaler = DEFAULT_BK_CONFIG.get();
+        } else {
+            autoscaler = ConfigUtil.applyDefaultsWithReflection(autoscaler, DEFAULT_BK_CONFIG);
         }
-
-        autoscaler.setEnabled(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getEnabled(),
-                () -> DEFAULT_BK_CONFIG.get().getEnabled()
-        ));
-        autoscaler.setPeriodMs(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getPeriodMs(),
-                () -> DEFAULT_BK_CONFIG.get().getPeriodMs()
-        ));
-        autoscaler.setScaleUpBy(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getScaleUpBy(),
-                () -> DEFAULT_BK_CONFIG.get().getScaleUpBy()
-        ));
-        autoscaler.setScaleDownBy(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getScaleDownBy(),
-                () -> DEFAULT_BK_CONFIG.get().getScaleDownBy()
-        ));
-        autoscaler.setStabilizationWindowMs(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getStabilizationWindowMs(),
-                () -> DEFAULT_BK_CONFIG.get().getStabilizationWindowMs()
-        ));
-        autoscaler.setMinWritableBookies(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getMinWritableBookies(),
-                () -> DEFAULT_BK_CONFIG.get().getMinWritableBookies()
-        ));
-        autoscaler.setDiskUsageToleranceHwm(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getDiskUsageToleranceHwm(),
-                () -> DEFAULT_BK_CONFIG.get().getDiskUsageToleranceHwm()
-        ));
-        autoscaler.setDiskUsageToleranceLwm(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getDiskUsageToleranceLwm(),
-                () -> DEFAULT_BK_CONFIG.get().getDiskUsageToleranceLwm()
-        ));
-        autoscaler.setCleanUpPvcs(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getCleanUpPvcs(),
-                () -> DEFAULT_BK_CONFIG.get().getCleanUpPvcs()
-        ));
-        autoscaler.setBookieUrl(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getBookieUrl(),
-                () -> DEFAULT_BK_CONFIG.get().getBookieUrl()
-        ));
     }
 
 }

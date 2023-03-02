@@ -14056,6 +14056,20 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>bookieUrl</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>cleanUpPvcs</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>

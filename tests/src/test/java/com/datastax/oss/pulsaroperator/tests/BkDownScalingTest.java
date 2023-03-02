@@ -49,6 +49,8 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
         specs.getBookkeeper().setReplicas(3);
         specs.getBookkeeper().getAutoscaler().setEnabled(true);
         specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
+        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.999d);
+        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.9999d);
         specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
         specs.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
 
@@ -69,7 +71,12 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withName("pulsar-bookkeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() >= 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+
+            assertEquals(3, client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withName("pulsar-bookkeeper")
+                    .get().getStatus().getReadyReplicas());
 
             log.info("STARTED 3 bookies");
 
@@ -95,7 +102,12 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withName("pulsar-bookkeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 6, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() >= 6, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+
+            assertEquals(6, client.apps().statefulSets()
+                    .inNamespace(namespace)
+                    .withName("pulsar-bookkeeper")
+                    .get().getStatus().getReadyReplicas());
 
             log.info("STARTED 6 bookies");
 

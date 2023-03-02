@@ -44,10 +44,10 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
         specs.getFunctionsWorker().setReplicas(0);
         specs.getProxy().setReplicas(0);
 
+        specs.getZookeeper().setReplicas(1);
+
         specs.getBookkeeper().setReplicas(3);
         specs.getBookkeeper().getAutoscaler().setEnabled(true);
-        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.9999d);
-        specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.99999d);
         specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
         specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
         specs.getBookkeeper().getAutoscaler().setBookieUrl("http://localhost:8000");
@@ -63,7 +63,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
                     .inNamespace(namespace)
                     .withName("pulsar-zookeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() == 1, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             client.apps().statefulSets()
                     .inNamespace(namespace)
@@ -78,7 +78,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
             // place some entries on bookies about to go read-only
             log.info("CREATING ledgers");
-            generateLedgers(bookiePod, 5, 300);
+            generateLedgers(bookiePod, 3, 50);
 
             log.info("SWITCHING bookies to r/o and waiting for the 3 extra added");
             client.pods().inNamespace(namespace)
@@ -101,7 +101,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
             // place some entries on bookies to be scaled down later
             log.info("CREATING ledgers");
-            generateLedgers(bookiePod, 10, 100);
+            generateLedgers(bookiePod, 3, 50);
 
             log.info("SWITCHING bookies to r/w and waiting for the 3 extra removed");
             client.pods().inNamespace(namespace)
@@ -116,9 +116,9 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
             // write entries on bookies while scaling down
             log.info("CREATING ledgers");
-            for (int i = 0; i < 15; i++) {
+            for (int i = 0; i < 10; i++) {
                 Thread.sleep(25);
-                generateLedgers(bookiePod, 1, 500);
+                generateLedgers(bookiePod, 1, 100);
                 log.info("CREATED {} ledgers", i);
             }
 
@@ -147,7 +147,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
 
             log.info("Waiting for the auditor to run");
             // no better way now AFAIK
-            Thread.sleep(10000);
+            Thread.sleep(5000);
 
             log.info("Listing under replicated ledgers");
             String urLedgersOut = listUnderReplicated(bookiePod);

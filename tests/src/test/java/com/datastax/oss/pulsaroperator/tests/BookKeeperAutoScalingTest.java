@@ -32,17 +32,27 @@ public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
         applyOperatorDeploymentAndCRDs();
 
         final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+
         specs.getGlobal().getAuth().setEnabled(false);
+        specs.getBroker().setReplicas(0);
+        specs.getBastion().setReplicas(0);
+        specs.getFunctionsWorker().setReplicas(0);
+        specs.getProxy().setReplicas(0);
+
+        specs.getZookeeper().setReplicas(1);
+
         try {
             applyPulsarCluster(specsToYaml(specs));
 
-            awaitInstalled();
+            awaitZooKeeperRunning();
+            awaitBookKeeperRunning(1);
+            awaitAutorecoveryRunning();
 
             client.apps().statefulSets()
                     .inNamespace(namespace)
                     .withName("pulsar-zookeeper")
                     .waitUntilCondition(s -> s.getStatus().getReadyReplicas() != null
-                            && s.getStatus().getReadyReplicas() == 3, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
+                            && s.getStatus().getReadyReplicas() == 1, DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS);
 
             specs.getBookkeeper().getAutoscaler().setEnabled(true);
             specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);

@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
-import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
@@ -97,9 +96,6 @@ public class BookKeeperAutoscalerTest {
             pulsarClusterSpec.getBookkeeper().applyDefaults(pulsarClusterSpec.getGlobalSpec());
 
             pulsarClusterSpec.getBookkeeper().getAutoscaler().setCleanUpPvcs(false);
-            pulsarClusterSpec.getBookkeeper().getConfig().put(
-                    BaseResourcesFactory.CONFIG_PULSAR_PREFIX + "httpServerPort", "8000");
-
             final BookKeeper bkCr = new BookKeeper();
             bkCr.setSpec(BookKeeperFullSpec.builder()
                     .global(pulsarClusterSpec.getGlobal())

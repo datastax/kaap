@@ -19,7 +19,7 @@ import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
-import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
+import com.datastax.oss.pulsaroperator.tests.env.K3sEnv;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -74,6 +74,8 @@ public abstract class BaseK8sEnvTest {
 
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("pulsaroperator.tests.env.existing");
 
+    public static final int K3S_AGENTS = Integer.getInteger("pulsaroperator.tests.env.existing.k3s.agents", 0);
+
     private static final boolean REUSE_ENV = Boolean
             .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "true"));
     protected static final int DEFAULT_AWAIT_SECONDS = 360;
@@ -119,7 +121,7 @@ public abstract class BaseK8sEnvTest {
             if (USE_EXISTING_ENV) {
                 env = new ExistingK8sEnv();
             } else {
-                env = new LocalK3SContainer();
+                env = new K3sEnv(K3S_AGENTS);
             }
         }
         env.start();

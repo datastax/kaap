@@ -31,9 +31,10 @@ mvn_or_mvnd -f $this_dir/../../../../pulsar-operator/pom.xml package -Dcheckstyl
 GENERATE_IMAGE_DIGEST_TARGET=$tmp_dir/pulsar-operator.bin mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dtest="LocalK8sEnvironment#updateImage"
 echo "image digest generated: $tmp_dir/pulsar-operator.bin"
 
-container="pulsaroperator-local-k3s"
-docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin
-echo "image digest copied into container $container"
-docker exec -it $container ctr -a /run/k3s/containerd/containerd.sock image rm docker.io/datastax/lunastreaming-operator:latest-dev
-docker exec -it $container ctr -a /run/k3s/containerd/containerd.sock image import /tmp/pulsar-operator.bin
-echo "image imported in $container"
+docker inspect pulsaroperator-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
+  docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin
+  echo "image digest copied into container $container"
+  docker exec $container ctr -a /run/k3s/containerd/containerd.sock image rm docker.io/datastax/lunastreaming-operator:latest-dev
+  docker exec $container ctr -a /run/k3s/containerd/containerd.sock image import /tmp/pulsar-operator.bin
+  echo "image imported in $container"
+done

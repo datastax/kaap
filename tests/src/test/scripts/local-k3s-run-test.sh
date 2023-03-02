@@ -52,7 +52,10 @@ wait_image() {
 }
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 
-wait_container pulsaroperator-local-k3s
+docker inspect pulsaroperator-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
+  wait_container $container
+done
+
 wait_image lunastreaming-operator
 wait_image lunastreaming
 

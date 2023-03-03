@@ -97,6 +97,7 @@ public class BookKeeperSpec extends BaseComponentSpec<BookKeeperSpec> {
             .minWritableBookies(3)
             .scaleUpBy(1)
             .scaleDownBy(1)
+            .scaleUpMaxLimit(30)
             .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
             .diskUsageToleranceHwm(0.92d)
             .diskUsageToleranceLwm(0.75d)

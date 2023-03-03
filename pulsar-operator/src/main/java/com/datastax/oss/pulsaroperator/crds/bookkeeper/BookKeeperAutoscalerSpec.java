@@ -54,6 +54,10 @@ public class BookKeeperAutoscalerSpec {
 
     @Min(1)
     @javax.validation.constraints.Min(1)
+    Integer scaleUpMaxLimit;
+
+    @Min(1)
+    @javax.validation.constraints.Min(1)
     Integer scaleDownBy;
 
     @Min(1)

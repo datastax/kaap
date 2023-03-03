@@ -240,6 +240,9 @@ spec:
                         type: number
                       cleanUpPvcs:
                         type: boolean
+                      scaleUpMaxLimit:
+                        minimum: 1.0
+                        type: integer
                       diskUsageToleranceHwm:
                         maximum: 1.0
                         minimum: 0.0

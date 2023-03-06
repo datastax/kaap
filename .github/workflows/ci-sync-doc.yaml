@@ -24,7 +24,12 @@ jobs:
           cp -R docs /tmp/docs
           git checkout gh-pages
           rm -rf docs
-          mv /tmp/docs docs 
+          mv /tmp/docs docs
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Git directory is clean, nothing changed"
+            git status
+            exit 0
+          fi
           git add -A
           git commit -m "Update docs"
           git pull --rebase origin gh-pages

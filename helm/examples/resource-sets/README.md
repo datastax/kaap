@@ -5,6 +5,6 @@ Resource Sets are a way to create different sets of the same components. This is
 ## Example
 
 ```
-helm install pulsar-operator  helm/pulsar-operator \
+helm install pulsar-operator helm/pulsar-operator \
     --values helm/examples/resource-sets/values.yaml 
 ```

@@ -16,7 +16,7 @@
 #
 
 operator:
-  image: datastax/lunastreaming-operator:latest-dev
+  image: datastax/lunastreaming-operator:latest
 cluster:
   create: true
   spec:

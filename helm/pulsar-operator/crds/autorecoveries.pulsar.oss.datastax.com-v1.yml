@@ -1709,10 +1709,21 @@ spec:
                   racks:
                     additionalProperties:
                       properties:
-                        host:
-                          description: Enable rack rules based on the hostname of
-                            the node.
+                        zone:
+                          description: Enable rack rules based on the failure domain
+                            (availability zone) of the node.
                           properties:
+                            enableHostAntiAffinity:
+                              description: "Enable the host anti affinity. If set,\
+                                \ all the pods of the same rack will deployed on different\
+                                \ nodes of the same zone.Default is true."
+                              type: boolean
+                            requireRackHostAntiAffinity:
+                              description: "Indicates if the podAntiAffinity rules\
+                                \ will be enforced for the host. Default is true.\
+                                \ If required, the affinity rule will be enforced\
+                                \ using 'requiredDuringSchedulingIgnoredDuringExecution'."
+                              type: boolean
                             enabled:
                               description: Enable the rack affinity rules.
                               type: boolean
@@ -1727,9 +1738,9 @@ spec:
                                 \ affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'."
                               type: boolean
                           type: object
-                        zone:
-                          description: Enable rack rules based on the failure domain
-                            (availability zone) of the node.
+                        host:
+                          description: Enable rack rules based on the hostname of
+                            the node.
                           properties:
                             enabled:
                               description: Enable the rack affinity rules.

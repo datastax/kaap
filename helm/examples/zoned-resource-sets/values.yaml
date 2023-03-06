@@ -22,29 +22,32 @@ cluster:
   spec:
     global:
       name: pulsar
-      image: datastax/lunastreaming-all:2.10_2.11
+      image: datastax/lunastreaming-all:2.10_3.4
       restartOnConfigMapChange: true
       storage:
         existingStorageClassName: default
       racks:
-        az1:
-          host:
-              enabled: true
-          zone:
-            enabled: false
-        az2:
+        rack-az1:
           host:
             enabled: true
           zone:
-            enabled: false
+            enabled: true
+            requireRackAffinity: true
+        rack-az2:
+          host:
+            enabled: true
+          zone:
+            enabled: true
+            requireRackAffinity: true
       resourceSets:
-        rsaz1:
-          rack: az1
-        rsaz2:
-          rack: az2
+        shared-az1:
+          rack: rack-az1
+        shared-az2:
+          rack: rack-az2
         customer1: {}
+        customer2: {}
       antiAffinity:
-        host:
+        zone:
           enabled: true
     zookeeper:
       replicas: 1
@@ -53,7 +56,7 @@ cluster:
         size: 100M
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"
     bookkeeper:
       replicas: 1
@@ -64,49 +67,55 @@ cluster:
           size: 1Gi
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"
     broker:
-      replicas: 1
+      resources:
+        requests:
+          cpu: "0.5"
+          memory: "128Mi"
       config:
         managedLedgerDefaultAckQuorum: 1
         managedLedgerDefaultEnsembleSize: 1
         managedLedgerDefaultWriteQuorum: 1
-      resources:
-        requests:
-          cpu: "0.1"
-          memory: "128Mi"
       sets:
+        shared-az1:
+          replicas: 2
+        shared-az2:
+          replicas: 2
         customer1:
           replicas: 2
-        rsaz1:
-          replicas: 2
-        rsaz2:
+        customer2:
           replicas: 2
     proxy:
-      replicas: 1
-      webSocket:
-        enabled: false
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"
+      config:
+        PULSAR_LOG_LEVEL: debug
+        PULSAR_ROOT_LOG_LEVEL: debug
+        lookupHandler: org.apache.pulsar.proxy.server.URLRegexLookupProxyHandler
+        urlRegexLookupProxyHandlerRegex: (pulsar:\/\/|pulsar\+ssl:\/\/)(pulsar-broker-)(.+?(?=-[\\d].))(.*):([\\d]*)
+        urlRegexLookupProxyHandlerReplacement: $1pulsar-proxy-$3:$5
       sets:
+        shared-az1:
+          replicas: 2
+        shared-az2:
+          replicas: 2
         customer1:
           replicas: 2
-        rsaz1:
-          replicas: 2
-        rsaz2:
+        customer2:
           replicas: 2
     autorecovery:
-      replicas: 0
+      replicas: 1
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"
     bastion:
       replicas: 1
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"

@@ -28,7 +28,7 @@ Run the following command:
 ./release/release.sh pulsar-stack <version>
 ```
 
-This will create a new tag `pulsar-stack-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the [docs](https://super-giggle-3c66aa03.pages.github.io/pulsar-stack/).
+This will create a new tag `pulsar-stack-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.
 
 
 ## Pulsar Operator Helm Chart
@@ -39,4 +39,4 @@ Run the following command:
 ./release/release.sh pulsar-operator <version>
 ```
 
-This will create a new tag `pulsar-operator-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the [docs](https://super-giggle-3c66aa03.pages.github.io/pulsar-operator/).
+This will create a new tag `pulsar-operator-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.

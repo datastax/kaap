@@ -18,9 +18,10 @@ package com.datastax.oss.pulsaroperator.tests;
 import static com.datastax.oss.pulsaroperator.tests.BaseK8sEnvTest.OPERATOR_IMAGE;
 import static com.datastax.oss.pulsaroperator.tests.BaseK8sEnvTest.PULSAR_IMAGE;
 import com.dajudge.kindcontainer.K3sContainer;
-import com.dajudge.kindcontainer.K3sContainerVersion;
-import com.dajudge.kindcontainer.KubernetesImageSpec;
-import com.datastax.oss.pulsaroperator.tests.env.LocalK3SContainer;
+import com.datastax.oss.pulsaroperator.tests.env.K3sEnv;
+import com.datastax.oss.pulsaroperator.tests.env.k3s.AbstractK3sContainer;
+import com.datastax.oss.pulsaroperator.tests.env.k3s.MultiNodesK3sContainer;
+import com.datastax.oss.pulsaroperator.tests.env.k3s.SingleServerK3sContainer;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
@@ -42,15 +43,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testng.annotations.Test;
 
 @Slf4j
-public class LocalK8sEnvironment extends LocalK3SContainer {
+public class LocalK8sEnvironment {
 
     // not needed if you use quarkus dev mode
     private static final boolean DEPLOY_OPERATOR_IMAGE = true;
@@ -68,39 +69,53 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
     }
 
     @Test
+    public void mainMulti() throws Exception {
+        cleanupOldRuns();
+        final Integer agents = Integer.getInteger("pulsaroperator.tests.container.k3s.agents", 1);
+        try (
+                final Network network = Network.builder()
+                        .createNetworkCmdModifier(cmd -> cmd.withName(NETWORK))
+                        .build();
+                MultiNodesK3sContainer container = new MultiNodesK3sContainer(agents, network)) {
+            start(container);
+        }
+    }
+
+    @Test
     public void updateImage() throws Exception {
         new GenerateImageDigest()
                 .main(null);
     }
 
     public static void main(String[] args) throws Exception {
-        final KubernetesImageSpec<K3sContainerVersion> k3sImage =
-                new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
-                        .withImage("rancher/k3s:v1.25.3-k3s1");
-
-
         cleanupOldRuns();
 
-        @Cleanup final Network network = Network.builder()
+        try (final Network network = Network.builder()
                 .createNetworkCmdModifier(cmd -> cmd.withName(NETWORK))
                 .build();
-        try (final K3sContainer container = new K3sContainer(k3sImage)) {
-            container.withCreateContainerCmdModifier(
-                    (Consumer<CreateContainerCmd>)
-                            createContainerCmd -> createContainerCmd.withName(CONTAINER_NAME));
-            container.withNetwork(network);
-            createAndMountImages(container);
-
-            container.start();
-            container.kubectl().create.namespace.run("ns");
-            log.info("To see k3s logs: docker logs {}", container.getContainerName());
-            log.info("You can now access the K8s cluster, namespace 'ns'.");
-            final Config containerKubeConfig = KubeConfigUtils.parseConfigFromString(container.getKubeconfig());
-            addClusterToUserKubeConfig(containerKubeConfig);
-            log.info("Checkout 'local-k3s-*' scripts at tests/src/test/scripts.");
-            restoreImages(container);
-            Thread.sleep(Integer.MAX_VALUE);
+             SingleServerK3sContainer container = new SingleServerK3sContainer()) {
+            container.getServerContainer().setNetwork(network);
+            start(container);
         }
+    }
+
+    private static void start(final AbstractK3sContainer container) throws Exception {
+        final GenericContainer server = container.getServerContainer();
+        server.withCreateContainerCmdModifier(
+                (Consumer<CreateContainerCmd>)
+                        createContainerCmd -> createContainerCmd.withName(CONTAINER_NAME));
+        createAndMountImages(container);
+
+        container.start();
+
+        ((K3sContainer) server).kubectl().create.namespace.run("ns");
+        log.info("To see k3s logs: docker logs {}", server.getContainerName());
+        log.info("You can now access the K8s cluster, namespace 'ns'.");
+        final Config containerKubeConfig = KubeConfigUtils.parseConfigFromString(container.getKubeconfigContent());
+        addClusterToUserKubeConfig(containerKubeConfig);
+        log.info("Checkout 'local-k3s-*' scripts at tests/src/test/scripts.");
+        restoreImages(container);
+        Thread.sleep(Integer.MAX_VALUE);
     }
 
     @SneakyThrows
@@ -193,14 +208,14 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
         }
     }
 
-    private static void createAndMountImages(K3sContainer container) {
+    private static void createAndMountImages(AbstractK3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
         if (!DOWNLOAD_PULSAR_IMAGE) {
-            all.add(createAndMountImageDigest(PULSAR_IMAGE, container));
+            all.add(K3sEnv.createAndMountImageDigest(PULSAR_IMAGE, container.getContainers()));
         }
         if (DEPLOY_OPERATOR_IMAGE) {
-            all.add(createAndMountImageDigest(OPERATOR_IMAGE, container));
+            all.add(K3sEnv.createAndMountImageDigest(OPERATOR_IMAGE, container.getContainers()));
         }
         CompletableFuture.allOf(all.toArray(new CompletableFuture[]{}))
                 .exceptionally(throwable -> {
@@ -209,22 +224,27 @@ public class LocalK8sEnvironment extends LocalK3SContainer {
                 .join();
     }
 
-    private static void restoreImages(K3sContainer container) {
+    private static void restoreImages(AbstractK3sContainer container) {
         List<CompletableFuture<Void>> all = new ArrayList<>();
 
         if (!DOWNLOAD_PULSAR_IMAGE) {
-            all.add(restoreDockerImageInK3s(PULSAR_IMAGE, container));
+            all.add(restoreDockerImage(PULSAR_IMAGE, container));
         } else {
-            all.add(downloadDockerImageInK3s(PULSAR_IMAGE, container));
+            all.add(container.downloadDockerImage(PULSAR_IMAGE));
         }
         if (DEPLOY_OPERATOR_IMAGE) {
-            all.add(restoreDockerImageInK3s(OPERATOR_IMAGE, container));
+            all.add(restoreDockerImage(OPERATOR_IMAGE, container));
         }
         CompletableFuture.allOf(all.toArray(new CompletableFuture[]{}))
                 .exceptionally(throwable -> {
                     throw new RuntimeException(throwable);
                 })
                 .join();
+    }
+
+    private static CompletableFuture<Void> restoreDockerImage(String image, AbstractK3sContainer container) {
+        return container.restoreDockerImageFromFile(image,
+                K3sEnv.getMountedImageFilename(DockerClientFactory.lazyClient(), image));
     }
 
     public static class GenerateImageDigest {

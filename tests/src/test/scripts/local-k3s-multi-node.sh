@@ -16,7 +16,12 @@
 # limitations under the License.
 #
 
+mvn_or_mvnd() {
+  if command -v mvnd &> /dev/null; then
+    mvn $mvnmod "$@"
+  else
+    mvn $mvnmod "$@"
+  fi
+}
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
-export KUBECONFIG=/tmp/pulsaroperator-local-k3s-kube-config
-kubectl config set-context --current --namespace=ns
-mvn -f $this_dir/../../../../pulsar-operator/pom.xml quarkus:dev
+mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dtest='LocalK8sEnvironment#mainMulti'

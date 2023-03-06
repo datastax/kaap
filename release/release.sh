@@ -75,9 +75,7 @@ validate_new_version $new_version
 validate_artifact $artifact
 
 if [[ "$artifact" == "operator-image" ]]; then
-  current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-
-  mvn release:prepare -DreleaseVersion=$new_version -Dresume=false
+  mvn release:prepare -DreleaseVersion=$new_version -Dresume=false -Pskip-crds
   echo "$new_version released."
 elif [[ "$artifact" == "pulsar-operator" ]]; then
   replace_version_in_chart helm/pulsar-operator/Chart.yaml $new_version

@@ -10,18 +10,18 @@ The chart is able to install:
 
 
 ## Installation
-The Chart is private so you need to [download](https://github.com/riptano/pulsar-operator/releases/download/pulsar-stack-0.0.1/pulsar-stack-0.0.1.tgz) it first.
+The Chart is private so you need to [download](https://github.com/riptano/pulsar-operator/releases/download/pulsar-stack-0.0.2/pulsar-stack-0.0.2.tgz) it first.
 
-Then install the chart using the tarball:
+Then install the chart using the tarball.
 ```
-helm install -n stack --create-namespace pulsar-stack pulsar-stack-0.0.1.tgz
+helm install pulsar-stack 
 ```
 
 ## Usage
 
 Install the Pulsar stack with a PulsarCluster up and running
 ```
-helm install pulsar helm/pulsar-stack --set pulsar-operator.cluster.create=true
+helm install pulsar pulsar-stack-0.0.2.tgz --set pulsar-operator.cluster.create=true
 ```
 
 Wait for the cluster to be up and running

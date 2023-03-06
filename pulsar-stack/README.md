@@ -1,6 +1,6 @@
 # pulsar-stack
 
-![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square)
+![Version: 0.0.2](https://img.shields.io/badge/Version-0.0.2-informational?style=flat-square)
 
 Apache Pulsar stack on Kubernetes
 
@@ -9,6 +9,7 @@ Apache Pulsar stack on Kubernetes
 | Repository | Name | Version |
 |------------|------|---------|
 | file://../pulsar-operator | pulsar-operator | 0.0.x |
+| https://charts.bitnami.com/bitnami | external-dns | v6.13.x |
 | https://charts.bitnami.com/bitnami | keycloak | 9.x.x |
 | https://charts.jetstack.io | cert-manager | v1.11.x |
 | https://prometheus-community.github.io/helm-charts | kube-prometheus-stack | 41.x.x |
@@ -19,6 +20,10 @@ Apache Pulsar stack on Kubernetes
 |-----|------|---------|-------------|
 | cert-manager.enabled | bool | `false` |  |
 | cert-manager.installCRDs | bool | `false` |  |
+| external-dns.enabled | bool | `false` |  |
+| external-dns.provider | string | `""` |  |
+| external-dns.sources[0] | string | `"service"` |  |
+| external-dns.txtOwnerId | string | `"pulsar-stack"` |  |
 | keycloak.auth.tls.enabled | bool | `false` |  |
 | keycloak.enabled | bool | `false` |  |
 | keycloak.extraStartupArgs | string | `"-Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/realm/pulsar-realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING"` |  |
@@ -179,22 +184,7 @@ Apache Pulsar stack on Kubernetes
 | kube-prometheus-stack.prometheus.prometheusSpec.additionalScrapeConfigs[0].relabel_configs[6].target_label | string | `"kubernetes_pod_name"` |  |
 | kube-prometheus-stack.prometheus.prometheusSpec.retention | string | `"10d"` |  |
 | kube-prometheus-stack.prometheusOperator.enabled | bool | `true` |  |
-| pulsar-operator.crd.create | bool | `true` |  |
-| pulsar-operator.operator.image | string | `"datastax/lunastreaming-operator:latest"` |  |
-| pulsar-operator.operator.imagePullPolicy | string | `"IfNotPresent"` |  |
-| pulsar-operator.operator.livenessProbe.failureThreshold | int | `3` |  |
-| pulsar-operator.operator.livenessProbe.initialDelaySeconds | int | `0` |  |
-| pulsar-operator.operator.livenessProbe.periodSeconds | int | `30` |  |
-| pulsar-operator.operator.livenessProbe.successThreshold | int | `1` |  |
-| pulsar-operator.operator.livenessProbe.timeoutSeconds | int | `10` |  |
-| pulsar-operator.operator.readinessProbe.failureThreshold | int | `3` |  |
-| pulsar-operator.operator.readinessProbe.initialDelaySeconds | int | `0` |  |
-| pulsar-operator.operator.readinessProbe.periodSeconds | int | `30` |  |
-| pulsar-operator.operator.readinessProbe.successThreshold | int | `1` |  |
-| pulsar-operator.operator.readinessProbe.timeoutSeconds | int | `10` |  |
-| pulsar-operator.rbac.create | bool | `true` |  |
-| pulsar-operator.serviceAccount.create | bool | `true` |  |
-| pulsar-operator.serviceAccount.name | string | `"pulsar-operator"` |  |
+| pulsar-operator.enabled | bool | `true` |  |
 | pulsarGrafanaDashboards.enabled | bool | `false` |  |
 
 ----------------------------------------------

@@ -21,7 +21,7 @@ pulsar-operator:
     spec:
       global:
         name: pulsar
-        image: datastax/lunastreaming-all:2.10_2.4
+        image: datastax/lunastreaming-all:2.10_3.4
         auth:
           enabled: true
         storage:

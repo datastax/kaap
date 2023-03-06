@@ -64,31 +64,31 @@ image:
   broker:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
   brokerSts:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
   function:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
   zookeeper:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
   bookkeeper:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
   proxy:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
   bastion:
     repository: datastax/lunastreaming-all
     pullPolicy: IfNotPresent
-    tag: 2.10_2.4
+    tag: 2.10_3.4
 
 zookeeper:
   replicaCount: 1

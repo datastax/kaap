@@ -70,7 +70,7 @@ public abstract class BaseK8sEnvTest {
             "datastax/lunastreaming-operator:latest-dev");
 
     public static final String PULSAR_IMAGE = System.getProperty("pulsaroperator.tests.pulsar.image",
-            "datastax/lunastreaming-all:2.10_2.4");
+            "datastax/lunastreaming-all:2.10_3.4");
 
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("pulsaroperator.tests.env.existing");
 

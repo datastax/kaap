@@ -14126,6 +14126,15 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>scaleUpMaxLimit</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+          <br/>
+            <i>Minimum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>stabilizationWindowMs</b></td>
         <td>integer</td>
         <td>

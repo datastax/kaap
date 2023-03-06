@@ -123,6 +123,12 @@ public class BookKeeperAutoscaler implements Runnable {
         final int bookieSafeStepUp = bkScalerSpec.getScaleUpBy();
         final int bookieSafeStepDown = bkScalerSpec.getScaleDownBy();
         final boolean cleanUpPvcs = bkScalerSpec.getCleanUpPvcs();
+        final int scaleUpMaxLimit = bkScalerSpec.getScaleUpMaxLimit();
+
+        if (scaleUpMaxLimit < targetWritableBookiesCount) {
+            throw new IllegalArgumentException("scaleUpMaxLimit must be >= to minWritableBookies, "
+                    + "got scaleUpMaxLimit " + scaleUpMaxLimit + "and minWritableBookies" + targetWritableBookiesCount);
+        }
 
         final BookKeeper bkCr = client.resources(BookKeeper.class)
                 .inNamespace(namespace)
@@ -259,14 +265,7 @@ public class BookKeeperAutoscaler implements Runnable {
                     log.warnf("Downscale failed, will retry again later");
                     desiredScaleChange = 0;
                 }
-                /*
-                log.warnf("Downscale failed, will retry again later, %d bookiesToUnset: %s",
-                        bookiesToUnset.size(),
-                        String.join(", ", bookiesToUnset.stream()
-                                .map(bi -> getBookieId(bi.getPodResource()))
-                                .toList()));
-                desiredScaleChange = 0;
-                 */
+
                 for (BookieInfo bInfo: bookiesToUnset) {
                     setReadOnly(bookieUrl, bInfo, false);
                 }
@@ -279,6 +278,15 @@ public class BookKeeperAutoscaler implements Runnable {
         }
 
         int scaleTo = currentExpectedReplicas + desiredScaleChange;
+        scaleTo = Math.max(scaleTo, targetWritableBookiesCount);
+        scaleTo = Math.min(scaleTo, scaleUpMaxLimit);
+
+        if (currentExpectedReplicas == scaleTo) {
+            log.infof("Hit scale limits, won't scale. Current expected replicas: %d, desired scale change: %d",
+                    currentExpectedReplicas, desiredScaleChange);
+            return;
+        }
+
         final BookKeeperSpec bkSpec = bkCr.getSpec().getBookkeeper();
         bkSpec.setReplicas(scaleTo);
 

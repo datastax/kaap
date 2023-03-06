@@ -383,6 +383,7 @@ public class PulsarClusterResourceGeneratorTest {
                               diskUsageToleranceLwm: 0.75
                               minWritableBookies: 3
                               scaleUpBy: 1
+                              scaleUpMaxLimit: 30
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
                               cleanUpPvcs: true

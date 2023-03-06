@@ -146,6 +146,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .diskUsageToleranceLwm(0.7)
                         .scaleUpBy(1)
                         .scaleDownBy(1)
+                        .scaleUpMaxLimit(10)
                         .periodMs(5000L)
                         .stabilizationWindowMs(10000L)
                         .minWritableBookies(1)

@@ -1,6 +1,6 @@
 # pulsar-operator
 
-![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square)
+![Version: 0.0.2](https://img.shields.io/badge/Version-0.0.2-informational?style=flat-square)
 
 Operator for managing Apache Pulsar on Kubernetes
 
@@ -8,6 +8,10 @@ Operator for managing Apache Pulsar on Kubernetes
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| cluster.create | bool | `false` |  |
+| cluster.spec.global.image | string | `"datastax/lunastreaming-all:2.10_3.1"` |  |
+| cluster.spec.global.name | string | `"pulsar"` |  |
+| cluster.spec.global.storage.existingStorageClassName | string | `"default"` |  |
 | crd.create | bool | `true` |  |
 | operator.enabled | bool | `true` |  |
 | operator.image | string | `"datastax/lunastreaming-operator:latest"` |  |

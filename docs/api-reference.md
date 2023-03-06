@@ -47154,6 +47154,13 @@ Enable rack rules based on the failure domain (availability zone) of the node.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>enableHostAntiAffinity</b></td>
+        <td>boolean</td>
+        <td>
+          Enable the host anti affinity. If set, all the pods of the same rack will deployed on different nodes of the same zone.Default is true.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
@@ -47172,6 +47179,13 @@ Enable rack rules based on the failure domain (availability zone) of the node.
         <td>boolean</td>
         <td>
           Indicates if the podAntiAffinity rules will be enforced. Default is true. If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requireRackHostAntiAffinity</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates if the podAntiAffinity rules will be enforced for the host. Default is true. If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.<br/>
         </td>
         <td>false</td>
       </tr></tbody>

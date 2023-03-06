@@ -10,6 +10,6 @@ For example, the Pulsar proxy can redirect traffic to proxy closer to the broker
 ## Example
 
 ```
-helm install pulsar-operator  helm/pulsar-operator \
+helm install pulsar-operator helm/pulsar-operator \
     --values helm/examples/racks/values.yaml 
 ```

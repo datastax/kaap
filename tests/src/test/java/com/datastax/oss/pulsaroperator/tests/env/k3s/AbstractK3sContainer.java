@@ -42,7 +42,7 @@ public abstract class AbstractK3sContainer implements AutoCloseable {
 
     public abstract String getKubeconfigContent();
 
-    public abstract CompletableFuture<Void> restoreDockerImageFromFile(final String imageName, final String filename);
+    public abstract CompletableFuture<Void> restoreDockerImageFromFile(String imageName, String filename);
 
     public abstract CompletableFuture<Void> downloadDockerImage(String imageName);
 

@@ -32,9 +32,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @Slf4j
 public class MultiNodesK3sContainer extends AbstractK3sContainer {

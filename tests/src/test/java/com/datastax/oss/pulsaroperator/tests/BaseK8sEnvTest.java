@@ -255,7 +255,9 @@ public abstract class BaseK8sEnvTest {
 
     @SneakyThrows
     protected void deleteRBACManifests() {
-        deleteManifest(rbacManifest);
+        if (rbacManifest != null) {
+            deleteManifest(rbacManifest);
+        }
     }
 
 

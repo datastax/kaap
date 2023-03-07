@@ -34,7 +34,9 @@ public abstract class AbstractK3sContainer implements AutoCloseable {
             new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
                     .withImage("rancher/k3s:v1.25.3-k3s1");
 
-    public abstract void start();
+    public abstract CompletableFuture<Void> start();
+
+    public abstract LocalRegistryContainer getRegistry();
 
     public abstract GenericContainer getServerContainer();
 
@@ -42,9 +44,7 @@ public abstract class AbstractK3sContainer implements AutoCloseable {
 
     public abstract String getKubeconfigContent();
 
-    public abstract CompletableFuture<Void> restoreDockerImageFromFile(String imageName, String filename);
-
-    public abstract CompletableFuture<Void> downloadDockerImage(String imageName);
+    public abstract CompletableFuture<Void> downloadDockerImages(List<String> images);
 
     public abstract Helm3Container withHelmContainer(Consumer<Helm3Container> preInit);
 
@@ -85,8 +85,20 @@ public abstract class AbstractK3sContainer implements AutoCloseable {
         });
     }
 
-    @SneakyThrows
-    public static CompletableFuture<Void> downloadDockerImage(String imageName, GenericContainer container) {
+    public CompletableFuture<Void> downloadDockerImages(List<String> images,
+                                                        LocalRegistryContainer registryContainer,
+                                                        GenericContainer container) {
+        CompletableFuture[] futures = new CompletableFuture[images.size()];
+        int i = 0;
+        for (String image : images) {
+            futures[i++] = downloadDockerImage(image, registryContainer, container);
+
+        }
+        return CompletableFuture.allOf(futures);
+    }
+
+    private CompletableFuture<Void> downloadDockerImage(String imageName, LocalRegistryContainer registryContainer,
+                                                        GenericContainer container) {
         return CompletableFuture.runAsync(new Runnable() {
             @Override
             @SneakyThrows
@@ -99,15 +111,23 @@ public abstract class AbstractK3sContainer implements AutoCloseable {
                         log.info("Image {} already exists in the k3s", imageName);
                         return;
                     }
-                    execResult = container.execInContainer("ctr", "images", "pull", "docker.io/" + imageName);
+                    final String registryIp =
+                            registryContainer.getDockerClient().inspectContainerCmd(registryContainer.getContainerId())
+                                    .exec()
+                                    .getNetworkSettings().getNetworks().values().iterator().next().getIpAddress();
+
+                    final String imageNameWithRegistry = registryIp + ":5000/" + imageName;
+                    execResult =
+                            container.execInContainer("ctr", "images", "pull", "--plain-http", imageNameWithRegistry);
                     if (execResult.getExitCode() != 0) {
                         throw new RuntimeException("ctr images download failed: " + execResult.getStderr());
                     }
+                    container.execInContainer("ctr", "images", "tag", imageNameWithRegistry, "docker.io/" + imageName);
+                    container.execInContainer("ctr", "images", "rm", imageNameWithRegistry);
                     log.info("Downloaded docker image {} in {} ms", imageName, (System.currentTimeMillis() - start));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
             }
         });
     }

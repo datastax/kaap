@@ -19,17 +19,56 @@ import com.dajudge.kindcontainer.helm.Helm3Container;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 
+@Slf4j
 public class SingleServerK3sContainer extends AbstractK3sContainer {
 
+    private final Network network;
     private final ReusableK3sContainer container = new ReusableK3sContainer(K3S_IMAGE);
+    private final LocalRegistryContainer registryContainer = new LocalRegistryContainer();
+    private final List<String> preloadImages;
 
-    @Override
-    public void start() {
-        container.start();
+    public SingleServerK3sContainer(Network network, List<String> preloadImages) {
+        this.network = network;
+        this.preloadImages = preloadImages;
     }
 
+    @Override
+    @SneakyThrows
+    public synchronized CompletableFuture<Void> start() {
+        if (container.getContainerId() != null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        registryContainer
+                .withReuse(true)
+                .withNetwork(network)
+                .start();
+        CompletableFuture<Void> preloadImagesFuture = null;
+        if (preloadImages != null) {
+            preloadImagesFuture = registryContainer.pushImages(preloadImages);
+        }
+
+        container.withNetwork(network).start();
+        if (preloadImagesFuture != null) {
+            return preloadImagesFuture.
+                    thenCompose(v -> downloadDockerImages(preloadImages));
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public LocalRegistryContainer getRegistry() {
+        return registryContainer;
+    }
+
+    @Override
+    public CompletableFuture<Void> downloadDockerImages(List<String> images) {
+        return downloadDockerImages(images, registryContainer, container);
+    }
 
     @Override
     public GenericContainer getServerContainer() {
@@ -46,15 +85,6 @@ public class SingleServerK3sContainer extends AbstractK3sContainer {
         return container.getKubeconfig();
     }
 
-    @Override
-    public CompletableFuture<Void> restoreDockerImageFromFile(String imageName, String filename) {
-        return restoreDockerImageFromFile(imageName, filename, container);
-    }
-
-    @Override
-    public CompletableFuture<Void> downloadDockerImage(String imageName) {
-        return downloadDockerImage(imageName, container);
-    }
 
     @Override
     public Helm3Container withHelmContainer(Consumer<Helm3Container> preInit) {
@@ -75,6 +105,7 @@ public class SingleServerK3sContainer extends AbstractK3sContainer {
     @Override
     public void close() {
         container.close();
+        registryContainer.close();
     }
 
 }

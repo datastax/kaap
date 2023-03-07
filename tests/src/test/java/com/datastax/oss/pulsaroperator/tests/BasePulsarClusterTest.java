@@ -63,6 +63,13 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
             .build();
     public static final String DEFAULT_PULSAR_CLUSTER_NAME = "pulsar";
 
+    public BasePulsarClusterTest(Integer agents) {
+        super(agents);
+    }
+
+    public BasePulsarClusterTest() {
+    }
+
     @SneakyThrows
     protected String specsToYaml(PulsarClusterSpec spec) {
         final Map map = SerializationUtil.readYaml(
@@ -101,15 +108,15 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
         // speed up readiness
         final ProbesConfig probe = ProbesConfig.builder()
                 .liveness(ProbesConfig.ProbeConfig.builder()
-                        .initialDelaySeconds(5)
-                        .periodSeconds(5)
+                        .initialDelaySeconds(30)
+                        .periodSeconds(45)
                         .timeoutSeconds(60)
                         .build()
                 )
                 .readiness(
                         ProbesConfig.ProbeConfig.builder()
                                 .initialDelaySeconds(10)
-                                .periodSeconds(10)
+                                .periodSeconds(30)
                                 .timeoutSeconds(60)
                                 .failureThreshold(5)
                                 .build()
@@ -223,7 +230,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .createOrReplace();
 
         Awaitility.await("waiting for pulsar cluster to be ready")
-                .with().pollInterval(5, TimeUnit.SECONDS)
+                .with().pollInterval(10, TimeUnit.SECONDS)
                 .until(() -> {
                     if (isCrdReady(PulsarCluster.class, pulsarCluster.getMetadata().getName())) {
                         return true;

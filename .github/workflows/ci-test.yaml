@@ -49,10 +49,16 @@ jobs:
         include:
           - name: Scaling
             group: scaling
+            num_agents: 0
           - name: Misc
             group: misc
+            num_agents: 0
           - name: Helm
             group: helm
+            num_agents: 0
+          - name: Multi nodes
+            group: multi-nodes
+            num_agents: 1
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -89,4 +95,5 @@ jobs:
         run: |
           #!/bin/bash
           mvn -B -ntp -nsu test -pl tests \
-            -Dgroups='${{ matrix.group }}'
+            -Dgroups='${{ matrix.group }}' \
+            -Dpulsaroperator.tests.env.existing.k3s.agents='${{ matrix.num_agents }}'

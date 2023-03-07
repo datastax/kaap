@@ -168,7 +168,7 @@ public class RacksTest extends BasePulsarClusterTest {
             final List<String> set2 = getPodNamesByResourceSet("set2");
             final List<String> norack = getPodNamesByResourceSet("norack");
             Assert.assertEquals(getPodNodeName(set1.get(0)), getPodNodeName(set1.get(1)));
-            Assert.assertEquals(getPodNodeName(set2.get(0)), getPodNodeName(set2.get(0));
+            Assert.assertEquals(getPodNodeName(set2.get(0)), getPodNodeName(set2.get(0)));
             Assert.assertNotEquals(getPodNodeName(set1.get(0)), getPodNodeName(set2.get(0)));
             Assert.assertNotEquals(getPodNodeName(norack.get(0)), getPodNodeName(norack.get(1)));
         } catch (Throwable t) {

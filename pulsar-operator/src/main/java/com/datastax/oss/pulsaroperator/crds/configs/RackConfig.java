@@ -31,25 +31,60 @@ public class RackConfig {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class RackTypeConfig {
+    public static class HostRackTypeConfig {
 
         @JsonPropertyDescription("Enable the rack affinity rules.")
         private Boolean enabled;
 
         @JsonPropertyDescription("Indicates if the podAffinity rules will be enforced. Default is false. "
-                + "If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.")
+                + "If required, the affinity rule will be enforced using "
+                + "'requiredDuringSchedulingIgnoredDuringExecution'.")
         private Boolean requireRackAffinity;
 
         @JsonPropertyDescription("Indicates if the podAntiAffinity rules will be enforced. Default is true. "
-                + "If required, the affinity rule will be enforced using 'requiredDuringSchedulingIgnoredDuringExecution'.")
+                + "If required, the affinity rule will be enforced using "
+                + "'requiredDuringSchedulingIgnoredDuringExecution'.")
         private Boolean requireRackAntiAffinity;
     }
 
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ZoneRackTypeConfig {
+
+        @JsonPropertyDescription("Enable the rack affinity rules.")
+        private Boolean enabled;
+
+        @JsonPropertyDescription(
+                "Enable the host anti affinity. If set, all the pods of the same rack will deployed on different "
+                        + "nodes of the same zone."
+                        + "Default is true.")
+        private Boolean enableHostAntiAffinity;
+
+        @JsonPropertyDescription("Indicates if the podAffinity rules will be enforced. Default is false. "
+                + "If required, the affinity rule will be enforced using "
+                + "'requiredDuringSchedulingIgnoredDuringExecution'.")
+        private Boolean requireRackAffinity;
+
+        @JsonPropertyDescription("Indicates if the podAntiAffinity rules will be enforced. Default is true. "
+                + "If required, the affinity rule will be enforced using "
+                + "'requiredDuringSchedulingIgnoredDuringExecution'.")
+        private Boolean requireRackAntiAffinity;
+
+        @JsonPropertyDescription(
+                "Indicates if the podAntiAffinity rules will be enforced for the host. Default is true. "
+                        + "If required, the affinity rule will be enforced using "
+                        + "'requiredDuringSchedulingIgnoredDuringExecution'.")
+        private Boolean requireRackHostAntiAffinity;
+    }
+
+
     @JsonPropertyDescription("Enable rack rules based on the hostname of the node.")
-    private RackTypeConfig host;
+    private HostRackTypeConfig host;
 
     @JsonPropertyDescription("Enable rack rules based on the failure domain (availability zone) of the node.")
-    private RackTypeConfig zone;
+    private ZoneRackTypeConfig zone;
 
 }

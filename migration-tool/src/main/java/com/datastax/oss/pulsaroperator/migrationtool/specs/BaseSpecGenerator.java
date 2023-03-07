@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.controllers.AffinityRulesCustomizer;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
@@ -243,12 +244,12 @@ public abstract class BaseSpecGenerator<T> {
                 podAntiAffinity.getPreferredDuringSchedulingIgnoredDuringExecution();
         if (required != null) {
             for (PodAffinityTerm podAffinityTerm : required) {
-                if (BaseResourcesFactory.TOPOLOGY_KEY_HOST.equals(podAffinityTerm.getTopologyKey())) {
+                if (AffinityRulesCustomizer.TOPOLOGY_KEY_HOST.equals(podAffinityTerm.getTopologyKey())) {
                     builder.host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .required(true)
                             .build());
-                } else if (BaseResourcesFactory.TOPOLOGY_KEY_ZONE.equals(podAffinityTerm.getTopologyKey())) {
+                } else if (AffinityRulesCustomizer.TOPOLOGY_KEY_ZONE.equals(podAffinityTerm.getTopologyKey())) {
                     builder.zone(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .required(true)
@@ -263,12 +264,12 @@ public abstract class BaseSpecGenerator<T> {
         if (preferred != null) {
             for (WeightedPodAffinityTerm weightedPodAffinityTerm : preferred) {
                 final String topologyKey = weightedPodAffinityTerm.getPodAffinityTerm().getTopologyKey();
-                if (BaseResourcesFactory.TOPOLOGY_KEY_HOST.equals(topologyKey)) {
+                if (AffinityRulesCustomizer.TOPOLOGY_KEY_HOST.equals(topologyKey)) {
                     builder.host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .required(false)
                             .build());
-                } else if (BaseResourcesFactory.TOPOLOGY_KEY_ZONE.equals(topologyKey)) {
+                } else if (AffinityRulesCustomizer.TOPOLOGY_KEY_ZONE.equals(topologyKey)) {
                     builder.zone(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
                             .enabled(true)
                             .build());

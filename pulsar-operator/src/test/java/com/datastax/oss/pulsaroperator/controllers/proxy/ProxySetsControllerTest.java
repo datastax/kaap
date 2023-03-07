@@ -444,6 +444,15 @@ public class ProxySetsControllerTest {
                                   - rack2
                               topologyKey: failure-domain.beta.kubernetes.io/zone
                             weight: 100
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                              matchLabels:
+                                app: pulsar
+                                cluster: pulsarname
+                                component: proxy
+                                rack: rack1
+                                resource-set: set1
+                            topologyKey: kubernetes.io/hostname
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
@@ -528,6 +537,14 @@ public class ProxySetsControllerTest {
                                 - rack1
                                 - rack2
                             topologyKey: failure-domain.beta.kubernetes.io/zone
+                          - labelSelector:
+                              matchLabels:
+                                app: pulsar
+                                cluster: pulsarname
+                                component: proxy
+                                rack: rack3
+                                resource-set: set3
+                            topologyKey: kubernetes.io/hostname
                         """);
     }
 

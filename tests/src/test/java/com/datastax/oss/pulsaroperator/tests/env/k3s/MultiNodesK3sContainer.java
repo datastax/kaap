@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testcontainers.containers.GenericContainer;
@@ -45,13 +45,11 @@ public class MultiNodesK3sContainer extends AbstractK3sContainer {
     private final Network network;
     private final ReusableK3sContainer server;
     private final List<K3sAgentContainer> agents = new ArrayList<>();
+    private final LocalRegistryContainer registryContainer = new LocalRegistryContainer();
+    private final List<String> preloadImages;
 
 
-    public MultiNodesK3sContainer(int numAgents) {
-        this(numAgents, Network.newNetwork());
-    }
-
-    public MultiNodesK3sContainer(int numAgents, Network network) {
+    public MultiNodesK3sContainer(int numAgents, Network network, List<String> preloadImages) {
         this.numAgents = numAgents;
         this.network = network;
 
@@ -63,6 +61,12 @@ public class MultiNodesK3sContainer extends AbstractK3sContainer {
             agent.withNetwork(network);
             agents.add(agent);
         }
+        this.preloadImages = preloadImages;
+    }
+
+    @Override
+    public LocalRegistryContainer getRegistry() {
+        return registryContainer;
     }
 
     @Override
@@ -81,21 +85,6 @@ public class MultiNodesK3sContainer extends AbstractK3sContainer {
     }
 
     @Override
-    public CompletableFuture<Void> restoreDockerImageFromFile(String imageName, String filename) {
-        final CompletableFuture[] all =
-                allContainers().stream().map(c -> restoreDockerImageFromFile(imageName, filename, c))
-                        .collect(Collectors.toList()).toArray(new CompletableFuture[]{});
-        return CompletableFuture.allOf(all);
-    }
-
-    @Override
-    public CompletableFuture<Void> downloadDockerImage(String imageName) {
-        final CompletableFuture[] all = allContainers().stream().map(c -> downloadDockerImage(imageName, c))
-                .collect(Collectors.toList()).toArray(new CompletableFuture[]{});
-        return CompletableFuture.allOf(all);
-    }
-
-    @Override
     public Helm3Container withHelmContainer(Consumer<Helm3Container> preInit) {
         server.beforeStartHelm3(preInit);
         return helm3();
@@ -111,9 +100,20 @@ public class MultiNodesK3sContainer extends AbstractK3sContainer {
         server.stopHelm3();
     }
 
-    public synchronized void start() {
+    @SneakyThrows
+    @Override
+    public synchronized CompletableFuture<Void> start() {
         if (server.getContainerId() != null) {
-            return;
+            return CompletableFuture.completedFuture(null);
+        }
+
+        registryContainer
+                .withReuse(true)
+                .withNetwork(network)
+                .start();
+        CompletableFuture<Void> preloadImagesFuture = null;
+        if (preloadImages != null) {
+            preloadImagesFuture = registryContainer.pushImages(preloadImages);
         }
 
         server.start();
@@ -126,6 +126,23 @@ public class MultiNodesK3sContainer extends AbstractK3sContainer {
             agent.start();
         }
         waitForAgentsReady();
+        if (preloadImagesFuture != null) {
+            return preloadImagesFuture.
+                    thenCompose(v -> downloadDockerImages(preloadImages));
+
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> downloadDockerImages(List<String> images) {
+        CompletableFuture[] futures = new CompletableFuture[(agents.size() + 1)];
+        int i = 0;
+        futures[i++] = downloadDockerImages(images, registryContainer, server);
+        for (K3sAgentContainer agent : agents) {
+            futures[i++] = downloadDockerImages(images, registryContainer, agent);
+        }
+        return CompletableFuture.allOf(futures);
     }
 
 
@@ -135,9 +152,7 @@ public class MultiNodesK3sContainer extends AbstractK3sContainer {
         if (server != null) {
             server.close();
         }
-        if (network != null) {
-            network.close();
-        }
+        registryContainer.close();
     }
 
     private void waitForAgentsReady() {

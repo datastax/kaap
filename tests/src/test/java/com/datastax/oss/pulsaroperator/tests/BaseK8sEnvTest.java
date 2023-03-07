@@ -70,21 +70,29 @@ public abstract class BaseK8sEnvTest {
             "datastax/lunastreaming-operator:latest-dev");
 
     public static final String PULSAR_IMAGE = System.getProperty("pulsaroperator.tests.pulsar.image",
-            "datastax/lunastreaming-all:2.10_3.4");
+            "docker.io/datastax/lunastreaming-all:2.10_3.4");
 
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("pulsaroperator.tests.env.existing");
 
-    public static final int K3S_AGENTS = Integer.getInteger("pulsaroperator.tests.env.existing.k3s.agents", 0);
+    public static final Integer K3S_AGENTS = Integer.getInteger("pulsaroperator.tests.env.existing.k3s.agents");
 
     private static final boolean REUSE_ENV = Boolean
             .parseBoolean(System.getProperty("pulsaroperator.tests.env.reuse", "true"));
     protected static final int DEFAULT_AWAIT_SECONDS = 360;
 
+    private final Integer agents;
     protected String namespace;
     protected static K8sEnv env;
     protected KubernetesClient client;
     private Watch eventsWatch;
     private String rbacManifest;
+
+    public BaseK8sEnvTest(Integer agents) {
+        this.agents = agents;
+    }
+    public BaseK8sEnvTest() {
+        this.agents = null;
+    }
 
     @SneakyThrows
     private static List<Path> getOperatorYamlManifests() {
@@ -121,7 +129,7 @@ public abstract class BaseK8sEnvTest {
             if (USE_EXISTING_ENV) {
                 env = new ExistingK8sEnv();
             } else {
-                env = new K3sEnv(K3S_AGENTS);
+                env = new K3sEnv(K3S_AGENTS == null ? agents : K3S_AGENTS);
             }
         }
         env.start();
@@ -497,14 +505,18 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected String getPodNameByComponent(String component) {
+        return getPodNamesByComponent(component).get(0);
+    }
+
+    protected List<String> getPodNamesByComponent(String component) {
         return client.pods()
                 .inNamespace(namespace)
                 .withLabel("component", component)
                 .list()
                 .getItems()
-                .get(0)
-                .getMetadata()
-                .getName();
+                .stream()
+                .map(p -> p.getMetadata().getName())
+                .collect(Collectors.toList());
     }
 
     protected String getPodNameByLabels(Map<String, String> labels) {
@@ -516,5 +528,16 @@ public abstract class BaseK8sEnvTest {
                 .get(0)
                 .getMetadata()
                 .getName();
+    }
+
+    protected List<String> getPodNamesByResourceSet(String rs) {
+        return client.pods()
+                .inNamespace(namespace)
+                .withLabel(CRDConstants.LABEL_RESOURCESET, rs)
+                .list()
+                .getItems()
+                .stream()
+                .map(p -> p.getMetadata().getName())
+                .collect(Collectors.toList());
     }
 }

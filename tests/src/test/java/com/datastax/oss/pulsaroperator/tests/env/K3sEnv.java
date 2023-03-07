@@ -50,15 +50,14 @@ public class K3sEnv implements K8sEnv {
     @SneakyThrows
     public void start() {
         boolean containerWasNull = container == null;
+        final List<String> preloadImages = new ArrayList<>();
+        preloadImages.add(BaseK8sEnvTest.OPERATOR_IMAGE);
+        if (PRELOAD_PULSAR_IMAGE) {
+            preloadImages.add(BaseK8sEnvTest.PULSAR_IMAGE);
+        }
         if (containerWasNull) {
             log.info("Creating new K3s container");
             network = Network.newNetwork();
-
-            final List<String> preloadImages = new ArrayList<>();
-            preloadImages.add(BaseK8sEnvTest.OPERATOR_IMAGE);
-            if (PRELOAD_PULSAR_IMAGE) {
-                preloadImages.add(BaseK8sEnvTest.PULSAR_IMAGE);
-            }
             if (numAgents == 0) {
                 container = new SingleServerK3sContainer(network, preloadImages);
             } else {
@@ -66,6 +65,7 @@ public class K3sEnv implements K8sEnv {
             }
         } else {
             log.info("Reusing existing K3s container");
+            container.downloadDockerImages(preloadImages).get();
         }
         container.start().get();
         printDebugInfo();

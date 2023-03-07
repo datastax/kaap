@@ -39,7 +39,10 @@ public class SingleServerK3sContainer extends AbstractK3sContainer {
 
     @Override
     @SneakyThrows
-    public CompletableFuture<Void> start() {
+    public synchronized CompletableFuture<Void> start() {
+        if (container.getContainerId() != null) {
+            return CompletableFuture.completedFuture(null);
+        }
         registryContainer
                 .withReuse(true)
                 .withNetwork(network)

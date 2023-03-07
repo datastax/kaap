@@ -65,7 +65,9 @@ public class K3sEnv implements K8sEnv {
             }
         } else {
             log.info("Reusing existing K3s container");
-            container.downloadDockerImages(preloadImages).get();
+            container.getRegistry().pushImages(preloadImages)
+                    .thenCompose(v -> container.downloadDockerImages(preloadImages))
+                    .get();
         }
         container.start().get();
         printDebugInfo();

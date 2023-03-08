@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
-import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
@@ -299,9 +298,7 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected TlsConfig.ProxyTlsEntryConfig getTlsConfigForProxySet(String proxySet) {
-        if (proxySet.equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)
-                || global.getTls().getProxy() == null
-                || global.getTls().getProxyResourceSets() == null
+        if (global.getTls().getProxyResourceSets() == null
                 || !global.getTls().getProxyResourceSets().containsKey(proxySet)) {
             return global.getTls().getProxy();
         }
@@ -723,19 +720,36 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     public static boolean isStatefulSetReady(StatefulSet sts) {
-        final StatefulSetStatus status = sts.getStatus();
-        if (status.getReplicas() == null || status.getReadyReplicas() == null) {
+        if (sts == null) {
             return false;
         }
-        return status.getReplicas().intValue() == status.getReadyReplicas().intValue();
+        final StatefulSetStatus status = sts.getStatus();
+        if (!Objects.equals(status.getCurrentRevision(), status.getUpdateRevision())) {
+            return false;
+        }
+
+        if (status.getReplicas() == null || status.getReadyReplicas() == null || status.getUpdatedReplicas() == null) {
+            return false;
+        }
+
+        final int replicas = status.getReplicas().intValue();
+        final int ready = status.getReadyReplicas().intValue();
+        final int updated = status.getUpdatedReplicas().intValue();
+        return replicas == ready && updated == ready;
     }
 
     public static boolean isDeploymentReady(Deployment deployment) {
-        final DeploymentStatus deploymentStatus = deployment.getStatus();
-        if (deploymentStatus.getReplicas() == null || deploymentStatus.getReadyReplicas() == null) {
+        if (deployment == null) {
             return false;
         }
-        return deploymentStatus.getReplicas().intValue() == deploymentStatus.getReadyReplicas().intValue();
+        final DeploymentStatus status = deployment.getStatus();
+        if (status.getReplicas() == null || status.getReadyReplicas() == null || status.getUpdatedReplicas() == null) {
+            return false;
+        }
+        final int replicas = status.getReplicas().intValue();
+        final int ready = status.getReadyReplicas().intValue();
+        final int updated = status.getUpdatedReplicas().intValue();
+        return replicas == ready && updated == ready;
     }
 
     protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules,

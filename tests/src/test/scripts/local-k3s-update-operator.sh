@@ -34,7 +34,7 @@ echo "image digest generated: $tmp_dir/pulsar-operator.bin"
 docker inspect pulsaroperator-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
   docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin
   echo "image digest copied into container $container"
-  docker exec $container ctr -a /run/k3s/containerd/containerd.sock image rm docker.io/datastax/lunastreaming-operator:latest-dev
-  docker exec $container ctr -a /run/k3s/containerd/containerd.sock image import /tmp/pulsar-operator.bin
+  docker exec -t $container sh -c "(ctr image rm docker.io/datastax/lunastreaming-operator:latest-dev) || (docker image rm -f docker.io/datastax/lunastreaming-operator:latest-dev)"
+  docker exec -t $container sh -c "(ctr image import /tmp/pulsar-operator.bin) || (docker image load /tmp/pulsar-operator.bin)"
   echo "image imported in $container"
 done

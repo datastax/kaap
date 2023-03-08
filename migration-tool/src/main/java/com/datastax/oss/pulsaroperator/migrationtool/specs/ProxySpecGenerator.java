@@ -24,6 +24,7 @@ import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenera
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,21 +46,21 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     }
 
     private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
-        final List<InputClusterSpecs.ProxySpecs.AdditionalProxy> additionalProxies =
-                inputSpecs.getProxy().getAdditionalProxies();
+        final List<InputClusterSpecs.ProxySpecs.ProxySetSpecs> proxySets =
+                inputSpecs.getProxy().getProxySets();
         generatedSpec = new ProxySpec();
-        if (additionalProxies == null || additionalProxies.isEmpty()) {
+        if (proxySets == null || proxySets.isEmpty()) {
             final ProxySetSpecGenerator proxySetSpecGenerator = new ProxySetSpecGenerator(
                     inputSpecs,
-                    new InputClusterSpecs.ProxySpecs.AdditionalProxy(ProxyResourcesFactory.PROXY_DEFAULT_SET, null),
+                    new InputClusterSpecs.ProxySpecs.ProxySetSpecs(ProxyResourcesFactory.PROXY_DEFAULT_SET, null),
                     client
             );
             generators.put(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySetSpecGenerator);
             final ProxySpec proxySpec = proxySetSpecGenerator.generateSpec();
-            generatedSpec.setSets(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySpec));
+            generatedSpec.setSets(new LinkedHashMap<>(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySpec)));
         } else {
-            Map<String, ProxySetSpec> sets = new TreeMap<>();
-            additionalProxies.stream().map(
+            LinkedHashMap<String, ProxySetSpec> sets = new LinkedHashMap<>();
+            proxySets.stream().map(
                     setConfig -> Pair.of(setConfig.getName(), new ProxySetSpecGenerator(inputSpecs, setConfig, client))
             ).forEach(pair -> {
                 generators.put(pair.getLeft(), pair.getRight());
@@ -129,10 +130,9 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
 
     @Override
     public String getTlsCaPath() {
-        if (getProxySetGenerator(ProxyResourcesFactory.PROXY_DEFAULT_SET).getTlsCaPath() != null) {
-            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
-        }
-        return null;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.getTlsCaPath(), false, "tlsTrustCertsFilePath",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override

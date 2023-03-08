@@ -18,7 +18,8 @@ package com.datastax.oss.pulsaroperator.crds.broker;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import javax.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,34 +33,50 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 public class BrokerSpec extends BrokerSetSpec {
+
+    enum BrokerSetsUpdateStrategy {
+        RollingUpdate,
+        Parallel
+    }
+
     @JsonPropertyDescription("Broker sets.")
-    private Map<String, BrokerSetSpec> sets;
+    private LinkedHashMap<String, BrokerSetSpec> sets;
+    @JsonPropertyDescription("Sets update strategy. 'RollingUpdate' or 'Parallel'. Default is 'RollingUpdate'.")
+    private String setsUpdateStrategy;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        if (setsUpdateStrategy == null) {
+            setsUpdateStrategy = BrokerSetsUpdateStrategy.RollingUpdate.toString();
+        }
     }
 
     @Override
     public boolean isValid(BrokerSetSpec value, ConstraintValidatorContext context) {
-        final Map<String, BrokerSetSpec> sets = ((BrokerSpec) value).getSets();
-        if (!isValid(sets, context)) {
+        final BrokerSpec brokerSpec = (BrokerSpec) value;
+        if (!isBrokerSpecValid(context, brokerSpec)) {
             return false;
         }
         return super.isValid(value, context);
     }
 
-    private boolean isValid(Map<String, BrokerSetSpec> sets, ConstraintValidatorContext context) {
-        if (sets == null || sets.isEmpty()) {
-            return true;
-        }
-        if (sets.containsKey(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
+    private boolean isBrokerSpecValid(ConstraintValidatorContext context, BrokerSpec brokerSpec) {
+        if (Arrays.stream(BrokerSetsUpdateStrategy.values())
+                .noneMatch(s -> s.toString().equals(brokerSpec.getSetsUpdateStrategy()))) {
             context.buildConstraintViolationWithTemplate(
-                            "Broker set name '" + BrokerResourcesFactory.BROKER_DEFAULT_SET + "' is reserved.")
+                            "Invalid sets update strategy: %s, only %s".formatted(brokerSpec.getSetsUpdateStrategy(),
+                                    Arrays.toString(BrokerSetsUpdateStrategy.values())))
                     .addConstraintViolation();
             return false;
         }
         return true;
+    }
 
+    public BrokerSetSpec getDefaultBrokerSpecRef() {
+        if (sets == null || !sets.containsKey(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
+            return this;
+        }
+        return sets.get(BrokerResourcesFactory.BROKER_DEFAULT_SET);
     }
 }

@@ -111,7 +111,11 @@ public class BrokerAutoscalerTest {
             field.set(brokerResourcesFactory, new ConfigMapBuilder().build());
             final StatefulSet sts = brokerResourcesFactory.generateStatefulSet();
             sts.setStatus(new StatefulSetStatusBuilder()
+                    .withReplicas(replicas)
                     .withReadyReplicas(replicas)
+                    .withUpdatedReplicas(replicas)
+                    .withCurrentRevision("rev")
+                    .withUpdateRevision("rev")
                     .build());
 
             stsConsumer.accept(sts);

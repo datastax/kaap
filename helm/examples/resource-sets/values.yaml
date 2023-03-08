@@ -16,13 +16,15 @@
 #
 
 operator:
-  image: datastax/lunastreaming-operator:latest
+  image: datastax/lunastreaming-operator:latest-dev
+  readinessProbe:
+    initialDelaySeconds: 60
 cluster:
   create: true
   spec:
     global:
       name: pulsar
-      image: datastax/lunastreaming-all:2.10_2.11
+      image: datastax/lunastreaming-core:2.10_2.11
       restartOnConfigMapChange: true
       storage:
         existingStorageClassName: default
@@ -53,6 +55,7 @@ cluster:
           cpu: "0.2"
           memory: "128Mi"
     broker:
+      setsUpdateStrategy: RollingUpdate
       replicas: 1
       config:
         managedLedgerDefaultAckQuorum: 1
@@ -61,26 +64,15 @@ cluster:
       resources:
         requests:
           cpu: "0.2"
-          memory: "128Mi"
-      sets:
-        shared:
-          replicas: 2
-          autoscaler:
-            enabled: true
-            min: 1
-            lowerCpuThreshold: 0.9
-            stabilizationWindowMs: 10000
-        dedicated:
-          replicas: 2
-          resources:
-            requests:
-              cpu: "0.5"
+          memory: "122Mi"
     proxy:
       replicas: 1
+      webSocket:
+        enabled: false
       resources:
         requests:
           cpu: "0.2"
-          memory: "128Mi"
+          memory: "121Mi"
       sets:
         shared:
           replicas: 3
@@ -89,9 +81,6 @@ cluster:
           service:
             annotations:
               external-dns.alpha.kubernetes.io/hostname: dedicated.proxy.pulsar.local
-          resources:
-            requests:
-              cpu: "0.5"
     autorecovery:
       replicas: 1
       resources:

@@ -17,16 +17,19 @@ package com.datastax.oss.pulsaroperator.controllers.broker;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
-import java.util.TreeMap;
+import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.LinkedHashMap;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -47,6 +50,7 @@ public class BrokerSetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 broker:
+                    setsUpdateStrategy: Parallel
                     sets:
                       set1: {}
                       set2: {}
@@ -89,6 +93,7 @@ public class BrokerSetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 broker:
+                    setsUpdateStrategy: Parallel
                     replicas: 6
                     config:
                         common: commonvalue
@@ -306,8 +311,8 @@ public class BrokerSetsControllerTest {
     }
 
     @SneakyThrows
-    private void invokeController(Broker broker, MockKubernetesClient client) {
-        controllerTestUtil.invokeController(client, broker, BrokerController.class);
+    private UpdateControl<Broker> invokeController(String spec, Broker lastCr, MockKubernetesClient client) {
+        return controllerTestUtil.invokeController(client, spec, lastCr, BrokerFullSpec.class, BrokerController.class);
     }
 
 
@@ -335,7 +340,7 @@ public class BrokerSetsControllerTest {
 
         final BrokerFullSpec brokerFullSpec = SerializationUtil.readYaml(spec, BrokerFullSpec.class);
 
-        final TreeMap<String, BrokerSetSpec> sets = BrokerController.getBrokerSetSpecs(brokerFullSpec);
+        final LinkedHashMap<String, BrokerSetSpec> sets = BrokerController.getBrokerSetSpecs(brokerFullSpec);
         Assert.assertEquals(SerializationUtil.writeAsYaml(sets),
                 """
                         ---
@@ -397,6 +402,7 @@ public class BrokerSetsControllerTest {
                                 requireRackAffinity: true
                                 requireRackAntiAffinity: true
                 broker:
+                    setsUpdateStrategy: Parallel
                     sets:
                       set1norack: {}
                       set2norack:
@@ -600,6 +606,205 @@ public class BrokerSetsControllerTest {
                                 resource-set: set3
                             topologyKey: kubernetes.io/hostname
                         """);
+    }
+
+
+    @Test
+    public void testRollingUpdate() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                broker:
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<Broker> brokerUpdateControl = invokeController(spec, new Broker(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        // verify order of sets follows the order declared in the spec
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-broker-setz",
+                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-broker-seta",
+                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        // now update
+
+        resolver.putResource("pulsarname-broker-seta",
+                resolver.newStatefulSetBuilder("pulsarname-broker-seta", false).build());
+        resolver.putResource("pulsarname-broker-setz",
+                resolver.newStatefulSetBuilder("pulsarname-broker-setz", false).build());
+
+        spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                broker:
+                    config:
+                        newvalue: true
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client );
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+
+
+        resolver.putResource("pulsarname-broker-setz",
+                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+
+        resolver.putResource("pulsarname-broker-seta",
+                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+
+    }
+
+    @Test
+    public void testParallelUpdate() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                broker:
+                    setsUpdateStrategy: Parallel
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<Broker> brokerUpdateControl = invokeController(spec, new Broker(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-broker-setz",
+                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-broker-seta",
+                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        // now update
+
+        resolver.putResource("pulsarname-broker-seta",
+                resolver.newStatefulSetBuilder("pulsarname-broker-seta", false).build());
+        resolver.putResource("pulsarname-broker-setz",
+                resolver.newStatefulSetBuilder("pulsarname-broker-setz", false).build());
+
+        spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                broker:
+                    setsUpdateStrategy: Parallel
+                    config:
+                        newvalue: true
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client );
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        resolver.putResource("pulsarname-broker-setz",
+                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-broker-seta",
+                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(brokerUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
     }
 
 

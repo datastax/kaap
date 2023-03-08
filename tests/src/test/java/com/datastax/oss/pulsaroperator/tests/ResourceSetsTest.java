@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,20 +57,20 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
 
                         ))
         );
-        specs.getBroker().setSets(Map.of(
+        specs.getBroker().setSets(new LinkedHashMap<>(Map.of(
                 "set1", BrokerSetSpec.builder().build(),
                 "set2", BrokerSetSpec.builder().build()
-        ));
+        )));
 
-        specs.getProxy().setSets(Map.of(
+        specs.getProxy().setSets(new LinkedHashMap<>(Map.of(
                 "set1", ProxySetSpec.builder().build(),
                 "set2", ProxySetSpec.builder().build()
-        ));
+        )));
 
-        specs.getGlobal().setResourceSets(Map.of(
+        specs.getGlobal().setResourceSets(new LinkedHashMap<>(Map.of(
                 "set1", ResourceSetConfig.builder().build(),
                 "set2", ResourceSetConfig.builder().build()
-        ));
+        )));
 
 
         specs.getGlobal()
@@ -143,13 +144,13 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
             assertProduceConsume();
 
 
-            specs.getBroker().setSets(Map.of(
+            specs.getBroker().setSets(new LinkedHashMap<>(Map.of(
                     "set1", BrokerSetSpec.builder().build()
-            ));
+            )));
 
-            specs.getProxy().setSets(Map.of(
+            specs.getProxy().setSets(new LinkedHashMap<>(Map.of(
                     "set1", ProxySetSpec.builder().build()
-            ));
+            )));
             applyPulsarCluster(specsToYaml(specs));
 
 

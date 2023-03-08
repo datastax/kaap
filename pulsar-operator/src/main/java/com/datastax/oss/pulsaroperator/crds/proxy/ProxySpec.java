@@ -15,10 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.crds.proxy;
 
-import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import javax.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,34 +31,25 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 public class ProxySpec extends ProxySetSpec {
+    public enum ProxySetsUpdateStrategy {
+        RollingUpdate,
+        Parallel
+    }
     @JsonPropertyDescription("Proxy sets.")
-    private Map<String, ProxySetSpec> sets;
+    private LinkedHashMap<String, ProxySetSpec> sets;
+    @JsonPropertyDescription("Sets update strategy. 'RollingUpdate' or 'Parallel'. Default is 'RollingUpdate'.")
+    private String setsUpdateStrategy;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
+        if (setsUpdateStrategy == null) {
+            setsUpdateStrategy = ProxySetsUpdateStrategy.RollingUpdate.toString();
+        }
         super.applyDefaults(globalSpec);
     }
 
     @Override
     public boolean isValid(ProxySetSpec value, ConstraintValidatorContext context) {
-        final Map<String, ProxySetSpec> sets = ((ProxySpec) value).getSets();
-        if (!isValid(sets, context)) {
-            return false;
-        }
         return super.isValid(value, context);
-    }
-
-    private boolean isValid(Map<String, ProxySetSpec> sets, ConstraintValidatorContext context) {
-        if (sets == null || sets.isEmpty()) {
-            return true;
-        }
-        if (sets.containsKey(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
-            context.buildConstraintViolationWithTemplate(
-                            "Proxy set name '" + ProxyResourcesFactory.PROXY_DEFAULT_SET + "' is reserved.")
-                    .addConstraintViolation();
-            return false;
-        }
-        return true;
-
     }
 }

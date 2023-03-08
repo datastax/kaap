@@ -168,7 +168,7 @@ public class BrokerSetAutoscaler implements Runnable {
 
     private void applyScaleTo(Broker brokerCr, int scaleTo) {
         if (brokerSetName.equals(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
-            brokerCr.getSpec().getBroker().setReplicas(scaleTo);
+            brokerCr.getSpec().getBroker().getDefaultBrokerSpecRef().setReplicas(scaleTo);
         } else {
             brokerCr.getSpec().getBroker().getSets().get(brokerSetName).setReplicas(scaleTo);
         }

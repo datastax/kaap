@@ -15,9 +15,11 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
+import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
@@ -29,11 +31,10 @@ import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,14 +46,13 @@ import lombok.extern.jbosslog.JBossLog;
 public class ProxyController extends AbstractController<Proxy> {
 
     public static List<String> enumerateProxySets(String clusterName, String componentBaseName, ProxySpec proxy) {
-        Map<String, ProxySetSpec> sets = proxy.getSets();
+        LinkedHashMap<String, ProxySetSpec> sets = proxy.getSets();
         if (sets == null || sets.isEmpty()) {
             return List.of(ProxyResourcesFactory.getResourceName(clusterName, componentBaseName,
                     ProxyResourcesFactory.PROXY_DEFAULT_SET, proxy.getOverrideResourceName()));
         } else {
-            final TreeMap<String, ProxySetSpec> sorted = new TreeMap<>(sets);
             List<String> names = new ArrayList<>();
-            for (Map.Entry<String, ProxySetSpec> set : sorted.entrySet()) {
+            for (Map.Entry<String, ProxySetSpec> set : sets.entrySet()) {
                 names.add(ProxyResourcesFactory.getResourceName(clusterName, componentBaseName,
                         set.getKey(), set.getValue()));
             }
@@ -86,6 +86,7 @@ public class ProxyController extends AbstractController<Proxy> {
             for (ProxySetInfo proxySetInfo : proxySets) {
                 final ReconciliationResult result = checkReady(resource, proxySetInfo);
                 if (result.isReschedule()) {
+                    log.infof("Proxy set %s is not ready, rescheduling", proxySetInfo.getName());
                     return result;
                 }
                 lastResult = result;
@@ -99,8 +100,61 @@ public class ProxyController extends AbstractController<Proxy> {
             // always create default service
             defaultResourceFactory.patchService();
 
+            final ProxyFullSpec lastApplied = getLastAppliedResource(resource, ProxyFullSpec.class);
+            final LinkedHashMap<String, ProxySetSpec> appliedProxySetSpecs;
+            if (lastApplied != null) {
+                appliedProxySetSpecs = getProxySetSpecs(lastApplied);
+            } else {
+                appliedProxySetSpecs = new LinkedHashMap<>();
+            }
+
+            final boolean isRollingUpdate =
+                    spec.getProxy().getSetsUpdateStrategy().equals(ProxySpec.ProxySetsUpdateStrategy.RollingUpdate);
             for (ProxySetInfo proxySet : proxySets) {
-                patchAll(proxySet.getProxyResourcesFactory());
+                final ProxySetSpec lastAppliedSet = appliedProxySetSpecs.get(proxySet.getName());
+                boolean needPatch;
+                if (lastAppliedSet == null) {
+                    needPatch = true;
+                } else {
+                    final JSONComparator.Result result = SpecDiffer.generateDiff(proxySet.getSetSpec(), lastAppliedSet);
+                    needPatch = !result.areEquals();
+                    if (!result.areEquals()) {
+                        SpecDiffer.logDetailedSpecDiff(result);
+                    }
+                }
+                if (needPatch) {
+                    patchAll(proxySet.getProxyResourcesFactory());
+                    if (isRollingUpdate) {
+                        log.infof("Proxy set '%s' is not ready, rescheduling", proxySet.getName());
+                        // change last applied
+                        if (proxySet.getName().equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
+                            final LinkedHashMap<String, ProxySetSpec> sets = resource.getSpec().getProxy().getSets();
+                            if (sets == null || !sets.containsKey(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
+                                resource.getSpec().setProxy((ProxySpec) proxySet.getSetSpec());
+                            } else {
+                                resource.getSpec().getProxy().getSets().put(proxySet.getName(), proxySet.getSetSpec());
+                            }
+                        } else {
+                            resource.getSpec().getProxy().getSets().put(proxySet.getName(), proxySet.getSetSpec());
+                        }
+
+                        return new ReconciliationResult(
+                                true,
+                                List.of(createNotReadyInitializingCondition(resource))
+                        );
+                    }
+                } else {
+                    if (isRollingUpdate && checkReady(resource, proxySet).isReschedule()) {
+                        log.infof("Proxy set '%s' not changed but not ready, rescheduling", proxySet.getName());
+                        return new ReconciliationResult(
+                                true,
+                                List.of(createNotReadyInitializingCondition(resource)),
+                                true
+                        );
+                    } else {
+                        log.infof("Proxy set %s is ready", proxySet.getName());
+                    }
+                }
             }
             cleanupDeletedProxySets(resource, namespace, proxySets);
             return new ReconciliationResult(
@@ -119,11 +173,14 @@ public class ProxyController extends AbstractController<Proxy> {
     }
 
 
-    private void deleteAll(ProxyResourcesFactory controller) {
-        controller.deletePodDisruptionBudget();
-        controller.deleteConfigMap();
-        controller.deleteService();
-        controller.deleteDeployment();
+    private void deleteAll(ProxySetInfo proxySet) {
+        final ProxyResourcesFactory resourcesFactory = proxySet.getProxyResourcesFactory();
+        resourcesFactory.deletePodDisruptionBudget();
+        resourcesFactory.deleteConfigMap();
+        if (!proxySet.getName().equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
+            resourcesFactory.deleteService();
+        }
+        resourcesFactory.deleteDeployment();
     }
 
 
@@ -137,22 +194,16 @@ public class ProxyController extends AbstractController<Proxy> {
             );
         }
         final Deployment deployment = resourcesFactory.getDeployment();
-        if (deployment == null) {
-            patchAll(resourcesFactory);
-            return new ReconciliationResult(true,
-                    List.of(createNotReadyInitializingCondition(resource)));
+        if (BaseResourcesFactory.isDeploymentReady(deployment)) {
+            return new ReconciliationResult(
+                    false,
+                    List.of(createReadyCondition(resource))
+            );
         } else {
-            if (BaseResourcesFactory.isDeploymentReady(deployment)) {
-                return new ReconciliationResult(
-                        false,
-                        List.of(createReadyCondition(resource))
-                );
-            } else {
-                return new ReconciliationResult(
-                        true,
-                        List.of(createNotReadyInitializingCondition(resource))
-                );
-            }
+            return new ReconciliationResult(
+                    true,
+                    List.of(createNotReadyInitializingCondition(resource))
+            );
         }
     }
 
@@ -161,11 +212,10 @@ public class ProxyController extends AbstractController<Proxy> {
         if (lastAppliedResource != null) {
             final Set<String> currentProxySets = proxySets.stream().map(ProxySetInfo::getName)
                     .collect(Collectors.toSet());
-            currentProxySets.add(ProxyResourcesFactory.PROXY_DEFAULT_SET);
             final List<ProxySetInfo> toDeleteProxySets =
                     getProxySets(null, namespace, lastAppliedResource, currentProxySets);
             for (ProxySetInfo proxySet : toDeleteProxySets) {
-                deleteAll(proxySet.getProxyResourcesFactory());
+                deleteAll(proxySet);
                 log.infof("Deleted proxy set: %s", proxySet.getName());
             }
         }
@@ -195,25 +245,24 @@ public class ProxyController extends AbstractController<Proxy> {
         return result;
     }
 
-    public static TreeMap<String, ProxySetSpec> getProxySetSpecs(ProxyFullSpec fullSpec) {
+    public static LinkedHashMap<String, ProxySetSpec> getProxySetSpecs(ProxyFullSpec fullSpec) {
         return getProxySetSpecs(fullSpec.getProxy());
     }
 
-    public static TreeMap<String, ProxySetSpec> getProxySetSpecs(ProxySpec proxy) {
+    public static LinkedHashMap<String, ProxySetSpec> getProxySetSpecs(ProxySpec proxy) {
         Map<String, ProxySetSpec> sets = proxy.getSets();
         if (sets == null || sets.isEmpty()) {
-            sets = Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET,
-                    ConfigUtil.applyDefaultsWithReflection(new ProxySetSpec(),
-                            () -> proxy));
+            sets = new LinkedHashMap(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET,
+                    ConfigUtil.applyDefaultsWithReflection(new ProxySpec(),
+                            () -> proxy)));
         } else {
-            sets = new HashMap<>(sets);
             for (Map.Entry<String, ProxySetSpec> set : sets.entrySet()) {
                 sets.put(set.getKey(),
                         ConfigUtil.applyDefaultsWithReflection(set.getValue(), () -> proxy)
                 );
             }
         }
-        return new TreeMap<>(sets);
+        return new LinkedHashMap<>(sets);
     }
 
 

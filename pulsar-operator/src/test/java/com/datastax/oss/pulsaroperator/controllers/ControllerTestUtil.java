@@ -81,6 +81,16 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
         return invokeController(mockKubernetesClient, cr, controllerClass);
     }
 
+    public UpdateControl<R> invokeController(
+            MockKubernetesClient mockKubernetesClient, String spec,
+            R lastUpdateControlValue,
+            Class<X> fullSpecClass,
+            Class<? extends AbstractController<R>> controllerClass)
+            throws Exception {
+        final R cr = createCustomResource(lastUpdateControlValue, fullSpecClass, spec);
+        return invokeController(mockKubernetesClient, cr, controllerClass);
+    }
+
     public UpdateControl<R> invokeController(MockKubernetesClient mockKubernetesClient,
                                              R cr,
                                              Class<? extends AbstractController<R>> controllerClass) throws Exception {
@@ -91,11 +101,14 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
 
 
     public R createCustomResource(Class<R> crClass, Class<X> fullSpecClass, String spec) throws Exception {
-        final R cr = crClass.getConstructor().newInstance();
+        return createCustomResource(crClass.getConstructor().newInstance(), fullSpecClass, spec);
+    }
+
+    public R createCustomResource(R cr, Class<X> fullSpecClass, String spec) throws Exception {
         cr.setMetadata(
                 new ObjectMetaBuilder()
-                .withName(clusterName + "-cr").withNamespace(namespace)
-                .build());
+                        .withName(clusterName + "-cr").withNamespace(namespace)
+                        .build());
         cr.setSpec(MockKubernetesClient.readYaml(spec, fullSpecClass));
         cr.getSpec().getGlobalSpec().applyDefaults(null);
         cr.getSpec().applyDefaults(cr.getSpec().getGlobalSpec());

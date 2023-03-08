@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.configs.RackConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import io.fabric8.kubernetes.api.model.Pod;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -57,11 +58,11 @@ public class RacksTest extends BasePulsarClusterTest {
                         ))
         );
         specs.getBroker().setReplicas(2);
-        specs.getBroker().setSets(Map.of(
+        specs.getBroker().setSets(new LinkedHashMap<>(Map.of(
                 "set1", BrokerSetSpec.builder().build(),
                 "set2", BrokerSetSpec.builder().build(),
                 "norack", BrokerSetSpec.builder().build()
-        ));
+        )));
 
         specs.getProxy().setReplicas(0);
         specs.getProxy().setWebSocket(ProxySetSpec.WebSocketConfig.builder().enabled(false).build());
@@ -129,11 +130,11 @@ public class RacksTest extends BasePulsarClusterTest {
         specs.getBroker().setReplicas(1);
         specs.getProxy().setReplicas(2);
         specs.getProxy().setWebSocket(ProxySetSpec.WebSocketConfig.builder().enabled(false).build());
-        specs.getProxy().setSets(Map.of(
+        specs.getProxy().setSets(new LinkedHashMap<>(Map.of(
                 "set1", ProxySetSpec.builder().build(),
                 "set2", ProxySetSpec.builder().build(),
                 "norack", ProxySetSpec.builder().build()
-        ));
+        )));
 
         final RackConfig rackConfig = RackConfig.builder()
                 .host(RackConfig.HostRackTypeConfig.builder()

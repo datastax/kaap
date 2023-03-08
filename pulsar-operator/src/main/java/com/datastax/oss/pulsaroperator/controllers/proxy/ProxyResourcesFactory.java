@@ -557,9 +557,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
     @Override
     protected Map<String, String> getMatchLabels(Map<String, String> customMatchLabels) {
         final Map<String, String> matchLabels = super.getMatchLabels(customMatchLabels);
-        if (!proxySet.equals(PROXY_DEFAULT_SET)) {
-            matchLabels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
-        }
+        matchLabels.put(CRDConstants.LABEL_RESOURCESET, proxySet);
         setRackLabel(matchLabels);
         return matchLabels;
     }

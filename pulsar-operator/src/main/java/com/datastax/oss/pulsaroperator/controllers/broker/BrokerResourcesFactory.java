@@ -508,9 +508,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
     @Override
     protected Map<String, String> getMatchLabels(Map<String, String> customMatchLabels) {
         final Map<String, String> matchLabels = super.getMatchLabels(customMatchLabels);
-        if (!brokerSet.equals(BROKER_DEFAULT_SET)) {
-            matchLabels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
-        }
+        matchLabels.put(CRDConstants.LABEL_RESOURCESET, brokerSet);
         setRackLabel(matchLabels);
         return matchLabels;
     }

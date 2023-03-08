@@ -58,9 +58,9 @@ import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.quarkus.runtime.ShutdownEvent;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import lombok.SneakyThrows;
@@ -161,7 +161,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             if (!bastionReady) {
                 notReady.add("bastion");
             }
-            if (!functionsWorkerReady) {
+            if (!functionsWorkerReady && brokerReady) {
                 notReady.add("functionsworker");
             }
 
@@ -212,9 +212,9 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 return;
             }
 
-            final TreeMap<String, BrokerSetSpec> desiredBrokerSetSpecs =
+            final LinkedHashMap<String, BrokerSetSpec> desiredBrokerSetSpecs =
                     BrokerController.getBrokerSetSpecs(clusterSpec.getBroker());
-            final TreeMap<String, BrokerSetSpec> currentBrokerSetSpecs =
+            final LinkedHashMap<String, BrokerSetSpec> currentBrokerSetSpecs =
                     BrokerController.getBrokerSetSpecs(current.getSpec().getBroker());
             for (Map.Entry<String, BrokerSetSpec> currentSet : currentBrokerSetSpecs.entrySet()) {
                 final BrokerSetSpec desiredBrokerSetSpec = desiredBrokerSetSpecs.get(currentSet.getKey());
@@ -226,7 +226,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                         final Integer currentReplicas = currentBrokerSetSpec.getReplicas();
                         // do not update replicas if patching, leave whatever the autoscaler have set
                         if (currentSet.getKey().equals(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
-                            clusterSpec.getBroker().setReplicas(currentReplicas);
+                            clusterSpec.getBroker().getDefaultBrokerSpecRef().setReplicas(currentReplicas);
                         } else {
                             clusterSpec.getBroker().getSets().get(currentSet.getKey()).setReplicas(currentReplicas);
                         }
@@ -389,7 +389,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                 }
             } else {
                 log.infof("detected diff in %s, updating resource", customResourceName);
-                logDetailedSpecDiff(diff, currentAsJson, newSpecAsJson);
+                SpecDiffer.logDetailedSpecDiff(diff, currentAsJson, newSpecAsJson);
             }
         }
 
@@ -411,33 +411,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         return false;
     }
 
-    private <SPEC> void logDetailedSpecDiff(JSONComparator.Result diff, String currentAsJson, String newSpecAsJson) {
-        log.infof("logging detailed diff: \nwas: %s\nnow: %s", currentAsJson, newSpecAsJson);
-        for (JSONComparator.FieldComparisonDiff failure : diff.diffs()) {
-            final String actualValue = failure.actual();
-            final String completeField = failure.field();
-            final String expectedValue = failure.expected();
-            if (actualValue == null) {
-                log.infof("""
-                        was: '%s=%s', now removed
-                        """.formatted(completeField, expectedValue));
-            } else if (expectedValue == null) {
-                log.infof("""
-                        was empty, now: '%s=%s'
-                        """.formatted(completeField, actualValue));
-            } else {
-                log.infof("""
-                        '%s' value differs:
-                            was: %s
-                            now: %s
-                        """.formatted(
-                        completeField,
-                        expectedValue,
-                        actualValue
-                ));
-            }
-        }
-    }
+
 
 
     protected <CR extends CustomResource<SPEC, ?>, SPEC> CR getExistingCustomResource(

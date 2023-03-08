@@ -92,6 +92,9 @@ public class MockResourcesResolver {
                 .withNewStatus()
                 .withReplicas(1)
                 .withReadyReplicas(ready ? 1 : 0)
+                .withUpdatedReplicas(ready ? 1 : 0)
+                .withUpdateRevision("rev1")
+                .withCurrentRevision(ready ? "rev1": "rev0")
                 .endStatus();
     }
 
@@ -99,5 +102,11 @@ public class MockResourcesResolver {
         final HasMetadata r = Serialization.unmarshal(yaml);
         resources.put(computeKey(r), r);
         log.info("imported resource {}/{}", r.getKind(), r.getMetadata().getName());
+    }
+
+    public void putResource(String name, HasMetadata resource) {
+        resource.getMetadata().setName(name);
+        resources.put(computeKey(resource), resource);
+        log.info("added resource {}/{}", resource.getKind(), resource.getMetadata().getName());
     }
 }

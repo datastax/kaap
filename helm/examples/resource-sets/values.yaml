@@ -66,18 +66,19 @@ cluster:
       resources:
         requests:
           cpu: "0.2"
-          memory: "122Mi"
+          memory: "125Mi"
     proxy:
+      setsUpdateStrategy: RollingUpdate
       replicas: 1
       webSocket:
         enabled: false
       resources:
         requests:
           cpu: "0.2"
-          memory: "121Mi"
+          memory: "128Mi"
       sets:
         shared:
-          replicas: 3
+          replicas: 2
         dedicated:
           replicas: 2
           service:

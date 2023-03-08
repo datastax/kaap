@@ -35,7 +35,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class BrokerSpec extends BrokerSetSpec {
 
-    enum BrokerSetsUpdateStrategy {
+    public enum BrokerSetsUpdateStrategy {
         RollingUpdate,
         Parallel
     }

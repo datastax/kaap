@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.crds.proxy;
 
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import javax.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
@@ -35,6 +36,7 @@ public class ProxySpec extends ProxySetSpec {
         RollingUpdate,
         Parallel
     }
+
     @JsonPropertyDescription("Proxy sets.")
     private LinkedHashMap<String, ProxySetSpec> sets;
     @JsonPropertyDescription("Sets update strategy. 'RollingUpdate' or 'Parallel'. Default is 'RollingUpdate'.")
@@ -50,6 +52,22 @@ public class ProxySpec extends ProxySetSpec {
 
     @Override
     public boolean isValid(ProxySetSpec value, ConstraintValidatorContext context) {
+        if (!isProxySpecValid((ProxySpec) value, context)) {
+            return false;
+        }
         return super.isValid(value, context);
+    }
+
+    private boolean isProxySpecValid(ProxySpec value, ConstraintValidatorContext context) {
+        final ProxySpec proxySpec = value;
+        if (Arrays.stream(ProxySetsUpdateStrategy.values())
+                .noneMatch(s -> s.toString().equals(proxySpec.getSetsUpdateStrategy()))) {
+            context.buildConstraintViolationWithTemplate(
+                            "Invalid sets update strategy: %s, only %s".formatted(proxySpec.getSetsUpdateStrategy(),
+                                    Arrays.toString(ProxySetsUpdateStrategy.values())))
+                    .addConstraintViolation();
+            return false;
+        }
+        return true;
     }
 }

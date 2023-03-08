@@ -77,7 +77,7 @@ public class AutorecoveryController extends AbstractController<Autorecovery> {
             return new ReconciliationResult(true,
                     List.of(createNotReadyInitializingCondition(resource)));
         } else {
-            if (BaseResourcesFactory.isDeploymentReady(deployment)) {
+            if (BaseResourcesFactory.isDeploymentReady(deployment, client)) {
                 return new ReconciliationResult(
                         false,
                         List.of(createReadyCondition(resource))

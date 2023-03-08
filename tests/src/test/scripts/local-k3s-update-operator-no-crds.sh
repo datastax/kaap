@@ -35,9 +35,9 @@ echo "copying image into container $container"
 docker inspect pulsaroperator-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
   docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin
   echo "image digest copied into container $container"
-  docker exec -t $container sh -c "(ctr image rm docker.io/datastax/lunastreaming-operator:latest-dev) || (docker image rm -f docker.io/datastax/lunastreaming-operator:latest-dev)"
+  docker exec -t $container sh -c "(ctr image rm docker.io/datastax/lunastreaming-operator:latest-dev) || (docker image rm -f docker.io/datastax/lunastreaming-operator:latest-dev) || echo 'not able to remove'"
   echo "importing image in $container"
-  docker exec -t $container sh -c "(ctr image import /tmp/pulsar-operator.bin) || (docker image load /tmp/pulsar-operator.bin)"
+  docker exec -t $container sh -c "(ctr image import /tmp/pulsar-operator.bin) || (docker image load /tmp/pulsar-operator.bin) || echo 'not able to import'"
   echo "image imported in $container"
 done
 

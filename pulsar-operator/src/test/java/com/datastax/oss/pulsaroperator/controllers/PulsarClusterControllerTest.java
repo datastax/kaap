@@ -455,6 +455,7 @@ public class PulsarClusterControllerTest {
                           cpu: 1
                           memory: 1Gi
                       probes: {}
+                    setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));

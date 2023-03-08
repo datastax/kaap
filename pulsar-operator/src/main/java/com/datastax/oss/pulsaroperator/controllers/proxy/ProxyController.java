@@ -15,11 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
-import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
-import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
@@ -86,7 +84,7 @@ public class ProxyController extends AbstractController<Proxy> {
             for (ProxySetInfo proxySetInfo : proxySets) {
                 final ReconciliationResult result = checkReady(resource, proxySetInfo);
                 if (result.isReschedule()) {
-                    log.infof("Proxy set %s is not ready, rescheduling", proxySetInfo.getName());
+                    log.infof("Proxy set '%s' is not ready, rescheduling", proxySetInfo.getName());
                     return result;
                 }
                 lastResult = result;
@@ -100,60 +98,18 @@ public class ProxyController extends AbstractController<Proxy> {
             // always create default service
             defaultResourceFactory.patchService();
 
-            final ProxyFullSpec lastApplied = getLastAppliedResource(resource, ProxyFullSpec.class);
-            final LinkedHashMap<String, ProxySetSpec> appliedProxySetSpecs;
-            if (lastApplied != null) {
-                appliedProxySetSpecs = getProxySetSpecs(lastApplied);
-            } else {
-                appliedProxySetSpecs = new LinkedHashMap<>();
-            }
-
-            final boolean isRollingUpdate =
-                    spec.getProxy().getSetsUpdateStrategy().equals(ProxySpec.ProxySetsUpdateStrategy.RollingUpdate);
+            final boolean isRollingUpdate = isRollingUpdate(spec);
             for (ProxySetInfo proxySet : proxySets) {
-                final ProxySetSpec lastAppliedSet = appliedProxySetSpecs.get(proxySet.getName());
-                boolean needPatch;
-                if (lastAppliedSet == null) {
-                    needPatch = true;
+                patchAll(proxySet.getProxyResourcesFactory());
+                if (isRollingUpdate && checkReady(resource, proxySet).isReschedule()) {
+                    log.infof("Proxy set '%s' is not ready, rescheduling", proxySet.getName());
+                    return new ReconciliationResult(
+                            true,
+                            List.of(createNotReadyInitializingCondition(resource)),
+                            true
+                    );
                 } else {
-                    final JSONComparator.Result result = SpecDiffer.generateDiff(proxySet.getSetSpec(), lastAppliedSet);
-                    needPatch = !result.areEquals();
-                    if (!result.areEquals()) {
-                        SpecDiffer.logDetailedSpecDiff(result);
-                    }
-                }
-                if (needPatch) {
-                    patchAll(proxySet.getProxyResourcesFactory());
-                    if (isRollingUpdate) {
-                        log.infof("Proxy set '%s' is not ready, rescheduling", proxySet.getName());
-                        // change last applied
-                        if (proxySet.getName().equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
-                            final LinkedHashMap<String, ProxySetSpec> sets = resource.getSpec().getProxy().getSets();
-                            if (sets == null || !sets.containsKey(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
-                                resource.getSpec().setProxy((ProxySpec) proxySet.getSetSpec());
-                            } else {
-                                resource.getSpec().getProxy().getSets().put(proxySet.getName(), proxySet.getSetSpec());
-                            }
-                        } else {
-                            resource.getSpec().getProxy().getSets().put(proxySet.getName(), proxySet.getSetSpec());
-                        }
-
-                        return new ReconciliationResult(
-                                true,
-                                List.of(createNotReadyInitializingCondition(resource))
-                        );
-                    }
-                } else {
-                    if (isRollingUpdate && checkReady(resource, proxySet).isReschedule()) {
-                        log.infof("Proxy set '%s' not changed but not ready, rescheduling", proxySet.getName());
-                        return new ReconciliationResult(
-                                true,
-                                List.of(createNotReadyInitializingCondition(resource)),
-                                true
-                        );
-                    } else {
-                        log.infof("Proxy set %s is ready", proxySet.getName());
-                    }
+                    log.infof("Proxy set '%s' is ready", proxySet.getName());
                 }
             }
             cleanupDeletedProxySets(resource, namespace, proxySets);
@@ -162,6 +118,11 @@ public class ProxyController extends AbstractController<Proxy> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
+    }
+
+    private boolean isRollingUpdate(ProxyFullSpec spec) {
+        return ProxySpec.ProxySetsUpdateStrategy.RollingUpdate
+                .toString().equals(spec.getProxy().getSetsUpdateStrategy());
     }
 
     private void patchAll(ProxyResourcesFactory controller) {
@@ -194,7 +155,7 @@ public class ProxyController extends AbstractController<Proxy> {
             );
         }
         final Deployment deployment = resourcesFactory.getDeployment();
-        if (BaseResourcesFactory.isDeploymentReady(deployment)) {
+        if (BaseResourcesFactory.isDeploymentReady(deployment, client)) {
             return new ReconciliationResult(
                     false,
                     List.of(createReadyCondition(resource))
@@ -216,7 +177,7 @@ public class ProxyController extends AbstractController<Proxy> {
                     getProxySets(null, namespace, lastAppliedResource, currentProxySets);
             for (ProxySetInfo proxySet : toDeleteProxySets) {
                 deleteAll(proxySet);
-                log.infof("Deleted proxy set: %s", proxySet.getName());
+                log.infof("Deleted proxy set: '%s'", proxySet.getName());
             }
         }
     }

@@ -46,7 +46,8 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -82,6 +83,7 @@ public abstract class BaseResourcesFactory<T> {
 
 
     public static final String CONFIG_PULSAR_PREFIX = "PULSAR_PREFIX_";
+    public static final String DEPLOYMENT_REVISION_ANNOTATION = "deployment.kubernetes.io/revision";
     protected final KubernetesClient client;
     protected final String namespace;
     protected final T spec;
@@ -738,18 +740,41 @@ public abstract class BaseResourcesFactory<T> {
         return replicas == ready && updated == ready;
     }
 
-    public static boolean isDeploymentReady(Deployment deployment) {
+    public static boolean isDeploymentReady(Deployment deployment, KubernetesClient client) {
         if (deployment == null) {
             return false;
         }
-        final DeploymentStatus status = deployment.getStatus();
-        if (status.getReplicas() == null || status.getReadyReplicas() == null || status.getUpdatedReplicas() == null) {
+        final String revision = deployment.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION);
+        if (revision == null) {
+            System.out.println("no revision");
+            return false;
+        }
+        final ReplicaSet currentReplicaSet = client.apps().replicaSets()
+                .inNamespace(deployment.getMetadata().getNamespace())
+                .withLabels(deployment.getMetadata().getLabels())
+                .list()
+                .getItems()
+                .stream()
+                .filter(r -> r.getMetadata().getOwnerReferences().get(0).getUid()
+                        .equals(deployment.getMetadata().getUid()))
+                .filter(r -> revision.equals(r.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION)))
+                .findFirst()
+                .orElse(null);
+        if (currentReplicaSet == null) {
+            System.out.println("no rset");
+            return false;
+        }
+        final ReplicaSetStatus status = currentReplicaSet.getStatus();
+        if (status.getReplicas() == null || status.getReadyReplicas() == null
+                || status.getAvailableReplicas() == null) {
+            System.out.println("rset with nulls");
             return false;
         }
         final int replicas = status.getReplicas().intValue();
         final int ready = status.getReadyReplicas().intValue();
-        final int updated = status.getUpdatedReplicas().intValue();
-        return replicas == ready && updated == ready;
+        final int available = status.getAvailableReplicas().intValue();
+        System.out.println("rset mismatch ? " + currentReplicaSet.getMetadata().getName() + " " + replicas + " "  + ready + " " + available);
+        return replicas == ready && available == ready;
     }
 
     protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules,

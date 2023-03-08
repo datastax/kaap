@@ -214,6 +214,10 @@ public class BrokerSetsControllerTest {
         defaultSts.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
         defaultSts.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
         defaultSts.getSpec().getTemplate().getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        defaultSts.getSpec().getTemplate().getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .get(0)
+                .getLabelSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(sts), SerializationUtil.writeAsYaml(defaultSts));
     }

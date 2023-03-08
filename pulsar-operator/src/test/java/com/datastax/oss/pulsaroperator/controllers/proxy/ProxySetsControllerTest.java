@@ -17,14 +17,17 @@ package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
+import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -45,6 +48,7 @@ public class ProxySetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 proxy:
+                    setsUpdateStrategy: Parallel
                     sets:
                       set1: {}
                       set2: {}
@@ -87,6 +91,7 @@ public class ProxySetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 proxy:
+                    setsUpdateStrategy: Parallel
                     replicas: 6
                     config:
                         common: commonvalue
@@ -343,6 +348,7 @@ public class ProxySetsControllerTest {
                                 requireRackAffinity: true
                                 requireRackAntiAffinity: true
                 proxy:
+                    setsUpdateStrategy: Parallel
                     sets:
                       set1norack: {}
                       set2norack:
@@ -547,5 +553,198 @@ public class ProxySetsControllerTest {
                             topologyKey: kubernetes.io/hostname
                         """);
     }
+
+
+    @SneakyThrows
+    private UpdateControl<Proxy> invokeController(String spec, Proxy lastCr, MockKubernetesClient client) {
+        return controllerTestUtil.invokeController(client, spec, lastCr, ProxyFullSpec.class, ProxyController.class);
+    }
+
+    @Test
+    public void testRollingUpdate() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        // verify order of sets follows the order declared in the spec
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putDeployment("pulsarname-proxy-setz", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putDeployment("pulsarname-proxy-seta", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        // now update
+
+        resolver.putDeployment("pulsarname-proxy-setz", false);
+        resolver.putDeployment("pulsarname-proxy-seta", false);
+
+        spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    config:
+                        newvalue: true
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+
+
+        resolver.putDeployment("pulsarname-proxy-setz", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+
+        resolver.putDeployment("pulsarname-proxy-seta", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+
+    }
+
+    @Test
+    public void testParallelUpdate() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    setsUpdateStrategy: Parallel
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putDeployment("pulsarname-proxy-setz", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putDeployment("pulsarname-proxy-seta", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        // now update
+
+        resolver.putDeployment("pulsarname-proxy-seta", false);
+        resolver.putDeployment("pulsarname-proxy-setz", false);
+
+        spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    setsUpdateStrategy: Parallel
+                    config:
+                        newvalue: true
+                    sets:
+                      setz: {}
+                      seta: {}
+                """;
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+
+        resolver.putDeployment("pulsarname-proxy-setz", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putDeployment("pulsarname-proxy-seta", true);
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+    }
+
 
 }

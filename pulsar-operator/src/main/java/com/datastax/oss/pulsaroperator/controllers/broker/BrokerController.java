@@ -97,18 +97,18 @@ public class BrokerController extends AbstractController<Broker> {
             // always create default service
             defaultResourceFactory.patchService();
 
-            final boolean isRollingUpdate = spec.getBroker().getSetsUpdateStrategy().equals("RollingUpdate");
+            final boolean isRollingUpdate = isRollingUpdate(spec);
             for (BrokerSetInfo brokerSet : brokerSets) {
                 patchAll(brokerSet);
                 if (isRollingUpdate && checkReady(resource, brokerSet).isReschedule()) {
-                    log.infof("Broker set %s is not ready, rescheduling", brokerSet.getName());
+                    log.infof("Broker set '%s' is not ready, rescheduling", brokerSet.getName());
                     return new ReconciliationResult(
                             true,
                             List.of(createNotReadyInitializingCondition(resource)),
                             true
                     );
                 } else {
-                    log.infof("Broker set %s is ready", brokerSet.getName());
+                    log.infof("Broker set '%s' is ready", brokerSet.getName());
                 }
             }
             cleanupDeletedBrokerSets(resource, namespace, brokerSets);
@@ -117,6 +117,11 @@ public class BrokerController extends AbstractController<Broker> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
+    }
+
+    private boolean isRollingUpdate(BrokerFullSpec spec) {
+        return BrokerSpec.BrokerSetsUpdateStrategy.RollingUpdate.toString()
+                .equals(spec.getBroker().getSetsUpdateStrategy());
     }
 
     private void cleanupDeletedBrokerSets(Broker resource, String namespace, List<BrokerSetInfo> brokerSets) {
@@ -128,7 +133,7 @@ public class BrokerController extends AbstractController<Broker> {
                     getBrokerSets(null, namespace, lastAppliedResource, currentBrokerSets);
             for (BrokerSetInfo brokerSet : toDeleteBrokerSets) {
                 deleteAll(brokerSet);
-                log.infof("Deleted broker set: %s", brokerSet.getName());
+                log.infof("Deleted broker set: '%s'", brokerSet.getName());
             }
         }
     }

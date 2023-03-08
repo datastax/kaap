@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.crds.broker;
 
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -73,6 +74,7 @@ public class BrokerSpec extends BrokerSetSpec {
         return true;
     }
 
+    @JsonIgnore
     public BrokerSetSpec getDefaultBrokerSpecRef() {
         if (sets == null || !sets.containsKey(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
             return this;

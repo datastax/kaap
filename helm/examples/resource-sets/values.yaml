@@ -19,6 +19,8 @@ operator:
   image: datastax/lunastreaming-operator:latest-dev
   readinessProbe:
     initialDelaySeconds: 60
+  livenessProbe:
+    initialDelaySeconds: 180
 cluster:
   create: true
   spec:

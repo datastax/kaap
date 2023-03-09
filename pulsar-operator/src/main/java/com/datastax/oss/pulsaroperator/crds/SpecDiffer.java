@@ -19,7 +19,9 @@ import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.common.json.JSONAssertComparator;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import java.util.List;
+import lombok.extern.jbosslog.JBossLog;
 
+@JBossLog
 public class SpecDiffer {
 
     private static final JSONComparator.Result WAS_NULL_RESULT = new JSONComparator.Result() {
@@ -95,5 +97,39 @@ public class SpecDiffer {
         return generateDiff(json1, actualStr);
     }
 
+
+    public static void logDetailedSpecDiff(JSONComparator.Result diff) {
+        logDetailedSpecDiff(diff, null, null);
+    }
+
+    public static void logDetailedSpecDiff(JSONComparator.Result diff, String currentAsJson, String newSpecAsJson) {
+        if (currentAsJson != null || newSpecAsJson != null) {
+            log.infof("logging detailed diff: \nwas: %s\nnow: %s", currentAsJson, newSpecAsJson);
+        }
+        for (JSONComparator.FieldComparisonDiff failure : diff.diffs()) {
+            final String actualValue = failure.actual();
+            final String completeField = failure.field();
+            final String expectedValue = failure.expected();
+            if (actualValue == null) {
+                log.infof("""
+                        was: '%s=%s', now removed
+                        """.formatted(completeField, expectedValue));
+            } else if (expectedValue == null) {
+                log.infof("""
+                        was empty, now: '%s=%s'
+                        """.formatted(completeField, actualValue));
+            } else {
+                log.infof("""
+                        '%s' value differs:
+                            was: %s
+                            now: %s
+                        """.formatted(
+                        completeField,
+                        expectedValue,
+                        actualValue
+                ));
+            }
+        }
+    }
 
 }

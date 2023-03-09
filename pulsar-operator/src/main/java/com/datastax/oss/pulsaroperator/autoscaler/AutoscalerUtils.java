@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
@@ -49,6 +50,11 @@ public class AutoscalerUtils {
                 .get();
         if (statefulSet == null) {
             log.warnf("Statefulset not found %s", statefulsetName);
+            return false;
+        }
+        if (!BaseResourcesFactory.isStatefulSetReady(statefulSet)) {
+            log.infof("Statefulset %s is not ready",
+                    statefulsetName);
             return false;
         }
 

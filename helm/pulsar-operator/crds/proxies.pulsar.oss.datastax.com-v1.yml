@@ -2149,6 +2149,10 @@ spec:
                       type: object
                     description: Proxy sets.
                     type: object
+                  setsUpdateStrategy:
+                    description: Sets update strategy. 'RollingUpdate' or 'Parallel'.
+                      Default is 'RollingUpdate'.
+                    type: string
                   config:
                     description: Configuration.
                     x-kubernetes-preserve-unknown-fields: true

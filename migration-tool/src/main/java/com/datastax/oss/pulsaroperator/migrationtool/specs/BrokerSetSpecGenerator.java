@@ -52,7 +52,7 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
     private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public BrokerSetSpecGenerator(InputClusterSpecs inputSpecs,
-                                  InputClusterSpecs.BrokerSpecs.AdditionalBroker additionalBroker,
+                                  InputClusterSpecs.BrokerSpecs.BrokerSetSpecs additionalBroker,
                                   KubernetesClient client) {
         super(inputSpecs, client);
         final String clusterName = inputSpecs.getClusterName();

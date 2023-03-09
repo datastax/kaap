@@ -17,7 +17,6 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
-import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
@@ -47,7 +46,8 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -81,8 +81,8 @@ import org.apache.commons.lang3.StringUtils;
 @JBossLog
 public abstract class BaseResourcesFactory<T> {
 
-
     public static final String CONFIG_PULSAR_PREFIX = "PULSAR_PREFIX_";
+    public static final String DEPLOYMENT_REVISION_ANNOTATION = "deployment.kubernetes.io/revision";
     protected final KubernetesClient client;
     protected final String namespace;
     protected final T spec;
@@ -182,7 +182,7 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected void deleteConfigMap(String resourceName) {
-        client.services()
+        client.configMaps()
                 .inNamespace(namespace)
                 .withName(resourceName)
                 .delete();
@@ -299,9 +299,7 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected TlsConfig.ProxyTlsEntryConfig getTlsConfigForProxySet(String proxySet) {
-        if (proxySet.equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)
-                || global.getTls().getProxy() == null
-                || global.getTls().getProxyResourceSets() == null
+        if (global.getTls().getProxyResourceSets() == null
                 || !global.getTls().getProxyResourceSets().containsKey(proxySet)) {
             return global.getTls().getProxy();
         }
@@ -723,19 +721,58 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     public static boolean isStatefulSetReady(StatefulSet sts) {
-        final StatefulSetStatus status = sts.getStatus();
-        if (status.getReplicas() == null || status.getReadyReplicas() == null) {
+        if (sts == null || sts.getStatus() == null) {
             return false;
         }
-        return status.getReplicas().intValue() == status.getReadyReplicas().intValue();
+        final StatefulSetStatus status = sts.getStatus();
+        if (!Objects.equals(status.getCurrentRevision(), status.getUpdateRevision())) {
+            return false;
+        }
+
+        if (status.getReplicas() == null || status.getReadyReplicas() == null || status.getUpdatedReplicas() == null) {
+            return false;
+        }
+
+        final int replicas = status.getReplicas().intValue();
+        final int ready = status.getReadyReplicas().intValue();
+        final int updated = status.getUpdatedReplicas().intValue();
+        return replicas == ready && updated == ready;
     }
 
-    public static boolean isDeploymentReady(Deployment deployment) {
-        final DeploymentStatus deploymentStatus = deployment.getStatus();
-        if (deploymentStatus.getReplicas() == null || deploymentStatus.getReadyReplicas() == null) {
+    public static boolean isDeploymentReady(Deployment deployment, KubernetesClient client) {
+        if (deployment == null) {
             return false;
         }
-        return deploymentStatus.getReplicas().intValue() == deploymentStatus.getReadyReplicas().intValue();
+        final String revision = deployment.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION);
+        if (revision == null) {
+            return false;
+        }
+
+        final List<ReplicaSet> replicaSets = client.apps().replicaSets()
+                .inNamespace(deployment.getMetadata().getNamespace())
+                .withLabels(deployment.getMetadata().getLabels())
+                .list()
+                .getItems()
+                .stream()
+                .filter(r -> r.getMetadata().getOwnerReferences().get(0).getUid()
+                        .equals(deployment.getMetadata().getUid()))
+                .filter(r -> revision.equals(r.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION)))
+                .collect(Collectors.toList());
+        if (replicaSets.size() != 1) {
+            log.warnf("Found %d replica sets for deployment %s with revision %s", replicaSets.size(),
+                    deployment.getMetadata().getName(), revision);
+            return false;
+        }
+        final ReplicaSet currentReplicaSet = replicaSets.get(0);
+        final ReplicaSetStatus status = currentReplicaSet.getStatus();
+        if (status.getReplicas() == null || status.getReadyReplicas() == null
+                || status.getAvailableReplicas() == null) {
+            return false;
+        }
+        final int replicas = status.getReplicas().intValue();
+        final int ready = status.getReadyReplicas().intValue();
+        final int available = status.getAvailableReplicas().intValue();
+        return replicas == ready && available == ready;
     }
 
     protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules,

@@ -118,7 +118,11 @@ public class BookKeeperAutoscalerTest {
             field.set(bkResourcesFactory, new ConfigMapBuilder().build());
             final StatefulSet sts = bkResourcesFactory.generateStatefulSet();
             sts.setStatus(new StatefulSetStatusBuilder()
+                    .withReplicas(replicas)
                     .withReadyReplicas(replicas)
+                    .withUpdatedReplicas(replicas)
+                    .withCurrentRevision("rev")
+                    .withUpdateRevision("rev")
                     .build());
 
             stsConsumer.accept(sts);

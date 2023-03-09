@@ -73,12 +73,12 @@ public class InputClusterSpecs {
         @Data
         @NoArgsConstructor
         @AllArgsConstructor
-        public static class AdditionalBroker {
+        public static class BrokerSetSpecs {
             String name;
             String overrideName;
         }
         String baseName = "broker";
-        List<AdditionalBroker> additionalBrokers = List.of();
+        List<BrokerSetSpecs> brokerSets = List.of();
     }
 
     @Data
@@ -102,12 +102,12 @@ public class InputClusterSpecs {
         @Data
         @NoArgsConstructor
         @AllArgsConstructor
-        public static class AdditionalProxy {
+        public static class ProxySetSpecs {
             String name;
             String overrideName;
         }
         String baseName = "proxy";
-        List<AdditionalProxy> additionalProxies = List.of();
+        List<ProxySetSpecs> proxySets = List.of();
     }
 
     @Data

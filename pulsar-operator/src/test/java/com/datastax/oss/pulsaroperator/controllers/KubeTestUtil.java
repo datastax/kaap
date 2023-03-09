@@ -15,11 +15,16 @@
  */
 package com.datastax.oss.pulsaroperator.controllers;
 
+import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
+import io.fabric8.kubernetes.api.model.Condition;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.Collection;
 import java.util.List;
 import org.testng.Assert;
@@ -111,5 +116,27 @@ public class KubeTestUtil {
             }
         }
         return null;
+    }
+
+
+    public static Condition getReadyCondition(BaseComponentStatus status) {
+        final List<Condition> conditions = status.getConditions();
+        return conditions.stream().filter(c -> c.getType().equals(CRDConstants.CONDITIONS_TYPE_READY))
+                .findAny().get();
+    }
+
+    public static void assertUpdateControlInitializing(
+            UpdateControl<? extends CustomResource<?, ? extends BaseComponentStatus>> updateControl) {
+        Assert.assertEquals(updateControl.getScheduleDelay().get().longValue(), 5000L);
+        Condition readyCondition = getReadyCondition(updateControl.getResource().getStatus());
+        Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
+        Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
+    }
+
+    public static void assertUpdateControlReady(
+            UpdateControl<? extends CustomResource<?, ? extends BaseComponentStatus>> updateControl) {
+        Assert.assertFalse(updateControl.getScheduleDelay().isPresent());
+        Condition readyCondition = getReadyCondition(updateControl.getResource().getStatus());
+        Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_TRUE);
     }
 }

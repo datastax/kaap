@@ -2126,6 +2126,10 @@ spec:
                       type: object
                     description: Broker sets.
                     type: object
+                  setsUpdateStrategy:
+                    description: Sets update strategy. 'RollingUpdate' or 'Parallel'.
+                      Default is 'RollingUpdate'.
+                    type: string
                   updateStrategy:
                     description: Update strategy for the StatefulSet.
                     properties:

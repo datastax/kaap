@@ -17,9 +17,13 @@ package com.datastax.oss.pulsaroperator.mocks;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -28,6 +32,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.internal.collections.Pair;
@@ -84,6 +89,10 @@ public class MockResourcesResolver {
         return getResourceByName(Deployment.class, name);
     }
 
+    public ReplicaSet replicaSetWithName(String name) {
+        return getResourceByName(ReplicaSet.class, name);
+    }
+
     public StatefulSetBuilder newStatefulSetBuilder(String name, boolean ready) {
         return new StatefulSetBuilder()
                 .withNewMetadata()
@@ -92,6 +101,9 @@ public class MockResourcesResolver {
                 .withNewStatus()
                 .withReplicas(1)
                 .withReadyReplicas(ready ? 1 : 0)
+                .withUpdatedReplicas(ready ? 1 : 0)
+                .withUpdateRevision("rev1")
+                .withCurrentRevision(ready ? "rev1" : "rev0")
                 .endStatus();
     }
 
@@ -99,5 +111,52 @@ public class MockResourcesResolver {
         final HasMetadata r = Serialization.unmarshal(yaml);
         resources.put(computeKey(r), r);
         log.info("imported resource {}/{}", r.getKind(), r.getMetadata().getName());
+    }
+
+    public void putResource(String name, HasMetadata resource) {
+        resource.getMetadata().setName(name);
+        resources.put(computeKey(resource), resource);
+        log.info("added resource {}/{}", resource.getKind(), resource.getMetadata().getName());
+    }
+
+    public boolean removeResource(HasMetadata resource) {
+        return resources.remove(computeKey(resource)) != null;
+    }
+
+    public void putDeployment(String name, boolean ready) {
+        final String uuid = UUID.randomUUID().toString();
+        final Deployment deployment = new DeploymentBuilder()
+                .withNewMetadata()
+                .withName(name)
+                .withAnnotations(
+                        Map.of("deployment.kubernetes.io/revision", "9")
+                )
+                .withUid(uuid)
+                .endMetadata()
+                .withNewStatus()
+                .withReplicas(1)
+                .withReadyReplicas(ready ? 1 : 0)
+                .withUpdatedReplicas(ready ? 1 : 0)
+                .endStatus()
+                .build();
+        final ReplicaSet replicaSet = new ReplicaSetBuilder()
+                .withNewMetadata()
+                .withName(name)
+                .withAnnotations(
+                        Map.of("deployment.kubernetes.io/revision", "9")
+                )
+                .withOwnerReferences(new OwnerReferenceBuilder()
+                        .withUid(uuid)
+                        .build())
+                .endMetadata()
+                .withNewStatus()
+                .withReplicas(1)
+                .withReadyReplicas(ready ? 1 : 0)
+                .withAvailableReplicas(ready ? 1 : 0)
+                .endStatus()
+                .build();
+
+        putResource(name, deployment);
+        putResource(name, replicaSet);
     }
 }

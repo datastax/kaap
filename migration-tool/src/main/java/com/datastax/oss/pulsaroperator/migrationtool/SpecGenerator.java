@@ -41,9 +41,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
@@ -199,7 +199,7 @@ public class SpecGenerator {
     }
 
     private void generateBrokerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
-        final TreeMap<String, BrokerSetSpec> proxySetSpecs = BrokerController.getBrokerSetSpecs(
+        final LinkedHashMap<String, BrokerSetSpec> proxySetSpecs = BrokerController.getBrokerSetSpecs(
                 pulsarCluster.getSpec().getBroker());
         for (Map.Entry<String, BrokerSetSpec> brokerSet : proxySetSpecs.entrySet()) {
 
@@ -237,7 +237,7 @@ public class SpecGenerator {
     }
 
     private void generateProxyResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
-        final TreeMap<String, ProxySetSpec> proxySetSpecs = ProxyController.getProxySetSpecs(
+        final LinkedHashMap<String, ProxySetSpec> proxySetSpecs = ProxyController.getProxySetSpecs(
                 pulsarCluster.getSpec().getProxy());
         for (Map.Entry<String, ProxySetSpec> proxySet : proxySetSpecs.entrySet()) {
             final ProxyResourcesFactory proxyResourcesFactory =

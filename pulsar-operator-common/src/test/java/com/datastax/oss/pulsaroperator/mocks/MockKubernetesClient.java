@@ -25,10 +25,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ListMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetList;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
@@ -55,12 +58,14 @@ import io.fabric8.kubernetes.client.dsl.V1BatchAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.V1PolicyAPIGroupDSL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 @Getter
 public class MockKubernetesClient {
@@ -79,6 +84,7 @@ public class MockKubernetesClient {
     final KubernetesClient client;
     final MockResourcesResolver resourcesResolver;
     final List<ResourceInteraction> createdResources = new ArrayList<>();
+    final List<ResourceInteraction> deletedResources = new ArrayList<>();
 
     public MockKubernetesClient(String namespace) {
         this(namespace, null);
@@ -107,8 +113,6 @@ public class MockKubernetesClient {
         when(v1BatchAPIGroupDSL.jobs()).thenAnswer(__ ->
                 mockExistingResourceByName(namespace, Job.class, name -> resourcesResolver.jobWithName(name))
         );
-        final MixedOperation resourceOp = Mockito.mock(MixedOperation.class);
-        when(resourceOp.inNamespace(eq(namespace))).thenReturn(resourceOp);
 
 
         when(client.secrets()).thenAnswer(__ ->
@@ -130,6 +134,11 @@ public class MockKubernetesClient {
         when(apps.deployments()).thenAnswer(__ ->
                 mockExistingResourceByName(namespace, Deployment.class,
                         name -> resourcesResolver.deploymentWithName(name))
+        );
+
+        when(apps.replicaSets()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, ReplicaSet.class,
+                        name -> resourcesResolver.replicaSetWithName(name))
         );
         final V1PolicyAPIGroupDSL v1PolicyAPIGroupDSL = mockPolicy();
         when(v1PolicyAPIGroupDSL.podDisruptionBudget()).thenAnswer(__ ->
@@ -163,11 +172,11 @@ public class MockKubernetesClient {
                     Mockito.mock(NamespaceableResource.class);
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
             when(interaction.create()).thenAnswer(ic1 -> {
-                createdResources.add(new ResourceInteraction(ic.getArgument(0)));
+                addCreatedResource(ic);
                 return null;
             });
             when(interaction.createOrReplace()).thenAnswer(ic1 -> {
-                createdResources.add(new ResourceInteraction(ic.getArgument(0)));
+                addCreatedResource(ic);
                 return null;
             });
             return interaction;
@@ -181,12 +190,12 @@ public class MockKubernetesClient {
             when(interaction.resource(any(HasMetadata.class))).thenAnswer(ic2 -> {
                 final Resource mockedResource = resourceMock;
                 when(mockedResource.create()).thenAnswer(ic3 -> {
-                    createdResources.add(new ResourceInteraction(ic2.getArgument(0)));
+                    addCreatedResource(ic2);
                     return null;
                 });
 
                 when(mockedResource.createOrReplace()).thenAnswer(ic3 -> {
-                    createdResources.add(new ResourceInteraction(ic2.getArgument(0)));
+                    addCreatedResource(ic2);
                     return null;
                 });
                 return mockedResource;
@@ -195,6 +204,21 @@ public class MockKubernetesClient {
             when(interaction.withName(any())).thenReturn(resourceMock);
             return interaction;
         });
+    }
+
+    private void addCreatedResource(InvocationOnMock ic) {
+        final HasMetadata argument = ic.getArgument(0);
+        createdResources.add(new ResourceInteraction(argument));
+    }
+
+    @SneakyThrows
+    private void addDeletedResource(String name, Class<? extends HasMetadata> resourceClass) {
+        final HasMetadata deletedResource = resourceClass.getConstructor().newInstance();
+        deletedResource.setMetadata(new ObjectMetaBuilder()
+                .withName(name)
+                .build()
+        );
+        deletedResources.add(new ResourceInteraction(deletedResource));
     }
 
     private V1BatchAPIGroupDSL mockBatchV1() {
@@ -240,12 +264,14 @@ public class MockKubernetesClient {
         final MixedOperation resourceOp = Mockito.mock(MixedOperation.class);
         final NonNamespaceOperation nonNamespaceOperation = Mockito.mock(NonNamespaceOperation.class);
         when(resourceOp.inNamespace(eq(namespace))).thenReturn(nonNamespaceOperation);
+        when(nonNamespaceOperation.withLabels(any(Map.class))).thenReturn(nonNamespaceOperation);
 
         doAnswer(get -> {
             final Class<? extends Gettable> rClass;
             if (resourceClass == Service.class) {
                 rClass = ServiceResource.class;
-            } else if (resourceClass == StatefulSet.class || resourceClass == Deployment.class) {
+            } else if (resourceClass == StatefulSet.class || resourceClass == Deployment.class
+                    || resourceClass == ReplicaSet.class) {
                 rClass = RollableScalableResource.class;
             } else if (resourceClass == Job.class) {
                 rClass = ScalableResource.class;
@@ -253,11 +279,21 @@ public class MockKubernetesClient {
                 rClass = Resource.class;
             }
 
-            final Gettable resource = Mockito.mock(rClass);
+            final Resource<HasMetadata> resource = (Resource<HasMetadata>) Mockito.mock(rClass);
             doAnswer(ignore -> {
                 final String name = get.getArgument(0);
-                return resolver.apply(name);
+
+                final T resolved = resolver.apply(name);
+                if (resolved != null) {
+                    resolved.getMetadata().setNamespace(namespace);
+                }
+                return resolved;
             }).when(resource).get();
+            when(resource.delete()).thenAnswer(ic -> {
+                final String name = get.getArgument(0);
+                addDeletedResource(name, resourceClass);
+                return null;
+            });
             return resource;
         }).when(nonNamespaceOperation).withName(any());
 
@@ -272,7 +308,15 @@ public class MockKubernetesClient {
                 return resourcesResolver.getResources(resourceClass);
             }
         }
-        doAnswer(get -> new ListImpl()).when(nonNamespaceOperation).list();
+        if (resourceClass == ReplicaSet.class) {
+            doAnswer(
+                    get -> new ReplicaSetList(null, resourcesResolver.getResources(ReplicaSet.class),
+                            null, null)).when(nonNamespaceOperation).list();
+        } else {
+            doAnswer(get -> new ListImpl()).when(nonNamespaceOperation).list();
+        }
+
+
         return resourceOp;
     }
 
@@ -302,6 +346,25 @@ public class MockKubernetesClient {
             }
         }
         return res;
+    }
+
+    public <T extends HasMetadata> List<ResourceInteraction<T>> getDeletedResources(Class<T> castTo) {
+        List<ResourceInteraction<T>> res = new ArrayList<>();
+        for (ResourceInteraction createdResource : deletedResources) {
+            if (createdResource.getResource().getClass().isAssignableFrom(castTo)) {
+                res.add(createdResource);
+            }
+        }
+        return res;
+    }
+
+    public <T extends HasMetadata> ResourceInteraction<T> getDeletedResource(Class<T> castTo, String name) {
+        final List<ResourceInteraction<T>> res = getDeletedResources(castTo);
+        return res
+                .stream()
+                .filter(r -> r.getResource().getMetadata().getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     @SneakyThrows

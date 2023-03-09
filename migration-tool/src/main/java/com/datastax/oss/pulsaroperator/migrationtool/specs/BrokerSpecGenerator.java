@@ -24,6 +24,7 @@ import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenera
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,21 +46,21 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     }
 
     private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
-        final List<InputClusterSpecs.BrokerSpecs.AdditionalBroker> additionalBrokers =
-                inputSpecs.getBroker().getAdditionalBrokers();
+        final List<InputClusterSpecs.BrokerSpecs.BrokerSetSpecs> brokerSets =
+                inputSpecs.getBroker().getBrokerSets();
         generatedSpec = new BrokerSpec();
-        if (additionalBrokers == null || additionalBrokers.isEmpty()) {
+        if (brokerSets == null || brokerSets.isEmpty()) {
             final BrokerSetSpecGenerator brokerSetSpecGenerator = new BrokerSetSpecGenerator(
                     inputSpecs,
-                    new InputClusterSpecs.BrokerSpecs.AdditionalBroker(BrokerResourcesFactory.BROKER_DEFAULT_SET, null),
+                    new InputClusterSpecs.BrokerSpecs.BrokerSetSpecs(BrokerResourcesFactory.BROKER_DEFAULT_SET, null),
                     client
             );
             generators.put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSetSpecGenerator);
             final BrokerSpec brokerSpec = brokerSetSpecGenerator.generateSpec();
-            generatedSpec.setSets(Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSpec));
+            generatedSpec.setSets(new LinkedHashMap<>(Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSpec)));
         } else {
-            Map<String, BrokerSetSpec> sets = new TreeMap<>();
-            additionalBrokers.stream().map(
+            LinkedHashMap<String, BrokerSetSpec> sets = new LinkedHashMap<>();
+            brokerSets.stream().map(
                     setConfig -> Pair.of(setConfig.getName(), new BrokerSetSpecGenerator(inputSpecs, setConfig, client))
             ).forEach(pair -> {
                 generators.put(pair.getLeft(), pair.getRight());
@@ -129,10 +130,9 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
 
     @Override
     public String getTlsCaPath() {
-        if (getBrokerSpecGenerator(BrokerResourcesFactory.BROKER_DEFAULT_SET).getTlsCaPath() != null) {
-            return Objects.requireNonNull((String) getConfig().get("tlsTrustCertsFilePath"));
-        }
-        return null;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.getTlsCaPath(), false, "tlsTrustCertsFilePath",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override

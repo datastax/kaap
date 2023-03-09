@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySpec> {
 
     public static final String SPEC_NAME = "Proxy";
-    private final InputClusterSpecs.ProxySpecs.AdditionalProxy proxyInputSpecs;
+    private final InputClusterSpecs.ProxySpecs.ProxySetSpecs proxyInputSpecs;
     private final String resourceName;
     private ProxySpec generatedSpec;
     private PodDNSConfig podDNSConfig;
@@ -50,7 +50,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySpec> {
     private Map<String, Object> config;
     private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
-    public ProxySetSpecGenerator(InputClusterSpecs inputSpecs, InputClusterSpecs.ProxySpecs.AdditionalProxy proxyInputSpecs,
+    public ProxySetSpecGenerator(InputClusterSpecs inputSpecs, InputClusterSpecs.ProxySpecs.ProxySetSpecs proxyInputSpecs,
                                  KubernetesClient client) {
         super(inputSpecs, client);
         this.proxyInputSpecs = proxyInputSpecs;

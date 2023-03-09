@@ -49,6 +49,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.jbosslog.JBossLog;
@@ -136,7 +137,9 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             conditions = mergeConditions(resource.getStatus().getConditions(), reconciliationResult.getConditions(),
                     Instant.now());
             reschedule = reconciliationResult.isReschedule();
-            lastApplied = SerializationUtil.writeAsJson(resource.getSpec());
+            if (!reconciliationResult.isSkipLastAppliedUpdate()) {
+                lastApplied = SerializationUtil.writeAsJson(resource.getSpec());
+            }
         } catch (Throwable throwable) {
             log.errorf(throwable, "Error during reconciliation for resource %s with name %s: %s",
                     resource.getFullResourceName(),
@@ -172,9 +175,16 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
     }
 
     @Value
+    @AllArgsConstructor
     protected static class ReconciliationResult {
+        public ReconciliationResult(boolean reschedule, List<Condition> conditions) {
+            this(reschedule, conditions, false);
+        }
+
+
         boolean reschedule;
         List<Condition> conditions;
+        boolean skipLastAppliedUpdate;
     }
 
 

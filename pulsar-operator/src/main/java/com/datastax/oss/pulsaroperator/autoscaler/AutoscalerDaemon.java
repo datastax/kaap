@@ -24,10 +24,10 @@ import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -127,7 +127,7 @@ public class AutoscalerDaemon implements AutoCloseable {
 
     private Map<String, BrokerAutoscalerSpec> getBrokerAutoscalerSpecs(PulsarClusterSpec clusterSpec) {
         final BrokerSpec broker = clusterSpec.getBroker();
-        final TreeMap<String, BrokerSetSpec> brokerSetSpecs =
+        final LinkedHashMap<String, BrokerSetSpec> brokerSetSpecs =
                 BrokerController.getBrokerSetSpecs(broker);
         return brokerSetSpecs.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getAutoscaler()));

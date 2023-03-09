@@ -29,11 +29,10 @@ import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,14 +44,13 @@ import lombok.extern.jbosslog.JBossLog;
 public class BrokerController extends AbstractController<Broker> {
 
     public static List<String> enumerateBrokerSets(String clusterName, String componentBaseName, BrokerSpec broker) {
-        Map<String, BrokerSetSpec> sets = broker.getSets();
+        LinkedHashMap<String, BrokerSetSpec> sets = broker.getSets();
         if (sets == null || sets.isEmpty()) {
             return List.of(BrokerResourcesFactory.getResourceName(clusterName, componentBaseName,
                     BrokerResourcesFactory.BROKER_DEFAULT_SET, broker.getOverrideResourceName()));
         } else {
-            final TreeMap<String, BrokerSetSpec> sorted = new TreeMap<>(sets);
             List<String> names = new ArrayList<>();
-            for (Map.Entry<String, BrokerSetSpec> set : sorted.entrySet()) {
+            for (Map.Entry<String, BrokerSetSpec> set : sets.entrySet()) {
                 names.add(BrokerResourcesFactory.getResourceName(clusterName, componentBaseName,
                         set.getKey(), set.getValue().getOverrideResourceName()));
             }
@@ -85,6 +83,7 @@ public class BrokerController extends AbstractController<Broker> {
             for (BrokerSetInfo brokerSetInfo : brokerSets) {
                 final ReconciliationResult result = checkReady(resource, brokerSetInfo);
                 if (result.isReschedule()) {
+                    log.infof("Broker set '%s' is not ready, rescheduling", brokerSetInfo.getName());
                     return result;
                 }
                 lastResult = result;
@@ -98,8 +97,19 @@ public class BrokerController extends AbstractController<Broker> {
             // always create default service
             defaultResourceFactory.patchService();
 
+            final boolean isRollingUpdate = isRollingUpdate(spec);
             for (BrokerSetInfo brokerSet : brokerSets) {
                 patchAll(brokerSet);
+                if (isRollingUpdate && checkReady(resource, brokerSet).isReschedule()) {
+                    log.infof("Broker set '%s' is not ready, rescheduling", brokerSet.getName());
+                    return new ReconciliationResult(
+                            true,
+                            List.of(createNotReadyInitializingCondition(resource)),
+                            true
+                    );
+                } else {
+                    log.infof("Broker set '%s' is ready", brokerSet.getName());
+                }
             }
             cleanupDeletedBrokerSets(resource, namespace, brokerSets);
             return new ReconciliationResult(
@@ -109,17 +119,21 @@ public class BrokerController extends AbstractController<Broker> {
         }
     }
 
+    private boolean isRollingUpdate(BrokerFullSpec spec) {
+        return BrokerSpec.BrokerSetsUpdateStrategy.RollingUpdate.toString()
+                .equals(spec.getBroker().getSetsUpdateStrategy());
+    }
+
     private void cleanupDeletedBrokerSets(Broker resource, String namespace, List<BrokerSetInfo> brokerSets) {
         final BrokerFullSpec lastAppliedResource = getLastAppliedResource(resource, BrokerFullSpec.class);
         if (lastAppliedResource != null) {
             final Set<String> currentBrokerSets = brokerSets.stream().map(BrokerSetInfo::getName)
                     .collect(Collectors.toSet());
-            currentBrokerSets.add(BrokerResourcesFactory.BROKER_DEFAULT_SET);
             final List<BrokerSetInfo> toDeleteBrokerSets =
                     getBrokerSets(null, namespace, lastAppliedResource, currentBrokerSets);
             for (BrokerSetInfo brokerSet : toDeleteBrokerSets) {
                 deleteAll(brokerSet);
-                log.infof("Deleted broker set: %s", brokerSet.getName());
+                log.infof("Deleted broker set: '%s'", brokerSet.getName());
             }
         }
     }
@@ -148,25 +162,24 @@ public class BrokerController extends AbstractController<Broker> {
         return result;
     }
 
-    public static TreeMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerFullSpec fullSpec) {
+    public static LinkedHashMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerFullSpec fullSpec) {
         return getBrokerSetSpecs(fullSpec.getBroker());
     }
 
-    public static TreeMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerSpec broker) {
-        Map<String, BrokerSetSpec> sets = broker.getSets();
+    public static LinkedHashMap<String, BrokerSetSpec> getBrokerSetSpecs(BrokerSpec broker) {
+        LinkedHashMap<String, BrokerSetSpec> sets = broker.getSets();
         if (sets == null || sets.isEmpty()) {
-            sets = Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET,
+            sets = new LinkedHashMap<>(Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET,
                     ConfigUtil.applyDefaultsWithReflection(new BrokerSetSpec(),
-                            () -> broker));
+                            () -> broker)));
         } else {
-            sets = new HashMap<>(sets);
             for (Map.Entry<String, BrokerSetSpec> set : sets.entrySet()) {
                 sets.put(set.getKey(),
                         ConfigUtil.applyDefaultsWithReflection(set.getValue(), () -> broker)
                 );
             }
         }
-        return new TreeMap<>(sets);
+        return sets;
     }
 
     private void patchAll(BrokerSetInfo brokerSetInfo) {
@@ -179,10 +192,12 @@ public class BrokerController extends AbstractController<Broker> {
 
     private void deleteAll(BrokerSetInfo brokerSetInfo) {
         final BrokerResourcesFactory resourcesFactory = brokerSetInfo.getBrokerResourcesFactory();
-        resourcesFactory.deletePodDisruptionBudget();
-        resourcesFactory.deleteConfigMap();
+        if (!brokerSetInfo.getName().equals(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
+            resourcesFactory.deleteService();
+        }
         resourcesFactory.deleteStatefulSet();
-        resourcesFactory.deleteService();
+        resourcesFactory.deleteConfigMap();
+        resourcesFactory.deletePodDisruptionBudget();
     }
 
     private ReconciliationResult checkReady(Broker resource,
@@ -195,13 +210,6 @@ public class BrokerController extends AbstractController<Broker> {
             );
         }
         final StatefulSet sts = resourcesFactory.getStatefulSet();
-        if (sts == null) {
-            patchAll(brokerSetInfo);
-            return new ReconciliationResult(
-                    true,
-                    List.of(createNotReadyInitializingCondition(resource))
-            );
-        }
         if (BaseResourcesFactory.isStatefulSetReady(sts)) {
             resourcesFactory.createTransactionsInitJobIfNeeded();
 

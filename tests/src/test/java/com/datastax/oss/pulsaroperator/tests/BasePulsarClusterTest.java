@@ -236,6 +236,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         return true;
                     }
                     printPodLogs(getOperatorPodName(), 10);
+                    printNodesStatus();
                     return false;
                 });
 

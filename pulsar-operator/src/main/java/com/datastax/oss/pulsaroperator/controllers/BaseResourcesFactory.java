@@ -182,7 +182,7 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected void deleteConfigMap(String resourceName) {
-        client.services()
+        client.configMaps()
                 .inNamespace(namespace)
                 .withName(resourceName)
                 .delete();
@@ -721,7 +721,7 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     public static boolean isStatefulSetReady(StatefulSet sts) {
-        if (sts == null) {
+        if (sts == null || sts.getStatus() == null) {
             return false;
         }
         final StatefulSetStatus status = sts.getStatus();

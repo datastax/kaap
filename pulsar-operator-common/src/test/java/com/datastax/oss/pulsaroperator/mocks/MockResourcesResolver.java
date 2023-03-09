@@ -119,6 +119,10 @@ public class MockResourcesResolver {
         log.info("added resource {}/{}", resource.getKind(), resource.getMetadata().getName());
     }
 
+    public boolean removeResource(HasMetadata resource) {
+        return resources.remove(computeKey(resource)) != null;
+    }
+
     public void putDeployment(String name, boolean ready) {
         final String uuid = UUID.randomUUID().toString();
         final Deployment deployment = new DeploymentBuilder()

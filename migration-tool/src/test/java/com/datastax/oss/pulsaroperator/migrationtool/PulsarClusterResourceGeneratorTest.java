@@ -619,6 +619,7 @@ public class PulsarClusterResourceGeneratorTest {
                                     protocol: TCP
                                     targetPort: 9093
                                   type: ClusterIP
+                            setsUpdateStrategy: RollingUpdate    
                           proxy:
                             imagePullPolicy: IfNotPresent
                             replicas: 3
@@ -926,6 +927,7 @@ public class PulsarClusterResourceGeneratorTest {
                                       enabled: false
                                     liveness:
                                       enabled: false
+                            setsUpdateStrategy: RollingUpdate
                           autorecovery:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent

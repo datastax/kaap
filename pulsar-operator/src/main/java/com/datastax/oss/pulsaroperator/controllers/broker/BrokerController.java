@@ -83,7 +83,7 @@ public class BrokerController extends AbstractController<Broker> {
             for (BrokerSetInfo brokerSetInfo : brokerSets) {
                 final ReconciliationResult result = checkReady(resource, brokerSetInfo);
                 if (result.isReschedule()) {
-                    log.infof("Broker set %s is not ready, rescheduling", brokerSetInfo.getName());
+                    log.infof("Broker set '%s' is not ready, rescheduling", brokerSetInfo.getName());
                     return result;
                 }
                 lastResult = result;

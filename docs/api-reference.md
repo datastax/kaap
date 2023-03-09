@@ -19952,6 +19952,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>setsUpdateStrategy</b></td>
+        <td>string</td>
+        <td>
+          Sets update strategy. 'RollingUpdate' or 'Parallel'. Default is 'RollingUpdate'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersidecarsindex">sidecars</a></b></td>
         <td>[]object</td>
         <td>
@@ -48567,6 +48574,13 @@ TLS configurations related to the ZooKeeper component.
         <td>map[string]object</td>
         <td>
           Proxy sets.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>setsUpdateStrategy</b></td>
+        <td>string</td>
+        <td>
+          Sets update strategy. 'RollingUpdate' or 'Parallel'. Default is 'RollingUpdate'.<br/>
         </td>
         <td>false</td>
       </tr><tr>

@@ -103,7 +103,7 @@ public class MockResourcesResolver {
                 .withReadyReplicas(ready ? 1 : 0)
                 .withUpdatedReplicas(ready ? 1 : 0)
                 .withUpdateRevision("rev1")
-                .withCurrentRevision(ready ? "rev1": "rev0")
+                .withCurrentRevision(ready ? "rev1" : "rev0")
                 .endStatus();
     }
 

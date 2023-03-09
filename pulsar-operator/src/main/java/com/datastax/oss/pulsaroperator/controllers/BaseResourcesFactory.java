@@ -81,7 +81,6 @@ import org.apache.commons.lang3.StringUtils;
 @JBossLog
 public abstract class BaseResourcesFactory<T> {
 
-
     public static final String CONFIG_PULSAR_PREFIX = "PULSAR_PREFIX_";
     public static final String DEPLOYMENT_REVISION_ANNOTATION = "deployment.kubernetes.io/revision";
     protected final KubernetesClient client;
@@ -746,10 +745,10 @@ public abstract class BaseResourcesFactory<T> {
         }
         final String revision = deployment.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION);
         if (revision == null) {
-            System.out.println("no revision");
             return false;
         }
-        final ReplicaSet currentReplicaSet = client.apps().replicaSets()
+
+        final List<ReplicaSet> replicaSets = client.apps().replicaSets()
                 .inNamespace(deployment.getMetadata().getNamespace())
                 .withLabels(deployment.getMetadata().getLabels())
                 .list()
@@ -758,22 +757,21 @@ public abstract class BaseResourcesFactory<T> {
                 .filter(r -> r.getMetadata().getOwnerReferences().get(0).getUid()
                         .equals(deployment.getMetadata().getUid()))
                 .filter(r -> revision.equals(r.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION)))
-                .findFirst()
-                .orElse(null);
-        if (currentReplicaSet == null) {
-            System.out.println("no rset");
+                .collect(Collectors.toList());
+        if (replicaSets.size() != 1) {
+            log.warnf("Found %d replica sets for deployment %s with revision %s", replicaSets.size(),
+                    deployment.getMetadata().getName(), revision);
             return false;
         }
+        final ReplicaSet currentReplicaSet = replicaSets.get(0);
         final ReplicaSetStatus status = currentReplicaSet.getStatus();
         if (status.getReplicas() == null || status.getReadyReplicas() == null
                 || status.getAvailableReplicas() == null) {
-            System.out.println("rset with nulls");
             return false;
         }
         final int replicas = status.getReplicas().intValue();
         final int ready = status.getReadyReplicas().intValue();
         final int available = status.getAvailableReplicas().intValue();
-        System.out.println("rset mismatch ? " + currentReplicaSet.getMetadata().getName() + " " + replicas + " "  + ready + " " + available);
         return replicas == ready && available == ready;
     }
 

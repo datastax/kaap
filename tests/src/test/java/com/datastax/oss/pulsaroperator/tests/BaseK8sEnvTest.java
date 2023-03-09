@@ -140,20 +140,24 @@ public abstract class BaseK8sEnvTest {
 
         client.resource(new NamespaceBuilder().withNewMetadata().withName(namespace)
                 .endMetadata().build()).create();
-        eventsWatch = client.resources(Event.class).inNamespace(namespace).watch(new Watcher<>() {
+
+        printNodesStatus();
+        eventsWatch = client.resources(Event.class).watch(new Watcher<>() {
             @Override
             public void eventReceived(Action action, Event resource) {
+                final String ns = resource.getMetadata().getNamespace();
 
                 if (log.isDebugEnabled()) {
-                    log.debug("[{}/{}]: {} -> {}", resource.getRegarding().getName(),
+                    log.debug("[{}][{}/{}]: {} -> {}", ns, resource.getRegarding().getName(),
                             resource.getRegarding().getKind(), resource.getReason(), resource.getNote());
                 } else {
-                    log.info("[{}/{}]: {}", resource.getRegarding().getKind(),
+                    log.info("[{}][{}/{}]: {}", ns, resource.getRegarding().getKind(),
                             resource.getRegarding().getName(), resource.getReason());
                 }
-                if ("FailedMount".equals(resource.getReason())) {
-                    log.error("ERROR {} on {}: {}", resource.getKind(), resource.getRegarding().getName(),
+                if ("FailedMount".equals(resource.getReason()) || "FailedScheduling".equals(resource.getReason())) {
+                    log.error("[{}] ERROR {} on {}: {}", ns, resource.getKind(), resource.getRegarding().getName(),
                             resource.getNote());
+                    printNodesStatus();
                 }
             }
 
@@ -163,6 +167,17 @@ public abstract class BaseK8sEnvTest {
         });
 
         this.rbacManifest = getRbacManifest();
+    }
+
+    protected void printNodesStatus() {
+        client.nodes()
+                .list()
+                .getItems()
+                .forEach(node -> {
+                    final String name = node.getMetadata().getName();
+                    log.info("Node {} capacity status: {}", name, node.getStatus().getCapacity());
+                    log.info("Node {} allocatable status: {}", name, node.getStatus().getAllocatable());
+                });
     }
 
     private String getRbacManifest() throws IOException {

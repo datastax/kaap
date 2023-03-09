@@ -199,6 +199,7 @@ public abstract class BaseK8sEnvTest {
 
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
+        getCRDsManifests().forEach(this::applyManifestFromFile);
         for (Path yamlManifest : getOperatorYamlManifests()) {
             if ("kubernetes.yml".equals(yamlManifest.toFile().getName())) {
                 final List<HasMetadata> resources =
@@ -214,7 +215,7 @@ public abstract class BaseK8sEnvTest {
                                     .setImage(OPERATOR_IMAGE);
                             client.resource(deployment).inNamespace(namespace)
                                     .create();
-                            log.info("Applied operator deployment" + SerializationUtil.writeAsJson(
+                            log.info("Applied operator deployment {}", SerializationUtil.writeAsJson(
                                     deployment.getSpec().getTemplate()));
                         });
             } else {
@@ -224,7 +225,6 @@ public abstract class BaseK8sEnvTest {
                 log.debug("skipping {}", yamlManifest);
             }
         }
-        getCRDsManifests().forEach(this::applyManifestFromFile);
         awaitOperatorRunning();
     }
 

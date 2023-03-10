@@ -354,8 +354,12 @@ public class BrokerControllerTest {
 
         final Broker brokerCr =
                 controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        final BrokerController.BrokerSetsLastApplied statusLastApplied =
+                new BrokerController.BrokerSetsLastApplied();
+        statusLastApplied.setCommon(brokerCr.getSpec());
+        statusLastApplied.getSets().put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerCr.getSpec());
         brokerCr.setStatus(
-                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(statusLastApplied))
         );
         client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
@@ -651,8 +655,12 @@ public class BrokerControllerTest {
 
         final Broker brokerCr =
                 controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        final BrokerController.BrokerSetsLastApplied statusLastApplied =
+                new BrokerController.BrokerSetsLastApplied();
+        statusLastApplied.setCommon(brokerCr.getSpec());
+        statusLastApplied.getSets().put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerCr.getSpec());
         brokerCr.setStatus(
-                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(statusLastApplied))
         );
         client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
@@ -1271,8 +1279,12 @@ public class BrokerControllerTest {
         final Broker brokerCr =
                 controllerTestUtil
                         .createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        final BrokerController.BrokerSetsLastApplied statusLastApplied =
+                new BrokerController.BrokerSetsLastApplied();
+        statusLastApplied.setCommon(brokerCr.getSpec());
+        statusLastApplied.getSets().put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerCr.getSpec());
         brokerCr.setStatus(
-                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(statusLastApplied))
         );
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override
@@ -1517,8 +1529,12 @@ public class BrokerControllerTest {
 
         final Broker brokerCr =
                 controllerTestUtil.createCustomResource(Broker.class, BrokerFullSpec.class, spec);
+        final BrokerController.BrokerSetsLastApplied statusLastApplied =
+                new BrokerController.BrokerSetsLastApplied();
+        statusLastApplied.setCommon(brokerCr.getSpec());
+        statusLastApplied.getSets().put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerCr.getSpec());
         brokerCr.setStatus(
-                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(brokerCr.getSpec()))
+                new BaseComponentStatus(List.of(), SerializationUtil.writeAsJson(statusLastApplied))
         );
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, new MockResourcesResolver() {
             @Override

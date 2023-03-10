@@ -756,7 +756,6 @@ public abstract class BaseResourcesFactory<T> {
 
         final List<ReplicaSet> replicaSets = client.apps().replicaSets()
                 .inNamespace(deployment.getMetadata().getNamespace())
-                .withLabels(deployment.getMetadata().getLabels())
                 .list()
                 .getItems()
                 .stream()

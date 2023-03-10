@@ -575,35 +575,37 @@ public class ProxySetsControllerTest {
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
         UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        ProxyController.ProxySetsLastApplied proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
         // verify order of sets follows the order declared in the spec
         Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(proxySetsLastApplied.getCommon());
+        Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
 
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
 
         resolver.putDeployment("pulsarname-proxy-setz", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        Assert.assertNotNull(proxySetsLastApplied.getSets().get("seta"));
 
         resolver.putDeployment("pulsarname-proxy-seta", true);
-
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
-
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -639,24 +641,15 @@ public class ProxySetsControllerTest {
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
         Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
 
         resolver.putDeployment("pulsarname-proxy-seta", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
-
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-
     }
 
     @Test
@@ -764,7 +757,10 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
         // verify order of sets follows the order declared in the spec
         Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        ProxyController.ProxySetsLastApplied proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
+        Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
         resolver.putDeployment("pulsarname-proxy-setz", true);
@@ -772,25 +768,19 @@ public class ProxySetsControllerTest {
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        Assert.assertNotNull(proxySetsLastApplied.getSets().get("proxy"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
         resolver.putDeployment("pulsarname-proxy", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
-        Assert.assertEquals(client.getDeletedResources().size(), 0);
-
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
-        Assert.assertEquals(client.getDeletedResources().size(), 0);
 
         spec = """
                 global:
@@ -802,10 +792,13 @@ public class ProxySetsControllerTest {
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertEquals(client.getCreatedResources(Service.class).size(), 2);
+        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
+        proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
+        Assert.assertNull(proxySetsLastApplied.getSets().get("proxy"));
+        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        Assert.assertEquals(client.getCreatedResources(Service.class).size(), 1);
         Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsarname-proxy"));
         Assert.assertEquals(client.getDeletedResources().size(), 4);
         Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-proxy"));
@@ -823,9 +816,12 @@ public class ProxySetsControllerTest {
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
+        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
+        proxySetsLastApplied =
+                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
+                        ProxyController.ProxySetsLastApplied.class);
+        Assert.assertNull(proxySetsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-
         Assert.assertEquals(client.getDeletedResources().size(), 6);
         Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsarname-proxy-setz"));
         Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-proxy-setz"));

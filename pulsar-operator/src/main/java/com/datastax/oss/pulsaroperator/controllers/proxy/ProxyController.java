@@ -15,9 +15,12 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
-import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.controllers.AbstractResourceSetsController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
@@ -26,22 +29,23 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-proxy-controller")
 @JBossLog
-public class ProxyController extends AbstractController<Proxy> {
+public class ProxyController
+        extends AbstractResourceSetsController<Proxy, ProxyFullSpec, ProxySpec, ProxySetSpec, ProxyResourcesFactory,
+        ProxyController.ProxySetsLastApplied> {
 
     public static List<String> enumerateProxySets(String clusterName, String componentBaseName, ProxySpec proxy) {
         LinkedHashMap<String, ProxySetSpec> sets = proxy.getSets();
@@ -58,96 +62,72 @@ public class ProxyController extends AbstractController<Proxy> {
         }
     }
 
-    @Getter
-    @AllArgsConstructor
-    private static class ProxySetInfo {
-        private final String name;
-        private final ProxySetSpec setSpec;
-        private final ProxyResourcesFactory proxyResourcesFactory;
+    public static LinkedHashMap<String, ProxySetSpec> getProxySetSpecs(ProxySpec proxy) {
+        return new ProxyController(null).getSetSpecs(proxy);
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ProxySetsLastApplied implements SetsLastApplied<ProxyFullSpec> {
+        private ProxyFullSpec common;
+        private Map<String, ProxyFullSpec> sets = new HashMap<>();
+    }
+
+    @Override
+    protected boolean isRollingUpdate(ProxyFullSpec proxyFullSpec) {
+        return ProxySpec.ProxySetsUpdateStrategy.RollingUpdate.toString()
+                .equals(proxyFullSpec.getProxy().getSetsUpdateStrategy());
+    }
 
     public ProxyController(KubernetesClient client) {
         super(client);
     }
 
     @Override
-    protected ReconciliationResult patchResources(Proxy resource, Context<Proxy> context) throws Exception {
-        final String namespace = resource.getMetadata().getNamespace();
-        final ProxyFullSpec spec = resource.getSpec();
-
-        final OwnerReference ownerReference = getOwnerReference(resource);
-        List<ProxySetInfo> proxySets = getProxySets(ownerReference, namespace, spec);
-
-        if (!areSpecChanged(resource)) {
-            ReconciliationResult lastResult = null;
-            for (ProxySetInfo proxySetInfo : proxySets) {
-                final ReconciliationResult result = checkReady(resource, proxySetInfo);
-                if (result.isReschedule()) {
-                    log.infof("Proxy set '%s' is not ready, rescheduling", proxySetInfo.getName());
-                    return result;
-                }
-                lastResult = result;
-            }
-            return lastResult;
-        } else {
-            final ProxyResourcesFactory
-                    defaultResourceFactory = new ProxyResourcesFactory(
-                    client, namespace, ProxyResourcesFactory.PROXY_DEFAULT_SET, spec.getProxy(),
-                    spec.getGlobal(), ownerReference);
-            // always create default service
-            defaultResourceFactory.patchService();
-
-            final boolean isRollingUpdate = isRollingUpdate(spec);
-            for (ProxySetInfo proxySet : proxySets) {
-                patchAll(proxySet.getProxyResourcesFactory());
-                if (isRollingUpdate && checkReady(resource, proxySet).isReschedule()) {
-                    log.infof("Proxy set '%s' is not ready, rescheduling", proxySet.getName());
-                    return new ReconciliationResult(
-                            true,
-                            List.of(createNotReadyInitializingCondition(resource)),
-                            true
-                    );
-                } else {
-                    log.infof("Proxy set '%s' is ready", proxySet.getName());
-                }
-            }
-            cleanupDeletedProxySets(resource, namespace, proxySets);
-            return new ReconciliationResult(
-                    true,
-                    List.of(createNotReadyInitializingCondition(resource))
-            );
-        }
+    protected String getComponentNameForLogs() {
+        return "proxy";
     }
 
-    private boolean isRollingUpdate(ProxyFullSpec spec) {
-        return ProxySpec.ProxySetsUpdateStrategy.RollingUpdate
-                .toString().equals(spec.getProxy().getSetsUpdateStrategy());
+    @Override
+    protected String getDefaultSetName() {
+        return ProxyResourcesFactory.PROXY_DEFAULT_SET;
     }
 
-    private void patchAll(ProxyResourcesFactory controller) {
-        controller.patchPodDisruptionBudget();
-        controller.patchConfigMap();
-        controller.patchConfigMapWsConfig();
-        controller.patchService();
-        controller.patchDeployment();
+    @Override
+    protected ProxySpec getSpec(ProxyFullSpec proxyFullSpec) {
+        return proxyFullSpec.getProxy();
     }
 
+    @Override
+    protected void patchResourceSet(SetInfo<ProxySetSpec, ProxyResourcesFactory> set) {
+        final ProxyResourcesFactory resourceFactory = set.getResourceFactory();
+        resourceFactory.patchPodDisruptionBudget();
+        resourceFactory.patchConfigMap();
+        resourceFactory.patchConfigMapWsConfig();
+        resourceFactory.patchService();
+        resourceFactory.patchDeployment();
+    }
 
-    private void deleteAll(ProxySetInfo proxySet) {
-        final ProxyResourcesFactory resourcesFactory = proxySet.getProxyResourcesFactory();
+    @Override
+    protected void deleteResourceSet(SetInfo<ProxySetSpec, ProxyResourcesFactory> set) {
+        final ProxyResourcesFactory resourcesFactory = set.getResourceFactory();
         resourcesFactory.deletePodDisruptionBudget();
         resourcesFactory.deleteConfigMap();
-        if (!proxySet.getName().equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
+        if (!set.getName().equals(ProxyResourcesFactory.PROXY_DEFAULT_SET)) {
             resourcesFactory.deleteService();
         }
         resourcesFactory.deleteDeployment();
     }
 
+    @Override
+    protected void patchCommonResources(SetInfo<ProxySetSpec, ProxyResourcesFactory> set) {
+        set.getResourceFactory().patchService();
+    }
 
-    private ReconciliationResult checkReady(Proxy resource,
-                                            ProxySetInfo proxySetInfo) {
-        final ProxyResourcesFactory resourcesFactory = proxySetInfo.getProxyResourcesFactory();
+    @Override
+    protected ReconciliationResult checkReady(Proxy resource, SetInfo<ProxySetSpec, ProxyResourcesFactory> set) {
+        final ProxyResourcesFactory resourcesFactory = set.getResourceFactory();
         if (!resourcesFactory.isComponentEnabled()) {
             return new ReconciliationResult(
                     false,
@@ -168,63 +148,42 @@ public class ProxyController extends AbstractController<Proxy> {
         }
     }
 
-    private void cleanupDeletedProxySets(Proxy resource, String namespace, List<ProxySetInfo> proxySets) {
-        final ProxyFullSpec lastAppliedResource = getLastAppliedResource(resource, ProxyFullSpec.class);
-        if (lastAppliedResource != null) {
-            final Set<String> currentProxySets = proxySets.stream().map(ProxySetInfo::getName)
-                    .collect(Collectors.toSet());
-            final List<ProxySetInfo> toDeleteProxySets =
-                    getProxySets(null, namespace, lastAppliedResource, currentProxySets);
-            for (ProxySetInfo proxySet : toDeleteProxySets) {
-                deleteAll(proxySet);
-                log.infof("Deleted proxy set: '%s'", proxySet.getName());
-            }
+    @Override
+    protected Map<String, ProxySetSpec> getSets(ProxySpec proxySpec) {
+        return proxySpec.getSets();
+    }
+
+    @Override
+    protected ProxyResourcesFactory newFactory(OwnerReference ownerReference, String namespace, String setName,
+                                               ProxySetSpec setSpec, GlobalSpec globalSpec) {
+        return new ProxyResourcesFactory(
+                client, namespace, setName, setSpec,
+                globalSpec, ownerReference);
+    }
+
+    @Override
+    protected ProxySetsLastApplied readSetsLastApplied(Proxy resource) {
+        final ProxySetsLastApplied proxySetsLastApplied = getLastAppliedResource(resource, ProxySetsLastApplied.class);
+        if (proxySetsLastApplied == null) {
+            return new ProxySetsLastApplied();
         }
+        return proxySetsLastApplied;
     }
 
-
-    private List<ProxySetInfo> getProxySets(OwnerReference ownerReference, String namespace, ProxyFullSpec spec) {
-        return getProxySets(ownerReference, namespace, spec, Set.of());
-    }
-
-    private List<ProxySetInfo> getProxySets(OwnerReference ownerReference, String namespace, ProxyFullSpec spec,
-                                            Set<String> excludes) {
-        List<ProxySetInfo> result = new ArrayList<>();
-
-        for (Map.Entry<String, ProxySetSpec> proxySpec : getProxySetSpecs(spec).entrySet()) {
-            final String proxySetName = proxySpec.getKey();
-            if (excludes.contains(proxySetName)) {
-                continue;
-            }
-            final ProxySetSpec proxySetSpec = proxySpec.getValue();
-            final ProxyResourcesFactory
-                    resourcesFactory = new ProxyResourcesFactory(
-                    client, namespace, proxySetName, proxySetSpec,
-                    spec.getGlobal(), ownerReference);
-            result.add(new ProxySetInfo(proxySetName, proxySetSpec, resourcesFactory));
+    @Override
+    protected JSONComparator.Result compareLastAppliedSetSpec(SetInfo<ProxySetSpec, ProxyResourcesFactory> info,
+                                                              ProxyFullSpec spec, ProxyFullSpec lastApplied) {
+        if (spec.getProxy().getSets() != null) {
+            spec = SerializationUtil.deepCloneObject(spec);
+            spec.getProxy().getSets().entrySet()
+                    .removeIf(e -> !e.getKey().equals(info.getName()));
         }
-        return result;
-    }
 
-    public static LinkedHashMap<String, ProxySetSpec> getProxySetSpecs(ProxyFullSpec fullSpec) {
-        return getProxySetSpecs(fullSpec.getProxy());
-    }
-
-    public static LinkedHashMap<String, ProxySetSpec> getProxySetSpecs(ProxySpec proxy) {
-        Map<String, ProxySetSpec> sets = proxy.getSets();
-        if (sets == null || sets.isEmpty()) {
-            sets = new LinkedHashMap(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET,
-                    ConfigUtil.applyDefaultsWithReflection(new ProxySpec(),
-                            () -> proxy)));
-        } else {
-            for (Map.Entry<String, ProxySetSpec> set : sets.entrySet()) {
-                sets.put(set.getKey(),
-                        ConfigUtil.applyDefaultsWithReflection(set.getValue(), () -> proxy)
-                );
-            }
+        if (lastApplied != null && lastApplied.getProxy().getSets() != null) {
+            lastApplied = SerializationUtil.deepCloneObject(lastApplied);
+            lastApplied.getProxy().getSets().entrySet()
+                    .removeIf(e -> !e.getKey().equals(info.getName()));
         }
-        return new LinkedHashMap<>(sets);
+        return SpecDiffer.generateDiff(spec, lastApplied);
     }
-
-
 }

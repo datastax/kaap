@@ -15,9 +15,12 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
-import com.datastax.oss.pulsaroperator.controllers.AbstractController;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.controllers.AbstractResourceSetsController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
-import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
@@ -26,22 +29,24 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
-import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
 @ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-bk-controller")
 @JBossLog
-public class BookKeeperController extends AbstractController<BookKeeper> {
+public class BookKeeperController extends
+        AbstractResourceSetsController<BookKeeper, BookKeeperFullSpec, BookKeeperSpec, BookKeeperSetSpec,
+                BookKeeperResourcesFactory,
+                BookKeeperController.BookKeeperSetsLastApplied> {
 
     public static List<String> enumerateBookKeeperSets(String clusterName, String componentBaseName,
                                                        BookKeeperSpec bk) {
@@ -59,13 +64,21 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
         }
     }
 
+    public static LinkedHashMap<String, BookKeeperSetSpec> getBookKeeperSetSpecs(BookKeeperFullSpec spec) {
+        return getBookKeeperSetSpecs(spec.getBookkeeper());
+    }
 
-    @Getter
+    public static LinkedHashMap<String, BookKeeperSetSpec> getBookKeeperSetSpecs(BookKeeperSpec spec) {
+        return new BookKeeperController(null).getSetSpecs(spec);
+    }
+
+    @Data
     @AllArgsConstructor
-    private static class BookKeeperSetInfo {
-        private final String name;
-        private final BookKeeperSetSpec setSpec;
-        private final BookKeeperResourcesFactory bookKeeperResourcesFactory;
+    @NoArgsConstructor
+    public static class BookKeeperSetsLastApplied
+            implements AbstractResourceSetsController.SetsLastApplied<BookKeeperFullSpec> {
+        private BookKeeperFullSpec common;
+        private Map<String, BookKeeperFullSpec> sets = new HashMap<>();
     }
 
 
@@ -74,121 +87,13 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
     }
 
     @Override
-    protected ReconciliationResult patchResources(BookKeeper resource, Context<BookKeeper> context) throws Exception {
-        final String namespace = resource.getMetadata().getNamespace();
-        final BookKeeperFullSpec spec = resource.getSpec();
-
-        final OwnerReference ownerReference = getOwnerReference(resource);
-        List<BookKeeperSetInfo> bkSets = getBookKeeperSets(ownerReference, namespace, spec);
-
-        if (!areSpecChanged(resource)) {
-            ReconciliationResult lastResult = null;
-            for (BookKeeperSetInfo bkSetInfo : bkSets) {
-                final ReconciliationResult result = checkReady(resource, bkSetInfo);
-                if (result.isReschedule()) {
-                    log.infof("Bookkeeper set '%s' is not ready, rescheduling", bkSetInfo.getName());
-                    return result;
-                }
-                lastResult = result;
-            }
-            return lastResult;
-        } else {
-            final BookKeeperResourcesFactory
-                    defaultResourceFactory = new BookKeeperResourcesFactory(
-                    client, namespace, BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, spec.getBookkeeper(),
-                    spec.getGlobal(), ownerReference);
-            // always create default service
-            defaultResourceFactory.patchService();
-
-            final boolean isRollingUpdate = isRollingUpdate(spec);
-            for (BookKeeperSetInfo bkSet : bkSets) {
-                patchAll(bkSet);
-                if (isRollingUpdate && checkReady(resource, bkSet).isReschedule()) {
-                    log.infof("Bookkeeper set '%s' is not ready, rescheduling", bkSet.getName());
-                    return new ReconciliationResult(
-                            true,
-                            List.of(createNotReadyInitializingCondition(resource)),
-                            true
-                    );
-                } else {
-                    log.infof("Bookkeeper set '%s' is ready", bkSet.getName());
-                }
-            }
-            cleanupDeletedBookkeeperSets(resource, namespace, bkSets);
-            return new ReconciliationResult(
-                    true,
-                    List.of(createNotReadyInitializingCondition(resource))
-            );
-        }
+    protected String getComponentNameForLogs() {
+        return "bookkeeper";
     }
 
-    private boolean isRollingUpdate(BookKeeperFullSpec spec) {
-        return BookKeeperSpec.BookKeeperSetsUpdateStrategy.RollingUpdate.toString()
-                .equals(spec.getBookkeeper().getSetsUpdateStrategy());
-    }
-
-    private void cleanupDeletedBookkeeperSets(BookKeeper resource, String namespace, List<BookKeeperSetInfo> bkSets) {
-        final BookKeeperFullSpec lastAppliedResource = getLastAppliedResource(resource, BookKeeperFullSpec.class);
-        if (lastAppliedResource != null) {
-            final Set<String> currentBookkeeperSets = bkSets.stream().map(BookKeeperSetInfo::getName)
-                    .collect(Collectors.toSet());
-            final List<BookKeeperSetInfo> toDeleteBookkeeperSets =
-                    getBookKeeperSets(null, namespace, lastAppliedResource, currentBookkeeperSets);
-            for (BookKeeperSetInfo set : toDeleteBookkeeperSets) {
-                deleteAll(set);
-                log.infof("Deleted bookkeeper set: '%s'", set.getName());
-            }
-        }
-    }
-
-    private List<BookKeeperSetInfo> getBookKeeperSets(OwnerReference ownerReference, String namespace,
-                                                      BookKeeperFullSpec spec) {
-        return getBookKeeperSets(ownerReference, namespace, spec, Set.of());
-    }
-
-
-    private List<BookKeeperSetInfo> getBookKeeperSets(OwnerReference ownerReference, String namespace,
-                                                      BookKeeperFullSpec spec,
-                                                      Set<String> excludes) {
-        List<BookKeeperSetInfo> result = new ArrayList<>();
-
-        for (Map.Entry<String, BookKeeperSetSpec> bkSet : getBookKeeperSetSpecs(spec).entrySet()) {
-            final String name = bkSet.getKey();
-            if (excludes.contains(name)) {
-                continue;
-            }
-            final BookKeeperSetSpec setSpec = bkSet.getValue();
-            final BookKeeperResourcesFactory
-                    resourcesFactory = new BookKeeperResourcesFactory(
-                    client, namespace, name, setSpec,
-                    spec.getGlobal(), ownerReference);
-            result.add(new BookKeeperSetInfo(name, setSpec, resourcesFactory));
-        }
-        return result;
-    }
-
-    public static LinkedHashMap<String, BookKeeperSetSpec> getBookKeeperSetSpecs(BookKeeperFullSpec fullSpec) {
-        return getBookKeeperSetSpecs(fullSpec.getBookkeeper());
-    }
-
-    public static LinkedHashMap<String, BookKeeperSetSpec> getBookKeeperSetSpecs(BookKeeperSpec bk) {
-        LinkedHashMap<String, BookKeeperSetSpec> sets = bk.getSets();
-        if (sets == null || sets.isEmpty()) {
-            sets = new LinkedHashMap<>(Map.of(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET,
-                    ConfigUtil.applyDefaultsWithReflection(new BookKeeperSetSpec(),
-                            () -> bk)));
-        } else {
-            for (Map.Entry<String, BookKeeperSetSpec> set : sets.entrySet()) {
-                sets.put(set.getKey(),
-                        ConfigUtil.applyDefaultsWithReflection(set.getValue(), () -> bk)
-                );
-            }
-        }
-        return sets;
-    }
-
-    private void patchAll(BookKeeperSetInfo info) {
-        final BookKeeperResourcesFactory resourcesFactory = info.getBookKeeperResourcesFactory();
+    @Override
+    protected void patchResourceSet(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set) {
+        final BookKeeperResourcesFactory resourcesFactory = set.getResourceFactory();
         resourcesFactory.patchPodDisruptionBudget();
         resourcesFactory.patchConfigMap();
         resourcesFactory.patchStorageClasses();
@@ -196,9 +101,10 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
         resourcesFactory.patchService();
     }
 
-    private void deleteAll(BookKeeperSetInfo info) {
-        final BookKeeperResourcesFactory resourcesFactory = info.getBookKeeperResourcesFactory();
-        if (!info.getName().equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
+    @Override
+    protected void deleteResourceSet(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set) {
+        final BookKeeperResourcesFactory resourcesFactory = set.getResourceFactory();
+        if (!set.getName().equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
             resourcesFactory.deleteService();
         }
         resourcesFactory.deleteStatefulSet();
@@ -207,9 +113,15 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
         resourcesFactory.deletePodDisruptionBudget();
     }
 
-    private ReconciliationResult checkReady(BookKeeper resource,
-                                            BookKeeperSetInfo setInfo) {
-        final BookKeeperResourcesFactory resourcesFactory = setInfo.getBookKeeperResourcesFactory();
+    @Override
+    protected void patchCommonResources(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set) {
+        set.getResourceFactory().patchService();
+    }
+
+    @Override
+    protected ReconciliationResult checkReady(BookKeeper resource,
+                                              SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set) {
+        final BookKeeperResourcesFactory resourcesFactory = set.getResourceFactory();
         if (!resourcesFactory.isComponentEnabled()) {
             return new ReconciliationResult(
                     false,
@@ -228,5 +140,60 @@ public class BookKeeperController extends AbstractController<BookKeeper> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
+    }
+
+    @Override
+    protected String getDefaultSetName() {
+        return BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET;
+    }
+
+    @Override
+    protected BookKeeperSpec getSpec(BookKeeperFullSpec bookKeeperFullSpec) {
+        return bookKeeperFullSpec.getBookkeeper();
+    }
+
+    @Override
+    protected Map<String, BookKeeperSetSpec> getSets(BookKeeperSpec bookKeeperSpec) {
+        return bookKeeperSpec.getSets();
+    }
+
+    @Override
+    protected BookKeeperResourcesFactory newFactory(OwnerReference ownerReference, String namespace, String setName,
+                                                    BookKeeperSetSpec setSpec, GlobalSpec globalSpec) {
+        return new BookKeeperResourcesFactory(client, namespace, setName, setSpec, globalSpec, ownerReference);
+    }
+
+    @Override
+    protected JSONComparator.Result compareLastAppliedSetSpec(
+            SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo, BookKeeperFullSpec spec,
+            BookKeeperFullSpec lastApplied) {
+        if (spec.getBookkeeper().getSets() != null) {
+            spec = SerializationUtil.deepCloneObject(spec);
+            spec.getBookkeeper().getSets().entrySet()
+                    .removeIf(e -> !e.getKey().equals(setInfo.getName()));
+        }
+
+        if (lastApplied != null && lastApplied.getBookkeeper().getSets() != null) {
+            lastApplied = SerializationUtil.deepCloneObject(lastApplied);
+            lastApplied.getBookkeeper().getSets().entrySet()
+                    .removeIf(e -> !e.getKey().equals(setInfo.getName()));
+        }
+        return SpecDiffer.generateDiff(spec, lastApplied);
+    }
+
+    @Override
+    protected BookKeeperSetsLastApplied readSetsLastApplied(BookKeeper resource) {
+        final BookKeeperSetsLastApplied
+                last = getLastAppliedResource(resource, BookKeeperSetsLastApplied.class);
+        if (last == null) {
+            return new BookKeeperSetsLastApplied();
+        }
+        return last;
+    }
+
+    @Override
+    protected boolean isRollingUpdate(BookKeeperFullSpec bookKeeperFullSpec) {
+        return BookKeeperSpec.BookKeeperSetsUpdateStrategy.RollingUpdate.toString()
+                .equals(bookKeeperFullSpec.getBookkeeper().getSetsUpdateStrategy());
     }
 }

@@ -24,7 +24,7 @@ import lombok.extern.jbosslog.JBossLog;
 @JBossLog
 public class SpecDiffer {
 
-    private static final JSONComparator.Result WAS_NULL_RESULT = new JSONComparator.Result() {
+    private static final JSONComparator.Result EXPECTED_WAS_NULL_RESULT = new JSONComparator.Result() {
         @Override
         public boolean areEquals() {
             return false;
@@ -32,7 +32,19 @@ public class SpecDiffer {
 
         @Override
         public List<JSONComparator.FieldComparisonDiff> diffs() {
-            throw new IllegalStateException("one of the spec (or both) was null");
+            return List.of(new JSONComparator.FieldComparisonDiff("ROOT_OBJECT", null, "NOT NULL"));
+        }
+    };
+
+    private static final JSONComparator.Result ACTUAL_WAS_NULL_RESULT = new JSONComparator.Result() {
+        @Override
+        public boolean areEquals() {
+            return false;
+        }
+
+        @Override
+        public List<JSONComparator.FieldComparisonDiff> diffs() {
+            return List.of(new JSONComparator.FieldComparisonDiff("ROOT_OBJECT", "NOT NULL", null));
         }
     };
 
@@ -44,10 +56,10 @@ public class SpecDiffer {
             return JSONComparator.RESULT_EQUALS;
         }
         if (json1 == null) {
-            return WAS_NULL_RESULT;
+            return EXPECTED_WAS_NULL_RESULT;
         }
         if (json2 == null) {
-            return WAS_NULL_RESULT;
+            return ACTUAL_WAS_NULL_RESULT;
         }
         return new JSONAssertComparator()
                 .compare(json1, json2);
@@ -59,10 +71,10 @@ public class SpecDiffer {
             return JSONComparator.RESULT_EQUALS;
         }
         if (spec1 == null) {
-            return WAS_NULL_RESULT;
+            return EXPECTED_WAS_NULL_RESULT;
         }
         if (spec2 == null) {
-            return WAS_NULL_RESULT;
+            return ACTUAL_WAS_NULL_RESULT;
         }
         final String expectedStr = SerializationUtil.writeAsJson(spec1);
         final String actualStr = SerializationUtil.writeAsJson(spec2);
@@ -74,10 +86,10 @@ public class SpecDiffer {
             return JSONComparator.RESULT_EQUALS;
         }
         if (spec1 == null) {
-            return WAS_NULL_RESULT;
+            return EXPECTED_WAS_NULL_RESULT;
         }
         if (json2 == null) {
-            return WAS_NULL_RESULT;
+            return ACTUAL_WAS_NULL_RESULT;
         }
         final String expectedStr = SerializationUtil.writeAsJson(spec1);
         return generateDiff(expectedStr, json2);
@@ -88,10 +100,10 @@ public class SpecDiffer {
             return JSONComparator.RESULT_EQUALS;
         }
         if (json1 == null) {
-            return WAS_NULL_RESULT;
+            return ACTUAL_WAS_NULL_RESULT;
         }
         if (spec2 == null) {
-            return WAS_NULL_RESULT;
+            return EXPECTED_WAS_NULL_RESULT;
         }
         final String actualStr = SerializationUtil.writeAsJson(spec2);
         return generateDiff(json1, actualStr);

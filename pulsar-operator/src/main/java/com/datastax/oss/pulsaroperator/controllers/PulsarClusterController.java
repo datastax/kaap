@@ -18,6 +18,8 @@ package com.datastax.oss.pulsaroperator.controllers;
 import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.utils.CertManagerCertificatesProvisioner;
@@ -32,6 +34,7 @@ import com.datastax.oss.pulsaroperator.crds.bastion.BastionFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
@@ -237,19 +240,37 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
     }
 
     private void adjustBookKeeperReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
-        if (clusterSpec.getBookkeeper() != null
-                && clusterSpec.getBookkeeper().getAutoscaler() != null
-                && clusterSpec.getBookkeeper().getAutoscaler().getEnabled()) {
-
+        if (clusterSpec.getBookkeeper() != null) {
             final String crFullName = computeCustomResourceName(clusterSpec, CUSTOM_RESOURCE_BOOKKEEPER);
             final BookKeeper current = client.resources(BookKeeper.class)
                     .inNamespace(currentNamespace)
                     .withName(crFullName)
                     .get();
-            if (current != null) {
-                final Integer currentReplicas = current.getSpec().getBookkeeper().getReplicas();
-                // do not update replicas if patching, leave whatever the autoscaler have set
-                clusterSpec.getBookkeeper().setReplicas(currentReplicas);
+            if (current == null) {
+                return;
+            }
+
+            final LinkedHashMap<String, BookKeeperSetSpec> desiredSpecs =
+                    BookKeeperController.getBookKeeperSetSpecs(clusterSpec.getBookkeeper());
+            final LinkedHashMap<String, BookKeeperSetSpec> currentSpecs =
+                    BookKeeperController.getBookKeeperSetSpecs(current.getSpec().getBookkeeper());
+
+            for (Map.Entry<String, BookKeeperSetSpec> currentSet : currentSpecs.entrySet()) {
+                final BookKeeperSetSpec desiredSetSpec = desiredSpecs.get(currentSet.getKey());
+                if (desiredSetSpec != null
+                        && desiredSetSpec.getAutoscaler() != null
+                        && desiredSetSpec.getAutoscaler().getEnabled()) {
+                    final BookKeeperSetSpec currentSetSpec = currentSet.getValue();
+                    if (currentSetSpec.getReplicas() != null) {
+                        final Integer currentReplicas = currentSetSpec.getReplicas();
+                        // do not update replicas if patching, leave whatever the autoscaler have set
+                        if (currentSet.getKey().equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
+                            clusterSpec.getBookkeeper().getDefaultBookKeeperSpecRef().setReplicas(currentReplicas);
+                        } else {
+                            clusterSpec.getBookkeeper().getSets().get(currentSet.getKey()).setReplicas(currentReplicas);
+                        }
+                    }
+                }
             }
         }
     }

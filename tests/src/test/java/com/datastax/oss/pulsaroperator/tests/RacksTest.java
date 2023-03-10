@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AntiAffinityConfig;
@@ -178,6 +179,68 @@ public class RacksTest extends BasePulsarClusterTest {
             throw new RuntimeException(t);
         }
     }
+
+
+    @Test
+    public void testBookKeeper() throws Exception {
+        applyRBACManifests();
+        applyOperatorDeploymentAndCRDs();
+
+        final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+
+
+
+        specs.getZookeeper().setReplicas(1);
+        specs.getBroker().setReplicas(0);
+        specs.getBookkeeper().setReplicas(2);
+        specs.getBookkeeper().setSets(new LinkedHashMap<>(Map.of(
+                "set1", BookKeeperSetSpec.builder().build(),
+                "set2", BookKeeperSetSpec.builder().build(),
+                "norack", BookKeeperSetSpec.builder().build()
+        )));
+
+        specs.getProxy().setReplicas(0);
+
+        final RackConfig rackConfig = RackConfig.builder()
+                .host(RackConfig.HostRackTypeConfig.builder()
+                        .enabled(true)
+                        .requireRackAffinity(true)
+                        .requireRackAntiAffinity(true)
+                        .build())
+                .zone(RackConfig.ZoneRackTypeConfig.builder()
+                        .enabled(false)
+                        .build())
+                .build();
+        specs.getGlobal().setRacks(Map.of(
+                "rack1", rackConfig,
+                "rack2", rackConfig
+        ));
+
+        specs.getGlobal().setResourceSets(Map.of(
+                "set1", ResourceSetConfig.builder().rack("rack1").build(),
+                "set2", ResourceSetConfig.builder().rack("rack2").build(),
+                "norack", ResourceSetConfig.builder().build()
+        ));
+        specs.getGlobal().setAntiAffinity(AntiAffinityConfig.builder()
+                .host(AntiAffinityConfig.AntiAffinityTypeConfig.builder()
+                        .enabled(true)
+                        .required(true)
+                        .build())
+                .build());
+
+        try {
+            applyPulsarCluster(specsToYaml(specs));
+            Assert.assertEquals(getPodNodeName("pulsar-bookkeeper-set1-0"), getPodNodeName("pulsar-bookkeeper-set1-1"));
+            Assert.assertEquals(getPodNodeName("pulsar-bookkeeper-set2-0"), getPodNodeName("pulsar-bookkeeper-set2-1"));
+            Assert.assertNotEquals(getPodNodeName("pulsar-bookkeeper-set1-0"), getPodNodeName("pulsar-bookkeeper-set2-0"));
+            Assert.assertNotEquals(getPodNodeName("pulsar-bookkeeper-norack-0"), getPodNodeName("pulsar-bookkeeper-norack-1"));
+        } catch (Throwable t) {
+            log.error("test failed with {}", t.getMessage(), t);
+            printAllPodsLogs();
+            throw new RuntimeException(t);
+        }
+    }
+
 
 
     private String getPodNodeName(String name) {

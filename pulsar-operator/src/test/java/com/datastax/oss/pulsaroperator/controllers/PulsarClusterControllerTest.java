@@ -585,6 +585,7 @@ public class PulsarClusterControllerTest {
                       scaleDownBy: 1
                       stabilizationWindowMs: 300000
                       cleanUpPvcs: true
+                    setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));
@@ -727,6 +728,9 @@ public class PulsarClusterControllerTest {
                         enabled: true
                     resourceSets:
                       set1: {}
+                bookkeeper:
+                    sets:
+                        set1: {}
                 broker:
                     sets:
                         set1: {}
@@ -739,6 +743,30 @@ public class PulsarClusterControllerTest {
         final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
+    }
+
+    @Test
+    public void testBookKeeperResourceSetsNotDefined() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                    auth:
+                        enabled: true
+                    resourceSets:
+                      set1: {}
+                bookkeeper:
+                    sets:
+                        set1xx: {}
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
+        Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
+        Assert.assertTrue(readyCondition.getMessage().contains(
+                "bookkeeper resource set set1xx is not defined in global resource sets (.global.resourceSets), only [set1]")
+        );
     }
 
     @Test

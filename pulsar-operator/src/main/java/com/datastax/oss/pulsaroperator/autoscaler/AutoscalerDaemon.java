@@ -15,8 +15,11 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
@@ -42,13 +45,13 @@ public class AutoscalerDaemon implements AutoCloseable {
     private final KubernetesClient client;
     private final ScheduledExecutorService executorService;
     private final List<ScheduledFuture<?>> brokerSetAutoscalerTasks = new ArrayList<>();
-    private ScheduledFuture<?> bkAutoscaler;
+    private final List<ScheduledFuture<?>> bookkeeperSetAutoscalerTasks = new ArrayList<>();
     private final Map<String, NamespaceContext> namespaces = new HashMap<>();
 
     @Data
     private static class NamespaceContext {
         private Map<String, BrokerAutoscalerSpec> currentBrokerAutoscalerSpecs;
-        private BookKeeperAutoscalerSpec currentBkSpec;
+        private Map<String, BookKeeperAutoscalerSpec> currentBkAutoscalerSpecs;
 
         private boolean brokerSpecChanged(Map<String, BrokerAutoscalerSpec> spec) {
             if (currentBrokerAutoscalerSpecs != null
@@ -59,10 +62,10 @@ public class AutoscalerDaemon implements AutoCloseable {
             return true;
         }
 
-        private boolean bkSpecChanged(BookKeeperAutoscalerSpec spec) {
-            if (currentBkSpec != null
+        private boolean bkSpecChanged(Map<String, BookKeeperAutoscalerSpec> spec) {
+            if (currentBkAutoscalerSpecs != null
                     && spec != null
-                    && Objects.equals(spec, currentBkSpec)) {
+                    && Objects.equals(spec, currentBkAutoscalerSpecs)) {
                 return false;
             }
             return true;
@@ -78,51 +81,65 @@ public class AutoscalerDaemon implements AutoCloseable {
         final NamespaceContext namespaceContext = namespaces.getOrDefault(namespace,
                 new NamespaceContext());
         Map<String, BrokerAutoscalerSpec> allBrokerAutoscalerSpecs = null;
+        Map<String, BookKeeperAutoscalerSpec> allBookKeeperAutoscalerSpecs = null;
         if (clusterSpec.getBroker() != null) {
             allBrokerAutoscalerSpecs = getBrokerAutoscalerSpecs(clusterSpec);
             if (namespaceContext.brokerSpecChanged(allBrokerAutoscalerSpecs)) {
                 cancelBrokerAutoscalerTasks();
-                for (Map.Entry<String, BrokerAutoscalerSpec> brokerSetAutoscalers :
-                        allBrokerAutoscalerSpecs.entrySet()) {
-                    final BrokerAutoscalerSpec spec = brokerSetAutoscalers.getValue();
-                    if (spec.getEnabled()) {
-                        final String brokerSetName = brokerSetAutoscalers.getKey();
-                        log.infof("Scheduling broker autoscaler every %d ms for broker set %s",
-                                spec.getPeriodMs(), brokerSetName);
-                        brokerSetAutoscalerTasks.add(executorService.scheduleWithFixedDelay(
-                                new BrokerSetAutoscaler(client, namespace, brokerSetName, clusterSpec),
-                                spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS));
-                    }
-
-                }
+                scheduleBrokerAutoscalerTasks(clusterSpec, namespace, allBrokerAutoscalerSpecs);
             } else {
                 log.debug("Broker autoscaler not changed");
             }
         }
 
         if (clusterSpec.getBookkeeper() != null) {
-            final BookKeeperAutoscalerSpec spec = clusterSpec.getBookkeeper().getAutoscaler();
-            if (namespaceContext.bkSpecChanged(spec)) {
-                cancelCurrentBkTask();
-                boolean enabled = spec != null && spec.getEnabled();
-                if (enabled) {
-                    log.infof("Scheduling BK autoscaler every %d ms", spec.getPeriodMs());
-                    bkAutoscaler = executorService.scheduleWithFixedDelay(
-                            new BookKeeperAutoscaler(client, namespace, clusterSpec),
-                            spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS);
-                } else {
-                    log.debug("BK autoscaler is disabled");
-                }
+            allBookKeeperAutoscalerSpecs = getBookKeeperAutoscalerSpecs(clusterSpec);
+
+            if (namespaceContext.bkSpecChanged(allBookKeeperAutoscalerSpecs)) {
+                cancelBookKeeperAutoscalerTasks();
+                scheduleBookKeeperAutoscalerTasks(clusterSpec, namespace, allBookKeeperAutoscalerSpecs);
             } else {
-                log.debug("BK autoscaler not changed");
+                log.debug("Bookkeeper autoscaler not changed");
             }
         }
 
         namespaceContext.setCurrentBrokerAutoscalerSpecs(allBrokerAutoscalerSpecs);
-        namespaceContext.setCurrentBkSpec(clusterSpec.getBookkeeper() == null
-                ? null
-                : clusterSpec.getBookkeeper().getAutoscaler());
+        namespaceContext.setCurrentBkAutoscalerSpecs(allBookKeeperAutoscalerSpecs);
         namespaces.put(namespace, namespaceContext);
+    }
+
+    private void scheduleBrokerAutoscalerTasks(PulsarClusterSpec clusterSpec, String namespace,
+                           Map<String, BrokerAutoscalerSpec> allBrokerAutoscalerSpecs) {
+        for (Map.Entry<String, BrokerAutoscalerSpec> brokerSetAutoscalers :
+                allBrokerAutoscalerSpecs.entrySet()) {
+            final BrokerAutoscalerSpec spec = brokerSetAutoscalers.getValue();
+            if (spec.getEnabled()) {
+                final String brokerSetName = brokerSetAutoscalers.getKey();
+                log.infof("Scheduling broker autoscaler every %d ms for broker set %s",
+                        spec.getPeriodMs(), brokerSetName);
+                brokerSetAutoscalerTasks.add(executorService.scheduleWithFixedDelay(
+                        new BrokerSetAutoscaler(client, namespace, brokerSetName, clusterSpec),
+                        spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS));
+            }
+
+        }
+    }
+
+    private void scheduleBookKeeperAutoscalerTasks(PulsarClusterSpec clusterSpec, String namespace,
+                                               Map<String, BookKeeperAutoscalerSpec> specs) {
+        for (Map.Entry<String, BookKeeperAutoscalerSpec> autoscaler:
+                specs.entrySet()) {
+            final BookKeeperAutoscalerSpec spec = autoscaler.getValue();
+            if (spec.getEnabled()) {
+                final String bkSetName = autoscaler.getKey();
+                log.infof("Scheduling bookkeeper autoscaler every %d ms for bookkeeper set %s",
+                        spec.getPeriodMs(), bkSetName);
+                bookkeeperSetAutoscalerTasks.add(executorService.scheduleWithFixedDelay(
+                        new BookKeeperSetAutoscaler(client, namespace, bkSetName, clusterSpec),
+                        spec.getPeriodMs(), spec.getPeriodMs(), TimeUnit.MILLISECONDS));
+            }
+
+        }
     }
 
     private Map<String, BrokerAutoscalerSpec> getBrokerAutoscalerSpecs(PulsarClusterSpec clusterSpec) {
@@ -133,10 +150,18 @@ public class AutoscalerDaemon implements AutoCloseable {
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getAutoscaler()));
     }
 
+    private Map<String, BookKeeperAutoscalerSpec> getBookKeeperAutoscalerSpecs(PulsarClusterSpec clusterSpec) {
+        final BookKeeperSpec bk = clusterSpec.getBookkeeper();
+        final LinkedHashMap<String, BookKeeperSetSpec> sets =
+                BookKeeperController.getBookKeeperSetSpecs(bk);
+        return sets.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getAutoscaler()));
+    }
+
     @Override
     public void close() {
         cancelBrokerAutoscalerTasks();
-        cancelCurrentBkTask();
+        cancelBookKeeperAutoscalerTasks();
         executorService.shutdownNow();
     }
 
@@ -151,13 +176,14 @@ public class AutoscalerDaemon implements AutoCloseable {
         brokerSetAutoscalerTasks.clear();
     }
 
-    private void cancelCurrentBkTask() {
-        if (bkAutoscaler != null) {
-            bkAutoscaler.cancel(true);
+    private void cancelBookKeeperAutoscalerTasks() {
+        bookkeeperSetAutoscalerTasks.forEach(f -> {
+            f.cancel(true);
             try {
-                bkAutoscaler.get();
+                f.get();
             } catch (Throwable ignore) {
             }
-        }
+        });
+        bookkeeperSetAutoscalerTasks.clear();
     }
 }

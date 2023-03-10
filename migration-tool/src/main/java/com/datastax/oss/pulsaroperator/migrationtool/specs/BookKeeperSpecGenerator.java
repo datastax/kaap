@@ -16,47 +16,61 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
-import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenerator;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
-import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
 
     public static final String SPEC_NAME = "BookKeeper";
-    private final String resourceName;
+    private final Map<String, BaseSpecGenerator> generators = new TreeMap<>();
     private BookKeeperSpec generatedSpec;
-    private PodDNSConfig podDNSConfig;
-    private boolean isRestartOnConfigMapChange;
-    private String priorityClassName;
-    private Map<String, Object> config;
-    private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public BookKeeperSpecGenerator(InputClusterSpecs inputSpecs, KubernetesClient client) {
         super(inputSpecs, client);
-        final String clusterName = inputSpecs.getClusterName();
-        resourceName = BookKeeperResourcesFactory.getResourceName(clusterName,
-                inputSpecs.getBookkeeper().getBaseName());
-        internalGenerateSpec();
+        internalGenerateSpec(inputSpecs, client);
+    }
+
+    private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
+        final List<InputClusterSpecs.BookKeeperSpecs.BookKeeperSetSpecs> bkSets =
+                inputSpecs.getBookkeeper().getBookkeeperSets();
+        generatedSpec = new BookKeeperSpec();
+        if (bkSets == null || bkSets.isEmpty()) {
+            final BookKeeperSetSpecGenerator brokerSetSpecGenerator = new BookKeeperSetSpecGenerator(
+                    inputSpecs,
+                    new InputClusterSpecs.BookKeeperSpecs.BookKeeperSetSpecs(
+                            BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, null),
+                    client
+            );
+            generators.put(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, brokerSetSpecGenerator);
+            final BookKeeperSpec bkSpec = brokerSetSpecGenerator.generateSpec();
+            generatedSpec.setSets(
+                    new LinkedHashMap<>(Map.of(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, bkSpec)));
+        } else {
+            LinkedHashMap<String, BookKeeperSetSpec> sets = new LinkedHashMap<>();
+            bkSets.stream().map(
+                    setConfig -> Pair.of(setConfig.getName(),
+                            new BookKeeperSetSpecGenerator(inputSpecs, setConfig, client))
+            ).forEach(pair -> {
+                generators.put(pair.getLeft(), pair.getRight());
+                sets.put(pair.getLeft(), pair.getRight().generateSpec());
+            });
+            generatedSpec.setSets(sets);
+        }
     }
 
     @Override
@@ -69,80 +83,18 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
         return generatedSpec;
     }
 
-    public void internalGenerateSpec() {
-        final PodDisruptionBudget podDisruptionBudget = getPodDisruptionBudget(resourceName);
-        final ConfigMap configMap = requireConfigMap(resourceName);
-        final Service mainService = requireService(resourceName);
-        final StatefulSet statefulSet = requireStatefulSet(resourceName);
-
-        verifyLabelsEquals(podDisruptionBudget, statefulSet, configMap);
-
-
-        final StatefulSetSpec statefulSetSpec = statefulSet.getSpec();
-        final PodSpec spec = statefulSetSpec.getTemplate()
-                .getSpec();
-        final Container container = spec
-                .getContainers()
-                .get(0);
-        verifyProbeCompatible(container.getReadinessProbe());
-        verifyProbeCompatible(container.getLivenessProbe());
-        PodDisruptionBudgetConfig podDisruptionBudgetConfig =
-                createPodDisruptionBudgetConfig(podDisruptionBudget);
-
-
-        podDNSConfig = spec.getDnsConfig();
-        isRestartOnConfigMapChange = isPodDependantOnConfigMap(statefulSetSpec.getTemplate());
-        priorityClassName = spec.getPriorityClassName();
-        config = convertConfigMapData(configMap);
-        tlsEntryConfig = createTlsEntryConfig(statefulSet);
-
-        final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
-        final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
-        final List<PersistentVolumeClaim> volumeClaimTemplates = statefulSetSpec.getVolumeClaimTemplates();
-        final PersistentVolumeClaim journalPvc = requirePvc("%s-journal".formatted(resourceName), volumeClaimTemplates);
-        final PersistentVolumeClaim ledgersPvc = requirePvc("%s-ledgers".formatted(resourceName), volumeClaimTemplates);
-        generatedSpec = BookKeeperSpec.builder()
-                .annotations(statefulSet.getMetadata().getAnnotations())
-                .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
-                .image(container.getImage())
-                .imagePullPolicy(container.getImagePullPolicy())
-                .nodeSelectors(spec.getNodeSelector())
-                .replicas(statefulSetSpec.getReplicas())
-                .probes(createProbeConfig(container))
-                .nodeAffinity(nodeAffinity)
-                .pdb(podDisruptionBudgetConfig)
-                .labels(statefulSet.getMetadata().getLabels())
-                .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
-                .matchLabels(matchLabels)
-                .config(config)
-                .podManagementPolicy(statefulSetSpec.getPodManagementPolicy())
-                .updateStrategy(statefulSetSpec.getUpdateStrategy())
-                .gracePeriod(spec.getTerminationGracePeriodSeconds() == null ? null :
-                        spec.getTerminationGracePeriodSeconds().intValue())
-                .resources(container.getResources())
-                .tolerations(spec.getTolerations())
-                .volumes(BookKeeperSpec.Volumes.builder()
-                        .journal(createVolumeConfig(resourceName, journalPvc))
-                        .ledgers(createVolumeConfig(resourceName, ledgersPvc))
-                        .build())
-                .service(createServiceConfig(mainService))
-                .imagePullSecrets(spec.getImagePullSecrets())
-                .antiAffinity(createAntiAffinityConfig(spec))
-                .env(container.getEnv())
-                .initContainers(getInitContainers(spec, BookKeeperResourcesFactory.getInitContainerNames(resourceName)))
-                .sidecars(getSidecars(spec, BookKeeperResourcesFactory.getContainerNames(resourceName)))
-                .build();
-    }
-
-
     @Override
     public PodDNSConfig getPodDnsConfig() {
-        return podDNSConfig;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.getPodDnsConfig(), false, "PodDnsConfig",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
     public boolean isRestartOnConfigMapChange() {
-        return isRestartOnConfigMapChange;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.isRestartOnConfigMapChange(), false, "RestartOnConfigMapChange",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
@@ -152,25 +104,38 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
 
     @Override
     public String getPriorityClassName() {
-        return priorityClassName;
+        return PulsarClusterResourceGenerator.getValueAssertSame(BaseSpecGenerator::getPriorityClassName, false,
+                "priorityClassName", new ArrayList<>(generators.values()));
     }
 
     @Override
     public Map<String, Object> getConfig() {
-        return config;
+        return getBkSpecGenerator(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET).getConfig();
     }
 
     @Override
     public TlsConfig.TlsEntryConfig getTlsEntryConfig() {
-        return tlsEntryConfig;
+        final BaseSpecGenerator defaultSet = getBkSpecGenerator(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET);
+        if (defaultSet == null) {
+            return null;
+        }
+        return defaultSet.getTlsEntryConfig();
+    }
+
+    public Map<String, TlsConfig.TlsEntryConfig> getTlsEntryConfigForResourceSets() {
+        return generators.entrySet()
+                .stream()
+                .filter(entry -> !Objects.equals(entry.getKey(), BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET))
+                .map(p -> Pair.of(p.getKey(), p.getValue().getTlsEntryConfig()))
+                .filter(p -> p.getRight() != null)
+                .collect(Collectors.toMap(p -> p.getKey(), p -> p.getRight()));
     }
 
     @Override
     public String getTlsCaPath() {
-        if (tlsEntryConfig != null) {
-            return Objects.requireNonNull((String) getConfig().get("bookkeeperTLSTrustCertsFilePath"));
-        }
-        return null;
+        return PulsarClusterResourceGenerator
+                .getValueAssertSame(p -> p.getTlsCaPath(), false, "bookkeeperTLSTrustCertsFilePath",
+                        new ArrayList<>(generators.values()));
     }
 
     @Override
@@ -178,39 +143,8 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
         return null;
     }
 
-    private BookKeeperSpec.ServiceConfig createServiceConfig(Service service) {
-        Map<String, String> annotations = service.getMetadata().getAnnotations();
-        if (annotations == null) {
-            annotations = new HashMap<>();
-        }
-        return BookKeeperSpec.ServiceConfig.builder()
-                .annotations(annotations)
-                .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
-                        BookKeeperResourcesFactory.DEFAULT_BK_PORT))
-                .build();
-    }
-
-    private void verifyProbeCompatible(Probe probe) {
-        if (probe.getHttpGet() == null) {
-            throw new IllegalStateException("current probe is not compatible, must be httpGet");
-        }
-    }
-
-    private TlsConfig.TlsEntryConfig createTlsEntryConfig(StatefulSet statefulSet) {
-        final String tlsProvider = (String) getConfig().get("tlsProvider");
-        if (!"OpenSSL".equals(tlsProvider)) {
-            return null;
-        }
-        final Volume certs = statefulSet.getSpec().getTemplate().getSpec().getVolumes().stream()
-                .filter(v -> "certs".equals(v.getName()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No tls volume with name 'certs' found"));
-        final String secretName = certs.getSecret().getSecretName();
-
-        return TlsConfig.TlsEntryConfig.builder()
-                .enabled(true)
-                .secretName(secretName)
-                .build();
+    private BaseSpecGenerator getBkSpecGenerator(String setName) {
+        return generators.get(setName);
     }
 
 }

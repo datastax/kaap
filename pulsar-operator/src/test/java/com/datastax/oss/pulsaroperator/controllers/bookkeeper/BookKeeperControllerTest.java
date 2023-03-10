@@ -82,6 +82,7 @@ public class BookKeeperControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: bookkeeper
+                            resource-set: bookkeeper
                           name: pulsarname-bookkeeper
                           namespace: ns
                           ownerReferences:
@@ -117,6 +118,7 @@ public class BookKeeperControllerTest {
                     app: pulsar
                     cluster: pulsarname
                     component: bookkeeper
+                    resource-set: bookkeeper
                   name: pulsarname-bookkeeper
                   namespace: ns
                   ownerReferences:
@@ -148,6 +150,7 @@ public class BookKeeperControllerTest {
                     app: pulsar
                     cluster: pulsarname
                     component: bookkeeper
+                    resource-set: bookkeeper
                   name: pulsarname-bookkeeper
                   namespace: ns
                   ownerReferences:
@@ -174,6 +177,7 @@ public class BookKeeperControllerTest {
                         app: pulsar
                         cluster: pulsarname
                         component: bookkeeper
+                        resource-set: bookkeeper
                     spec:
                       affinity:
                         podAntiAffinity:
@@ -281,6 +285,7 @@ public class BookKeeperControllerTest {
                             app: pulsar
                             cluster: pulsarname
                             component: bookkeeper
+                            resource-set: bookkeeper
                           name: pulsarname-bookkeeper
                           namespace: ns
                           ownerReferences:
@@ -728,6 +733,7 @@ public class BookKeeperControllerTest {
                         "cluster", "pul",
                         "app", "pulsar",
                         "component", "bookkeeper",
+                        "resource-set", "bookkeeper",
                         "label-2", "label2-value"
                 )
         );
@@ -737,6 +743,7 @@ public class BookKeeperControllerTest {
                         "cluster", "pul",
                         "app", "pulsar",
                         "component", "bookkeeper",
+                        "resource-set", "bookkeeper",
                         "label-1", "label1-value"
                 )
         );
@@ -1262,7 +1269,7 @@ public class BookKeeperControllerTest {
             Assert.assertEquals(storageClass.getMetadata().getNamespace(), NAMESPACE);
             Assert.assertEquals(storageClass.getMetadata().getOwnerReferences().size(), 0);
 
-            Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 3);
+            Assert.assertEquals(storageClass.getMetadata().getLabels().size(), 4);
             Assert.assertEquals(storageClass.getReclaimPolicy(), "Retain");
             Assert.assertEquals(storageClass.getProvisioner(), "kubernetes.io/aws-ebs");
             Assert.assertEquals(storageClass.getParameters().size(), 3);

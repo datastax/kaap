@@ -188,6 +188,12 @@ public abstract class BaseResourcesFactory<T> {
                 .delete();
     }
 
+    public void deleteStorageClass() {
+        client.storage().v1().storageClasses()
+                .withName(resourceName)
+                .delete();
+    }
+
     public void deleteConfigMap() {
         deleteConfigMap(resourceName);
     }

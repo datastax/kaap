@@ -38,6 +38,7 @@ import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.V1NetworkAPIGroupDSL;
 import io.fabric8.kubernetes.client.VersionInfo;
@@ -54,8 +55,10 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
+import io.fabric8.kubernetes.client.dsl.StorageAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.V1BatchAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.V1PolicyAPIGroupDSL;
+import io.fabric8.kubernetes.client.dsl.V1StorageAPIGroupDSL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +69,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 @Getter
 public class MockKubernetesClient {
@@ -124,6 +128,11 @@ public class MockKubernetesClient {
         );
         when(client.services()).thenAnswer(__ ->
                 mockExistingResourceByName(namespace, Service.class, name -> resourcesResolver.serviceWithName(name))
+        );
+
+        final V1StorageAPIGroupDSL storage = mockStorage();
+        when(storage.storageClasses()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, StorageClass.class, name -> resourcesResolver.storageClassByName(name))
         );
 
         final AppsAPIGroupDSL apps = mockApps();
@@ -256,6 +265,13 @@ public class MockKubernetesClient {
         when(client.rbac()).thenReturn(rbac);
         return rbac;
     }
+    private V1StorageAPIGroupDSL mockStorage() {
+        final StorageAPIGroupDSL storage = Mockito.mock(StorageAPIGroupDSL.class);
+        final V1StorageAPIGroupDSL v1 = Mockito.mock(V1StorageAPIGroupDSL.class);
+        when(storage.v1()).thenReturn(v1);
+        when(client.storage()).thenReturn(storage);
+        return v1;
+    }
 
     private <T extends HasMetadata> MixedOperation mockExistingResourceByName(String namespace, Class<T> resourceClass,
                                                                               Function<String, T> resolver) {
@@ -266,7 +282,7 @@ public class MockKubernetesClient {
         when(resourceOp.inNamespace(eq(namespace))).thenReturn(nonNamespaceOperation);
         when(nonNamespaceOperation.withLabels(any(Map.class))).thenReturn(nonNamespaceOperation);
 
-        doAnswer(get -> {
+        final Answer withNameAnswer = get -> {
             final Class<? extends Gettable> rClass;
             if (resourceClass == Service.class) {
                 rClass = ServiceResource.class;
@@ -295,7 +311,9 @@ public class MockKubernetesClient {
                 return null;
             });
             return resource;
-        }).when(nonNamespaceOperation).withName(any());
+        };
+        doAnswer(withNameAnswer).when(nonNamespaceOperation).withName(any());
+        doAnswer(withNameAnswer).when(resourceOp).withName(any());
 
         class ListImpl implements KubernetesResourceList, KubernetesResource {
             @Override

@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.WithDefaults;
 import com.datastax.oss.pulsaroperator.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.pulsaroperator.crds.bastion.BastionSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
@@ -132,7 +133,8 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
 
         return validateResourceSetsRacks(resourceSets, spec.getGlobal().getRacks(), context)
                 && validateBrokerResourceSets(resourceSets, spec.getBroker(), context)
-                && validateProxyResourceSets(resourceSets, spec.getProxy(), context);
+                && validateProxyResourceSets(resourceSets, spec.getProxy(), context)
+                && validateBookKeeperResourceSets(resourceSets, spec.getBookkeeper(), context);
 
     }
 
@@ -170,6 +172,15 @@ public class PulsarClusterSpec extends ValidableSpec<PulsarClusterSpec> implemen
             return true;
         }
         return validateResourceSetNames(sets.keySet(), declaredResourceSets, "proxy", context);
+    }
+
+    private boolean validateBookKeeperResourceSets(Map<String, ResourceSetConfig> declaredResourceSets,
+                                              BookKeeperSpec spec, ConstraintValidatorContext context) {
+        final Map<String, BookKeeperSetSpec> sets = spec.getSets();
+        if (sets == null || sets.isEmpty()) {
+            return true;
+        }
+        return validateResourceSetNames(sets.keySet(), declaredResourceSets, "bookkeeper", context);
     }
 
     private boolean validateResourceSetNames(Set<String> sets,

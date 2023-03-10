@@ -110,7 +110,8 @@ public class BookKeeperAutoscalerTest {
             final int replicas = pulsarClusterSpec.getBookkeeper().getReplicas();
 
             final BookKeeperResourcesFactory bkResourcesFactory =
-                    new BookKeeperResourcesFactory(null, NAMESPACE, pulsarClusterSpec.getBookkeeper(),
+                    new BookKeeperResourcesFactory(null, NAMESPACE, BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET,
+                            pulsarClusterSpec.getBookkeeper(),
                             pulsarClusterSpec.getGlobal(), null);
 
             final Field field = bkResourcesFactory.getClass().getDeclaredField("configMap");
@@ -135,7 +136,9 @@ public class BookKeeperAutoscalerTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(clusterName))
+                    .withPath(
+                            "/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(
+                                    clusterName))
                     .andReturn(HttpURLConnection.HTTP_OK, bkCr)
                     .times(2);
 
@@ -190,7 +193,7 @@ public class BookKeeperAutoscalerTest {
             server.expect()
                     .get()
                     .withPath("/api/v1/namespaces/ns/pods?labelSelector=%s".formatted(
-                                    URLEncoder.encode("cluster=%s,component=bookkeeper".formatted(clusterName),
+                                    URLEncoder.encode("cluster=%s,component=bookkeeper,resource-set=bookkeeper".formatted(clusterName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -204,7 +207,7 @@ public class BookKeeperAutoscalerTest {
             server.expect()
                     .get()
                     .withPath("/apis/metrics.k8s.io/v1beta1/namespaces/ns/pods?labelSelector=%s".formatted(
-                                    URLEncoder.encode("cluster=%s,component=bookkeeper".formatted(clusterName),
+                                    URLEncoder.encode("cluster=%s,component=bookkeeper,resource-set=bookkeeper".formatted(clusterName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -213,7 +216,9 @@ public class BookKeeperAutoscalerTest {
 
             server.expect()
                     .patch()
-                    .withPath("/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(clusterName))
+                    .withPath(
+                            "/apis/pulsar.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(
+                                    clusterName))
                     .andReply(HttpURLConnection.HTTP_OK, new BodyProvider<Object>() {
                         @Override
                         @SneakyThrows
@@ -250,30 +255,32 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 null, server -> {
                     String bookieInfoOk = """
-{
-  "freeSpace" : 49769177088,
-  "totalSpace" : 101129359360
-}
-""";
+                            {
+                              "freeSpace" : 49769177088,
+                              "totalSpace" : 101129359360
+                            }
+                            """;
                     String bookieStateOk = """
-{
-  "running" : true,
-  "readOnly" : false,
-  "shuttingDown" : false,
-  "availableForHighPriorityWrites" : true
-}
-""";
+                            {
+                              "running" : true,
+                              "readOnly" : false,
+                              "shuttingDown" : false,
+                              "availableForHighPriorityWrites" : true
+                            }
+                            """;
                     String bookieStateReadOnly = """
-{
-  "running" : true,
-  "readOnly" : true,
-  "shuttingDown" : false,
-  "availableForHighPriorityWrites" : true
-}
-""";
+                            {
+                              "running" : true,
+                              "readOnly" : true,
+                              "shuttingDown" : false,
+                              "availableForHighPriorityWrites" : true
+                            }
+                            """;
                     for (int i = 0; i < 3; i++) {
                         // Bookie info
                         server.server.expect()
@@ -299,7 +306,8 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                        "curl -s http://localhost:8000/api/v1/autorecovery"
+                                                + "/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -323,25 +331,28 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertNull(mockServer.patchOp);
     }
@@ -374,7 +385,7 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         final AtomicInteger count = new AtomicInteger(0);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
 
@@ -382,21 +393,24 @@ public class BookKeeperAutoscalerTest {
                 isWritable = false;
             }
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertEquals(5, mockServer.patchOp.getValue());
     }
@@ -415,24 +429,27 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertEquals(3, mockServer.patchOp.getValue());
     }
@@ -451,25 +468,28 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 990000;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertEquals(4, mockServer.patchOp.getValue());
     }
@@ -489,7 +509,7 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         final AtomicInteger count = new AtomicInteger(0);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 100000;
 
@@ -500,21 +520,24 @@ public class BookKeeperAutoscalerTest {
                 usedBytes = 990000;
             }
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertEquals(5, mockServer.patchOp.getValue());
     }
@@ -534,32 +557,36 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         final AtomicInteger count = new AtomicInteger(0);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = (podSpec) -> {
             boolean isWritable = true;
             long usedBytes = 10000;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource("pul-bookkeeper-" + count.getAndIncrement()))
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc, server -> {
                     for (int i = 0; i < 4; i++) {
                         // AR list under replicated
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                        "curl -s http://localhost:8000/api/v1/autorecovery"
+                                                + "/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("No under replicated ledgers found"))
                                 .done()
@@ -595,25 +622,28 @@ public class BookKeeperAutoscalerTest {
                         enabled: true
                 """;
 
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
             long usedBytes = 10000;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc, server -> {
 
                     for (int i = 0; i < 4; i++) {
@@ -621,13 +651,14 @@ public class BookKeeperAutoscalerTest {
                         server.server.expect()
                                 .get()
                                 .withPath(genExpectedUrlForExecInPod("pul-bookkeeper-" + i,
-                                "curl -s http://localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/"))
+                                        "curl -s http://localhost:8000/api/v1/autorecovery"
+                                                + "/list_under_replicated_ledger/"))
                                 .andUpgradeToWebSocket()
                                 .open(new OutputStreamMessage("blah blah"))
                                 .done()
                                 .always();
                     }
-        });
+                });
         Assert.assertNull(mockServer.patchOp);
     }
 
@@ -646,24 +677,27 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         AtomicBoolean isWritable = new AtomicBoolean(false);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             long usedBytes = 10000;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000)
-                    .usedBytes(usedBytes)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000)
+                            .usedBytes(usedBytes)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable.getAndSet(true))
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertNull(mockServer.patchOp);
     }
@@ -683,24 +717,27 @@ public class BookKeeperAutoscalerTest {
                 """;
 
         AtomicLong usedBytes = new AtomicLong(990000L);
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000L)
-                    .usedBytes(usedBytes.getAndSet(100000L))
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000L)
+                            .usedBytes(usedBytes.getAndSet(100000L))
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {},
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
 
         Assert.assertNull(mockServer.patchOp);
@@ -716,24 +753,26 @@ public class BookKeeperAutoscalerTest {
                     autoscaler:
                         enabled: true
                 """;
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000L)
-                    .usedBytes(990000L)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000L)
+                            .usedBytes(990000L)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
                     .build();
         };
 
-        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {}, statefulSet -> {
+        final MockServer mockServer = runAutoscaler(spec, (pod, metrics, i) -> {
+                }, statefulSet -> {
                     statefulSet.getStatus().setReadyReplicas(2);
                 },
                 bookieInfofunc);
@@ -750,17 +789,18 @@ public class BookKeeperAutoscalerTest {
                     autoscaler:
                         enabled: true
                 """;
-        Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
+        Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc = podSpec -> {
             boolean isWritable = true;
 
-            List<BookKeeperAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-            BookKeeperAutoscaler.BookieLedgerDiskInfo diskInfo = BookKeeperAutoscaler.BookieLedgerDiskInfo.builder()
-                    .maxBytes(1000000L)
-                    .usedBytes(990000L)
-                    .build();
+            List<BookKeeperSetAutoscaler.BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
+            BookKeeperSetAutoscaler.BookieLedgerDiskInfo diskInfo =
+                    BookKeeperSetAutoscaler.BookieLedgerDiskInfo.builder()
+                            .maxBytes(1000000L)
+                            .usedBytes(990000L)
+                            .build();
             ledgerDiskInfos.add(diskInfo);
 
-            return BookKeeperAutoscaler.BookieInfo.builder()
+            return BookKeeperSetAutoscaler.BookieInfo.builder()
                     .isWritable(isWritable)
                     .ledgerDiskInfos(ledgerDiskInfos)
                     .podResource(getMockPodResource())
@@ -771,18 +811,20 @@ public class BookKeeperAutoscalerTest {
                     if (i == 2) {
                         pod.getStatus().setStartTime(Instant.now().minusSeconds(3).toString());
                     }
-                }, statefulSet -> {},
+                }, statefulSet -> {
+                },
                 bookieInfofunc);
         Assert.assertNull(mockServer.patchOp);
     }
 
     private MockServer runAutoscaler(String spec, MockServer.PodConsumer podConf, Consumer<StatefulSet> stsConf,
-                                     Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc) {
-        return runAutoscaler(spec, podConf, stsConf, bookieInfofunc, x -> {});
+                                     Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc) {
+        return runAutoscaler(spec, podConf, stsConf, bookieInfofunc, x -> {
+        });
     }
 
     private MockServer runAutoscaler(String spec, MockServer.PodConsumer podConf, Consumer<StatefulSet> stsConf,
-                                     Function<PodResource, BookKeeperAutoscaler.BookieInfo> bookieInfofunc,
+                                     Function<PodResource, BookKeeperSetAutoscaler.BookieInfo> bookieInfofunc,
                                      Consumer<MockServer> serverAfter) {
         final PulsarClusterSpec pulsarClusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
         try (final MockServer server = MockServer.builder()
@@ -793,8 +835,9 @@ public class BookKeeperAutoscalerTest {
             server.start();
             serverAfter.accept(server);
 
-            BookKeeperAutoscaler bkAutoscaler =
-                    new BookKeeperAutoscaler(server.server.getClient(), NAMESPACE, pulsarClusterSpec);
+            BookKeeperSetAutoscaler bkAutoscaler =
+                    new BookKeeperSetAutoscaler(server.server.getClient(), NAMESPACE,
+                            BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, pulsarClusterSpec);
             if (bookieInfofunc != null) {
                 bkAutoscaler = Mockito.spy(bkAutoscaler);
                 Mockito.doAnswer(invocation ->

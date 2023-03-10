@@ -16,9 +16,11 @@
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.ProbesConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -49,50 +51,61 @@ import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
 
 @JBossLog
-public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperSpec> {
+public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperSetSpec> {
+
+    public static final String BOOKKEEPER_DEFAULT_SET = "bookkeeper";
 
     public static final int DEFAULT_BK_PORT = 3181;
     public static final int DEFAULT_HTTP_PORT = 8000;
 
-    public static List<String> getInitContainerNames(String resourceName) {
-        return List.of(getMainContainerName(resourceName));
-    }
-    private static String getMetadataFormatInitContainerName(String resourceName) {
-        return "%s-metadata-format".formatted(getMainContainerName(resourceName));
+    public static List<String> getInitContainerNames(String clusterName, String baseName) {
+        return List.of(getMainContainerName(clusterName, baseName));
     }
 
-    public static List<String> getContainerNames(String resourceName) {
-        return List.of(getMainContainerName(resourceName));
+    private static String getMetadataFormatInitContainerName(GlobalSpec global) {
+        return "%s-metadata-format".formatted(getBookKeeperContainerName(global));
     }
 
-    private static String getMainContainerName(String resourceName) {
-        return resourceName;
+    public static List<String> getContainerNames(String clusterName, String baseName) {
+        return List.of(getMainContainerName(clusterName, baseName));
+    }
+
+    private static String getMainContainerName(String clusterName, String baseName) {
+        return "%s-%s".formatted(clusterName, baseName);
     }
 
     public static String getBookKeeperContainerName(GlobalSpec globalSpec) {
-        return getMainContainerName(
-                getResourceName(globalSpec.getName(), globalSpec.getComponents().getBookkeeperBaseName()));
+        return getMainContainerName(globalSpec.getName(), getComponentBaseName(globalSpec));
     }
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getBookkeeperBaseName();
     }
 
-    public static String getResourceName(String clusterName, String baseName) {
-        return "%s-%s".formatted(clusterName, baseName);
-    }
-
-    public static String getResourceName(GlobalSpec globalSpec, String baseName) {
-        return getResourceName(globalSpec.getName(), baseName);
+    public static String getResourceName(String clusterName, String baseName, String bkSetName,
+                                         String overrideResourceName) {
+        Objects.requireNonNull(bkSetName);
+        if (overrideResourceName != null) {
+            return overrideResourceName;
+        }
+        if (BOOKKEEPER_DEFAULT_SET.equals(bkSetName)) {
+            return "%s-%s".formatted(clusterName, baseName);
+        }
+        return "%s-%s-%s".formatted(clusterName, baseName, bkSetName);
     }
 
 
     private ConfigMap configMap;
+    private final String bookkeeperSet;
 
     public BookKeeperResourcesFactory(KubernetesClient client, String namespace,
-                                      BookKeeperSpec spec, GlobalSpec global,
+                                      String bookkeeperSetName,
+                                      BookKeeperSetSpec spec, GlobalSpec global,
                                       OwnerReference ownerReference) {
-        super(client, namespace, getResourceName(global, getComponentBaseName(global)), spec, global, ownerReference);
+        super(client, namespace, getResourceName(global.getName(),
+                        getComponentBaseName(global), bookkeeperSetName, spec.getOverrideResourceName()), spec, global,
+                ownerReference);
+        this.bookkeeperSet = bookkeeperSetName;
     }
 
     @Override
@@ -216,7 +229,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
         List<Container> initContainers = getInitContainers(spec.getInitContainers());
         initContainers.add(new ContainerBuilder()
-                .withName(getMetadataFormatInitContainerName(resourceName))
+                .withName(getMetadataFormatInitContainerName(global))
                 .withImage(spec.getImage())
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withCommand("sh", "-c")
@@ -284,7 +297,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
 
         final Container mainContainer = new ContainerBuilder()
-                .withName(getMainContainerName(resourceName))
+                .withName(getBookKeeperContainerName(global))
                 .withImage(spec.getImage())
                 .withImagePullPolicy(spec.getImagePullPolicy())
                 .withLivenessProbe(createProbe(spec.getProbes().getLiveness()))
@@ -338,7 +351,8 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withAffinity(getAffinity(
                         spec.getNodeAffinity(),
                         spec.getAntiAffinity(),
-                        spec.getMatchLabels()
+                        spec.getMatchLabels(),
+                        getRack()
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
@@ -354,14 +368,14 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return statefulSet;
     }
 
-    public static String getJournalPvPrefix(BookKeeperSpec spec, String resourceName) {
+    public static String getJournalPvPrefix(BookKeeperSetSpec spec, String resourceName) {
         return "%s%s-%s".formatted(
                 ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
                 resourceName,
                 spec.getVolumes().getJournal().getName());
     }
 
-    public static String getLedgersPvPrefix(BookKeeperSpec spec, String resourceName) {
+    public static String getLedgersPvPrefix(BookKeeperSetSpec spec, String resourceName) {
         return "%s%s-%s".formatted(
                 ObjectUtils.firstNonNull(spec.getPvcPrefix(), ""),
                 resourceName,
@@ -392,6 +406,49 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 spec.getLabels(),
                 spec.getMatchLabels()
         );
+    }
+
+    @Override
+    protected Map<String, String> getLabels(Map<String, String> customLabels) {
+        final Map<String, String> labels = super.getLabels(customLabels);
+        labels.put(CRDConstants.LABEL_RESOURCESET, bookkeeperSet);
+        setRackLabel(labels);
+        return labels;
+    }
+
+    @Override
+    protected Map<String, String> getPodLabels(Map<String, String> customLabels) {
+        final Map<String, String> labels = super.getPodLabels(customLabels);
+        labels.put(CRDConstants.LABEL_RESOURCESET, bookkeeperSet);
+        setRackLabel(labels);
+        return labels;
+    }
+
+    @Override
+    protected Map<String, String> getMatchLabels(Map<String, String> customMatchLabels) {
+        final Map<String, String> matchLabels = super.getMatchLabels(customMatchLabels);
+        if (!bookkeeperSet.equals(BOOKKEEPER_DEFAULT_SET)) {
+            matchLabels.put(CRDConstants.LABEL_RESOURCESET, bookkeeperSet);
+        }
+        setRackLabel(matchLabels);
+        return matchLabels;
+    }
+
+    private void setRackLabel(Map<String, String> labels) {
+        final String rack = getRack();
+        if (rack != null) {
+            labels.put(CRDConstants.LABEL_RACK, rack);
+        }
+    }
+
+    private String getRack() {
+        if (global.getResourceSets() != null) {
+            final ResourceSetConfig resourceSet = global.getResourceSets().get(bookkeeperSet);
+            if (resourceSet != null) {
+                return resourceSet.getRack();
+            }
+        }
+        return null;
     }
 
 }

@@ -63,7 +63,15 @@ public class InputClusterSpecs {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BookKeeperSpecs {
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class BookKeeperSetSpecs {
+            String name;
+            String overrideName;
+        }
         String baseName = "bookkeeper";
+        List<BookKeeperSetSpecs> bookkeeperSets = List.of();
     }
 
     @Data

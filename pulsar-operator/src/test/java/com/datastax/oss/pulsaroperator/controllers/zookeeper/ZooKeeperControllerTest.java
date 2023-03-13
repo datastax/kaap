@@ -212,6 +212,10 @@ public class ZooKeeperControllerTest {
                           - apiVersion: v1
                             kind: PersistentVolumeClaim
                             metadata:
+                              labels:
+                                app: pulsar
+                                cluster: pulsarname
+                                component: zookeeper
                               name: pulsarname-zookeeper-data
                             spec:
                               accessModes:

@@ -225,6 +225,8 @@ public class BookKeeperSetsControllerTest {
                 .getRequiredDuringSchedulingIgnoredDuringExecution()
                 .get(0)
                 .getLabelSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        sts.getSpec().getVolumeClaimTemplates()
+                .forEach(v -> v.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET));
 
 
         final String defaultResourceName = defaultSts.getMetadata().getName();
@@ -246,6 +248,8 @@ public class BookKeeperSetsControllerTest {
                 .getRequiredDuringSchedulingIgnoredDuringExecution()
                 .get(0)
                 .getLabelSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        defaultSts.getSpec().getVolumeClaimTemplates()
+                .forEach(v -> v.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET));
 
         defaultSts.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts().clear();
 
@@ -322,6 +326,13 @@ public class BookKeeperSetsControllerTest {
                 .getRequiredDuringSchedulingIgnoredDuringExecution()
                 .get(0)
                 .getLabelSelector().getMatchLabels().get(CRDConstants.LABEL_RESOURCESET), value);
+        Assert.assertEquals(
+                sts.getSpec().getVolumeClaimTemplates().get(0).getMetadata().getLabels()
+                        .get(CRDConstants.LABEL_RESOURCESET), value);
+
+        Assert.assertEquals(
+                sts.getSpec().getVolumeClaimTemplates().get(1).getMetadata().getLabels()
+                        .get(CRDConstants.LABEL_RESOURCESET), value);
     }
 
 

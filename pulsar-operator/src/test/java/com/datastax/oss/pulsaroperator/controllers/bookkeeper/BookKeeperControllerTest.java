@@ -253,6 +253,11 @@ public class BookKeeperControllerTest {
                   - apiVersion: v1
                     kind: PersistentVolumeClaim
                     metadata:
+                      labels:
+                        app: pulsar
+                        cluster: pulsarname
+                        component: bookkeeper
+                        resource-set: bookkeeper
                       name: pulsarname-bookkeeper-journal
                     spec:
                       accessModes:
@@ -263,6 +268,11 @@ public class BookKeeperControllerTest {
                   - apiVersion: v1
                     kind: PersistentVolumeClaim
                     metadata:
+                      labels:
+                        app: pulsar
+                        cluster: pulsarname
+                        component: bookkeeper
+                        resource-set: bookkeeper
                       name: pulsarname-bookkeeper-ledgers
                     spec:
                       accessModes:

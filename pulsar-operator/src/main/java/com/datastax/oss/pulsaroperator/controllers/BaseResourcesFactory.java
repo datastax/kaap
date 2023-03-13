@@ -660,7 +660,8 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected PersistentVolumeClaim createPersistentVolumeClaim(String name,
-                                                                VolumeConfig volumeConfig) {
+                                                                VolumeConfig volumeConfig,
+                                                                Map<String, String> labels) {
         String storageClassName = null;
         if (volumeConfig.getExistingStorageClassName() != null) {
             if (!volumeConfig.getExistingStorageClassName().equals("default")) {
@@ -671,7 +672,10 @@ public abstract class BaseResourcesFactory<T> {
         }
 
         return new PersistentVolumeClaimBuilder()
-                .withNewMetadata().withName(name).endMetadata()
+                .withNewMetadata()
+                .withName(name)
+                .withLabels(labels)
+                .endMetadata()
                 .withNewSpec()
                 .withAccessModes(List.of("ReadWriteOnce"))
                 .withNewResources()

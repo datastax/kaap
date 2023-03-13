@@ -291,8 +291,10 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                             .build()
             );
         } else {
-            persistentVolumeClaims.add(createPersistentVolumeClaim(journalVolumeName, spec.getVolumes().getJournal()));
-            persistentVolumeClaims.add(createPersistentVolumeClaim(ledgersVolumeName, spec.getVolumes().getLedgers()));
+            persistentVolumeClaims.add(createPersistentVolumeClaim(journalVolumeName, spec.getVolumes().getJournal(),
+                    labels));
+            persistentVolumeClaims.add(createPersistentVolumeClaim(ledgersVolumeName, spec.getVolumes().getLedgers(),
+                    labels));
         }
 
 

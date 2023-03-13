@@ -139,6 +139,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
                         .resources()
                         .filter(pvcr -> pvcr.get().getMetadata().getName().contains("-ledgers-")
                                     || pvcr.get().getMetadata().getName().contains("-journal-"))
+                        .peek(pvc -> log.info("Found pvc {}", pvc.get().getMetadata().getName()))
                         .count();
                 // 3 for ledgers + 3 for journals
                 assertEquals(6, count);

@@ -132,8 +132,11 @@ public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSpec
                 .imagePullSecrets(spec.getImagePullSecrets())
                 .antiAffinity(createAntiAffinityConfig(spec))
                 .env(container.getEnv())
-                .initContainers(getInitContainers(spec, BookKeeperResourcesFactory.getInitContainerNames(resourceName)))
-                .sidecars(getSidecars(spec, BookKeeperResourcesFactory.getContainerNames(resourceName)))
+                .initContainers(getInitContainers(spec,
+                        BookKeeperResourcesFactory.getInitContainerNames(inputSpecs.getClusterName(),
+                                inputSpecs.getBookkeeper().getBaseName())))
+                .sidecars(getSidecars(spec, BookKeeperResourcesFactory.getContainerNames(inputSpecs.getClusterName(),
+                        inputSpecs.getBookkeeper().getBaseName())))
                 .build();
     }
 

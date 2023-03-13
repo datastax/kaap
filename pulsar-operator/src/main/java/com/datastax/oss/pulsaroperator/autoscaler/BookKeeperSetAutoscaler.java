@@ -327,7 +327,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
         if (bookkeeperSetName.equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
             bookKeeperCr.getSpec().getBookkeeper().getDefaultBookKeeperSpecRef().setReplicas(scaleTo);
         } else {
-            bookKeeperCr.getSpec().getBookkeeper().getSets().get(bookKeeperCr).setReplicas(scaleTo);
+            bookKeeperCr.getSpec().getBookkeeper().getSets().get(bookkeeperSetName).setReplicas(scaleTo);
         }
     }
 

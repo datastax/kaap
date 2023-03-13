@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.tests;
 
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
@@ -57,6 +58,10 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
 
                         ))
         );
+        specs.getBookkeeper().setSets(new LinkedHashMap<>(Map.of(
+                "set1", BookKeeperSetSpec.builder().build(),
+                "set2", BookKeeperSetSpec.builder().build()
+        )));
         specs.getBroker().setSets(new LinkedHashMap<>(Map.of(
                 "set1", BrokerSetSpec.builder().build(),
                 "set2", BrokerSetSpec.builder().build()
@@ -92,14 +97,14 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
                             .inNamespace(namespace)
                             .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set1"))
                             .list()
-                            .getItems().size(), 1);
+                            .getItems().size(), 2);
 
             Assert.assertEquals(
                     client.apps().statefulSets()
                             .inNamespace(namespace)
                             .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set2"))
                             .list()
-                            .getItems().size(), 1);
+                            .getItems().size(), 2);
 
             Assert.assertEquals(
                     client.apps().deployments()
@@ -121,6 +126,15 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
                             .withLabels(Map.of(CRDConstants.LABEL_RESOURCESET, "set2"))
                             .list()
                             .getItems().size(), 1);
+
+            Assert.assertNotNull(getResource(StatefulSet.class, "pulsar-bookkeeper-set1"));
+            Assert.assertNotNull(getResource(StatefulSet.class, "pulsar-bookkeeper-set2"));
+            Assert.assertNotNull(getResource(Service.class, "pulsar-bookkeeper-set1"));
+            Assert.assertNotNull(getResource(Service.class, "pulsar-bookkeeper-set2"));
+            Assert.assertNotNull(getResource(ConfigMap.class, "pulsar-bookkeeper-set1"));
+            Assert.assertNotNull(getResource(ConfigMap.class, "pulsar-bookkeeper-set2"));
+            Assert.assertNotNull(getResource(PodDisruptionBudget.class, "pulsar-bookkeeper-set1"));
+            Assert.assertNotNull(getResource(PodDisruptionBudget.class, "pulsar-bookkeeper-set2"));
 
             Assert.assertNotNull(getResource(StatefulSet.class, "pulsar-broker-set1"));
             Assert.assertNotNull(getResource(StatefulSet.class, "pulsar-broker-set2"));
@@ -144,6 +158,10 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
             assertProduceConsume();
 
 
+            specs.getBookkeeper().setSets(new LinkedHashMap<>(Map.of(
+                    "set1", BookKeeperSetSpec.builder().build()
+            )));
+
             specs.getBroker().setSets(new LinkedHashMap<>(Map.of(
                     "set1", BrokerSetSpec.builder().build()
             )));
@@ -156,19 +174,19 @@ public class ResourceSetsTest extends BasePulsarClusterTest {
 
             Awaitility.await().untilAsserted(() -> {
                 assertListEmpty(client.apps().statefulSets().inNamespace(namespace)
-                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+                        .withLabel(CRDConstants.LABEL_RESOURCESET, "set2").list().getItems());
 
                 assertListEmpty(client.apps().deployments().inNamespace(namespace)
-                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+                        .withLabel(CRDConstants.LABEL_RESOURCESET, "set2").list().getItems());
 
                 assertListEmpty(client.configMaps().inNamespace(namespace)
-                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+                        .withLabel(CRDConstants.LABEL_RESOURCESET, "set2").list().getItems());
 
                 assertListEmpty(client.services().inNamespace(namespace)
-                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+                        .withLabel(CRDConstants.LABEL_RESOURCESET, "set2").list().getItems());
 
                 assertListEmpty(client.policy().v1().podDisruptionBudget().inNamespace(namespace)
-                        .withLabel(CRDConstants.LABEL_COMPONENT, "set1").list().getItems());
+                        .withLabel(CRDConstants.LABEL_RESOURCESET, "set2").list().getItems());
             });
 
         } catch (Throwable t) {

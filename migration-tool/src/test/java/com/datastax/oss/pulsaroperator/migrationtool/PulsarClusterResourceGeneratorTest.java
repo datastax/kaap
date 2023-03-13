@@ -16,7 +16,6 @@
 package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
-import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.migrationtool.diff.DiffChecker;
 import com.datastax.oss.pulsaroperator.migrationtool.diff.DiffCollectorOutputWriter;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
@@ -64,8 +62,9 @@ public class PulsarClusterResourceGeneratorTest {
     }
 
     private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
-        final List<JSONComparator.FieldComparisonDiff> diffs = diff.getAll();
-        Assert.assertEquals(diffs.size(), 148);
+        var diffs = diff.getAll();
+        diffs.entrySet().forEach(System.out::println);
+        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 214L);
     }
 
     @SneakyThrows
@@ -232,150 +231,39 @@ public class PulsarClusterResourceGeneratorTest {
                             metadataInitializationJob:
                               timeout: 60
                           bookkeeper:
-                            image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            nodeSelectors: {}
                             replicas: 3
                             pdb:
                               enabled: true
                               maxUnavailable: 1
-                            tolerations: []
-                            antiAffinity:
-                              host:
-                                enabled: true
-                                required: false
-                              zone:
-                                enabled: false
-                            annotations:
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
-                            podAnnotations:
-                              checksum/config: e45a01b57a5257d67a86fe0350096152e0d173fc27bcd87f03b0ddab8b10e3a2
-                              kubectl.kubernetes.io/restartedAt: 2021-11-01T15:53:51-04:00
-                              prometheus.io/port: 8000
-                              prometheus.io/scrape: "true"
-                            labels:
-                              app: pulsar
-                              app.kubernetes.io/managed-by: Helm
-                              chart: pulsar-1.0.32
-                              cluster: pulsar-cluster
-                              component: bookkeeper
-                              heritage: Helm
-                              release: pulsar-cluster
-                            podLabels:
-                              app: pulsar
-                              cluster: pulsar-cluster
-                              component: bookkeeper
-                              release: pulsar-cluster
-                            matchLabels:
-                              app: pulsar
-                              cluster: ""
-                              component: bookkeeper
-                              release: pulsar-cluster
-                            imagePullSecrets: []
-                            env: []
-                            sidecars: []
-                            initContainers:
-                            - args:
-                              - |-
-                                until bin/pulsar zookeeper-shell -server pulsar-cluster-zookeeper ls /admin/clusters | grep "^\\[.*pulsar-cluster.*\\]"; do
-                                  sleep 3;
-                                done;
-                              command:
-                              - sh
-                              - -c
-                              image: pulsar:latest
-                              imagePullPolicy: IfNotPresent
-                              name: wait-zookeeper-ready
-                              resources: {}
-                              terminationMessagePath: /dev/termination-log
-                              terminationMessagePolicy: File
-                            - args:
-                              - |
-                                bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/bkenv.sh && bin/bookkeeper shell metaformat --nonInteractive || true;
-                              command:
-                              - sh
-                              - -c
-                              envFrom:
-                              - configMapRef:
-                                  name: pulsar-cluster-bookkeeper
-                              image: pulsar:latest
-                              imagePullPolicy: IfNotPresent
-                              name: pulsar-bookkeeper-metaformat
-                              resources: {}
-                              terminationMessagePath: /dev/termination-log
-                              terminationMessagePolicy: File
-                            config:
-                              BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
-                              BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
-                              PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                              PULSAR_LOG_LEVEL: info
-                              PULSAR_LOG_ROOT_LEVEL: info
-                              autoRecoveryDaemonEnabled: "false"
-                              compactionRateByEntries: 5000
-                              dbStorage_readAheadCacheBatchSize: 2000
-                              dbStorage_readAheadCacheMaxSizeMb: 1024
-                              dbStorage_rocksDB_blockCacheSize: 500000000
-                              dbStorage_writeCacheMaxSizeMb: 1024
-                              gcWaitTime: 300000
-                              httpServerEnabled: "true"
-                              journalAdaptiveGroupWrites: "true"
-                              journalBufferedWritesThreshold: 1024
-                              journalMaxGroupWaitMSec: 1
-                              journalMaxSizeMB: 2048
-                              journalPreAllocSizeMB: 128
-                              journalSyncData: "false"
-                              journalWriteBufferSizeKB: 4096
-                              majorCompactionInterval: 1200
-                              maxPendingAddRequestsPerThread: 500000
-                              maxPendingReadRequestsPerThread: 500000
-                              minorCompactionInterval: 600
-                              numAddWorkerThreads: 8
-                              numJournalCallbackThreads: 64
-                              numReadWorkerThreads: 8
-                              statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
-                              useHostNameAsBookieID: "true"
-                              writeBufferSizeBytes: 4194304
-                              zkServers: pulsar-cluster-zookeeper-ca:2181
                             probes:
                               readiness:
                                 enabled: true
-                                timeoutSeconds: 1
+                                timeoutSeconds: 5
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
-                                failureThreshold: 3
-                                successThreshold: 1
                               liveness:
                                 enabled: true
-                                timeoutSeconds: 1
+                                timeoutSeconds: 5
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
-                                failureThreshold: 3
-                                successThreshold: 1
                             updateStrategy:
                               type: RollingUpdate
-                            podManagementPolicy: OrderedReady
+                            podManagementPolicy: Parallel
                             gracePeriod: 60
                             resources:
                               requests:
-                                cpu: 2
-                                memory: 8Gi
+                                cpu: 1
+                                memory: 2Gi
                             volumes:
                               journal:
                                 name: journal
-                                size: 100Gi
-                                existingStorageClassName: pulsar-cluster-bookkeeper-journal
+                                size: 20Gi
+                                existingStorageClassName: default
                               ledgers:
                                 name: ledgers
-                                size: 52Gi
-                                existingStorageClassName: pulsar-cluster-bookkeeper-ledgers
-                            service:
-                              annotations:
-                                meta.helm.sh/release-name: pulsar-cluster
-                                meta.helm.sh/release-namespace: pulsar
-                                publishNotReadyAddresses: "true"
-                                service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-                              additionalPorts: []
+                                size: 50Gi
+                                existingStorageClassName: default
                             autoscaler:
                               enabled: false
                               periodMs: 10000
@@ -387,6 +275,153 @@ public class PulsarClusterResourceGeneratorTest {
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
                               cleanUpPvcs: true
+                            sets:
+                              bookkeeper:
+                                image: pulsar:latest
+                                imagePullPolicy: IfNotPresent
+                                nodeSelectors: {}
+                                replicas: 3
+                                pdb:
+                                  enabled: true
+                                  maxUnavailable: 1
+                                tolerations: []
+                                antiAffinity:
+                                  host:
+                                    enabled: true
+                                    required: false
+                                  zone:
+                                    enabled: false
+                                annotations:
+                                  meta.helm.sh/release-name: pulsar-cluster
+                                  meta.helm.sh/release-namespace: pulsar
+                                podAnnotations:
+                                  checksum/config: e45a01b57a5257d67a86fe0350096152e0d173fc27bcd87f03b0ddab8b10e3a2
+                                  kubectl.kubernetes.io/restartedAt: 2021-11-01T15:53:51-04:00
+                                  prometheus.io/port: 8000
+                                  prometheus.io/scrape: "true"
+                                labels:
+                                  app: pulsar
+                                  app.kubernetes.io/managed-by: Helm
+                                  chart: pulsar-1.0.32
+                                  cluster: pulsar-cluster
+                                  component: bookkeeper
+                                  heritage: Helm
+                                  release: pulsar-cluster
+                                podLabels:
+                                  app: pulsar
+                                  cluster: pulsar-cluster
+                                  component: bookkeeper
+                                  release: pulsar-cluster
+                                matchLabels:
+                                  app: pulsar
+                                  cluster: ""
+                                  component: bookkeeper
+                                  release: pulsar-cluster
+                                imagePullSecrets: []
+                                env: []
+                                sidecars: []
+                                initContainers:
+                                - args:
+                                  - |-
+                                    until bin/pulsar zookeeper-shell -server pulsar-cluster-zookeeper ls /admin/clusters | grep "^\\[.*pulsar-cluster.*\\]"; do
+                                      sleep 3;
+                                    done;
+                                  command:
+                                  - sh
+                                  - -c
+                                  image: pulsar:latest
+                                  imagePullPolicy: IfNotPresent
+                                  name: wait-zookeeper-ready
+                                  resources: {}
+                                  terminationMessagePath: /dev/termination-log
+                                  terminationMessagePolicy: File
+                                - args:
+                                  - |
+                                    bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/bkenv.sh && bin/bookkeeper shell metaformat --nonInteractive || true;
+                                  command:
+                                  - sh
+                                  - -c
+                                  envFrom:
+                                  - configMapRef:
+                                      name: pulsar-cluster-bookkeeper
+                                  image: pulsar:latest
+                                  imagePullPolicy: IfNotPresent
+                                  name: pulsar-bookkeeper-metaformat
+                                  resources: {}
+                                  terminationMessagePath: /dev/termination-log
+                                  terminationMessagePolicy: File
+                                config:
+                                  BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
+                                  BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
+                                  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                                  PULSAR_LOG_LEVEL: info
+                                  PULSAR_LOG_ROOT_LEVEL: info
+                                  autoRecoveryDaemonEnabled: "false"
+                                  compactionRateByEntries: 5000
+                                  dbStorage_readAheadCacheBatchSize: 2000
+                                  dbStorage_readAheadCacheMaxSizeMb: 1024
+                                  dbStorage_rocksDB_blockCacheSize: 500000000
+                                  dbStorage_writeCacheMaxSizeMb: 1024
+                                  gcWaitTime: 300000
+                                  httpServerEnabled: "true"
+                                  journalAdaptiveGroupWrites: "true"
+                                  journalBufferedWritesThreshold: 1024
+                                  journalMaxGroupWaitMSec: 1
+                                  journalMaxSizeMB: 2048
+                                  journalPreAllocSizeMB: 128
+                                  journalSyncData: "false"
+                                  journalWriteBufferSizeKB: 4096
+                                  majorCompactionInterval: 1200
+                                  maxPendingAddRequestsPerThread: 500000
+                                  maxPendingReadRequestsPerThread: 500000
+                                  minorCompactionInterval: 600
+                                  numAddWorkerThreads: 8
+                                  numJournalCallbackThreads: 64
+                                  numReadWorkerThreads: 8
+                                  statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
+                                  useHostNameAsBookieID: "true"
+                                  writeBufferSizeBytes: 4194304
+                                  zkServers: pulsar-cluster-zookeeper-ca:2181
+                                probes:
+                                  readiness:
+                                    enabled: true
+                                    timeoutSeconds: 1
+                                    initialDelaySeconds: 10
+                                    periodSeconds: 30
+                                    failureThreshold: 3
+                                    successThreshold: 1
+                                  liveness:
+                                    enabled: true
+                                    timeoutSeconds: 1
+                                    initialDelaySeconds: 10
+                                    periodSeconds: 30
+                                    failureThreshold: 3
+                                    successThreshold: 1
+                                updateStrategy:
+                                  type: RollingUpdate
+                                podManagementPolicy: OrderedReady
+                                gracePeriod: 60
+                                resources:
+                                  requests:
+                                    cpu: 2
+                                    memory: 8Gi
+                                volumes:
+                                  journal:
+                                    name: journal
+                                    size: 100Gi
+                                    existingStorageClassName: pulsar-cluster-bookkeeper-journal
+                                  ledgers:
+                                    name: ledgers
+                                    size: 52Gi
+                                    existingStorageClassName: pulsar-cluster-bookkeeper-ledgers
+                                service:
+                                  annotations:
+                                    meta.helm.sh/release-name: pulsar-cluster
+                                    meta.helm.sh/release-namespace: pulsar
+                                    publishNotReadyAddresses: "true"
+                                    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+                                  additionalPorts: []
+                            setsUpdateStrategy: RollingUpdate
                           broker:
                             imagePullPolicy: IfNotPresent
                             replicas: 3
@@ -619,7 +654,7 @@ public class PulsarClusterResourceGeneratorTest {
                                     protocol: TCP
                                     targetPort: 9093
                                   type: ClusterIP
-                            setsUpdateStrategy: RollingUpdate    
+                            setsUpdateStrategy: RollingUpdate
                           proxy:
                             imagePullPolicy: IfNotPresent
                             replicas: 3

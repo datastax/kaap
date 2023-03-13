@@ -188,6 +188,12 @@ public abstract class BaseResourcesFactory<T> {
                 .delete();
     }
 
+    public void deleteStorageClass() {
+        client.storage().v1().storageClasses()
+                .withName(resourceName)
+                .delete();
+    }
+
     public void deleteConfigMap() {
         deleteConfigMap(resourceName);
     }
@@ -654,7 +660,8 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected PersistentVolumeClaim createPersistentVolumeClaim(String name,
-                                                                VolumeConfig volumeConfig) {
+                                                                VolumeConfig volumeConfig,
+                                                                Map<String, String> labels) {
         String storageClassName = null;
         if (volumeConfig.getExistingStorageClassName() != null) {
             if (!volumeConfig.getExistingStorageClassName().equals("default")) {
@@ -665,7 +672,10 @@ public abstract class BaseResourcesFactory<T> {
         }
 
         return new PersistentVolumeClaimBuilder()
-                .withNewMetadata().withName(name).endMetadata()
+                .withNewMetadata()
+                .withName(name)
+                .withLabels(labels)
+                .endMetadata()
                 .withNewSpec()
                 .withAccessModes(List.of("ReadWriteOnce"))
                 .withNewResources()
@@ -750,7 +760,6 @@ public abstract class BaseResourcesFactory<T> {
 
         final List<ReplicaSet> replicaSets = client.apps().replicaSets()
                 .inNamespace(deployment.getMetadata().getNamespace())
-                .withLabels(deployment.getMetadata().getLabels())
                 .list()
                 .getItems()
                 .stream()

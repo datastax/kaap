@@ -90,6 +90,7 @@ public abstract class BaseK8sEnvTest {
     public BaseK8sEnvTest(Integer agents) {
         this.agents = agents;
     }
+
     public BaseK8sEnvTest() {
         this.agents = null;
     }
@@ -175,8 +176,9 @@ public abstract class BaseK8sEnvTest {
                 .getItems()
                 .forEach(node -> {
                     final String name = node.getMetadata().getName();
-                    log.info("Node {} capacity status: {}", name, node.getStatus().getCapacity());
-                    log.info("Node {} allocatable status: {}", name, node.getStatus().getAllocatable());
+                    log.info("Node {} status: capacity {}, allocatable {}", name,
+                            node.getStatus().getCapacity(),
+                            node.getStatus().getAllocatable());
                 });
     }
 

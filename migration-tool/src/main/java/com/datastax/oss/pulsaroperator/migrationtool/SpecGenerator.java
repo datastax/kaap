@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.migrationtool;
 
 import com.datastax.oss.pulsaroperator.controllers.autorecovery.AutorecoveryResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bastion.BastionResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
@@ -24,6 +25,7 @@ import com.datastax.oss.pulsaroperator.controllers.function.FunctionsWorkerResou
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyController;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
@@ -187,21 +189,26 @@ public class SpecGenerator {
     }
 
     private void generateBkResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
-        final BookKeeperResourcesFactory bkResourceFactory =
-                new BookKeeperResourcesFactory(local.getClient(), inputSpecs.
-                        getNamespace(), pulsarCluster.getSpec().getBookkeeper(),
-                        pulsarCluster.getSpec().getGlobal(), null);
+        final LinkedHashMap<String, BookKeeperSetSpec> sets = BookKeeperController.getBookKeeperSetSpecs(
+                pulsarCluster.getSpec().getBookkeeper());
+        for (Map.Entry<String, BookKeeperSetSpec> set : sets.entrySet()) {
+            final BookKeeperResourcesFactory bkResourceFactory =
+                    new BookKeeperResourcesFactory(local.getClient(), inputSpecs.
+                            getNamespace(), set.getKey(), pulsarCluster.getSpec().getBookkeeper(),
+                            pulsarCluster.getSpec().getGlobal(), null);
 
-        bkResourceFactory.patchPodDisruptionBudget();
-        bkResourceFactory.patchConfigMap();
-        bkResourceFactory.patchService();
-        bkResourceFactory.patchStatefulSet();
+            bkResourceFactory.patchPodDisruptionBudget();
+            bkResourceFactory.patchConfigMap();
+            bkResourceFactory.patchService();
+            bkResourceFactory.patchStorageClasses();
+            bkResourceFactory.patchStatefulSet();
+        }
     }
 
     private void generateBrokerResources(PulsarCluster pulsarCluster, MockKubernetesClient local) {
-        final LinkedHashMap<String, BrokerSetSpec> proxySetSpecs = BrokerController.getBrokerSetSpecs(
+        final LinkedHashMap<String, BrokerSetSpec> sets = BrokerController.getBrokerSetSpecs(
                 pulsarCluster.getSpec().getBroker());
-        for (Map.Entry<String, BrokerSetSpec> brokerSet : proxySetSpecs.entrySet()) {
+        for (Map.Entry<String, BrokerSetSpec> brokerSet : sets.entrySet()) {
 
             final BrokerResourcesFactory brokerResourcesFactory =
                     new BrokerResourcesFactory(local.getClient(), inputSpecs.

@@ -335,6 +335,10 @@ public class FunctionsWorkerControllerTest {
                           - apiVersion: v1
                             kind: PersistentVolumeClaim
                             metadata:
+                              labels:
+                                app: pulsar
+                                cluster: pulsarname
+                                component: function
                               name: pulsarname-function-logs
                             spec:
                               accessModes:

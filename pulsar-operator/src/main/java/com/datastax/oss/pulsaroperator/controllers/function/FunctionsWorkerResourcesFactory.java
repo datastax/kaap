@@ -469,7 +469,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();
         if (global.getPersistence()) {
             persistentVolumeClaims.add(
-                    createPersistentVolumeClaim(logsVolumeName, spec.getLogsVolume())
+                    createPersistentVolumeClaim(logsVolumeName, spec.getLogsVolume(), labels)
             );
         } else {
             volumes.add(new VolumeBuilder()

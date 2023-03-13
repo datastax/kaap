@@ -13,74 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.pulsaroperator.controllers.proxy;
+package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
-import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
-import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.LinkedHashMap;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @JBossLog
-public class ProxySetsControllerTest {
+public class BookKeeperSetsControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
-    private final ControllerTestUtil<ProxyFullSpec, Proxy> controllerTestUtil =
+    private final ControllerTestUtil<BookKeeperFullSpec, BookKeeper> controllerTestUtil =
             new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME);
 
     @Test
-    public void testProxySetsDefaults() throws Exception {
+    public void testBookKeeperSetsDefaults() throws Exception {
         String spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     setsUpdateStrategy: Parallel
                     sets:
                       set1: {}
                       set2: {}
                 """;
         MockKubernetesClient client = invokeController(spec);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
 
-        assertDeploymentEqualsDefault("set1",
-                client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1").getResource());
+        assertStsEqualsDefault("set1",
+                client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1").getResource());
 
-        assertDeploymentEqualsDefault("set2",
-                client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2").getResource());
+        assertStsEqualsDefault("set2",
+                client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2").getResource());
 
-        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 4);
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 2);
         assertConfigMapEqualsDefault("set1",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set1").getResource());
         assertConfigMapEqualsDefault("set2",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(PodDisruptionBudget.class).size(), 2);
 
         assertPdbEqualsDefault("set1",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set1").getResource());
         assertPdbEqualsDefault("set2",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 3);
 
         assertServiceEqualsDefault("set1",
-                client.getCreatedResource(Service.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1").getResource());
         assertServiceEqualsDefault("set2",
-                client.getCreatedResource(Service.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2").getResource());
     }
 
 
@@ -90,7 +93,7 @@ public class ProxySetsControllerTest {
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     setsUpdateStrategy: Parallel
                     replicas: 6
                     config:
@@ -113,114 +116,144 @@ public class ProxySetsControllerTest {
                             common: override
                 """;
         MockKubernetesClient client = invokeController(spec);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 3);
 
-        Assert.assertEquals(client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 6);
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "commonvalue");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "override");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"), "set1");
 
-        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set2")
+        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"));
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set1")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set2")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 1);
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1")
                 .getResource()
                 .getMetadata()
                 .getAnnotations().get("externaldns"), "myset1");
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1")
                 .getResource()
                 .getSpec()
-                .getPorts().size(), 4);
+                .getPorts().size(), 2);
 
-        Assert.assertNull(client.getCreatedResource(Service.class, "pulsarname-proxy-set2")
+        Assert.assertNull(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2")
                 .getResource()
                 .getMetadata()
-                .getAnnotations());
+                .getAnnotations().get("externaldns"));
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2")
                 .getResource()
                 .getSpec()
-                .getPorts().size(), 3);
+                .getPorts().size(), 1);
     }
 
-    private void assertDeploymentEqualsDefault(String setName, Deployment deployment) {
-        final Deployment defaultSts = invokeController("""
+    private void assertStsEqualsDefault(String setName, StatefulSet sts) {
+        final StatefulSet defaultSts = invokeController("""
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                """).getCreatedResource(Deployment.class).getResource();
-        final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
-        Assert.assertEquals(deployment.getMetadata().getName(), resourceName);
-        assertResourceSetLabel(deployment, setName);
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnvFrom().get(0)
+                """).getCreatedResource(StatefulSet.class).getResource();
+        final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
+        Assert.assertEquals(sts.getMetadata().getName(), resourceName);
+        assertResourceSetLabel(sts, setName);
+        Assert.assertEquals(sts.getSpec().getServiceName(), resourceName);
+        Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getContainers().get(0).getEnvFrom().get(0)
                 .getConfigMapRef().getName(), resourceName);
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getEnvFrom().get(0)
-                .getConfigMapRef().getName(), resourceName + "-ws");
 
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getName(),
-                resourceName);
-        Assert.assertEquals(deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getName(),
-                resourceName + "-ws");
+        Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getInitContainers().get(0).getEnvFrom().get(0)
+                .getConfigMapRef().getName(), resourceName);
 
-        deployment.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
-        deployment.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
-        deployment.getSpec().getTemplate().getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
-        deployment.getSpec().getTemplate().getSpec().getAffinity().getPodAntiAffinity()
+
+        Assert.assertNotNull(KubeTestUtil.getVolumeMountByName(
+                sts.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts(),
+                resourceName + "-journal"
+        ), resourceName);
+
+        Assert.assertNotNull(KubeTestUtil.getVolumeMountByName(
+                sts.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts(),
+                resourceName + "-ledgers"
+        ), resourceName);
+
+        sts.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts().clear();
+
+        Assert.assertEquals(sts.getSpec().getTemplate().getSpec().getContainers().get(0).getName(),
+                CLUSTER_NAME + "-bookkeeper");
+
+        Assert.assertEquals(sts.getSpec().getVolumeClaimTemplates().get(0).getMetadata().getName(),
+                resourceName + "-journal");
+        Assert.assertEquals(sts.getSpec().getVolumeClaimTemplates().get(1).getMetadata().getName(),
+                resourceName + "-ledgers");
+
+        sts.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        sts.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        sts.getSpec().getTemplate().getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        sts.getSpec().getTemplate().getSpec().getAffinity().getPodAntiAffinity()
                 .getRequiredDuringSchedulingIgnoredDuringExecution()
                 .get(0)
                 .getLabelSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        sts.getSpec().getVolumeClaimTemplates()
+                .forEach(v -> v.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET));
 
 
         final String defaultResourceName = defaultSts.getMetadata().getName();
-        deployment.getMetadata().setName(defaultResourceName);
-        deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setName(defaultResourceName);
-        deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnvFrom().get(0)
+        sts.getMetadata().setName(defaultResourceName);
+        sts.getSpec().setServiceName(defaultResourceName);
+        sts.getSpec().getTemplate().getSpec().getContainers().get(0).setName(defaultResourceName);
+        sts.getSpec().getTemplate().getSpec().getContainers().get(0).getEnvFrom().get(0)
                 .getConfigMapRef().setName(defaultResourceName);
 
-        deployment.getSpec().getTemplate().getSpec().getContainers().get(1).getEnvFrom().get(0)
-                .getConfigMapRef().setName(defaultResourceName + "-ws");
-        deployment.getSpec().getTemplate().getSpec().getContainers().get(1).setName(defaultResourceName + "-ws");
+        sts.getSpec().getTemplate().getSpec().getInitContainers().get(0).getEnvFrom().get(0)
+                .getConfigMapRef().setName(defaultResourceName);
+        sts.getSpec().getVolumeClaimTemplates().get(0).getMetadata().setName(defaultResourceName + "-journal");
+        sts.getSpec().getVolumeClaimTemplates().get(1).getMetadata().setName(defaultResourceName + "-ledgers");
 
         defaultSts.getSpec().getSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
         defaultSts.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
         defaultSts.getSpec().getTemplate().getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        defaultSts.getSpec().getTemplate().getSpec().getAffinity().getPodAntiAffinity()
+                .getRequiredDuringSchedulingIgnoredDuringExecution()
+                .get(0)
+                .getLabelSelector().getMatchLabels().remove(CRDConstants.LABEL_RESOURCESET);
+        defaultSts.getSpec().getVolumeClaimTemplates()
+                .forEach(v -> v.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET));
 
-        Assert.assertEquals(SerializationUtil.writeAsYaml(deployment), SerializationUtil.writeAsYaml(defaultSts));
+        defaultSts.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts().clear();
+
+        Assert.assertEquals(SerializationUtil.writeAsYaml(sts), SerializationUtil.writeAsYaml(defaultSts));
     }
 
     private void assertConfigMapEqualsDefault(String setName, ConfigMap cmap) {
@@ -229,7 +262,7 @@ public class ProxySetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(ConfigMap.class).getResource();
-        final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
+        final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
         Assert.assertEquals(cmap.getMetadata().getName(), resourceName);
         Assert.assertEquals(cmap.getMetadata().getLabels().get(CRDConstants.LABEL_RESOURCESET), setName);
         cmap.getMetadata().getLabels().remove(CRDConstants.LABEL_RESOURCESET);
@@ -248,7 +281,7 @@ public class ProxySetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(PodDisruptionBudget.class).getResource();
-        final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
+        final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
         Assert.assertEquals(pdb.getMetadata().getName(), resourceName);
         Assert.assertEquals(pdb.getMetadata().getLabels().get(CRDConstants.LABEL_RESOURCESET), setName);
         Assert.assertEquals(pdb.getSpec().getSelector().getMatchLabels().get(CRDConstants.LABEL_RESOURCESET), setName);
@@ -269,7 +302,7 @@ public class ProxySetsControllerTest {
                     name: pulsarname
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(Service.class).getResource();
-        final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
+        final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
         Assert.assertEquals(service.getMetadata().getName(), resourceName);
         Assert.assertEquals(service.getMetadata().getLabels().get(CRDConstants.LABEL_RESOURCESET), setName);
         Assert.assertEquals(service.getSpec().getSelector().get(CRDConstants.LABEL_RESOURCESET), setName);
@@ -283,7 +316,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(SerializationUtil.writeAsYaml(service), SerializationUtil.writeAsYaml(defaultService));
     }
 
-    private void assertResourceSetLabel(Deployment sts, String value) {
+    private void assertResourceSetLabel(StatefulSet sts, String value) {
         Assert.assertEquals(sts.getMetadata().getLabels().get(CRDConstants.LABEL_RESOURCESET), value);
         Assert.assertEquals(
                 sts.getSpec().getTemplate().getMetadata().getLabels().get(CRDConstants.LABEL_RESOURCESET), value);
@@ -293,17 +326,85 @@ public class ProxySetsControllerTest {
                 .getRequiredDuringSchedulingIgnoredDuringExecution()
                 .get(0)
                 .getLabelSelector().getMatchLabels().get(CRDConstants.LABEL_RESOURCESET), value);
+        Assert.assertEquals(
+                sts.getSpec().getVolumeClaimTemplates().get(0).getMetadata().getLabels()
+                        .get(CRDConstants.LABEL_RESOURCESET), value);
+
+        Assert.assertEquals(
+                sts.getSpec().getVolumeClaimTemplates().get(1).getMetadata().getLabels()
+                        .get(CRDConstants.LABEL_RESOURCESET), value);
     }
 
+
+    @SneakyThrows
+    private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
+        controllerTestUtil
+                .invokeControllerAndAssertError(spec,
+                        expectedErrorMessage,
+                        BookKeeper.class,
+                        BookKeeperFullSpec.class,
+                        BookKeeperController.class);
+    }
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
         return controllerTestUtil
                 .invokeController(spec,
-                        Proxy.class,
-                        ProxyFullSpec.class,
-                        ProxyController.class);
+                        BookKeeper.class,
+                        BookKeeperFullSpec.class,
+                        BookKeeperController.class);
     }
+
+    @SneakyThrows
+    private UpdateControl<BookKeeper> invokeController(String spec, BookKeeper lastCr, MockKubernetesClient client) {
+        return controllerTestUtil.invokeController(client, spec, lastCr, BookKeeperFullSpec.class,
+                BookKeeperController.class);
+    }
+
+
+    @Test
+    public void testGetBookKeeperSetSpecs() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 6
+                    config:
+                        common: commonvalue
+                    sets:
+                      set1:
+                        replicas: 3
+                        config:
+                            myname: set1
+                        pdb:
+                            maxUnavailable: 2
+                      set2:
+                        config:
+                            common: override
+                """;
+
+        final BookKeeperFullSpec bookkeeperFullSpec = SerializationUtil.readYaml(spec, BookKeeperFullSpec.class);
+
+        final LinkedHashMap<String, BookKeeperSetSpec> sets =
+                BookKeeperController.getBookKeeperSetSpecs(bookkeeperFullSpec);
+        Assert.assertEquals(SerializationUtil.writeAsYaml(sets),
+                """
+                        ---
+                        set1:
+                          replicas: 3
+                          pdb:
+                            maxUnavailable: 2
+                          config:
+                            common: commonvalue
+                            myname: set1
+                        set2:
+                          replicas: 6
+                          config:
+                            common: override
+                        """);
+    }
+
 
     @Test
     public void testRacks() throws Exception {
@@ -347,7 +448,7 @@ public class ProxySetsControllerTest {
                                 enabled: true
                                 requireRackAffinity: true
                                 requireRackAntiAffinity: true
-                proxy:
+                bookkeeper:
                     setsUpdateStrategy: Parallel
                     sets:
                       set1norack: {}
@@ -363,10 +464,10 @@ public class ProxySetsControllerTest {
                       set3: {}
                 """;
         MockKubernetesClient client = invokeController(spec);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 6);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 6);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1norack")
+                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -379,13 +480,13 @@ public class ProxySetsControllerTest {
                               matchLabels:
                                 app: pulsar
                                 cluster: pulsarname
-                                component: proxy
+                                component: bookkeeper
                                 resource-set: set1norack
                             topologyKey: kubernetes.io/hostname
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2norack")
+                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -399,7 +500,7 @@ public class ProxySetsControllerTest {
                                 matchLabels:
                                   app: pulsar
                                   cluster: pulsarname
-                                  component: proxy
+                                  component: bookkeeper
                                   resource-set: set2norack
                               topologyKey: kubernetes.io/hostname
                             weight: 100
@@ -408,20 +509,20 @@ public class ProxySetsControllerTest {
                                 matchLabels:
                                   app: pulsar
                                   cluster: pulsarname
-                                  component: proxy
+                                  component: bookkeeper
                                   resource-set: set2norack
                               topologyKey: failure-domain.beta.kubernetes.io/zone
                             weight: 100
                         """);
 
-        Assert.assertNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setdefault")
+        Assert.assertNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setdefault")
                 .getResource()
                 .getSpec()
                 .getTemplate().getSpec().getAffinity()
         );
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1")
+                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -455,14 +556,14 @@ public class ProxySetsControllerTest {
                               matchLabels:
                                 app: pulsar
                                 cluster: pulsarname
-                                component: proxy
+                                component: bookkeeper
                                 rack: rack1
                                 resource-set: set1
                             topologyKey: kubernetes.io/hostname
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2")
+                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -494,7 +595,7 @@ public class ProxySetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set3")
+                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set3")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -547,7 +648,7 @@ public class ProxySetsControllerTest {
                               matchLabels:
                                 app: pulsar
                                 cluster: pulsarname
-                                component: proxy
+                                component: bookkeeper
                                 rack: rack3
                                 resource-set: set3
                             topologyKey: kubernetes.io/hostname
@@ -555,74 +656,73 @@ public class ProxySetsControllerTest {
     }
 
 
-    @SneakyThrows
-    private UpdateControl<Proxy> invokeController(String spec, Proxy lastCr, MockKubernetesClient client) {
-        return controllerTestUtil.invokeController(client, spec, lastCr, ProxyFullSpec.class, ProxyController.class);
-    }
-
     @Test
     public void testRollingUpdate() throws Exception {
         String spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     sets:
                       setz: {}
                       seta: {}
                 """;
         MockResourcesResolver resolver = new MockResourcesResolver();
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
-        UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        ProxyController.ProxySetsLastApplied proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(proxySetsLastApplied.getCommon());
-        Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        BookKeeperController.BookKeeperSetsLastApplied setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
 
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
 
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(proxySetsLastApplied.getSets().get("seta"));
-
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNotNull(setsLastApplied.getSets().get("seta"));
+
+        resolver.putResource("pulsarname-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
         // now update
 
-        resolver.putDeployment("pulsarname-proxy-setz", false);
-        resolver.putDeployment("pulsarname-proxy-seta", false);
+        resolver.putResource("pulsarname-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", false).build());
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", false).build());
 
         spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     config:
                         newvalue: true
                     sets:
@@ -630,26 +730,29 @@ public class ProxySetsControllerTest {
                       seta: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
 
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
-
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
-
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-seta"));
+
+        resolver.putResource("pulsarname-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+
     }
 
     @Test
@@ -658,7 +761,7 @@ public class ProxySetsControllerTest {
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     setsUpdateStrategy: Parallel
                     sets:
                       setz: {}
@@ -666,46 +769,50 @@ public class ProxySetsControllerTest {
                 """;
         MockResourcesResolver resolver = new MockResourcesResolver();
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
-        UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-seta"));
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
-
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
-
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
         // now update
 
-        resolver.putDeployment("pulsarname-proxy-seta", false);
-        resolver.putDeployment("pulsarname-proxy-setz", false);
+        resolver.putResource("pulsarname-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", false).build());
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", false).build());
 
         spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     setsUpdateStrategy: Parallel
                     config:
                         newvalue: true
@@ -714,121 +821,126 @@ public class ProxySetsControllerTest {
                       seta: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-seta"));
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
-
-        client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
-
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
-        Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+
+        resolver.putResource("pulsarname-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
     }
 
     @Test
-    public void testDefineProxySetWithDefaultName() throws Exception {
+    public void testDefineBookKeeperSetWithDefaultName() throws Exception {
         String spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     sets:
                       setz: {}
-                      proxy: {}
+                      bookkeeper: {}
                 """;
         MockResourcesResolver resolver = new MockResourcesResolver();
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
-        UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
+        UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        BookKeeperController.BookKeeperSetsLastApplied setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        ProxyController.ProxySetsLastApplied proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
+        resolver.putResource("pulsarname-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
-        proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(proxySetsLastApplied.getSets().get("proxy"));
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNotNull(setsLastApplied.getSets().get("bookkeeper"));
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putDeployment("pulsarname-proxy", true);
+        resolver.putResource("pulsarname-bookkeeper",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertEquals(client.getDeletedResources().size(), 0);
 
         spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     sets:
                       setz: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertNull(proxySetsLastApplied.getSets().get("proxy"));
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNull(setsLastApplied.getSets().get("bookkeeper"));
+
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsarname-proxy"));
+        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsarname-bookkeeper"));
         Assert.assertEquals(client.getDeletedResources().size(), 4);
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-proxy"));
-        Assert.assertNotNull(client.getDeletedResource(Deployment.class, "pulsarname-proxy"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy-ws"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsarname-bookkeeper"));
 
         spec = """
                 global:
                     name: pulsarname
                     image: apachepulsar/pulsar:global
-                proxy:
+                bookkeeper:
                     replicas: 0
                     sets: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
-        KubeTestUtil.assertUpdateControlReady(proxyUpdateControl);
-        proxySetsLastApplied =
-                SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
-                        ProxyController.ProxySetsLastApplied.class);
-        Assert.assertNull(proxySetsLastApplied.getSets().get("setz"));
-        Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        setsLastApplied =
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                        BookKeeperController.BookKeeperSetsLastApplied.class);
+        Assert.assertNull(setsLastApplied.getSets().get("setz"));
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+
         Assert.assertEquals(client.getDeletedResources().size(), 6);
-        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy-setz-ws"));
+        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsarname-bookkeeper-setz"));
     }
-
-
 }

@@ -50,8 +50,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.SneakyThrows;
-import lombok.Value;
 import lombok.extern.jbosslog.JBossLog;
 import org.hibernate.validator.HibernateValidatorConfiguration;
 import org.hibernate.validator.cfg.ConstraintMapping;
@@ -138,7 +138,11 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                     Instant.now());
             reschedule = reconciliationResult.isReschedule();
             if (!reconciliationResult.isSkipLastAppliedUpdate()) {
-                lastApplied = SerializationUtil.writeAsJson(resource.getSpec());
+                if (reconciliationResult.getOverrideLastApplied() != null) {
+                    lastApplied = reconciliationResult.getOverrideLastApplied();
+                } else {
+                    lastApplied = SerializationUtil.writeAsJson(resource.getSpec());
+                }
             }
         } catch (Throwable throwable) {
             log.errorf(throwable, "Error during reconciliation for resource %s with name %s: %s",
@@ -174,17 +178,25 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         return update;
     }
 
-    @Value
+    @Data
     @AllArgsConstructor
     protected static class ReconciliationResult {
         public ReconciliationResult(boolean reschedule, List<Condition> conditions) {
             this(reschedule, conditions, false);
+        }
+        public ReconciliationResult(boolean reschedule, List<Condition> conditions, boolean skipLastAppliedUpdate) {
+            this(reschedule, conditions, skipLastAppliedUpdate, null);
+        }
+
+        public ReconciliationResult(boolean reschedule, List<Condition> conditions, String overrideLastApplied) {
+            this(reschedule, conditions, false, overrideLastApplied);
         }
 
 
         boolean reschedule;
         List<Condition> conditions;
         boolean skipLastAppliedUpdate;
+        String overrideLastApplied;
     }
 
 

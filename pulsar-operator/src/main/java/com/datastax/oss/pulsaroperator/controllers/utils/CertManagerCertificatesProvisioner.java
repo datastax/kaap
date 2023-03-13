@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.controllers.utils;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
@@ -195,10 +196,11 @@ public class CertManagerCertificatesProvisioner {
     }
 
     private List<String> getBookKeeperDNSNames() {
-        final String bkBase =
-                BookKeeperResourcesFactory.getResourceName(clusterName,
-                        BookKeeperResourcesFactory.getComponentBaseName(globalSpec));
-        return enumerateDnsNames(bkBase, true);
+        final String componentBaseName = BookKeeperResourcesFactory.getComponentBaseName(globalSpec);
+        return BookKeeperController
+                .enumerateBookKeeperSets(clusterName, componentBaseName, pulsarClusterSpec.getBookkeeper()).stream()
+                .flatMap(set -> enumerateDnsNames(set, true).stream())
+                .collect(Collectors.toList());
     }
 
     private List<String> getFunctionsWorkerDNSNames() {

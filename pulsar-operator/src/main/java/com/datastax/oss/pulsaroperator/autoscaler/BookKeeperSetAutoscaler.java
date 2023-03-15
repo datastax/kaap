@@ -580,13 +580,46 @@ public class BookKeeperSetAutoscaler implements Runnable {
 
     protected String getBookieId(PodResource podResource) {
         Pod pod = podResource.get();
-        return String.format("%s.%s-%s.%s.svc.%s:%s",
-                pod.getSpec().getHostname(),
-                clusterSpec.getGlobalSpec().getName(),
-                clusterSpec.getGlobalSpec().getComponents().getBookkeeperBaseName(),
+        return getBookieId(pod, bookkeeperSetName, desiredBookKeeperSetSpec, clusterSpec.getGlobalSpec(), namespace);
+    }
+
+    public static String getBookieId(Pod pod, String bookieSet,
+                                     BookKeeperSetSpec setSpec,
+                                     GlobalSpec globalSpec,
+                                     String namespace) {
+        return getBookieId(pod.getSpec().getHostname(), bookieSet, setSpec, globalSpec, namespace);
+    }
+
+    public static String getBookieId(int podIndex, String bookieSet,
+                                     BookKeeperSetSpec setSpec,
+                                     GlobalSpec globalSpec,
+                                     String namespace) {
+
+        final String stsName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
+                globalSpec.getComponents().getBookkeeperBaseName(), bookieSet, setSpec.getOverrideResourceName());
+        return getBookieId("%s-%d".formatted(stsName, podIndex), bookieSet, setSpec, globalSpec, namespace);
+    }
+
+    public static String getBookieId(String podHostname, String bookieSet,
+                                     BookKeeperSetSpec setSpec,
+                                     GlobalSpec globalSpec,
+                                     String namespace) {
+        // https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#a-aaaa-records-1
+        // <pod-hostname>.<service-name>.<namespace>.svc.<cluster-domain>
+
+        // note that this might depend on bk configs:
+        // - 'useHostNameAsBookieID'
+        // - 'useShortHostName'
+        // - 'advertisedAddress'
+
+        final String svcName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
+                globalSpec.getComponents().getBookkeeperBaseName(), bookieSet, setSpec.getOverrideResourceName());
+        return String.format("%s.%s.%s.svc.%s:%d",
+                podHostname,
+                svcName,
                 namespace,
-                clusterSpec.getGlobalSpec().getKubernetesClusterDomain(),
-                "3181");
+                globalSpec.getKubernetesClusterDomain(),
+                BookKeeperResourcesFactory.DEFAULT_BK_PORT);
     }
 
     @SneakyThrows

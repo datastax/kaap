@@ -171,7 +171,8 @@ public class ProxyController
     }
 
     @Override
-    protected JSONComparator.Result compareLastAppliedSetSpec(SetInfo<ProxySetSpec, ProxyResourcesFactory> info,
+    protected JSONComparator.Result compareLastAppliedSetSpec(Proxy proxy,
+                                                              SetInfo<ProxySetSpec, ProxyResourcesFactory> info,
                                                               ProxyFullSpec spec, ProxyFullSpec lastApplied) {
         if (spec.getProxy().getSets() != null) {
             spec = SerializationUtil.deepCloneObject(spec);

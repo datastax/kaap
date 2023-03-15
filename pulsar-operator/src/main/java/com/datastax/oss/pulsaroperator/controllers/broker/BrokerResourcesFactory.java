@@ -79,7 +79,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                                   String brokerSetName, BrokerSetSpec spec, GlobalSpec global,
                                   OwnerReference ownerReference) {
         super(client, namespace, getResourceName(global.getName(),
-                getComponentBaseName(global), Objects.requireNonNull(brokerSetName), spec.getOverrideResourceName()),
+                        getComponentBaseName(global), Objects.requireNonNull(brokerSetName),
+                        spec.getOverrideResourceName()),
                 spec, global, ownerReference);
         brokerSet = brokerSetName;
     }
@@ -224,6 +225,12 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         data.put("exposeTopicLevelMetricsInPrometheus", "true");
         data.put("exposeConsumerLevelMetricsInPrometheus", "false");
         data.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+
+        if (spec.getProbes() != null
+                && (!spec.getProbes().getUseHealthCheckForLiveness()
+                || !spec.getProbes().getUseHealthCheckForReadiness())) {
+            data.put("statusFilePath", "/pulsar/status");
+        }
 
         appendConfigData(data, spec.getConfig());
 

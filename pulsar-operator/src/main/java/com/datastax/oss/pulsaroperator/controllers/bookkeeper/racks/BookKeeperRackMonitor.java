@@ -73,8 +73,6 @@ public class BookKeeperRackMonitor implements Runnable {
 
         final LinkedHashMap<String, BookKeeperSetSpec> bkSets =
                 BookKeeperController.getBookKeeperSetSpecs(bkFullSpec.getBookkeeper());
-        final Map<String, BkRackClient.BookieRackInfo> expectedBookiesRackInfo = new LinkedHashMap<>();
-
 
         final GlobalSpec globalSpec = bkFullSpec.getGlobalSpec();
         for (Map.Entry<String, BookKeeperSetSpec> bkSet : bkSets.entrySet()) {
@@ -98,12 +96,15 @@ public class BookKeeperRackMonitor implements Runnable {
                                 resourceSet, spec, globalSpec, namespace);
 
                 final Pod pod = getPod(podName);
-                final String nodeName;
+                String nodeName;
                 if (pod == null) {
                     // it always happens when scaling up
-                    nodeName = "null";
+                    nodeName = "unknown-node";
                 } else {
                     nodeName = pod.getSpec().getNodeName();
+                    if (nodeName == null) {
+                        nodeName = "unknown-node";
+                    }
                 }
 
                 final String bkRack = "%s/%s".formatted(rack, nodeName);
@@ -129,8 +130,5 @@ public class BookKeeperRackMonitor implements Runnable {
                 .inNamespace(namespace)
                 .withName(name)
                 .get();
-
     }
-
-
 }

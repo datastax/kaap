@@ -51,6 +51,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
 import io.fabric8.kubernetes.client.dsl.NetworkAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.PolicyAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.RbacAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -306,6 +307,8 @@ public class MockKubernetesClient {
                 rClass = RollableScalableResource.class;
             } else if (resourceClass == Job.class) {
                 rClass = ScalableResource.class;
+            } else if (resourceClass == Pod.class) {
+                rClass = PodResource.class;
             } else {
                 rClass = Resource.class;
             }

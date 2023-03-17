@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.tests.helm;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
@@ -108,18 +109,13 @@ public class BookieRacksTest extends BaseHelmTest {
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
 
-
+            final String nodeName = client.nodes().list().getItems().get(0).getMetadata().getName();
 
             for (int i = 0; i < 2; i++) {
                 AtomicInteger finalI = new AtomicInteger(i);
                 Awaitility.await().untilAsserted(() -> {
-
-
                     final String bookieId = getBookieId(finalI.get(), "set1");
-
-                    final String response =
-                            execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack %s".formatted(bookieId));
-                    Assert.assertEquals(response, "TODO");
+                    assertBookiePlacedInRack(bookieId, "rack1", nodeName);
                 });
             }
 
@@ -127,18 +123,12 @@ public class BookieRacksTest extends BaseHelmTest {
                 AtomicInteger finalI = new AtomicInteger(i);
                 Awaitility.await().untilAsserted(() -> {
                     final String bookieId = getBookieId(finalI.get(), "set2");
-
-                    final String response =
-                            execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack %s".formatted(bookieId));
-                    Assert.assertEquals(response, "TODO");
+                    assertBookiePlacedInRack(bookieId, "rack2", nodeName);
                 });
             }
             Awaitility.await().untilAsserted(() -> {
                 final String bookieId = getBookieId(0, "norack");
-
-                final String response =
-                        execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack %s".formatted(bookieId));
-                Assert.assertEquals(response, "");
+                assertBookiePlacedInRack(bookieId, null, null);
             });
 
             specs.getBookkeeper().setSets(new LinkedHashMap<>(Map.of(
@@ -151,17 +141,12 @@ public class BookieRacksTest extends BaseHelmTest {
             Awaitility.await().untilAsserted(() -> {
                 final String bookieId = getBookieId(2, "set1");
 
-                final String response =
-                        execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack %s".formatted(bookieId));
-                Assert.assertEquals(response, "TODO");
+                assertBookiePlacedInRack(bookieId, "set1", nodeName);
             });
 
             Awaitility.await().untilAsserted(() -> {
                 final String bookieId = getBookieId(1, "set2");
-
-                final String response =
-                        execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack %s".formatted(bookieId));
-                Assert.assertEquals(response, "");
+                assertBookiePlacedInRack(bookieId, null, null);
             });
 
             client.resources(PulsarCluster.class)
@@ -181,4 +166,18 @@ public class BookieRacksTest extends BaseHelmTest {
                 .formatted(set, i, set, namespace);
     }
 
+    private void assertBookiePlacedInRack(String bookieId, String expectedRack, String node) {
+        try {
+            final String response =
+                    execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack -b %s".formatted(bookieId));
+            Assert.assertTrue(expectedRack != null);
+            final Map mapResult = SerializationUtil.readJson(response, Map.class);
+            Assert.assertEquals(mapResult.get("rack"), expectedRack + "/" + node);
+            Assert.assertEquals(mapResult.get("hostname"), bookieId);
+        } catch (Throwable t) {
+            if (expectedRack != null) {
+                throw new RuntimeException(t);
+            }
+        }
+    }
 }

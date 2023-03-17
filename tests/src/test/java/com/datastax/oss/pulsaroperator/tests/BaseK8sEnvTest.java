@@ -474,7 +474,6 @@ public abstract class BaseK8sEnvTest {
         RuntimeException lastEx = null;
         while (remainingAttempts-- > 0) {
             log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
-            CompletableFuture<String> future = new CompletableFuture<>();
             try {
                 return AutoscalerUtils.execInPod(
                         client, namespace, podName, containerName, cmd

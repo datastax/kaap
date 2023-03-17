@@ -272,7 +272,10 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
 
-        if (isTlsEnabledOnBroker()) {
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+        final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
+
+        if (tlsEnabledOnBroker || tlsEnabledOnZooKeeper) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
         }
         if (isAuthTokenEnabled()) {
@@ -280,11 +283,14 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
         }
         String mainArg = "";
-        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+
         if (tlsEnabledOnBroker) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
-                    + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + generateCertConverterScript() + " && ";
+                    + "-out /pulsar/tls-pk8.key -nocrypt && ";
+        }
+
+        if (tlsEnabledOnBroker || tlsEnabledOnZooKeeper) {
+            mainArg += generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
                 + "bin/apply-config-from-env.py conf/client.conf && "

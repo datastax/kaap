@@ -1,14 +1,32 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks;
 
 import com.datastax.oss.pulsaroperator.NamespacedDaemonThread;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.ZkClientRackClient;
-import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoRackConfig;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.LaunchMode;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +67,9 @@ public class BookKeeperRackDaemon extends NamespacedDaemonThread<BookKeeperFullS
                 log.error("Error while running BookKeeperRackMonitor, retrying", e);
                 try {
                     Thread.sleep(5000);
-                } catch (InterruptedException interruptedException) {
+                } catch (InterruptedException interruptedException2) {
                     Thread.currentThread().interrupt();
+                    return;
                 }
             }
         }
@@ -68,15 +87,42 @@ public class BookKeeperRackDaemon extends NamespacedDaemonThread<BookKeeperFullS
         }
 
         final ZkClientRackClient zkClient =
-                zkClients.computeIfAbsent(zkConnectString, (k) -> new ZkClientRackClient(k));
+                zkClients.computeIfAbsent(zkConnectString,
+                        (k) -> newZkRackClient(k, newSpec.getGlobalSpec(), namespace));
         return zkClient;
+    }
+
+    private ZkClientRackClient newZkRackClient(String zkConnectString, GlobalSpec globalSpec, String namespace) {
+        final boolean tlsEnabledOnZooKeeper = BaseResourcesFactory.isTlsEnabledOnZooKeeper(globalSpec);
+        if (!tlsEnabledOnZooKeeper) {
+            return ZkClientRackClient.plainClient(zkConnectString);
+        }
+        final String tlsSecretNameForZookeeper = BaseResourcesFactory.getTlsSecretNameForZookeeper(globalSpec);
+        final Secret secret = client.secrets()
+                .inNamespace(namespace)
+                .withName(tlsSecretNameForZookeeper)
+                .get();
+        if (secret == null) {
+            throw new IllegalStateException(
+                    "Cannot create ssl client for Zookeeper, secret '" + tlsSecretNameForZookeeper + "' not found");
+        }
+
+        final String privateKey =
+                new String(Base64.getDecoder().decode(secret.getData().get("tls.key")), StandardCharsets.UTF_8);
+        final String serverCert =
+                new String(Base64.getDecoder().decode(secret.getData().get("tls.crt")), StandardCharsets.UTF_8);
+        String caCert = secret.getData().get("ca.crt");
+        if (caCert != null) {
+            caCert = new String(Base64.getDecoder().decode(caCert), StandardCharsets.UTF_8);
+        }
+        return ZkClientRackClient.sslClient(zkConnectString, privateKey, serverCert, caCert);
     }
 
     private String getZkServers(String namespace, BookKeeperFullSpec newSpec) {
         if (LaunchMode.current() == LaunchMode.DEVELOPMENT) {
-            return "localhost:%s".formatted(BaseResourcesFactory.isTlsEnabledOnZooKeeper(newSpec.getGlobal()) ?
-                    ZooKeeperResourcesFactory.DEFAULT_CLIENT_TLS_PORT :
-                    ZooKeeperResourcesFactory.DEFAULT_CLIENT_PORT);
+            // tls can't work in dev mode because in order to perform hostname validation you have to connect to the
+            // real hostname
+            return "localhost:2181";
         }
         return BaseResourcesFactory.getZkServers(newSpec.getGlobal(), namespace);
     }

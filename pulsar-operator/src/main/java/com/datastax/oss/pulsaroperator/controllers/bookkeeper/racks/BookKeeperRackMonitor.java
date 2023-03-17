@@ -1,3 +1,18 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks;
 
 import com.datastax.oss.pulsaroperator.autoscaler.BookKeeperSetAutoscaler;
@@ -43,7 +58,7 @@ public class BookKeeperRackMonitor implements Runnable {
         } catch (Throwable t) {
             if (ExceptionUtils.indexOfThrowable(t, InterruptedException.class) >= 0) {
                 Thread.currentThread().interrupt();
-            } if (ExceptionUtils.indexOfThrowable(t, RejectedExecutionException.class) >= 0) {
+            } else if (ExceptionUtils.indexOfThrowable(t, RejectedExecutionException.class) >= 0) {
                 log.debugf(t, "Task rejected, probably the executor is going to be shut down");
             } else {
                 log.errorf(t, "Error in BookKeeperRackMonitor: %s", t.getMessage());

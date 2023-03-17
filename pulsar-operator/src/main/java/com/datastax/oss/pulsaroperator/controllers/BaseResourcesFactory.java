@@ -78,7 +78,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.Getter;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -484,6 +483,10 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected String getTlsSecretNameForZookeeper() {
+        return getTlsSecretNameForZookeeper(global);
+    }
+
+    public static String getTlsSecretNameForZookeeper(GlobalSpec global) {
         final String name = global.getTls().getZookeeper() == null
                 ? null : global.getTls().getZookeeper().getSecretName();
         return ObjectUtils.firstNonNull(

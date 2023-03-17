@@ -19,6 +19,9 @@ import com.dajudge.kindcontainer.helm.Helm3Container;
 import com.datastax.oss.pulsaroperator.tests.BasePulsarClusterTest;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -34,6 +37,9 @@ import org.testng.annotations.BeforeMethod;
 
 @Slf4j
 public class BaseHelmTest extends BasePulsarClusterTest {
+
+    public static final String CERT_MANAGER_CRDS =
+            "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml";
 
     private static final String HELM_RELEASE_PREFIX = "pothr-";
     public static final String HELM_BIND_PULSAR_OPERATOR = "/helm-pulsar-operator";
@@ -67,6 +73,12 @@ public class BaseHelmTest extends BasePulsarClusterTest {
             helmUninstall();
         } catch (Exception e) {
             log.warn("Failed to cleanup helm release", e);
+        }
+        try (final InputStream in = new URL(CERT_MANAGER_CRDS)
+                .openStream();) {
+            deleteManifest(in.readAllBytes());
+        } catch (Exception e) {
+            log.warn("Failed to remove cert-manager crds", e);
         }
     }
 
@@ -166,5 +178,13 @@ public class BaseHelmTest extends BasePulsarClusterTest {
                 .inNamespace(namespace)
                 .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
         return pods;
+    }
+
+
+    protected void applyCertManagerCRDs() throws IOException {
+        try (final InputStream in = new URL(CERT_MANAGER_CRDS)
+                .openStream();) {
+            applyManifest(in.readAllBytes());
+        }
     }
 }

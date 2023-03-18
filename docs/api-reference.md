@@ -10692,6 +10692,13 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperautorackconfig">autoRackConfig</a></b></td>
+        <td>object</td>
+        <td>
+          Configuration for the rack auto configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperautoscaler">autoscaler</a></b></td>
         <td>object</td>
         <td>
@@ -14055,6 +14062,41 @@ Indicates the provisioner property for the StorageClass.
         <td>boolean</td>
         <td>
           Indicates the reclaimPolicy property for the StorageClass.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.autoRackConfig
+
+
+
+Configuration for the rack auto configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable rack configuration monitoring.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>periodMs</b></td>
+        <td>integer</td>
+        <td>
+          Period for the schedule of the monitoring thread.<br/>
+          <br/>
+            <i>Minimum</i>: 1000<br/>
         </td>
         <td>false</td>
       </tr></tbody>

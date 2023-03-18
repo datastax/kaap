@@ -4241,6 +4241,17 @@ spec:
                       type: object
                     description: Bookie sets.
                     type: object
+                  autoRackConfig:
+                    description: Configuration for the rack auto configuration.
+                    properties:
+                      periodMs:
+                        description: Period for the schedule of the monitoring thread.
+                        minimum: 1000.0
+                        type: integer
+                      enabled:
+                        description: Enable rack configuration monitoring.
+                        type: boolean
+                    type: object
                   setsUpdateStrategy:
                     description: Sets update strategy. 'RollingUpdate' or 'Parallel'.
                       Default is 'RollingUpdate'.

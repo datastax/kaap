@@ -169,7 +169,6 @@ public class BookieRacksTest extends BaseHelmTest {
     private void assertBookiePlacedInRack(String bookieId, String expectedRack, String node) {
         final String response =
                 execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack -b %s".formatted(bookieId));
-        Assert.assertTrue(expectedRack != null);
         if (StringUtils.isBlank(response)) {
             if (expectedRack == null) {
                 return;

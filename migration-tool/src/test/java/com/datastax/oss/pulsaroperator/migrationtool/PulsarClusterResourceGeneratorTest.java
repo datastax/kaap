@@ -64,7 +64,7 @@ public class PulsarClusterResourceGeneratorTest {
     private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
         var diffs = diff.getAll();
         diffs.entrySet().forEach(System.out::println);
-        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 216L);
+        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 217L);
     }
 
     @SneakyThrows

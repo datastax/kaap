@@ -16,10 +16,15 @@
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.BookKeeperRackDaemon;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.BkRackClient;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.BkRackClientFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoRackConfig;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -45,6 +50,7 @@ import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +104,7 @@ public class BookKeeperControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_PREFIX_autoRecoveryDaemonEnabled: "false"
+                          PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled: "true"
                           PULSAR_PREFIX_httpServerEnabled: "true"
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
                           PULSAR_PREFIX_statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
@@ -334,13 +341,11 @@ public class BookKeeperControllerTest {
 
         Map<String, String> expectedData = new HashMap<>();
         expectedData.put("PULSAR_PREFIX_autoRecoveryDaemonEnabled", "false");
-        // In k8s always want to use hostname as bookie ID since IP addresses are ephemeral
         expectedData.put("PULSAR_PREFIX_useHostNameAsBookieID", "true");
-        // HTTP server used by health check
         expectedData.put("PULSAR_PREFIX_httpServerEnabled", "true");
-        //Pulsar's metadata store based rack awareness solution
         expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
                 "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
         expectedData.put("BOOKIE_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled "
@@ -392,6 +397,7 @@ public class BookKeeperControllerTest {
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("PULSAR_PREFIX_statsProviderClass",
                 "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
         expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_tlsProvider", "OpenSSL");
         expectedData.put("PULSAR_PREFIX_tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
@@ -1763,7 +1769,7 @@ public class BookKeeperControllerTest {
 
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
-        new ControllerTestUtil<BookKeeperFullSpec, BookKeeper>(NAMESPACE, CLUSTER_NAME)
+        new ControllerTestUtil<BookKeeperFullSpec, BookKeeper>(NAMESPACE, CLUSTER_NAME, this::controllerConstructor)
                 .invokeControllerAndAssertError(spec,
                         expectedErrorMessage,
                         BookKeeper.class,
@@ -1773,10 +1779,55 @@ public class BookKeeperControllerTest {
 
     @SneakyThrows
     private MockKubernetesClient invokeController(String spec) {
-        return new ControllerTestUtil<BookKeeperFullSpec, BookKeeper>(NAMESPACE, CLUSTER_NAME)
+        return new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME, this::controllerConstructor)
                 .invokeController(spec,
                         BookKeeper.class,
                         BookKeeperFullSpec.class,
                         BookKeeperController.class);
+    }
+
+    private AbstractController<BookKeeper> controllerConstructor(
+            ControllerTestUtil<BookKeeperFullSpec, BookKeeper>.ControllerConstructorInput controllerConstructorInput) {
+        try {
+            final Class<BookKeeperController> controllerClass = (Class<BookKeeperController>)
+                    controllerConstructorInput.getControllerClass();
+            return controllerClass
+                    .getConstructor(KubernetesClient.class, BookKeeperRackDaemon.class)
+                    .newInstance(controllerConstructorInput.getClient(), new BookKeeperRackDaemon(
+                            controllerConstructorInput.getClient(),
+                            new BkRackClientFactory() {
+                                @Override
+                                public BkRackClient newBkRackClient(String namespace, BookKeeperFullSpec newSpec,
+                                                                    BookKeeperAutoRackConfig autoRackConfig) {
+                                    return new BkRackClient() {
+                                        @Override
+                                        public BookiesRackOp newBookiesRackOp() {
+                                            return new BookiesRackOp() {
+                                                @Override
+                                                public BookiesRackConfiguration get() {
+                                                    return null;
+                                                }
+
+                                                @Override
+                                                public void update(BookiesRackConfiguration newConfig) {
+
+                                                }
+                                            };
+                                        }
+
+                                        @Override
+                                        public void close() throws Exception {
+                                        }
+                                    };
+                                }
+
+                                @Override
+                                public void close() throws Exception {
+                                }
+                            }
+                    ));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

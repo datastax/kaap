@@ -107,7 +107,6 @@ public class BookieRacksTest extends BaseHelmTest {
             specs.getBastion().setReplicas(0);
             specs.getFunctionsWorker().setReplicas(0);
             applyPulsarCluster(specsToYaml(specs));
-            awaitInstalled();
 
             final String nodeName = client.nodes().list().getItems().get(0).getMetadata().getName();
 

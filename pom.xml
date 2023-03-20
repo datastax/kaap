@@ -58,6 +58,8 @@
         <testcontainers.version>1.17.6</testcontainers.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <jsonassert.version>1.5.1</jsonassert.version>
+        <awaitility.version>4.2.0</awaitility.version>
+        <curator.version>5.4.0</curator.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -147,6 +149,16 @@
                 <groupId>org.skyscreamer</groupId>
                 <artifactId>jsonassert</artifactId>
                 <version>${jsonassert.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-test</artifactId>
+                <version>${curator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

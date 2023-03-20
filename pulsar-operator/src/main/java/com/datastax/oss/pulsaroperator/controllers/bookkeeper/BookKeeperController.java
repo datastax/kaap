@@ -20,6 +20,7 @@ import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.AbstractResourceSetsController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.BookKeeperRackDaemon;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.ZkClientRackClientFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
@@ -88,9 +89,13 @@ public class BookKeeperController extends
     }
 
 
-    public BookKeeperController(KubernetesClient client) {
+    public BookKeeperController(KubernetesClient client, BookKeeperRackDaemon bkRackDaemon) {
         super(client);
-        bkRackDaemon = new BookKeeperRackDaemon(client);
+        this.bkRackDaemon = bkRackDaemon;
+    }
+
+    public BookKeeperController(KubernetesClient client) {
+        this(client, new BookKeeperRackDaemon(client, new ZkClientRackClientFactory(client)));
     }
 
     @Override
@@ -192,10 +197,8 @@ public class BookKeeperController extends
                     .bookkeeper(spec.getBookkeeper())
                     .build();
             bkRackDaemon.cancelTasks();
-            log.infof("onSpecChangeSync..");
             final String namespace = resource.getMetadata().getNamespace();
             bkRackDaemon.triggerSync(namespace, spec);
-            log.infof("onSpecChangeSync.. done");
             bkRackDaemon.onSpecChange(pulsarClusterSpec, namespace);
         }
         return result;

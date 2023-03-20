@@ -142,8 +142,8 @@ public class ZkClientRackClient implements BkRackClient {
                 log.infof("No bookies rack configuration found");
                 return new BookiesRackConfiguration();
             } else {
-                return SerializationUtil.readJson(new String(data, StandardCharsets.UTF_8),
-                        BookiesRackConfiguration.class);
+                final String strData = new String(data, StandardCharsets.UTF_8);
+                return SerializationUtil.readJson(strData, BookiesRackConfiguration.class);
             }
         }
 

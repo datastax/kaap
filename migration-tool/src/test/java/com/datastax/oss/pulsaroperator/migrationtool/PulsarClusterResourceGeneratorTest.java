@@ -64,7 +64,7 @@ public class PulsarClusterResourceGeneratorTest {
     private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
         var diffs = diff.getAll();
         diffs.entrySet().forEach(System.out::println);
-        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 215L);
+        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 216L);
     }
 
     @SneakyThrows
@@ -423,7 +423,7 @@ public class PulsarClusterResourceGeneratorTest {
                                   additionalPorts: []
                             setsUpdateStrategy: RollingUpdate
                             autoRackConfig:
-                              enabled: true
+                              enabled: false
                               periodMs: 60000
                           broker:
                             imagePullPolicy: IfNotPresent
@@ -556,6 +556,7 @@ public class PulsarClusterResourceGeneratorTest {
                                   authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
                                   authorizationEnabled: "true"
                                   backlogQuotaDefaultRetentionPolicy: producer_exception
+                                  bookkeeperClientRegionawarePolicyEnabled: "false"
                                   brokerClientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
                                   brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
                                   brokerClientTlsEnabled: "true"

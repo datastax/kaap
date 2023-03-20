@@ -96,6 +96,9 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
         container.getEnv().forEach(envVar -> {
             config.put(envVar.getName().replace(BaseResourcesFactory.CONFIG_PULSAR_PREFIX, ""), envVar.getValue());
         });
+        if (!config.containsKey("bookkeeperClientRegionawarePolicyEnabled")) {
+            config.put("bookkeeperClientRegionawarePolicyEnabled", "false");
+        }
 
 
         podDNSConfig = spec.getDnsConfig();

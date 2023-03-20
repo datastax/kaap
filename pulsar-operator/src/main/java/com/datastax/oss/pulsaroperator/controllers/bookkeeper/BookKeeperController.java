@@ -89,13 +89,13 @@ public class BookKeeperController extends
     }
 
 
-    public BookKeeperController(KubernetesClient client, BookKeeperRackDaemon bkRackDaemon) {
+    public BookKeeperController(KubernetesClient client) {
         super(client);
-        this.bkRackDaemon = bkRackDaemon;
+        bkRackDaemon = this.initBookKeeperRackDaemon(client);
     }
 
-    public BookKeeperController(KubernetesClient client) {
-        this(client, new BookKeeperRackDaemon(client, new ZkClientRackClientFactory(client)));
+    protected BookKeeperRackDaemon initBookKeeperRackDaemon(KubernetesClient client) {
+        return new BookKeeperRackDaemon(client, new ZkClientRackClientFactory(client));
     }
 
     @Override
@@ -198,6 +198,7 @@ public class BookKeeperController extends
                     .build();
             bkRackDaemon.cancelTasks();
             final String namespace = resource.getMetadata().getNamespace();
+            log.infof("Initializing bookie racks for bookkeeper-set '%s'", setInfo.getName());
             bkRackDaemon.triggerSync(namespace, spec);
             bkRackDaemon.onSpecChange(pulsarClusterSpec, namespace);
         }

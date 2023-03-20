@@ -1788,46 +1788,43 @@ public class BookKeeperControllerTest {
 
     private AbstractController<BookKeeper> controllerConstructor(
             ControllerTestUtil<BookKeeperFullSpec, BookKeeper>.ControllerConstructorInput controllerConstructorInput) {
-        try {
-            final Class<BookKeeperController> controllerClass = (Class<BookKeeperController>)
-                    controllerConstructorInput.getControllerClass();
-            return controllerClass
-                    .getConstructor(KubernetesClient.class, BookKeeperRackDaemon.class)
-                    .newInstance(controllerConstructorInput.getClient(), new BookKeeperRackDaemon(
-                            controllerConstructorInput.getClient(),
-                            new BkRackClientFactory() {
-                                @Override
-                                public BkRackClient newBkRackClient(String namespace, BookKeeperFullSpec newSpec,
-                                                                    BookKeeperAutoRackConfig autoRackConfig) {
-                                    return new BkRackClient() {
-                                        @Override
-                                        public BookiesRackOp newBookiesRackOp() {
-                                            return new BookiesRackOp() {
-                                                @Override
-                                                public BookiesRackConfiguration get() {
-                                                    return null;
-                                                }
+        return new BookKeeperController(controllerConstructorInput.getClient()) {
+            @Override
+            protected BookKeeperRackDaemon initBookKeeperRackDaemon(KubernetesClient client) {
+                return new BookKeeperRackDaemon(
+                        controllerConstructorInput.getClient(),
+                        new BkRackClientFactory() {
+                            @Override
+                            public BkRackClient newBkRackClient(String namespace, BookKeeperFullSpec newSpec,
+                                                                BookKeeperAutoRackConfig autoRackConfig) {
+                                return new BkRackClient() {
+                                    @Override
+                                    public BookiesRackOp newBookiesRackOp() {
+                                        return new BookiesRackOp() {
+                                            @Override
+                                            public BookiesRackConfiguration get() {
+                                                return null;
+                                            }
 
-                                                @Override
-                                                public void update(BookiesRackConfiguration newConfig) {
+                                            @Override
+                                            public void update(BookiesRackConfiguration newConfig) {
 
-                                                }
-                                            };
-                                        }
+                                            }
+                                        };
+                                    }
 
-                                        @Override
-                                        public void close() throws Exception {
-                                        }
-                                    };
-                                }
-
-                                @Override
-                                public void close() throws Exception {
-                                }
+                                    @Override
+                                    public void close() throws Exception {
+                                    }
+                                };
                             }
-                    ));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+
+                            @Override
+                            public void close() throws Exception {
+                            }
+                        }
+                );
+            }
+        };
     }
 }

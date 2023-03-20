@@ -89,6 +89,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        data.put("ensemblePlacementPolicy", "org.apache.bookkeeper.client.RegionAwareEnsemblePlacementPolicy");
 
         if (isTlsEnabledOnBookKeeper()) {
             data.put("tlsHostnameVerificationEnabled", "true");

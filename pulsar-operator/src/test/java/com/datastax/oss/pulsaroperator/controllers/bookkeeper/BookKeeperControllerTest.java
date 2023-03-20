@@ -104,7 +104,6 @@ public class BookKeeperControllerTest {
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_PREFIX_autoRecoveryDaemonEnabled: "false"
-                          PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled: "true"
                           PULSAR_PREFIX_httpServerEnabled: "true"
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
                           PULSAR_PREFIX_statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
@@ -345,7 +344,6 @@ public class BookKeeperControllerTest {
         expectedData.put("PULSAR_PREFIX_httpServerEnabled", "true");
         expectedData.put("PULSAR_PREFIX_reppDnsResolverClass",
                 "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
-        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
         expectedData.put("BOOKIE_MEM",
                 "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled "
@@ -397,7 +395,6 @@ public class BookKeeperControllerTest {
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("PULSAR_PREFIX_statsProviderClass",
                 "org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider");
-        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
         expectedData.put("PULSAR_PREFIX_zkServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_tlsProvider", "OpenSSL");
         expectedData.put("PULSAR_PREFIX_tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");

@@ -103,6 +103,7 @@ public class BrokerControllerTest {
                           PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError
                           PULSAR_PREFIX_allowAutoTopicCreationType: non-partitioned
                           PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy: producer_exception
+                          PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled: "true"
                           PULSAR_PREFIX_brokerDeduplicationEnabled: "false"
                           PULSAR_PREFIX_clusterName: pulsarname
                           PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
@@ -307,6 +308,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_pulsarFunctionsCluster", "pul");
         expectedData.put("PULSAR_PREFIX_pulsarServiceUrl", "pulsar://localhost:6650");
         expectedData.put("PULSAR_PREFIX_pulsarWebServiceUrl", "http://localhost:8080");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -347,6 +349,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
         expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
         expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -456,6 +459,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
         expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
         expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -493,6 +497,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
         expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
         expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
         expectedData.put("PULSAR_PREFIX_authParams", "file:///pulsar/token-superuser-stripped.jwt");
         expectedData.put("PULSAR_PREFIX_authPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedData.put("PULSAR_PREFIX_authorizationEnabled", "true");
@@ -576,6 +581,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerClient_tlsHostnameVerificationEnable", "true");
         expectedData.put("PULSAR_PREFIX_transactionCoordinatorEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
 
         final Map<String, String> data = createdResource.getResource().getData();
@@ -773,6 +779,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertTypes", "PEM");
         expectedData.put("PULSAR_PREFIX_bookkeeperUseV2WireProtocol", "false");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
 
 
         final Map<String, String> data = createdResource.getResource().getData();

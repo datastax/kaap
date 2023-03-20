@@ -225,6 +225,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         data.put("exposeTopicLevelMetricsInPrometheus", "true");
         data.put("exposeConsumerLevelMetricsInPrometheus", "false");
         data.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        data.put("bookkeeperClientRegionawarePolicyEnabled", "true");
 
         if (spec.getProbes() != null
                 && (!spec.getProbes().getUseHealthCheckForLiveness()
@@ -233,6 +234,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         }
 
         appendConfigData(data, spec.getConfig());
+
+        if (!data.containsKey("bookkeeperClientMinNumRacksPerWriteQuorum")
+                && data.containsKey("managedLedgerDefaultWriteQuorum")) {
+            data.put("bookkeeperClientMinNumRacksPerWriteQuorum", data.get("managedLedgerDefaultWriteQuorum"));
+        }
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()

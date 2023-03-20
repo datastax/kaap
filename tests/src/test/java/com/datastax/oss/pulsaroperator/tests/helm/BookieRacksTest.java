@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -166,17 +167,23 @@ public class BookieRacksTest extends BaseHelmTest {
     }
 
     private void assertBookiePlacedInRack(String bookieId, String expectedRack, String node) {
-        try {
-            final String response =
-                    execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack -b %s".formatted(bookieId));
-            Assert.assertTrue(expectedRack != null);
-            final Map mapResult = SerializationUtil.readJson(response, Map.class);
-            Assert.assertEquals(mapResult.get("rack"), expectedRack + "/" + node);
-            Assert.assertEquals(mapResult.get("hostname"), bookieId);
-        } catch (Throwable t) {
-            if (expectedRack != null) {
-                throw new RuntimeException(t);
+        final String response =
+                execInPod("pulsar-broker-0", "bin/pulsar-admin bookies get-bookie-rack -b %s".formatted(bookieId));
+        Assert.assertTrue(expectedRack != null);
+        if (StringUtils.isBlank(response)) {
+            if (expectedRack == null) {
+                return;
+            }
+
+        } else {
+            if (expectedRack == null) {
+                Assert.fail("Bookie %s is placed in rack %s, but it should not".formatted(bookieId, expectedRack));
+            } else {
+                final Map mapResult = SerializationUtil.readJson(response, Map.class);
+                Assert.assertEquals(mapResult.get("rack"), expectedRack + "/" + node);
+                Assert.assertEquals(mapResult.get("hostname"), bookieId);
             }
         }
+
     }
 }

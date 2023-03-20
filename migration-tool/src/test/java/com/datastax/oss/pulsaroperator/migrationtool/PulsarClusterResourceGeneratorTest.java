@@ -64,7 +64,7 @@ public class PulsarClusterResourceGeneratorTest {
     private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
         var diffs = diff.getAll();
         diffs.entrySet().forEach(System.out::println);
-        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 214L);
+        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 215L);
     }
 
     @SneakyThrows
@@ -422,6 +422,9 @@ public class PulsarClusterResourceGeneratorTest {
                                     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
                                   additionalPorts: []
                             setsUpdateStrategy: RollingUpdate
+                            autoRackConfig:
+                              enabled: true
+                              periodMs: 60000
                           broker:
                             imagePullPolicy: IfNotPresent
                             replicas: 3

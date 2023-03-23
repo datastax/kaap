@@ -19,22 +19,27 @@ import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.AbstractResourceSetsController;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.BookKeeperRackDaemon;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.ZkClientRackClientFactory;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
+import io.quarkus.runtime.ShutdownEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.enterprise.event.Observes;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,6 +52,8 @@ public class BookKeeperController extends
         AbstractResourceSetsController<BookKeeper, BookKeeperFullSpec, BookKeeperSpec, BookKeeperSetSpec,
                 BookKeeperResourcesFactory,
                 BookKeeperController.BookKeeperSetsLastApplied> {
+
+    private final BookKeeperRackDaemon bkRackDaemon;
 
     public static List<String> enumerateBookKeeperSets(String clusterName, String componentBaseName,
                                                        BookKeeperSpec bk) {
@@ -84,6 +91,11 @@ public class BookKeeperController extends
 
     public BookKeeperController(KubernetesClient client) {
         super(client);
+        bkRackDaemon = this.initBookKeeperRackDaemon(client);
+    }
+
+    protected BookKeeperRackDaemon initBookKeeperRackDaemon(KubernetesClient client) {
+        return new BookKeeperRackDaemon(client, new ZkClientRackClientFactory(client));
     }
 
     @Override
@@ -165,7 +177,7 @@ public class BookKeeperController extends
 
     @Override
     protected JSONComparator.Result compareLastAppliedSetSpec(
-            SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo, BookKeeperFullSpec spec,
+            BookKeeper resource, SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo, BookKeeperFullSpec spec,
             BookKeeperFullSpec lastApplied) {
         if (spec.getBookkeeper().getSets() != null) {
             spec = SerializationUtil.deepCloneObject(spec);
@@ -178,7 +190,19 @@ public class BookKeeperController extends
             lastApplied.getBookkeeper().getSets().entrySet()
                     .removeIf(e -> !e.getKey().equals(setInfo.getName()));
         }
-        return SpecDiffer.generateDiff(spec, lastApplied);
+        final JSONComparator.Result result = SpecDiffer.generateDiff(spec, lastApplied);
+        if (!result.areEquals()) {
+            final PulsarClusterSpec pulsarClusterSpec = PulsarClusterSpec.builder()
+                    .global(spec.getGlobal())
+                    .bookkeeper(spec.getBookkeeper())
+                    .build();
+            bkRackDaemon.cancelTasks();
+            final String namespace = resource.getMetadata().getNamespace();
+            log.infof("Initializing bookie racks for bookkeeper-set '%s'", setInfo.getName());
+            bkRackDaemon.triggerSync(namespace, spec);
+            bkRackDaemon.onSpecChange(pulsarClusterSpec, namespace);
+        }
+        return result;
     }
 
     @Override
@@ -195,5 +219,11 @@ public class BookKeeperController extends
     protected boolean isRollingUpdate(BookKeeperFullSpec bookKeeperFullSpec) {
         return BookKeeperSpec.BookKeeperSetsUpdateStrategy.RollingUpdate.toString()
                 .equals(bookKeeperFullSpec.getBookkeeper().getSetsUpdateStrategy());
+    }
+
+    void onStop(@Observes ShutdownEvent ev) {
+        if (bkRackDaemon != null) {
+            bkRackDaemon.close();
+        }
     }
 }

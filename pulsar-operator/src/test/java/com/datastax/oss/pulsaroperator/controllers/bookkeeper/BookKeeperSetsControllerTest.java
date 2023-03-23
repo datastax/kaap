@@ -16,10 +16,15 @@
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.BookKeeperRackDaemon;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.BkRackClient;
+import com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks.client.BkRackClientFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoRackConfig;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
@@ -29,6 +34,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.LinkedHashMap;
 import lombok.SneakyThrows;
@@ -42,7 +48,7 @@ public class BookKeeperSetsControllerTest {
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
     private final ControllerTestUtil<BookKeeperFullSpec, BookKeeper> controllerTestUtil =
-            new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME);
+            new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME, this::controllerConstructor);
 
     @Test
     public void testBookKeeperSetsDefaults() throws Exception {
@@ -942,5 +948,48 @@ public class BookKeeperSetsControllerTest {
         Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
         Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-bookkeeper-setz"));
         Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsarname-bookkeeper-setz"));
+    }
+
+
+    private AbstractController<BookKeeper> controllerConstructor(
+            ControllerTestUtil<BookKeeperFullSpec, BookKeeper>.ControllerConstructorInput controllerConstructorInput) {
+        return new BookKeeperController(controllerConstructorInput.getClient()) {
+            @Override
+            protected BookKeeperRackDaemon initBookKeeperRackDaemon(KubernetesClient client) {
+                return new BookKeeperRackDaemon(
+                        controllerConstructorInput.getClient(),
+                        new BkRackClientFactory() {
+                            @Override
+                            public BkRackClient newBkRackClient(String namespace, BookKeeperFullSpec newSpec,
+                                                                BookKeeperAutoRackConfig autoRackConfig) {
+                                return new BkRackClient() {
+                                    @Override
+                                    public BookiesRackOp newBookiesRackOp() {
+                                        return new BookiesRackOp() {
+                                            @Override
+                                            public BookiesRackConfiguration get() {
+                                                return null;
+                                            }
+
+                                            @Override
+                                            public void update(BookiesRackConfiguration newConfig) {
+
+                                            }
+                                        };
+                                    }
+
+                                    @Override
+                                    public void close() throws Exception {
+                                    }
+                                };
+                            }
+
+                            @Override
+                            public void close() throws Exception {
+                            }
+                        }
+                );
+            }
+        };
     }
 }

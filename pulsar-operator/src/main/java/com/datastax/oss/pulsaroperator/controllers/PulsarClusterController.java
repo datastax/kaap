@@ -120,10 +120,11 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                     List.of(createNotReadyInitializingCondition(resource))
             );
         }
+        autoscaler.getBookKeeperAutoscalerDaemon().onSpecChange(clusterSpec, currentNamespace);
 
         adjustBrokerReplicas(currentNamespace, clusterSpec);
         final boolean brokerReady = checkReadyOrPatchBroker(currentNamespace, clusterSpec, ownerReference);
-        autoscaler.onSpecChange(clusterSpec, currentNamespace);
+        autoscaler.getBrokerAutoscalerDaemon().onSpecChange(clusterSpec, currentNamespace);
 
         adjustProxyFunctionsWorkerDeployment(clusterSpec);
         final boolean proxyReady = checkReadyOrPatchProxy(currentNamespace, clusterSpec, ownerReference);

@@ -164,6 +164,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         //Pulsar's metadata store based rack awareness solution
         data.put("reppDnsResolverClass", "org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping");
 
+
         data.put("BOOKIE_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled "
                 + "-Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
         data.put("BOOKIE_GC", "-XX:+UseG1GC");
@@ -186,6 +187,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
 
         appendConfigData(data, spec.getConfig());
+
+
+
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()
                 .withName(resourceName)
@@ -444,6 +448,10 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     }
 
     private String getRack() {
+        return getRack(global, bookkeeperSet);
+    }
+
+    public static String getRack(GlobalSpec global, String bookkeeperSet) {
         if (global.getResourceSets() != null) {
             final ResourceSetConfig resourceSet = global.getResourceSets().get(bookkeeperSet);
             if (resourceSet != null) {

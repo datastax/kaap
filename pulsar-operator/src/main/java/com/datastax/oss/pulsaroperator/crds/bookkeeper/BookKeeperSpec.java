@@ -16,11 +16,13 @@
 package com.datastax.oss.pulsaroperator.crds.bookkeeper;
 
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.ConfigUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.function.Supplier;
 import javax.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +37,12 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 public class BookKeeperSpec extends BookKeeperSetSpec {
+    private static final Supplier<BookKeeperAutoRackConfig> DEFAULT_AUTO_RACK_CONFIG =
+            () -> BookKeeperAutoRackConfig.builder()
+                    .enabled(true)
+                    .periodMs(60000L)
+                    .build();
+
     public enum BookKeeperSetsUpdateStrategy {
         RollingUpdate,
         Parallel
@@ -44,12 +52,20 @@ public class BookKeeperSpec extends BookKeeperSetSpec {
     private LinkedHashMap<String, BookKeeperSetSpec> sets;
     @JsonPropertyDescription("Sets update strategy. 'RollingUpdate' or 'Parallel'. Default is 'RollingUpdate'.")
     private String setsUpdateStrategy;
+    @JsonPropertyDescription("Configuration for the rack auto configuration.")
+    private BookKeeperAutoRackConfig autoRackConfig;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         if (setsUpdateStrategy == null) {
             setsUpdateStrategy = BookKeeperSetsUpdateStrategy.RollingUpdate.toString();
         }
+        if (autoRackConfig == null) {
+            autoRackConfig = DEFAULT_AUTO_RACK_CONFIG.get();
+        } else {
+            autoRackConfig = ConfigUtil.applyDefaultsWithReflection(autoRackConfig, DEFAULT_AUTO_RACK_CONFIG);
+        }
+
         super.applyDefaults(globalSpec);
     }
 

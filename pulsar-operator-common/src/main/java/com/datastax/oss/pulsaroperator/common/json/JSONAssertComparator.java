@@ -166,11 +166,10 @@ public class JSONAssertComparator implements JSONComparator {
                 continue;
             }
             if (c == '.') {
-                if (currentWord.isEmpty()) {
-                    throw new IllegalArgumentException("invalid key: " + key);
-                }
                 if (!openQuote) {
-                    words.add(currentWord);
+                    if (!currentWord.isEmpty()) {
+                        words.add(currentWord);
+                    }
                     currentWord = "";
                     continue;
                 }

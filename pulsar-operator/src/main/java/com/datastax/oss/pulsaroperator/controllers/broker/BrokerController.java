@@ -164,7 +164,8 @@ public class BrokerController extends
     }
 
     @Override
-    protected JSONComparator.Result compareLastAppliedSetSpec(SetInfo<BrokerSetSpec, BrokerResourcesFactory> setInfo,
+    protected JSONComparator.Result compareLastAppliedSetSpec(Broker resource,
+                                                              SetInfo<BrokerSetSpec, BrokerResourcesFactory> setInfo,
                                                               BrokerFullSpec spec, BrokerFullSpec lastApplied) {
         if (spec.getBroker().getSets() != null) {
             spec = SerializationUtil.deepCloneObject(spec);

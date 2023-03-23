@@ -18,8 +18,6 @@ package com.datastax.oss.pulsaroperator.tests.helm;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
-import java.io.InputStream;
-import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
@@ -43,11 +41,7 @@ public class TlsTest extends BaseHelmTest {
 
     private void test(boolean perComponentCerts) throws Exception {
         try {
-            try (final InputStream in = new URL(CERT_MANAGER_CRDS)
-                    .openStream();) {
-                applyManifest(in.readAllBytes());
-            }
-
+            applyCertManagerCRDs();
             helmInstall(Chart.STACK, """
                     pulsar-operator:
                         operator:
@@ -176,11 +170,6 @@ public class TlsTest extends BaseHelmTest {
             log.error("test failed with {}", t.getMessage(), t);
             printAllPodsLogs();
             throw new RuntimeException(t);
-        } finally {
-            try (final InputStream in = new URL(CERT_MANAGER_CRDS)
-                    .openStream();) {
-                deleteManifest(in.readAllBytes());
-            }
         }
     }
 }

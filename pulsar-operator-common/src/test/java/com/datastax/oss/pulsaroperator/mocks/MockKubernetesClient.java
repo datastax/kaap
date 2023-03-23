@@ -26,6 +26,8 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ListMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -49,6 +51,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
 import io.fabric8.kubernetes.client.dsl.NetworkAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.PolicyAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.RbacAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -62,6 +65,7 @@ import io.fabric8.kubernetes.client.dsl.V1StorageAPIGroupDSL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -130,9 +134,14 @@ public class MockKubernetesClient {
                 mockExistingResourceByName(namespace, Service.class, name -> resourcesResolver.serviceWithName(name))
         );
 
+        when(client.pods()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, Pod.class, name -> resourcesResolver.podWithName(name))
+        );
+
         final V1StorageAPIGroupDSL storage = mockStorage();
         when(storage.storageClasses()).thenAnswer(__ ->
-                mockExistingResourceByName(namespace, StorageClass.class, name -> resourcesResolver.storageClassByName(name))
+                mockExistingResourceByName(namespace, StorageClass.class,
+                        name -> resourcesResolver.storageClassByName(name))
         );
 
         final AppsAPIGroupDSL apps = mockApps();
@@ -265,6 +274,7 @@ public class MockKubernetesClient {
         when(client.rbac()).thenReturn(rbac);
         return rbac;
     }
+
     private V1StorageAPIGroupDSL mockStorage() {
         final StorageAPIGroupDSL storage = Mockito.mock(StorageAPIGroupDSL.class);
         final V1StorageAPIGroupDSL v1 = Mockito.mock(V1StorageAPIGroupDSL.class);
@@ -280,7 +290,13 @@ public class MockKubernetesClient {
         final MixedOperation resourceOp = Mockito.mock(MixedOperation.class);
         final NonNamespaceOperation nonNamespaceOperation = Mockito.mock(NonNamespaceOperation.class);
         when(resourceOp.inNamespace(eq(namespace))).thenReturn(nonNamespaceOperation);
-        when(nonNamespaceOperation.withLabels(any(Map.class))).thenReturn(nonNamespaceOperation);
+
+        AtomicReference<Map<String, String>> labels = new AtomicReference<>();
+        when(nonNamespaceOperation.withLabels(any(Map.class))).thenAnswer(
+                invocation -> {
+                    labels.set((Map<String, String>) invocation.getArguments()[0]);
+                    return nonNamespaceOperation;
+                });
 
         final Answer withNameAnswer = get -> {
             final Class<? extends Gettable> rClass;
@@ -291,6 +307,8 @@ public class MockKubernetesClient {
                 rClass = RollableScalableResource.class;
             } else if (resourceClass == Job.class) {
                 rClass = ScalableResource.class;
+            } else if (resourceClass == Pod.class) {
+                rClass = PodResource.class;
             } else {
                 rClass = Resource.class;
             }
@@ -323,13 +341,17 @@ public class MockKubernetesClient {
 
             @Override
             public List getItems() {
-                return resourcesResolver.getResources(resourceClass);
+                return resourcesResolver.getResources(resourceClass, labels.get());
             }
         }
         if (resourceClass == ReplicaSet.class) {
             doAnswer(
-                    get -> new ReplicaSetList(null, resourcesResolver.getResources(ReplicaSet.class),
+                    get -> new ReplicaSetList(null, resourcesResolver.getResources(ReplicaSet.class, labels.get()),
                             null, null)).when(nonNamespaceOperation).list();
+        } else if (resourceClass == Pod.class) {
+                doAnswer(
+                        get -> new PodList(null, resourcesResolver.getResources(Pod.class, labels.get()),
+                                null, null)).when(nonNamespaceOperation).list();
         } else {
             doAnswer(get -> new ListImpl()).when(nonNamespaceOperation).list();
         }

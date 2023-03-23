@@ -58,6 +58,11 @@ public class SerializationUtil {
     }
 
     @SneakyThrows
+    public static <T> T convertValue(Object from, Class<T> objectClass) {
+        return mapper.convertValue(from, objectClass);
+    }
+
+    @SneakyThrows
     public static byte[] writeAsJsonBytes(Object object) {
         return mapper.writeValueAsBytes(object);
     }

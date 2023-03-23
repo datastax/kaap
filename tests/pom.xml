@@ -28,7 +28,7 @@
 
     <properties>
         <kindcontainer.version>1.4.0</kindcontainer.version>
-        <awaitility.version>4.2.0</awaitility.version>
+
     </properties>
     <dependencies>
         <dependency>

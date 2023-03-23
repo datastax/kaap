@@ -586,6 +586,9 @@ public class PulsarClusterControllerTest {
                       stabilizationWindowMs: 300000
                       cleanUpPvcs: true
                     setsUpdateStrategy: RollingUpdate
+                    autoRackConfig:
+                      enabled: true
+                      periodMs: 60000
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));

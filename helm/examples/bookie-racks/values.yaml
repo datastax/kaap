@@ -1,0 +1,125 @@
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+pulsar-operator:
+  cluster:
+    create: true
+    spec:
+      global:
+        name: pulsar
+        image: datastax/lunastreaming-all:2.10_2.11
+        restartOnConfigMapChange: true
+        tls:
+          enabled: true
+          certProvisioner:
+            selfSigned:
+              enabled: true
+          zookeeper:
+            enabled: true
+        storage:
+          existingStorageClassName: default
+        racks:
+          az1:
+            host:
+              enabled: false
+            zone:
+              enabled: false
+          az2:
+            host:
+              enabled: false
+            zone:
+              enabled: false
+        resourceSets:
+          rsaz1:
+            rack: az1
+          rsaz2:
+            rack: az2
+        antiAffinity:
+          host:
+            enabled: false
+      zookeeper:
+        replicas: 3
+        dataVolume:
+          name: data
+          size: 100M
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      bookkeeper:
+        replicas: 1
+        volumes:
+          journal:
+            size: 1Gi
+          ledgers:
+            size: 1Gi
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+        sets:
+          rsaz1:
+            replicas: 3
+          rsaz2:
+            replicas: 6
+      broker:
+        replicas: 2
+        config:
+          managedLedgerDefaultAckQuorum: 2
+          managedLedgerDefaultEnsembleSize: 3
+          managedLedgerDefaultWriteQuorum: 2
+          bookkeeperClientEnforceMinNumRacksPerWriteQuorum: false
+          bookkeeperDiskWeightBasedPlacementEnabled: true
+        probes:
+          liveness:
+            initialDelaySeconds: 60
+        resources:
+          requests:
+            cpu: "2"
+            memory: "2Gi"
+      proxy:
+        replicas: 2
+        webSocket:
+          enabled: false
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      autorecovery:
+        replicas: 1
+        config:
+          ensemblePlacementPolicy: org.apache.bookkeeper.client.RegionAwareEnsemblePlacementPolicy
+          reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
+          enforceMinNumRacksPerWriteQuorum: true
+          minNumRacksPerWriteQuorum: 2
+          diskWeightBasedPlacementEnabled: true
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      bastion:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+
+cert-manager:
+  enabled: true
+  installCRDs: true
+  global:
+      leaderElection:
+        namespace: default

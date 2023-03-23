@@ -85,6 +85,7 @@ public class AutorecoveryControllerTest {
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
+                          PULSAR_PREFIX_ensemblePlacementPolicy: org.apache.bookkeeper.client.RegionAwareEnsemblePlacementPolicy 
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
                           PULSAR_PREFIX_zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
@@ -189,6 +190,8 @@ public class AutorecoveryControllerTest {
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
         expectedData.put("PULSAR_PREFIX_customConfig", "customValue");
+        expectedData.put("PULSAR_PREFIX_ensemblePlacementPolicy",
+                "org.apache.bookkeeper.client.RegionAwareEnsemblePlacementPolicy");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);
@@ -232,6 +235,8 @@ public class AutorecoveryControllerTest {
         expectedData.put("PULSAR_PREFIX_tlsTrustStoreType", "PEM");
         expectedData.put("PULSAR_PREFIX_tlsClientAuthentication", "true");
         expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("PULSAR_PREFIX_ensemblePlacementPolicy",
+                "org.apache.bookkeeper.client.RegionAwareEnsemblePlacementPolicy");
 
 
         final Map<String, String> data = createdResource.getResource().getData();

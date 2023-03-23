@@ -15,7 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.tests;
 
+import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerUtils;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.tests.env.ExistingK8sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K3sEnv;
@@ -33,7 +35,6 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -48,7 +49,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -448,7 +449,7 @@ public abstract class BaseK8sEnvTest {
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "pulsar-operator").list().getItems();
             Assert.assertTrue(pods.size() > 0);
-            Assert.assertTrue(pods.stream().filter(p -> "Running".equals(p.getStatus().getPhase()))
+            Assert.assertTrue(pods.stream().filter(p -> BaseResourcesFactory.isPodReady(p))
                     .count() > 0);
         });
     }
@@ -462,36 +463,24 @@ public abstract class BaseK8sEnvTest {
     }
 
     @SneakyThrows
-    protected void execInPod(String podName, String... cmd) {
-        execInPodContainer(podName, null, cmd);
+    protected String execInPod(String podName, String... cmd) {
+        return execInPodContainer(podName, null, cmd);
     }
 
     @SneakyThrows
-    protected void execInPodContainer(String podName, String containerName, String... cmds) {
+    protected String execInPodContainer(String podName, String containerName, String... cmds) {
         final String cmd = Arrays.stream(cmds).collect(Collectors.joining(" && "));
         int remainingAttempts = 3;
         RuntimeException lastEx = null;
         while (remainingAttempts-- > 0) {
             log.info("Executing in pod {}: {}", containerName == null ? podName : podName + "/" + containerName, cmd);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            CompletableFuture<String> future = new CompletableFuture<>();
-            try (final ExecWatch exec = client
-                    .pods()
-                    .inNamespace(namespace)
-                    .withName(podName)
-                    .inContainer(containerName)
-                    .writingOutput(baos)
-                    .writingError(baos)
-                    .usingListener(new SimpleListener(future, baos))
-                    .exec("bash", "-c", cmd);) {
-                final String outputCmd = future.get(5, TimeUnit.MINUTES);
-                log.info("Output cmd: {}", outputCmd);
-                if (exec.exitCode().get().intValue() != 0) {
-                    log.error("Cmd failed with code {}: {}", exec.exitCode().get().intValue(), outputCmd);
-                    lastEx = new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, outputCmd));
-                } else {
-                    return;
-                }
+            try {
+                return AutoscalerUtils.execInPod(
+                        client, namespace, podName, containerName, cmd
+                ).get();
+            } catch (ExecutionException e) {
+                log.error("Cmd failed with code: {}", e.getCause());
+                lastEx = new RuntimeException("Cmd '%s' failed with: %s".formatted(cmd, e.getCause()));
             }
         }
         throw lastEx;

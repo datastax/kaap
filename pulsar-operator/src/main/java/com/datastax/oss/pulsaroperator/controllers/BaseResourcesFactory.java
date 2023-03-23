@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.controllers;
 
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AdditionalVolumesConfig;
@@ -37,6 +38,9 @@ import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodCondition;
+import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -72,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -268,7 +273,11 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected boolean isTlsEnabledOnZooKeeper() {
-        return isTlsEnabledGlobally()
+        return isTlsEnabledOnZooKeeper(global);
+    }
+
+    public static boolean isTlsEnabledOnZooKeeper(GlobalSpec global) {
+        return isTlsEnabledGlobally(global)
                 && global.getTls().getZookeeper() != null
                 && global.getTls().getZookeeper().getEnabled();
     }
@@ -284,7 +293,11 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected boolean isTlsEnabledOnBroker() {
-        return isTlsEnabledGlobally()
+        return isTlsEnabledOnBroker(global);
+    }
+
+    protected static boolean isTlsEnabledOnBroker(GlobalSpec global) {
+        return isTlsEnabledGlobally(global)
                 && global.getTls().getBroker() != null
                 && global.getTls().getBroker().getEnabled();
     }
@@ -335,25 +348,43 @@ public abstract class BaseResourcesFactory<T> {
                 && tls.getCertProvisioner().getSelfSigned().getEnabled();
     }
 
+    public static String getServiceDnsSuffix(GlobalSpec globalSpec, String namespace) {
+        return "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
+    }
+
     protected String getServiceDnsSuffix() {
-        return "%s.svc.%s".formatted(namespace, global.getKubernetesClusterDomain());
+        return getServiceDnsSuffix(global, namespace);
     }
 
     protected String getZkServers() {
+        return getZkServers(global, namespace);
+    }
+
+    public static String getZkServers(GlobalSpec global, String namespace) {
         return "%s-%s-ca.%s:%d".formatted(global.getName(),
                 global.getComponents().getZookeeperBaseName(),
-                getServiceDnsSuffix(),
-                isTlsEnabledOnZooKeeper() ? 2281 : 2181);
+                getServiceDnsSuffix(global, namespace),
+                isTlsEnabledOnZooKeeper(global) ? ZooKeeperResourcesFactory.DEFAULT_CLIENT_TLS_PORT :
+                        ZooKeeperResourcesFactory.DEFAULT_CLIENT_PORT);
     }
 
     private String getBrokerWebServiceUrl(boolean tls) {
+        return getBrokerWebServiceUrl(tls, global, namespace);
+    }
+
+    private static String getBrokerWebServiceUrl(boolean tls, GlobalSpec global, String namespace) {
         final String brokerServiceName = BrokerResourcesFactory.getResourceName(global.getName(),
                 BrokerResourcesFactory.BROKER_DEFAULT_SET,
                 global.getComponents().getBrokerBaseName(), null);
         return "%s://%s.%s:%d/".formatted(
                 tls ? "https" : "http",
                 brokerServiceName,
-                getServiceDnsSuffix(), tls ? 8443 : 8080);
+                getServiceDnsSuffix(global, namespace), tls ? 8443 : 8080);
+    }
+
+    public static String getBrokerWebServiceUrl(GlobalSpec global, String namespace) {
+        final boolean tls = isTlsEnabledGlobally(global);
+        return getBrokerWebServiceUrl(tls, global, namespace);
     }
 
     protected String getBrokerWebServiceUrl() {
@@ -452,6 +483,10 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected String getTlsSecretNameForZookeeper() {
+        return getTlsSecretNameForZookeeper(global);
+    }
+
+    public static String getTlsSecretNameForZookeeper(GlobalSpec global) {
         final String name = global.getTls().getZookeeper() == null
                 ? null : global.getTls().getZookeeper().getSecretName();
         return ObjectUtils.firstNonNull(
@@ -783,6 +818,25 @@ public abstract class BaseResourcesFactory<T> {
         final int available = status.getAvailableReplicas().intValue();
         return replicas == ready && available == ready;
     }
+
+    public static boolean isPodReady(Pod pod) {
+        if (pod == null) {
+            return false;
+        }
+        final PodStatus status = pod.getStatus();
+        if (status == null) {
+            return false;
+        }
+        final Optional<PodCondition> ready = status.getConditions()
+                .stream()
+                .filter(c -> c.getType().equals("Ready"))
+                .findFirst();
+        if (!ready.isPresent()) {
+            return false;
+        }
+        return "True".equals(ready.get().getStatus());
+    }
+
 
     protected void patchServiceAccountSingleRole(boolean namespaced, List<PolicyRule> rules,
                                                  String serviceAccountName) {

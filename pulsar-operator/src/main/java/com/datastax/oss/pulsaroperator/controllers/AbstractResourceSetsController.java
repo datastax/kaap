@@ -122,7 +122,7 @@ public abstract class AbstractResourceSetsController<T extends CustomResource<FU
             final String setName = info.getName();
             final FULLSPEC lastApplied = lastAppliedResource.getSets().get(setName);
 
-            final JSONComparator.Result compResult = compareLastAppliedSetSpec(info, spec, lastApplied);
+            final JSONComparator.Result compResult = compareLastAppliedSetSpec(resource, info, spec, lastApplied);
             final boolean areEquals = compResult.areEquals();
             if (areEquals) {
                 final ReconciliationResult result = checkReady(resource, info);
@@ -164,7 +164,7 @@ public abstract class AbstractResourceSetsController<T extends CustomResource<FU
         }
     }
 
-    protected abstract JSONComparator.Result compareLastAppliedSetSpec(SetInfo<SETSPEC, FACTORY> setInfo, FULLSPEC spec,
+    protected abstract JSONComparator.Result compareLastAppliedSetSpec(T resource, SetInfo<SETSPEC, FACTORY> setInfo, FULLSPEC spec,
                                                                        FULLSPEC lastApplied);
 
     protected abstract SETSLASTAPPLIED readSetsLastApplied(T resource);

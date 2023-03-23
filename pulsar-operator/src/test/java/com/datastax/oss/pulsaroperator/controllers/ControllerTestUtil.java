@@ -26,6 +26,9 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.function.Function;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.SneakyThrows;
 import org.testng.Assert;
 
@@ -34,10 +37,31 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
 
     private final String namespace;
     private final String clusterName;
+    private final Function<ControllerConstructorInput, AbstractController<R>> controllerConstructor;
+
+    @Data
+    @AllArgsConstructor
+    public class ControllerConstructorInput {
+        Class<? extends AbstractController<R>> controllerClass;
+        KubernetesClient client;
+    }
 
     public ControllerTestUtil(String namespace, String clusterName) {
+        this(namespace, clusterName, (input) -> {
+            try {
+                return input.getControllerClass().getConstructor(KubernetesClient.class)
+                        .newInstance(input.getClient());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public ControllerTestUtil(String namespace, String clusterName,
+                              Function<ControllerConstructorInput, AbstractController<R>> controllerConstructor) {
         this.namespace = namespace;
         this.clusterName = clusterName;
+        this.controllerConstructor = controllerConstructor;
     }
 
     @SneakyThrows
@@ -95,7 +119,8 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
                                              R cr,
                                              Class<? extends AbstractController<R>> controllerClass) throws Exception {
         final AbstractController<R> controller =
-                controllerClass.getConstructor(KubernetesClient.class).newInstance(mockKubernetesClient.getClient());
+                controllerConstructor.apply(new ControllerConstructorInput(controllerClass,
+                        mockKubernetesClient.getClient()));
         return controller.reconcile(cr, mock(Context.class));
     }
 

@@ -51,62 +51,62 @@ public class SpecDiffer {
     private SpecDiffer() {
     }
 
-    public static JSONComparator.Result generateDiff(String json1, String json2) {
-        if (json1 == null && json2 == null) {
+    public static JSONComparator.Result generateDiff(String expectedJson, String actualJson) {
+        if (expectedJson == null && actualJson == null) {
             return JSONComparator.RESULT_EQUALS;
         }
-        if (json1 == null) {
+        if (expectedJson == null) {
             return EXPECTED_WAS_NULL_RESULT;
         }
-        if (json2 == null) {
+        if (actualJson == null) {
             return ACTUAL_WAS_NULL_RESULT;
         }
         return new JSONAssertComparator()
-                .compare(json1, json2);
+                .compare(expectedJson, actualJson);
 
     }
 
-    public static JSONComparator.Result generateDiff(Object spec1, Object spec2) {
-        if (spec1 == null && spec2 == null) {
+    public static JSONComparator.Result generateDiff(Object expectedSpec, Object actualSpec) {
+        if (expectedSpec == null && actualSpec == null) {
             return JSONComparator.RESULT_EQUALS;
         }
-        if (spec1 == null) {
+        if (expectedSpec == null) {
             return EXPECTED_WAS_NULL_RESULT;
         }
-        if (spec2 == null) {
+        if (actualSpec == null) {
             return ACTUAL_WAS_NULL_RESULT;
         }
-        final String expectedStr = SerializationUtil.writeAsJson(spec1);
-        final String actualStr = SerializationUtil.writeAsJson(spec2);
+        final String expectedStr = SerializationUtil.writeAsJson(expectedSpec);
+        final String actualStr = SerializationUtil.writeAsJson(actualSpec);
         return generateDiff(expectedStr, actualStr);
     }
 
-    public static JSONComparator.Result generateDiff(Object spec1, String json2) {
-        if (spec1 == null && json2 == null) {
+    public static JSONComparator.Result generateDiff(Object expectedSpec, String actualJson) {
+        if (expectedSpec == null && actualJson == null) {
             return JSONComparator.RESULT_EQUALS;
         }
-        if (spec1 == null) {
+        if (expectedSpec == null) {
             return EXPECTED_WAS_NULL_RESULT;
         }
-        if (json2 == null) {
+        if (actualJson == null) {
             return ACTUAL_WAS_NULL_RESULT;
         }
-        final String expectedStr = SerializationUtil.writeAsJson(spec1);
-        return generateDiff(expectedStr, json2);
+        final String expectedStr = SerializationUtil.writeAsJson(expectedSpec);
+        return generateDiff(expectedStr, actualJson);
     }
 
-    public static JSONComparator.Result generateDiff(String json1, Object spec2) {
-        if (json1 == null && spec2 == null) {
+    public static JSONComparator.Result generateDiff(String expectedJson, Object actualSpec) {
+        if (expectedJson == null && actualSpec == null) {
             return JSONComparator.RESULT_EQUALS;
         }
-        if (json1 == null) {
+        if (expectedJson == null) {
             return ACTUAL_WAS_NULL_RESULT;
         }
-        if (spec2 == null) {
+        if (actualSpec == null) {
             return EXPECTED_WAS_NULL_RESULT;
         }
-        final String actualStr = SerializationUtil.writeAsJson(spec2);
-        return generateDiff(json1, actualStr);
+        final String actualStr = SerializationUtil.writeAsJson(actualSpec);
+        return generateDiff(expectedJson, actualStr);
     }
 
 

@@ -353,7 +353,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
         final boolean tlsEnabledOnProxy = isTlsEnabledOnProxySet(proxySet);
-        if (tlsEnabledOnProxy) {
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+        if (tlsEnabledOnProxy || tlsEnabledOnBroker) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxySet(proxySet));
         }
         if (isAuthTokenEnabled()) {
@@ -369,7 +370,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
                     + ".jwt && ";
         }
-        if (isTlsEnabledGlobally()) {
+
+        if (tlsEnabledOnBroker || tlsEnabledOnProxy) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
                     + generateCertConverterScript() + " && ";
@@ -431,7 +433,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             if (isAuthTokenEnabled()) {
                 wsArg += "echo \"tokenPublicKey=\" >> /pulsar/conf/websocket.conf && ";
             }
-            if (isTlsEnabledGlobally()) {
+            if (tlsEnabledOnBroker || tlsEnabledOnProxy) {
                 wsArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                         + "-out /pulsar/tls-pk8.key -nocrypt && "
                         + generateCertConverterScript() + " && ";

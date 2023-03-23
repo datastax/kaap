@@ -18,6 +18,7 @@ package com.datastax.oss.pulsaroperator.mocks;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -33,6 +34,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +57,21 @@ public class MockResourcesResolver {
         return (T) resources.get(computeKey(clazz, name));
     }
 
-    public <T extends HasMetadata> List<T> getResources(Class<T> clazz) {
+    public <T extends HasMetadata> List<T> getResources(Class<T> clazz, Map<String, String> labels) {
         return resources.values().stream()
                 .filter(r -> clazz.isAssignableFrom(r.getClass()))
+                .filter(r -> {
+                    if (labels == null) {
+                        return true;
+                    }
+                    final Map<String, String> resourceLabels = r.getMetadata().getLabels();
+                    for (Map.Entry<String, String> l : labels.entrySet()) {
+                        if (!Objects.equals(l.getValue(), resourceLabels.get(l.getKey()))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
                 .map(r -> (T) r)
                 .collect(Collectors.toList());
     }
@@ -80,6 +94,10 @@ public class MockResourcesResolver {
 
     public Service serviceWithName(String name) {
         return getResourceByName(Service.class, name);
+    }
+
+    public Pod podWithName(String name) {
+        return getResourceByName(Pod.class, name);
     }
 
     public StorageClass storageClassByName(String name) {

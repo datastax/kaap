@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoRackConfig;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -71,6 +72,9 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
             });
             generatedSpec.setSets(sets);
         }
+        generatedSpec.setAutoRackConfig(BookKeeperAutoRackConfig.builder()
+                .enabled(false)
+                .build());
     }
 
     @Override

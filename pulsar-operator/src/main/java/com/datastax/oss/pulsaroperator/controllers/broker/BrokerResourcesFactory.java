@@ -79,7 +79,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                                   String brokerSetName, BrokerSetSpec spec, GlobalSpec global,
                                   OwnerReference ownerReference) {
         super(client, namespace, getResourceName(global.getName(),
-                getComponentBaseName(global), Objects.requireNonNull(brokerSetName), spec.getOverrideResourceName()),
+                        getComponentBaseName(global), Objects.requireNonNull(brokerSetName),
+                        spec.getOverrideResourceName()),
                 spec, global, ownerReference);
         brokerSet = brokerSetName;
     }
@@ -224,8 +225,20 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         data.put("exposeTopicLevelMetricsInPrometheus", "true");
         data.put("exposeConsumerLevelMetricsInPrometheus", "false");
         data.put("backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        data.put("bookkeeperClientRegionawarePolicyEnabled", "true");
+
+        if (spec.getProbes() != null
+                && (!spec.getProbes().getUseHealthCheckForLiveness()
+                || !spec.getProbes().getUseHealthCheckForReadiness())) {
+            data.put("statusFilePath", "/pulsar/status");
+        }
 
         appendConfigData(data, spec.getConfig());
+
+        if (!data.containsKey("bookkeeperClientMinNumRacksPerWriteQuorum")
+                && data.containsKey("managedLedgerDefaultWriteQuorum")) {
+            data.put("bookkeeperClientMinNumRacksPerWriteQuorum", data.get("managedLedgerDefaultWriteQuorum"));
+        }
 
         final ConfigMap configMap = new ConfigMapBuilder()
                 .withNewMetadata()
@@ -265,7 +278,10 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
 
-        if (isTlsEnabledOnBroker()) {
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+        final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
+
+        if (tlsEnabledOnBroker || tlsEnabledOnZooKeeper) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
         }
         if (isAuthTokenEnabled()) {
@@ -273,11 +289,14 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
         }
         String mainArg = "";
-        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+
         if (tlsEnabledOnBroker) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
-                    + "-out /pulsar/tls-pk8.key -nocrypt && "
-                    + generateCertConverterScript() + " && ";
+                    + "-out /pulsar/tls-pk8.key -nocrypt && ";
+        }
+
+        if (tlsEnabledOnBroker || tlsEnabledOnZooKeeper) {
+            mainArg += generateCertConverterScript() + " && ";
         }
         mainArg += "bin/apply-config-from-env.py conf/broker.conf && "
                 + "bin/apply-config-from-env.py conf/client.conf && "

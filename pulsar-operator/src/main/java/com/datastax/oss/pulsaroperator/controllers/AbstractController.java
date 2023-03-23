@@ -166,7 +166,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
             );
         }).collect(Collectors.joining());
 
-        log.infof("%s controller reconciliation finished in %d ms, rescheduling: %s, conditions: %s",
+        log.debugf("%s controller reconciliation finished in %d ms, rescheduling: %s, conditions: %s",
                 resource.getFullResourceName(),
                 time, reschedule + "", conditionsStr);
 

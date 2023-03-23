@@ -249,6 +249,10 @@ kube-prometheus-stack:
           gnetId: 10465
           revision: 4
           datasource: Prometheus
+        operator-metrics:
+          gnetId: 14370
+          revision: 6
+          datasource: Prometheus
     # Configure to set a default admin password for Grafana
     adminPassword:
     service:

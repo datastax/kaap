@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper.racks;
 
-import com.datastax.oss.pulsaroperator.autoscaler.BookKeeperSetAutoscaler;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.PodExecBookieAdminClient;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
@@ -108,7 +108,7 @@ public class BookKeeperRackMonitor implements Runnable {
 
                 final String podName = "%s-%d".formatted(stsName, i);
                 final String bookieId =
-                        BookKeeperSetAutoscaler.getBookieId(podName,
+                        PodExecBookieAdminClient.getBookieId(podName,
                                 resourceSet, spec, globalSpec, namespace);
 
                 final Pod pod = getPod(podName);

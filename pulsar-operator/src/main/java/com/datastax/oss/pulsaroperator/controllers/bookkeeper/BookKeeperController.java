@@ -15,6 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.BookieAdminClient;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.BookieDecommissionUtil;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.PodExecBookieAdminClient;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.AbstractResourceSetsController;
@@ -177,7 +180,8 @@ public class BookKeeperController extends
 
     @Override
     protected JSONComparator.Result compareLastAppliedSetSpec(
-            BookKeeper resource, SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo, BookKeeperFullSpec spec,
+            BookKeeper resource, SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo,
+            BookKeeperFullSpec spec,
             BookKeeperFullSpec lastApplied) {
         if (spec.getBookkeeper().getSets() != null) {
             spec = SerializationUtil.deepCloneObject(spec);
@@ -192,6 +196,33 @@ public class BookKeeperController extends
         }
         final JSONComparator.Result result = SpecDiffer.generateDiff(spec, lastApplied);
         if (!result.areEquals()) {
+            if (lastApplied != null) {
+                final BookKeeperSetSpec lastAppliedSetSpec =
+                        lastApplied.getBookkeeper().getBookKeeperSetSpecRef(setInfo.getName());
+                final BookKeeperSetSpec desiredSetSpec =
+                        spec.getBookkeeper().getBookKeeperSetSpecRef(setInfo.getName());
+                if (lastAppliedSetSpec != null && desiredSetSpec != null) {
+
+                    final int currentReplicas = lastAppliedSetSpec.getReplicas().intValue();
+                    final int desiredReplicas = desiredSetSpec.getReplicas().intValue();
+                    final int delta = currentReplicas - desiredReplicas;
+                    if (delta > 0) {
+                        final BookieAdminClient bookieAdminClient = new PodExecBookieAdminClient(client,
+                                resource.getMetadata().getNamespace(),
+                                lastApplied.getGlobalSpec(),
+                                setInfo.getName(),
+                                lastAppliedSetSpec);
+
+                        final int decommissioned = BookieDecommissionUtil
+                                .decommissionBookies(bookieAdminClient.collectBookieInfos(),
+                                        delta, bookieAdminClient);
+                        if (decommissioned != delta) {
+                            throw new IllegalStateException(
+                                    "Failed to decommission " + (delta - decommissioned) + " bookies, will retry");
+                        }
+                    }
+                }
+            }
             final PulsarClusterSpec pulsarClusterSpec = PulsarClusterSpec.builder()
                     .global(spec.getGlobal())
                     .bookkeeper(spec.getBookkeeper())

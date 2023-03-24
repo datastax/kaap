@@ -97,4 +97,12 @@ public class BookKeeperSpec extends BookKeeperSetSpec {
         return sets.get(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET);
     }
 
+    @JsonIgnore
+    public BookKeeperSetSpec getBookKeeperSetSpecRef(String set) {
+        if (set.equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
+            return getDefaultBookKeeperSpecRef();
+        }
+        return sets.get(set);
+    }
+
 }

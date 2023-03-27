@@ -15,6 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.BookieAdminClient;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.AbstractController;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
@@ -30,16 +33,21 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.LinkedHashMap;
+import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
+import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @JBossLog
@@ -47,8 +55,14 @@ public class BookKeeperSetsControllerTest {
 
     static final String NAMESPACE = "ns";
     static final String CLUSTER_NAME = "pulsarname";
+    private BookieAdminClient bookieAdminClient;
     private final ControllerTestUtil<BookKeeperFullSpec, BookKeeper> controllerTestUtil =
             new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME, this::controllerConstructor);
+
+    @BeforeMethod(alwaysRun = true)
+    public void beforeMethod() {
+        bookieAdminClient = Mockito.mock(BookieAdminClient.class);
+    }
 
     @Test
     public void testBookKeeperSetsDefaults() throws Exception {
@@ -955,6 +969,15 @@ public class BookKeeperSetsControllerTest {
             ControllerTestUtil<BookKeeperFullSpec, BookKeeper>.ControllerConstructorInput controllerConstructorInput) {
         return new BookKeeperController(controllerConstructorInput.getClient()) {
             @Override
+            protected BookieAdminClient createBookieAdminClient(BookKeeper resource,
+                                                                SetInfo<BookKeeperSetSpec,
+                                                                        BookKeeperResourcesFactory> setInfo,
+                                                                BookKeeperFullSpec lastApplied,
+                                                                BookKeeperSetSpec lastAppliedSetSpec) {
+                return bookieAdminClient;
+            }
+
+            @Override
             protected BookKeeperRackDaemon initBookKeeperRackDaemon(KubernetesClient client) {
                 return new BookKeeperRackDaemon(
                         controllerConstructorInput.getClient(),
@@ -991,5 +1014,61 @@ public class BookKeeperSetsControllerTest {
                 );
             }
         };
+    }
+
+
+    @Test
+    public void testDownscaling() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 5
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals((int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(),
+                5);
+
+        final List<BookieAdminClient.BookieInfo> bookieInfos = List.of(
+                genBookieInfo("pul-bookkeeper-0"),
+                genBookieInfo("pul-bookkeeper-1"),
+                genBookieInfo("pul-bookkeeper-2"),
+                genBookieInfo("pul-bookkeeper-3"),
+                genBookieInfo("pul-bookkeeper-4")
+        );
+        when(bookieAdminClient.collectBookieInfos()).thenReturn(bookieInfos);
+        when(bookieAdminClient.doesNotHaveUnderReplicatedLedgers()).thenReturn(true);
+        when(bookieAdminClient.existsLedger(any())).thenReturn(false);
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 3
+                """;
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals((int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(),
+                3);
+    }
+
+    private BookieAdminClient.BookieInfo genBookieInfo(String bookieId) {
+        final PodResource pod = Mockito.mock(PodResource.class);
+        when(pod.get()).thenReturn(new PodBuilder()
+                .withNewMetadata()
+                .withName(bookieId)
+                .endMetadata()
+                .build());
+        return BookieAdminClient.BookieInfo.builder()
+                .bookieId(bookieId)
+                .podResource(pod)
+                .build();
     }
 }

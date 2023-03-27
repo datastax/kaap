@@ -22,7 +22,7 @@ public class BookieDecommissionUtil {
 
 
     private static int decommissionBookies(List<BookieAdminClient.BookieInfo> bookiesToDecommission,
-                                          BookieAdminClient bookieAdminClient) {
+                                           BookieAdminClient bookieAdminClient) {
         int bookiesToDownscaleCount = bookiesToDecommission.size();
         log.infof("Start decommissioning bookies: %s",
                 bookiesToDecommission.stream().map(b -> b.getBookieId()).collect(
@@ -104,13 +104,7 @@ public class BookieDecommissionUtil {
     private static boolean runBookieRecovery(BookieAdminClient.BookieInfo bookieInfo,
                                              BookieAdminClient bookieAdminClient) {
         try {
-            String res = bookieAdminClient.recoverAndDeleteCookieInZk(bookieInfo, false);
-            if (!res.contains("Recover bookie operation completed with rc: OK: No problem")) {
-                log.warnf("Recovery failed for bookie %s \n %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName(), res);
-                return false;
-            }
-
+            bookieAdminClient.recoverAndDeleteCookieInZk(bookieInfo, false);
             if (bookieAdminClient.existsLedger(bookieInfo)) {
                 log.warnf("Bookie %s still has ledgers assigned to it, will not delete cookie",
                         bookieInfo.getPodResource().get().getMetadata().getName());
@@ -125,7 +119,6 @@ public class BookieDecommissionUtil {
     }
 
     private static boolean deleteCookie(BookieAdminClient.BookieInfo bookieInfo, BookieAdminClient bookieAdminClient) {
-        boolean success = false;
         try {
             if (bookieAdminClient.existsLedger(bookieInfo)) {
                 log.warnf("Bookie %s has ledgers assigned to it, will not delete cookie",
@@ -133,21 +126,15 @@ public class BookieDecommissionUtil {
                 return false;
             }
 
-            for (int i = 0; i < 2; i++) {
-                // todo: figure out better way to check if cookie got deleted or change recover command
-                String res = bookieAdminClient.recoverAndDeleteCookieInZk(bookieInfo, true);
-                if (res.contains("cookie is deleted") || res.contains("No cookie to remove")) {
-                    // have to do that, otherwise init bookie will fail if PVC survives
-                    bookieAdminClient.deleteCookieOnDisk(bookieInfo);
-                    success = true;
-                    break;
-                }
-            }
+            // need to run twice
+            bookieAdminClient.recoverAndDeleteCookieInZk(bookieInfo, true);
+            bookieAdminClient.deleteCookieOnDisk(bookieInfo);
+            return true;
         } catch (Exception e) {
             log.errorf(e, "Error while deleting a cookie for bookie %s",
                     bookieInfo.getPodResource().get().getMetadata().getName());
+            return false;
         }
-        return success;
     }
 
 }

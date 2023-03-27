@@ -207,11 +207,8 @@ public class BookKeeperController extends
                     final int desiredReplicas = desiredSetSpec.getReplicas().intValue();
                     final int delta = currentReplicas - desiredReplicas;
                     if (delta > 0) {
-                        final BookieAdminClient bookieAdminClient = new PodExecBookieAdminClient(client,
-                                resource.getMetadata().getNamespace(),
-                                lastApplied.getGlobalSpec(),
-                                setInfo.getName(),
-                                lastAppliedSetSpec);
+                        final BookieAdminClient bookieAdminClient =
+                                createBookieAdminClient(resource, setInfo, lastApplied, lastAppliedSetSpec);
 
                         final int decommissioned = BookieDecommissionUtil
                                 .decommissionBookies(bookieAdminClient.collectBookieInfos(),
@@ -234,6 +231,17 @@ public class BookKeeperController extends
             bkRackDaemon.onSpecChange(pulsarClusterSpec, namespace);
         }
         return result;
+    }
+
+    protected BookieAdminClient createBookieAdminClient(BookKeeper resource,
+                                                        SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo,
+                                                        BookKeeperFullSpec lastApplied,
+                                                        BookKeeperSetSpec lastAppliedSetSpec) {
+        return new PodExecBookieAdminClient(client,
+                resource.getMetadata().getNamespace(),
+                lastApplied.getGlobalSpec(),
+                setInfo.getName(),
+                lastAppliedSetSpec);
     }
 
     @Override

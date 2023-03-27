@@ -92,7 +92,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         List<BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
         BookieLedgerDiskInfo diskInfo = BookieLedgerDiskInfo.builder()
                 .build();
-        parseAndFillDiskUsage(diskInfo, bkInfoOut.get());
+        parseAndFillDiskUsage(diskInfo, bkInfoOut.get(), pod);
         ledgerDiskInfos.add(diskInfo);
 
         boolean writable = parseIsWritable(bkStateOut.get());
@@ -171,7 +171,29 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
 
     @Override
     @SneakyThrows
-    public String recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
+    public void recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
+        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
+        String res = internalRecoverAndDeleteCookieInZk(bookieInfo, deleteCookie);
+        log.debugf("Recover output: %s", res);
+        if (!deleteCookie) {
+            if (!res.contains(
+                    "Recover bookie operation completed with rc: OK: No problem")) {
+                log.warnf("Recovery failed for bookie %s \n %s",
+                        podName, res);
+                throw new IllegalStateException("Recovery failed for bookie " + podName);
+            }
+        } else {
+            // todo: figure out better way to check if cookie got deleted or change recover command
+            res = internalRecoverAndDeleteCookieInZk(bookieInfo, true);
+            if (res.contains("cookie is deleted") || res.contains("No cookie to remove")) {
+                return;
+            }
+            throw new IllegalStateException("Error while deleting cookie for bookie " + podName);
+        }
+    }
+
+    private String internalRecoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie)
+            throws InterruptedException, ExecutionException {
         final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
         CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
                 podName,
@@ -188,7 +210,6 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
             }
         });
         String res = recoverOut.get();
-        log.debugf("Recover output: %s", res);
         return res;
     }
 

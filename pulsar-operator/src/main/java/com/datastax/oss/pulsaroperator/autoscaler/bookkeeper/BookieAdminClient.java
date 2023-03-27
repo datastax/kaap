@@ -33,7 +33,7 @@ public interface BookieAdminClient {
 
     void setReadOnly(BookieInfo bookieInfo, boolean readonly);
 
-    String recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie);
+    void recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie);
 
     boolean existsLedger(BookieInfo bookieInfo);
 

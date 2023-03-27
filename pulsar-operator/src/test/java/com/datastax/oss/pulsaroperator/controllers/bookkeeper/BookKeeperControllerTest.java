@@ -583,6 +583,7 @@ public class BookKeeperControllerTest {
         Assert.assertEquals((int) createdResource.getResource().getSpec().getReplicas(), 5);
     }
 
+
     @Test
     public void testImage() throws Exception {
         String spec = """

@@ -105,10 +105,10 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
                         "curl -s " + bookieAdminUrl + "/api/v1/bookie/info");
 
         List<BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-        BookieLedgerDiskInfo diskInfo = BookieLedgerDiskInfo.builder()
-                .build();
-        parseAndFillDiskUsage(diskInfo, bkInfoOut.get(), pod);
-        ledgerDiskInfos.add(diskInfo);
+        final BookieLedgerDiskInfo diskInfo = parseAndFillDiskUsage(bkInfoOut.get(), pod);
+        if (diskInfo != null) {
+            ledgerDiskInfos.add(diskInfo);
+        }
 
         boolean writable = parseIsWritable(bkStateOut.get());
 
@@ -141,7 +141,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     }
 
     @SneakyThrows
-    private void parseAndFillDiskUsage(BookieLedgerDiskInfo diskInfo, String bkStateOutput, PodResource pod) {
+    private BookieLedgerDiskInfo parseAndFillDiskUsage(String bkStateOutput, PodResource pod) {
         /*
         $ curl -s localhost:8000/api/v1/bookie/info
         {
@@ -151,14 +151,17 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         */
         JsonNode node = MAPPER.readTree(bkStateOutput);
         if (!node.has("totalSpace") || !node.has("freeSpace")) {
-            throw new IllegalStateException(
-                    "invalid bookie info for bookie pod " + pod.get().getMetadata().getName() + ", got: "
-                            + bkStateOutput);
+            log.warnf(
+                    "invalid bookie info for bookie pod %s, got: %s", pod.get().getMetadata().getName(), bkStateOutput);
+            return null;
         }
         long total = node.get("totalSpace").asLong(0);
         long free = node.get("freeSpace").asLong(Long.MAX_VALUE);
-        diskInfo.setMaxBytes(total);
-        diskInfo.setUsedBytes(total - free);
+
+        return BookieLedgerDiskInfo.builder()
+                .maxBytes(total)
+                .usedBytes(total - free)
+                .build();
     }
 
 

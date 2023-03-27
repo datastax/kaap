@@ -232,6 +232,9 @@ public class BookKeeperSetAutoscaler implements Runnable {
                                         List<BookieAdminClient.BookieInfo> bookieInfos) {
         boolean canScaleDown = true;
         for (BookieAdminClient.BookieInfo info : bookieInfos) {
+            if (info.getLedgerDiskInfos().isEmpty()) {
+                return false;
+            }
             if (info.isWritable()) {
                 long notReadyDiskCount = info.getLedgerDiskInfos().stream()
                         .filter(d -> {

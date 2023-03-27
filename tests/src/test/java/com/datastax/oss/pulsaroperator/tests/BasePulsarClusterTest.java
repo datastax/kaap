@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -68,6 +69,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     }
 
     public BasePulsarClusterTest() {
+        super(0);
     }
 
     @SneakyThrows
@@ -235,7 +237,14 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     if (isCrdReady(PulsarCluster.class, pulsarCluster.getMetadata().getName())) {
                         return true;
                     }
-                    printPodLogs(getOperatorPodName(), 10);
+                    final String operatorPodName;
+                    try {
+                        operatorPodName = getOperatorPodName();
+                    } catch (KubernetesClientException clientException) {
+                        log.error("Error getting operator pod name", clientException);
+                        return false;
+                    }
+                    printPodLogs(operatorPodName, 10);
                     printNodesStatus();
                     return false;
                 });

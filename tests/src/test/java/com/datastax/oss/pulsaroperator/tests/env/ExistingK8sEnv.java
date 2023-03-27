@@ -16,6 +16,8 @@
 package com.datastax.oss.pulsaroperator.tests.env;
 
 import com.dajudge.kindcontainer.client.KubeConfigUtils;
+import com.dajudge.kindcontainer.client.config.Cluster;
+import com.dajudge.kindcontainer.client.config.KubeConfig;
 import com.dajudge.kindcontainer.helm.Helm3Container;
 import io.fabric8.kubernetes.client.Config;
 import java.nio.charset.StandardCharsets;
@@ -86,12 +88,14 @@ public class ExistingK8sEnv implements K8sEnv {
             final Path config = Paths.get(System.getProperty("user.home"), ".kube", "config");
             kubeRawContent = Files.readString(config, StandardCharsets.UTF_8);
         }
+
         if (KUBECONFIG_OVERRIDE_SERVER != null) {
-            kubeConfigContent = KubeConfigUtils
-                    .replaceServerInKubeconfig(KUBECONFIG_OVERRIDE_SERVER, kubeRawContent);
+            kubeConfigContent = replaceServerInKubeconfig(KUBECONFIG_OVERRIDE_SERVER, kubeRawContent);
         } else {
             kubeConfigContent = kubeRawContent;
         }
+
+        System.out.println("with helm container " + KUBECONFIG_OVERRIDE_SERVER + " content\n" + kubeConfigContent);
 
         helm3Container = new Helm3Container<>(HELM_DOCKER_IMAGE, () -> kubeConfigContent);
         if (preInit != null) {
@@ -138,5 +142,15 @@ public class ExistingK8sEnv implements K8sEnv {
 
     @Override
     public void close() {
+    }
+
+    private String replaceServerInKubeconfig(final String server, final String string) {
+        final KubeConfig kubeconfig = KubeConfigUtils.parseKubeConfig(string);
+        for (Cluster cluster : kubeconfig.getClusters()) {
+            if (cluster.getName().equals(config.getCurrentContext().getName())) {
+                cluster.getCluster().setServer(server);
+            }
+        }
+        return KubeConfigUtils.serializeKubeConfig(kubeconfig);
     }
 }

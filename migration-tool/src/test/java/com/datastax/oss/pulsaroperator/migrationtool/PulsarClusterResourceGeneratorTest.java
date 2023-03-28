@@ -274,7 +274,7 @@ public class PulsarClusterResourceGeneratorTest {
                               scaleUpMaxLimit: 30
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
-                              cleanUpPvcs: true
+                            cleanUpPvcs: true
                             sets:
                               bookkeeper:
                                 image: pulsar:latest

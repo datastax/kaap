@@ -18,6 +18,7 @@ package com.datastax.oss.pulsaroperator.mocks;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
@@ -98,6 +99,10 @@ public class MockResourcesResolver {
 
     public Pod podWithName(String name) {
         return getResourceByName(Pod.class, name);
+    }
+
+    public PersistentVolumeClaim pvcWithName(String name) {
+        return getResourceByName(PersistentVolumeClaim.class, name);
     }
 
     public StorageClass storageClassByName(String name) {

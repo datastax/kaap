@@ -33,6 +33,8 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -41,8 +43,10 @@ import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.mockito.Mockito;
@@ -965,6 +969,86 @@ public class BookKeeperSetsControllerTest {
     }
 
 
+    @Test
+    public void testCleanupPvc() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 4
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper"));
+        Assert.assertEquals(client.getDeletedResources().size(), 0);
+
+        resolver.putResource("pulsarname-bookkeeper",
+                resolver.newStatefulSetBuilder("pulsarname-bookkeeper", true).build());
+
+        resolver.putResource("pulsarname-bookkeeper-journal-0", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-ledgers-0", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-journal-1", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-ledgers-1", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-journal-2", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-ledgers-2", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-journal-3", genPvc());
+        resolver.putResource("pulsarname-bookkeeper-ledgers-3", genPvc());
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
+        Assert.assertEquals(client.getDeletedResources().size(), 0);
+
+        spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 2
+                """;
+        mockBookieAdminClient(3);
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getDeletedResources().size(), 4);
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-ledgers-2"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-journal-2"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-ledgers-3"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-journal-3"));
+
+
+        spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    cleanUpPvcs: false
+                    replicas: 1
+                """;
+        mockBookieAdminClient(2);
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(client.getDeletedResources().size(), 0);
+
+    }
+
+    private PersistentVolumeClaim genPvc() {
+        return new PersistentVolumeClaimBuilder()
+                .withNewMetadata()
+                .withLabels(Map.of(CRDConstants.LABEL_APP, "pulsar",
+                        CRDConstants.LABEL_CLUSTER, "pulsarname",
+                        CRDConstants.LABEL_COMPONENT, "bookkeeper",
+                        CRDConstants.LABEL_RESOURCESET, "bookkeeper"))
+                .endMetadata()
+                .build();
+    }
+
+
     private AbstractController<BookKeeper> controllerConstructor(
             ControllerTestUtil<BookKeeperFullSpec, BookKeeper>.ControllerConstructorInput controllerConstructorInput) {
         return new BookKeeperController(controllerConstructorInput.getClient()) {
@@ -1032,16 +1116,7 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals((int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(),
                 5);
 
-        final List<BookieAdminClient.BookieInfo> bookieInfos = List.of(
-                genBookieInfo("pul-bookkeeper-0"),
-                genBookieInfo("pul-bookkeeper-1"),
-                genBookieInfo("pul-bookkeeper-2"),
-                genBookieInfo("pul-bookkeeper-3"),
-                genBookieInfo("pul-bookkeeper-4")
-        );
-        when(bookieAdminClient.collectBookieInfos()).thenReturn(bookieInfos);
-        when(bookieAdminClient.doesNotHaveUnderReplicatedLedgers()).thenReturn(true);
-        when(bookieAdminClient.existsLedger(any())).thenReturn(false);
+        mockBookieAdminClient(5);
         spec = """
                 global:
                     name: pul
@@ -1055,6 +1130,16 @@ public class BookKeeperSetsControllerTest {
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals((int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(),
                 3);
+    }
+
+    private void mockBookieAdminClient(int replicas) {
+        final List<BookieAdminClient.BookieInfo> bookieInfos = new ArrayList<>();
+        for (int i = 0; i < replicas; i++) {
+            bookieInfos.add(genBookieInfo("pul-bookkeeper-" + i));
+        }
+        when(bookieAdminClient.collectBookieInfos()).thenReturn(bookieInfos);
+        when(bookieAdminClient.doesNotHaveUnderReplicatedLedgers()).thenReturn(true);
+        when(bookieAdminClient.existsLedger(any())).thenReturn(false);
     }
 
     private BookieAdminClient.BookieInfo genBookieInfo(String bookieId) {

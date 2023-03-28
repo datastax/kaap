@@ -19,7 +19,6 @@ import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerDaemon;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
-import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.utils.CertManagerCertificatesProvisioner;
@@ -262,14 +261,14 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                         && desiredSetSpec.getAutoscaler() != null
                         && desiredSetSpec.getAutoscaler().getEnabled()) {
                     final BookKeeperSetSpec currentSetSpec = currentSet.getValue();
+                    log.infof("Bookie set %s has autoscaler enabled, "
+                                    + "keeping the replicas to %d instead of using the manual value %d",
+                            currentSet.getKey(), currentSetSpec.getReplicas(), desiredSetSpec.getReplicas());
                     if (currentSetSpec.getReplicas() != null) {
                         final Integer currentReplicas = currentSetSpec.getReplicas();
                         // do not update replicas if patching, leave whatever the autoscaler have set
-                        if (currentSet.getKey().equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
-                            clusterSpec.getBookkeeper().getDefaultBookKeeperSpecRef().setReplicas(currentReplicas);
-                        } else {
-                            clusterSpec.getBookkeeper().getSets().get(currentSet.getKey()).setReplicas(currentReplicas);
-                        }
+                        clusterSpec.getBookkeeper().getBookKeeperSetSpecRef(currentSet.getKey())
+                                .setReplicas(currentReplicas);
                     }
                 }
             }
@@ -432,8 +431,6 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         log.infof("Patched custom resource %s with name %s ", customResourceName, crFullName);
         return false;
     }
-
-
 
 
     protected <CR extends CustomResource<SPEC, ?>, SPEC> CR getExistingCustomResource(

@@ -212,7 +212,7 @@ public class BookKeeperController extends
             lastApplied.getBookkeeper().getSets().entrySet()
                     .removeIf(e -> !e.getKey().equals(setInfo.getName()));
         }
-        final JSONComparator.Result result = SpecDiffer.generateDiff(spec, lastApplied);
+        final JSONComparator.Result result = SpecDiffer.generateDiff(lastApplied, spec);
         if (!result.areEquals()) {
             if (lastApplied != null) {
                 final BookKeeperSetSpec lastAppliedSetSpec =

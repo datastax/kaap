@@ -299,7 +299,7 @@ public abstract class BaseK8sEnvTest {
             log.error("Test {} failed with: {}", testResult.getMethod().getMethodName(),
                     testResult.getThrowable().getMessage(), testResult.getThrowable());
 
-            dumpAllPodsLogs("%s.%s".formatted(testResult.getTestClass().getName(),
+            dumpAllPodsLogs("%s.%s".formatted(testResult.getTestClass().getRealClass().getSimpleName(),
                     testResult.getMethod().getMethodName()));
 
         }

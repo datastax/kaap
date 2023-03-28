@@ -10706,6 +10706,13 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>cleanUpPvcs</b></td>
+        <td>boolean</td>
+        <td>
+          Cleanup PVCs after the bookie has been removed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>config</b></td>
         <td>JSON</td>
         <td>
@@ -14119,13 +14126,6 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
-        <td><b>cleanUpPvcs</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>
@@ -17329,6 +17329,13 @@ Service configuration.
         <td>object</td>
         <td>
           Autoscaling config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>cleanUpPvcs</b></td>
+        <td>boolean</td>
+        <td>
+          Cleanup PVCs after the bookie has been removed.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -20696,13 +20703,6 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
-        <td><b>cleanUpPvcs</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>

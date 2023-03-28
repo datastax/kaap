@@ -39,6 +39,15 @@ jobs:
       - name: Unit tests
         run: mvn -B -ntp -nsu test -pl '!tests'
 
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1.6.0
+        if: success() || failure()
+        with:
+          name: Test Results
+          path: "**/target/surefire-reports/TEST-*.xml"
+          reporter: java-junit
+          java-version: 17
+
   integration-tests:
     name: Integration tests - ${{ matrix.name }}
     runs-on: ubuntu-20.04
@@ -97,3 +106,21 @@ jobs:
           mvn -B -ntp -nsu test -pl tests \
             -Dgroups='${{ matrix.group }}' \
             -Dpulsaroperator.tests.env.existing.k3s.agents='${{ matrix.num_agents }}'
+
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1.6.0
+        if: success() || failure()
+        with:
+          name: Test Results
+          path: "**/target/surefire-reports/TEST-*.xml"
+          reporter: java-junit
+          java-version: 17
+
+      - name: Upload Surefire reports
+        uses: actions/upload-artifact@v3
+        if: failure()
+        continue-on-error: true
+        with:
+          name: test-logs
+          path: "**/target/operator-test-logs/*"
+          retention-days: 7

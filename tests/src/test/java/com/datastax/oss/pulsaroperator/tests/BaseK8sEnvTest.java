@@ -34,9 +34,12 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -294,6 +298,10 @@ public abstract class BaseK8sEnvTest {
         if (testResult.getThrowable() != null) {
             log.error("Test {} failed with: {}", testResult.getMethod().getMethodName(),
                     testResult.getThrowable().getMessage(), testResult.getThrowable());
+
+            dumpAllPodsLogs("%s.%s".formatted(testResult.getTestClass().getName(),
+                    testResult.getMethod().getMethodName()));
+
         }
         if ((REUSE_ENV || USE_EXISTING_ENV) && env != null) {
             log.info("cleaning up namespace {}", namespace);
@@ -380,27 +388,52 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void printPodLogs(String podName, int tailingLines) {
+        final String sep = "=".repeat(100);
+        withPodLogs(podName, tailingLines, (container, logs) -> {
+            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName,
+                    container,
+                    tailingLines, logs, sep, sep);
+        });
+    }
+
+
+    protected void withPodLogs(String podName, int tailingLines, BiConsumer<String, String> consumer) {
         if (podName != null) {
             try {
                 client.pods().inNamespace(namespace)
                         .withName(podName)
                         .get().getSpec().getContainers().forEach(container -> {
-                            final String sep = "=".repeat(100);
-                            final String containerLog = client.pods().inNamespace(namespace)
+                            final ContainerResource containerResource = client.pods().inNamespace(namespace)
                                     .withName(podName)
-                                    .inContainer(container.getName())
-                                    .tailingLines(tailingLines)
-                                    .getLog();
-                            log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName,
-                                    container.getName(),
-                                    tailingLines, containerLog, sep, sep);
+                                    .inContainer(container.getName());
+                            if (tailingLines > 0) {
+                                containerResource.tailingLines(tailingLines);
+                            }
+                            final String containerLog = containerResource.getLog();
+                            consumer.accept(container.getName(), containerLog);
                         });
-
-
             } catch (Throwable t) {
                 log.error("failed to get pod {} logs: {}", podName, t.getMessage());
             }
         }
+    }
+
+    protected void dumpAllPodsLogs(String filePrefix) {
+        client.pods().inNamespace(namespace).list().getItems()
+                .forEach(pod -> dumpPodLogs(pod.getMetadata().getName(), filePrefix));
+    }
+
+    protected void dumpPodLogs(String podName, String filePrefix) {
+        final File outputDir = new File("target", "operator-test-logs");
+        outputDir.mkdirs();
+        withPodLogs(podName, -1, (container, logs) -> {
+            final File outputFile = new File(outputDir, "%s.%s.%s.log".formatted(filePrefix, podName, container));
+            try (FileWriter writer = new FileWriter(outputFile)) {
+                writer.write(logs);
+            } catch (IOException e) {
+                log.error("failed to write pod {} logs to file {}", podName, outputFile, e);
+            }
+        });
     }
 
     @SneakyThrows

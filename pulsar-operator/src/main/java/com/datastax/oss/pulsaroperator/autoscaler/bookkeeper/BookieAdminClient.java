@@ -25,14 +25,16 @@ public interface BookieAdminClient {
     @Data
     @Builder
     class BookieInfo {
+        PodResource podResource;
+        String bookieId;
+    }
+
+    @Data
+    @Builder
+    class BookieStats {
         @Builder.Default
         boolean isWritable = false;
-        @Builder.Default
-        String rackInfo = "/default-region/default-rack";
-
-        PodResource podResource;
         List<BookieLedgerDiskInfo> ledgerDiskInfos;
-        String bookieId;
     }
 
     @Data
@@ -45,6 +47,8 @@ public interface BookieAdminClient {
     }
 
     List<BookieInfo> collectBookieInfos();
+
+    BookieStats collectBookieStats(BookieInfo bookieInfo);
 
     void setReadOnly(BookieInfo bookieInfo, boolean readonly);
 

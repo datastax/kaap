@@ -26,6 +26,8 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ListMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -136,6 +138,9 @@ public class MockKubernetesClient {
 
         when(client.pods()).thenAnswer(__ ->
                 mockExistingResourceByName(namespace, Pod.class, name -> resourcesResolver.podWithName(name))
+        );
+        when(client.persistentVolumeClaims()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, PersistentVolumeClaim.class, name -> null)
         );
 
         final V1StorageAPIGroupDSL storage = mockStorage();
@@ -352,6 +357,10 @@ public class MockKubernetesClient {
                 doAnswer(
                         get -> new PodList(null, resourcesResolver.getResources(Pod.class, labels.get()),
                                 null, null)).when(nonNamespaceOperation).list();
+        } else if (resourceClass == PersistentVolumeClaim.class) {
+            doAnswer(
+                    get -> new PersistentVolumeClaimList(null, List.of(),
+                            null, null)).when(nonNamespaceOperation).list();
         } else {
             doAnswer(get -> new ListImpl()).when(nonNamespaceOperation).list();
         }

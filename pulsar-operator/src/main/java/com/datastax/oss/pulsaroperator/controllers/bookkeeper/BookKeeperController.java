@@ -117,7 +117,7 @@ public class BookKeeperController extends
     }
 
     @Override
-    protected void deleteResourceSet(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set) {
+    protected void deleteResourceSet(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set, BookKeeper resource) {
         final BookKeeperResourcesFactory resourcesFactory = set.getResourceFactory();
         if (!set.getName().equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
             resourcesFactory.deleteService();
@@ -126,6 +126,13 @@ public class BookKeeperController extends
         resourcesFactory.deleteStorageClass();
         resourcesFactory.deleteConfigMap();
         resourcesFactory.deletePodDisruptionBudget();
+        cleanupOrphanPVCs(set, resource.getSpec(), resource.getMetadata().getNamespace());
+    }
+
+    @Override
+    protected void onSetReady(BookKeeperFullSpec lastAppliedFullSpec, BookKeeper resource,
+                              SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo) {
+        cleanupOrphanPVCs(setInfo, lastAppliedFullSpec, resource.getMetadata().getNamespace());
     }
 
     @Override
@@ -154,6 +161,17 @@ public class BookKeeperController extends
                     true,
                     List.of(createNotReadyInitializingCondition(resource))
             );
+        }
+    }
+
+    private void cleanupOrphanPVCs(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo,
+                                   BookKeeperFullSpec lastAppliedFullSpec,
+                                   String namespace) {
+        final int deletedPvcs = setInfo.getResourceFactory().cleanupOrphanPVCs();
+        if (deletedPvcs > 0) {
+            final BookieAdminClient bookieAdminClient = createBookieAdminClient(namespace, setInfo.getName(),
+                    lastAppliedFullSpec);
+            bookieAdminClient.triggerAudit();
         }
     }
 
@@ -208,7 +226,8 @@ public class BookKeeperController extends
                     final int delta = currentReplicas - desiredReplicas;
                     if (delta > 0) {
                         final BookieAdminClient bookieAdminClient =
-                                createBookieAdminClient(resource, setInfo, lastApplied, lastAppliedSetSpec);
+                                createBookieAdminClient(resource.getMetadata().getNamespace(),
+                                        setInfo.getName(), lastApplied);
 
                         final int decommissioned = BookieDecommissionUtil
                                 .decommissionBookies(bookieAdminClient.collectBookieInfos(),
@@ -233,14 +252,15 @@ public class BookKeeperController extends
         return result;
     }
 
-    protected BookieAdminClient createBookieAdminClient(BookKeeper resource,
-                                                        SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo,
-                                                        BookKeeperFullSpec lastApplied,
-                                                        BookKeeperSetSpec lastAppliedSetSpec) {
+    protected BookieAdminClient createBookieAdminClient(String namespace,
+                                                        String setName,
+                                                        BookKeeperFullSpec lastApplied) {
+        final BookKeeperSetSpec lastAppliedSetSpec =
+                lastApplied.getBookkeeper().getBookKeeperSetSpecRef(setName);
         return new PodExecBookieAdminClient(client,
-                resource.getMetadata().getNamespace(),
+                namespace,
                 lastApplied.getGlobalSpec(),
-                setInfo.getName(),
+                setName,
                 lastAppliedSetSpec);
     }
 

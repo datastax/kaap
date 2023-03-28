@@ -110,7 +110,7 @@ public class ProxyController
     }
 
     @Override
-    protected void deleteResourceSet(SetInfo<ProxySetSpec, ProxyResourcesFactory> set) {
+    protected void deleteResourceSet(SetInfo<ProxySetSpec, ProxyResourcesFactory> set, Proxy resource) {
         final ProxyResourcesFactory resourcesFactory = set.getResourceFactory();
         resourcesFactory.deletePodDisruptionBudget();
         resourcesFactory.deleteConfigMap();

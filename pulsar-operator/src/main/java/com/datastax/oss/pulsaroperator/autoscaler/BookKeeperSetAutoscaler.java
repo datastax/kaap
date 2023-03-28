@@ -33,12 +33,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 @JBossLog
 public class BookKeeperSetAutoscaler implements Runnable {
@@ -104,7 +105,6 @@ public class BookKeeperSetAutoscaler implements Runnable {
         final int targetWritableBookiesCount = bkScalerSpec.getMinWritableBookies();
         final int bookieSafeStepUp = bkScalerSpec.getScaleUpBy();
         final int bookieSafeStepDown = bkScalerSpec.getScaleDownBy();
-        final boolean cleanUpPvcs = bkScalerSpec.getCleanUpPvcs();
         final int scaleUpMaxLimit = bkScalerSpec.getScaleUpMaxLimit();
 
         if (scaleUpMaxLimit < targetWritableBookiesCount) {
@@ -153,20 +153,11 @@ public class BookKeeperSetAutoscaler implements Runnable {
             return;
         }
 
-        List<BookieAdminClient.BookieInfo> bookieInfos = this.bookieAdminClient.collectBookieInfos();
-
-        if (cleanUpPvcs) {
-            int cleanedUpCount = cleanupPvcs(podSelector, currentBkSetSpec);
-            if (cleanedUpCount > 0 && bookieInfos.size() > 0) {
-                // Trigger audit earlier.
-                // There is no point in skipping PVC deletion as the cookie is already deleted.
-                log.infof("Cleaned up %d PVCs for bookkeeper cluster %s, will trigger audit",
-                        cleanedUpCount, clusterName);
-                this.bookieAdminClient.triggerAudit();
-            }
-        } else {
-            log.debugf("PVC cleanup is disabled for bookkeeper cluster %s", clusterName);
-        }
+        List<Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats>> bookieInfos =
+                this.bookieAdminClient.collectBookieInfos()
+                        .stream()
+                        .map(bookieInfo -> Pair.of(bookieInfo, this.bookieAdminClient.collectBookieStats(bookieInfo)))
+                        .collect(Collectors.toList());
 
         ClusterStats clusterStats = collectClusterStats(diskUsageHwm, bookieInfos);
 
@@ -229,18 +220,15 @@ public class BookKeeperSetAutoscaler implements Runnable {
 
 
     private boolean checkIfCanScaleDown(double diskUsageLwm,
-                                        List<BookieAdminClient.BookieInfo> bookieInfos) {
+                                        List<Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats>> bookieInfos) {
         boolean canScaleDown = true;
-        for (BookieAdminClient.BookieInfo info : bookieInfos) {
-            if (info.getLedgerDiskInfos().isEmpty()) {
-                return false;
-            }
-            if (info.isWritable()) {
-                long notReadyDiskCount = info.getLedgerDiskInfos().stream()
+        for (Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats> info : bookieInfos) {
+            if (info.getRight().isWritable()) {
+                long notReadyDiskCount = info.getRight().getLedgerDiskInfos().stream()
                         .filter(d -> {
                             boolean res = isDiskUsageAboveTolerance(d, diskUsageLwm);
                             log.infof("isDiskUsageAboveTolerance: %s for %s (%s)", res,
-                                    info.getPodResource().get().getMetadata().getName(),
+                                    info.getLeft().getPodResource().get().getMetadata().getName(),
                                     d);
                             return res;
                         })
@@ -250,7 +238,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                     // don't want to go back and forth if bookies disk usage may result in
                     // switch to read-only/scale up soon
                     log.infof("Not all disks are ready for %s",
-                            info.getPodResource().get().getMetadata().getName());
+                            info.getLeft().getPodResource().get().getMetadata().getName());
                     return false;
                 }
             }
@@ -265,14 +253,16 @@ public class BookKeeperSetAutoscaler implements Runnable {
         return canScaleDown;
     }
 
-    private ClusterStats collectClusterStats(double diskUsageHwm, List<BookieAdminClient.BookieInfo> bookieInfos) {
+    private ClusterStats collectClusterStats(double diskUsageHwm,
+                                             List<Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats>>
+                                                     bookieInfos) {
         ClusterStats clusterStats = new ClusterStats();
         // ignoring racks for now
-        for (BookieAdminClient.BookieInfo info : bookieInfos) {
-            if (info.isWritable()) {
+        for (Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats> info : bookieInfos) {
+            if (info.getRight().isWritable()) {
                 clusterStats.writableBookiesTotal++;
 
-                long disksNotAtRisk = info.getLedgerDiskInfos().stream()
+                long disksNotAtRisk = info.getRight().getLedgerDiskInfos().stream()
                         .filter(d -> isDiskUsageBelowTolerance(d, diskUsageHwm))
                         .count();
                 if (disksNotAtRisk == 0) {
@@ -290,47 +280,6 @@ public class BookKeeperSetAutoscaler implements Runnable {
         return clusterStats;
     }
 
-    private int cleanupPvcs(Map<String, String> pvcSelector, BookKeeperSetSpec currentSpec) {
-        log.infof("Checking PVCs for bookies with %s", pvcSelector);
-        final AtomicInteger pvcCount = new AtomicInteger(0);
-        client.persistentVolumeClaims()
-                .inNamespace(namespace)
-                .withLabels(pvcSelector)
-                .list().getItems().forEach(pvc -> {
-                    String name = pvc.getMetadata().getName();
-                    if (isLedgersPvc(name, currentSpec) || isJournalPvc(name, currentSpec)) {
-                        int idx = Integer.parseInt(name.substring(name.lastIndexOf('-') + 1));
-                        if (idx >= currentSpec.getReplicas()) {
-                            log.infof("Deleting PVC %s", name);
-                            client.resource(pvc).delete();
-                            pvcCount.incrementAndGet();
-                        } else {
-                            log.debugf("Keeping PVC %s", name);
-                        }
-                    }
-                });
-        return pvcCount.get();
-    }
-
-    private boolean isJournalPvc(String name, BookKeeperSetSpec currentSetSpec) {
-        GlobalSpec globalSpec = clusterSpec.getGlobalSpec();
-        String resourceName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
-                globalSpec.getComponents().getBookkeeperBaseName(), bookkeeperSetName,
-                currentSetSpec.getOverrideResourceName());
-        String ledgersVolumeName = BookKeeperResourcesFactory
-                .getJournalPvPrefix(clusterSpec.getBookkeeper(), resourceName);
-        return name.startsWith(ledgersVolumeName);
-    }
-
-    private boolean isLedgersPvc(String name, BookKeeperSetSpec currentSetSpec) {
-        GlobalSpec globalSpec = clusterSpec.getGlobalSpec();
-        String resourceName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
-                globalSpec.getComponents().getBookkeeperBaseName(), bookkeeperSetName,
-                currentSetSpec.getOverrideResourceName());
-        String ledgersVolumeName = BookKeeperResourcesFactory
-                .getLedgersPvPrefix(clusterSpec.getBookkeeper(), resourceName);
-        return name.startsWith(ledgersVolumeName);
-    }
 
     protected boolean isDiskUsageAboveTolerance(BookieAdminClient.BookieLedgerDiskInfo diskInfo, double tolerance) {
         return !isDiskUsageBelowTolerance(diskInfo, tolerance);

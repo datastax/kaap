@@ -94,13 +94,25 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
             log.debugf("getting BookieInfo for pod %s", pod.get().getMetadata().getName());
         }
 
+
+        return BookieInfo.builder()
+                .podResource(pod)
+                .bookieId(getBookieId(pod))
+                .build();
+    }
+
+    @Override
+    @SneakyThrows
+    public BookieStats collectBookieStats(BookieInfo bookieInfo) {
+        final Pod pod = bookieInfo.getPodResource().get();
+
         CompletableFuture<String> bkStateOut =
-                AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
+                AutoscalerUtils.execInPod(client, namespace, pod.getMetadata().getName(),
                         BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                         "curl -s " + bookieAdminUrl + "/api/v1/bookie/state");
 
         CompletableFuture<String> bkInfoOut =
-                AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
+                AutoscalerUtils.execInPod(client, namespace, pod.getMetadata().getName(),
                         BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                         "curl -s " + bookieAdminUrl + "/api/v1/bookie/info");
 
@@ -111,15 +123,12 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         }
 
         boolean writable = parseIsWritable(bkStateOut.get());
-
-        return BookieInfo.builder()
-                .podResource(pod)
+        return BookieStats.builder()
                 .isWritable(writable)
                 .ledgerDiskInfos(ledgerDiskInfos)
-                .bookieId(getBookieId(pod))
                 .build();
-    }
 
+    }
 
     @SneakyThrows
     private boolean parseIsWritable(String bkStateOutput)
@@ -141,7 +150,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     }
 
     @SneakyThrows
-    private BookieLedgerDiskInfo parseAndFillDiskUsage(String bkStateOutput, PodResource pod) {
+    private BookieLedgerDiskInfo parseAndFillDiskUsage(String bkStateOutput, Pod pod) {
         /*
         $ curl -s localhost:8000/api/v1/bookie/info
         {
@@ -151,9 +160,9 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         */
         JsonNode node = MAPPER.readTree(bkStateOutput);
         if (!node.has("totalSpace") || !node.has("freeSpace")) {
-            log.warnf(
-                    "invalid bookie info for bookie pod %s, got: %s", pod.get().getMetadata().getName(), bkStateOutput);
-            return null;
+            throw new IllegalStateException(
+                    "invalid bookie info for bookie pod %s, got: %s".formatted(pod.getMetadata().getName(),
+                            bkStateOutput));
         }
         long total = node.get("totalSpace").asLong(0);
         long free = node.get("freeSpace").asLong(Long.MAX_VALUE);

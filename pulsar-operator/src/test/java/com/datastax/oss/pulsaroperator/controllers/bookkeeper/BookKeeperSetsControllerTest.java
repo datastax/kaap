@@ -968,12 +968,10 @@ public class BookKeeperSetsControllerTest {
     private AbstractController<BookKeeper> controllerConstructor(
             ControllerTestUtil<BookKeeperFullSpec, BookKeeper>.ControllerConstructorInput controllerConstructorInput) {
         return new BookKeeperController(controllerConstructorInput.getClient()) {
+
             @Override
-            protected BookieAdminClient createBookieAdminClient(BookKeeper resource,
-                                                                SetInfo<BookKeeperSetSpec,
-                                                                        BookKeeperResourcesFactory> setInfo,
-                                                                BookKeeperFullSpec lastApplied,
-                                                                BookKeeperSetSpec lastAppliedSetSpec) {
+            protected BookieAdminClient createBookieAdminClient(String namespace, String setName,
+                                                                BookKeeperFullSpec lastApplied) {
                 return bookieAdminClient;
             }
 

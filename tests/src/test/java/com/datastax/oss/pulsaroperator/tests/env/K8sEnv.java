@@ -23,6 +23,8 @@ public interface K8sEnv {
 
     void start();
 
+    void refreshImages();
+
     Config getConfig();
 
     String getStorageClass();

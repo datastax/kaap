@@ -50,14 +50,10 @@ public class K3sEnv implements K8sEnv {
     @SneakyThrows
     public void start() {
         boolean containerWasNull = container == null;
-        final List<String> preloadImages = new ArrayList<>();
-        preloadImages.add(BaseK8sEnvTest.OPERATOR_IMAGE);
-        if (PRELOAD_PULSAR_IMAGE) {
-            preloadImages.add(BaseK8sEnvTest.PULSAR_IMAGE);
-        }
         if (containerWasNull) {
             log.info("Creating new K3s container");
             network = Network.newNetwork();
+            final List<String> preloadImages = getPreloadImages();
             if (numAgents == 0) {
                 container = new SingleServerK3sContainer(network, preloadImages);
             } else {
@@ -65,12 +61,28 @@ public class K3sEnv implements K8sEnv {
             }
         } else {
             log.info("Reusing existing K3s container");
-            container.getRegistry().pushImages(preloadImages)
-                    .thenCompose(v -> container.downloadDockerImages(preloadImages))
-                    .get();
+            refreshImages();
         }
         container.start().get();
         printDebugInfo();
+    }
+
+    @Override
+    @SneakyThrows
+    public void refreshImages() {
+        final List<String> preloadImages = getPreloadImages();
+        container.getRegistry().pushImages(preloadImages)
+                .thenCompose(v -> container.downloadDockerImages(preloadImages))
+                .get();
+    }
+
+    private List<String> getPreloadImages() {
+        final List<String> preloadImages = new ArrayList<>();
+        preloadImages.add(BaseK8sEnvTest.OPERATOR_IMAGE);
+        if (PRELOAD_PULSAR_IMAGE) {
+            preloadImages.add(BaseK8sEnvTest.PULSAR_IMAGE);
+        }
+        return preloadImages;
     }
 
     @Override

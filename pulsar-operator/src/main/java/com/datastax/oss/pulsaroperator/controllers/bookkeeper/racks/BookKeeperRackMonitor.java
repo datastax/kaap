@@ -70,11 +70,11 @@ public class BookKeeperRackMonitor implements Runnable {
     void internalRun() {
         final BkRackClient.BookiesRackOp bookiesRackOp = bkRackClient.newBookiesRackOp();
         final BkRackClient.BookiesRackConfiguration expectedBookiesRackConfig = getExpectedBookiesRackConfig();
-        log.infof("Getting current bookies rack configuration, expected is %s", expectedBookiesRackConfig);
         final BkRackClient.BookiesRackConfiguration currentConfig = bookiesRackOp.get();
 
         final JSONComparator.Result diff = SpecDiffer.generateDiff(currentConfig, expectedBookiesRackConfig);
         if (diff.areEquals()) {
+            log.infof("Bookies rack configurations up to date");
             return;
         }
         log.infof("One or more bookies rack configurations need to be changed");

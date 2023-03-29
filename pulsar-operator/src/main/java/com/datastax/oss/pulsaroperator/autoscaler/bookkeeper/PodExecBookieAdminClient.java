@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
@@ -219,8 +220,8 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         }
     }
 
-    private String internalRecoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie)
-            throws InterruptedException, ExecutionException {
+    @SneakyThrows
+    private String internalRecoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
         final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
         CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
                 podName,
@@ -236,8 +237,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
                         podName);
             }
         });
-        String res = recoverOut.get();
-        return res;
+        return recoverOut.get(1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -258,7 +258,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
                         podName);
             }
         });
-        String res = out.get();
+        String res = out.get(1, TimeUnit.MINUTES);
         log.debugf("listledgers output: %s", res);
         // error getting the info, err on the safe side
         if (res.contains("Unable to read the ledger")
@@ -284,7 +284,8 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "curl -s " + bookieAdminUrl + "/api/v1/autorecovery/list_under_replicated_ledger/");
 
-        return urLedgersOut.get().contains("No under replicated ledgers found");
+        final String s = urLedgersOut.get(1, TimeUnit.MINUTES);
+        return s.contains("No under replicated ledgers found");
     }
 
 
@@ -321,7 +322,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
                         bookieInfo.getPodResource().get().getMetadata().getName());
             }
         });
-        curlOut.get();
+        curlOut.get(1, TimeUnit.MINUTES);
     }
 
 
@@ -363,19 +364,18 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @SneakyThrows
     public void deleteCookieOnDisk(BookieInfo bookieInfo) {
         // moving rather than deleting, into a random name
+        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
         CompletableFuture<String> cookieOut = AutoscalerUtils.execInPod(client, namespace,
-                bookieInfo.getPodResource().get().getMetadata().getName(),
+                podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "mv /pulsar/data/bookkeeper/journal/current/VERSION "
                         + "/pulsar/data/bookkeeper/journal/current/VERSION.old.$(head /dev/urandom | tr -dc a-z0-9 | "
                         + "head -c 8)");
         cookieOut.whenComplete((s, e) -> {
             if (e != null) {
-                log.errorf(e, "Error deleting cookie at %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                log.errorf(e, "Error deleting cookie at %s", podName);
             } else {
-                log.infof("Bookie's %s cookie is deleted",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                log.infof("Bookie's %s cookie is deleted",  podName);
             }
         });
         String res = cookieOut.get();

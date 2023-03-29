@@ -225,6 +225,8 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
 
 
     protected void applyPulsarCluster(String content) {
+        // ensure pulsar image is already there to not count the pulling time in the await-ready condition
+        env.refreshImages();
         final PulsarCluster pulsarCluster = client.resources(PulsarCluster.class)
                 .inNamespace(namespace)
                 .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))

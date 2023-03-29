@@ -16,8 +16,6 @@
 #
 
 pulsar-operator:
-  operator:
-    enabled: false
   cluster:
     create: true
     spec:
@@ -26,9 +24,6 @@ pulsar-operator:
         image: datastax/lunastreaming-all:2.10_3.4
         storage:
           existingStorageClassName: default
-        antiAffinity:
-            host:
-              enabled: false
       zookeeper:
         replicas: 1
         dataVolume:
@@ -40,8 +35,6 @@ pulsar-operator:
             memory: "128Mi"
       bookkeeper:
         replicas: 1
-        autoRackConfig:
-            enabled: false
         volumes:
           journal:
             size: 1Gi
@@ -81,9 +74,9 @@ pulsar-operator:
             memory: "128Mi"
 
 pulsarGrafanaDashboards:
-  enabled: false
+  enabled: true
 
 kube-prometheus-stack:
-  enabled: false
+  enabled: true
   grafana:
     adminPassword: grafana1

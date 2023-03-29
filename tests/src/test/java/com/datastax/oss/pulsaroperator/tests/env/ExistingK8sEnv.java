@@ -20,7 +20,6 @@ import com.dajudge.kindcontainer.client.config.Cluster;
 import com.dajudge.kindcontainer.client.config.KubeConfig;
 import com.dajudge.kindcontainer.helm.Helm3Container;
 import io.fabric8.kubernetes.client.Config;
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;

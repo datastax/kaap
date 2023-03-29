@@ -97,7 +97,6 @@ public class BrokerAutoScalingTest extends BasePulsarClusterTest {
                     .getReadyReplicas(), 1);
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

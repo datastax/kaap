@@ -71,7 +71,6 @@ public class HelmTest extends BaseHelmTest {
             awaitUninstalled();
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

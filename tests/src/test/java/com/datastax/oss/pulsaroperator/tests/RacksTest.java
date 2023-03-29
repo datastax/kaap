@@ -103,7 +103,6 @@ public class RacksTest extends BasePulsarClusterTest {
             Assert.assertNotEquals(getPodNodeName("pulsar-broker-norack-0"), getPodNodeName("pulsar-broker-norack-1"));
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }
@@ -175,7 +174,6 @@ public class RacksTest extends BasePulsarClusterTest {
             Assert.assertNotEquals(getPodNodeName(norack.get(0)), getPodNodeName(norack.get(1)));
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }
@@ -236,7 +234,6 @@ public class RacksTest extends BasePulsarClusterTest {
             Assert.assertNotEquals(getPodNodeName("pulsar-bookkeeper-norack-0"), getPodNodeName("pulsar-bookkeeper-norack-1"));
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

@@ -156,7 +156,6 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
             log.info("DONE");
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

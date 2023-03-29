@@ -94,7 +94,6 @@ public class TokenAuthTest extends BasePulsarClusterTest {
                     "bin/pulsar-client consume -s sub -p Earliest public/default/topic");
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

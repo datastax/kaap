@@ -465,6 +465,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         if (spec.getCleanUpPvcs() == null || !spec.getCleanUpPvcs()) {
             return 0;
         }
+        log.infof("Cleaning up orphan PVCs for bookie-set '%s', replicas=%d", resourceName, spec.getReplicas());
         final String journalPvPrefix = getJournalPvPrefix(spec, resourceName);
         final String ledgersPvPrefix = getLedgersPvPrefix(spec, resourceName);
         final AtomicInteger pvcCount = new AtomicInteger(0);

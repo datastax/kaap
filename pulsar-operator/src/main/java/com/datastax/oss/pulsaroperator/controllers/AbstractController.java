@@ -108,6 +108,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
 
     @Override
     public UpdateControl<T> reconcile(T resource, Context<T> context) throws Exception {
+        context.getRetryInfo()
         log.debugf("%s controller reconciliation started (resource gen %d)",
                 resource.getFullResourceName(), resource.getMetadata().getGeneration());
         long start = System.nanoTime();

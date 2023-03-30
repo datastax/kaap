@@ -23,6 +23,7 @@ import com.datastax.oss.pulsaroperator.crds.autorecovery.Autorecovery;
 import com.datastax.oss.pulsaroperator.crds.bastion.Bastion;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.pulsaroperator.crds.broker.Broker;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.function.FunctionsWorker;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.zookeeper.ZooKeeper;
@@ -435,6 +436,7 @@ public abstract class BaseK8sEnvTest {
     protected void dumpAllResources(String filePrefix) {
         dumpResources(filePrefix, Deployment.class);
         dumpResources(filePrefix, StatefulSet.class);
+        dumpResources(filePrefix, PulsarCluster.class);
         dumpResources(filePrefix, ZooKeeper.class);
         dumpResources(filePrefix, BookKeeper.class);
         dumpResources(filePrefix, Broker.class);

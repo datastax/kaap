@@ -32,7 +32,10 @@ import com.datastax.oss.pulsaroperator.tests.env.K3sEnv;
 import com.datastax.oss.pulsaroperator.tests.env.K8sEnv;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.PersistentVolume;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -436,6 +439,9 @@ public abstract class BaseK8sEnvTest {
     protected void dumpAllResources(String filePrefix) {
         dumpResources(filePrefix, Deployment.class);
         dumpResources(filePrefix, StatefulSet.class);
+        dumpResources(filePrefix, PersistentVolume.class);
+        dumpResources(filePrefix, PersistentVolumeClaim.class);
+        dumpResources(filePrefix, Node.class);
         dumpResources(filePrefix, PulsarCluster.class);
         dumpResources(filePrefix, ZooKeeper.class);
         dumpResources(filePrefix, BookKeeper.class);

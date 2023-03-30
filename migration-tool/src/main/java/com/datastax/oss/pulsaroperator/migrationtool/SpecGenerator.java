@@ -194,7 +194,7 @@ public class SpecGenerator {
         for (Map.Entry<String, BookKeeperSetSpec> set : sets.entrySet()) {
             final BookKeeperResourcesFactory bkResourceFactory =
                     new BookKeeperResourcesFactory(local.getClient(), inputSpecs.
-                            getNamespace(), set.getKey(), pulsarCluster.getSpec().getBookkeeper(),
+                            getNamespace(), set.getKey(), set.getValue(),
                             pulsarCluster.getSpec().getGlobal(), null);
 
             bkResourceFactory.patchPodDisruptionBudget();

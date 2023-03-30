@@ -62,8 +62,17 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
         return generatedSpec;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return generatedSpec.getReplicas() > 0;
+    }
+
     public void internalGenerateSpec() {
-        final ConfigMap configMap = requireConfigMap(resourceName);
+        final ConfigMap configMap = getConfigMap(resourceName);
+        if (configMap == null) {
+            generatedSpec = BastionSpec.builder().replicas(0).build();
+            return;
+        }
         final Deployment deployment = requireDeployment(resourceName);
 
         verifyLabelsEquals(deployment, configMap);

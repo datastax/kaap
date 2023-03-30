@@ -81,6 +81,11 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     }
 
     @Override
+    public boolean isEnabled() {
+        return generators.values().stream().filter(gen -> gen.isEnabled()).findAny().isPresent();
+    }
+
+    @Override
     public PodDNSConfig getPodDnsConfig() {
         return PulsarClusterResourceGenerator
                 .getValueAssertSame(p -> p.getPodDnsConfig(), false, "PodDnsConfig",

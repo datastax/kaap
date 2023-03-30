@@ -70,6 +70,11 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySpec> {
         return generatedSpec;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return generatedSpec.getReplicas() > 0;
+    }
+
     public void internalGenerateSpec() {
         final ConfigMap configMap = requireConfigMap(resourceName);
         final ConfigMap configMapWs = getConfigMap(resourceName + "-ws");

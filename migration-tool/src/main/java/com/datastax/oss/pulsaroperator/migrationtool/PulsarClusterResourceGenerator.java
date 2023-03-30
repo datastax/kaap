@@ -182,7 +182,7 @@ public class PulsarClusterResourceGenerator {
                                 AutorecoverySpecGenerator.SPEC_NAME,
                                 BastionSpecGenerator.SPEC_NAME
                         )
-                        .contains(spec.getSpecName());
+                        .contains(spec.getSpecName()) && spec.isEnabled();
 
         final boolean authEnabled = getValueAssertSame(
                 filterComponents,
@@ -298,13 +298,16 @@ public class PulsarClusterResourceGenerator {
     }
 
     public static <T> T getValueAssertSame(Function<BaseSpecGenerator, T> mapper, boolean skipNulls, String configName,
-                       List<BaseSpecGenerator> filteredGenerators) {
+                                           List<BaseSpecGenerator> filteredGenerators) {
         if (filteredGenerators.isEmpty()) {
             throw new IllegalStateException("No spec generators found for " + configName + " after filtering");
         }
         T firstValue = skipNulls ? null : mapper.apply(filteredGenerators.get(0));
         String firstValueSpecName = skipNulls ? null : filteredGenerators.get(0).getSpecName();
         for (BaseSpecGenerator specGenerator : filteredGenerators) {
+            if (!specGenerator.isEnabled()) {
+                continue;
+            }
             final T specGenValue = mapper.apply(specGenerator);
             if (skipNulls) {
                 if (specGenValue == null) {

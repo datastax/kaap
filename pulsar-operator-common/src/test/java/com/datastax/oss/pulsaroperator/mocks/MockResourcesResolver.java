@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.mocks;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -142,7 +143,11 @@ public class MockResourcesResolver {
     }
 
     public void putResource(String name, HasMetadata resource) {
-        resource.getMetadata().setName(name);
+        if (resource.getMetadata() == null) {
+            resource.setMetadata(new ObjectMetaBuilder().withName(name).build());
+        } else {
+            resource.getMetadata().setName(name);
+        }
         resources.put(computeKey(resource), resource);
         log.info("added resource {}/{}", resource.getKind(), resource.getMetadata().getName());
     }

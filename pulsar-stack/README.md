@@ -1,6 +1,6 @@
 # pulsar-stack
 
-![Version: 0.0.2](https://img.shields.io/badge/Version-0.0.2-informational?style=flat-square)
+![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square)
 
 Apache Pulsar stack on Kubernetes
 
@@ -131,6 +131,9 @@ Apache Pulsar stack on Kubernetes
 | kube-prometheus-stack.grafana.dashboardProviders."dashboardproviders.yaml".providers[0].options.path | string | `"/var/lib/grafana/dashboards/default"` |  |
 | kube-prometheus-stack.grafana.dashboardProviders."dashboardproviders.yaml".providers[0].orgId | int | `1` |  |
 | kube-prometheus-stack.grafana.dashboardProviders."dashboardproviders.yaml".providers[0].type | string | `"file"` |  |
+| kube-prometheus-stack.grafana.dashboards.default.operator-metrics.datasource | string | `"Prometheus"` |  |
+| kube-prometheus-stack.grafana.dashboards.default.operator-metrics.gnetId | int | `14370` |  |
+| kube-prometheus-stack.grafana.dashboards.default.operator-metrics.revision | int | `6` |  |
 | kube-prometheus-stack.grafana.dashboards.default.zookeeper.datasource | string | `"Prometheus"` |  |
 | kube-prometheus-stack.grafana.dashboards.default.zookeeper.gnetId | int | `10465` |  |
 | kube-prometheus-stack.grafana.dashboards.default.zookeeper.revision | int | `4` |  |

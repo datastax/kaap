@@ -90,7 +90,7 @@ jobs:
 
       - name: Setup ssh access to build runner VM
         if: ${{ github.event_name == 'pull_request' }}
-        uses: apache/pulsar-test-infra/.github/actions/ssh-access@master
+        uses: apache/pulsar/.github/actions/ssh-access@master
         continue-on-error: true
         with:
           limit-access-to-actor: true

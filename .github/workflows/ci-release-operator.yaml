@@ -50,5 +50,6 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
+          artifacts: "migration-tool/target/migration-tool-*.jar"
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true

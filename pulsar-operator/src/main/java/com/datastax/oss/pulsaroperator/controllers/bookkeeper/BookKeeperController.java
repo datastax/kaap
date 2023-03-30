@@ -15,6 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.controllers.bookkeeper;
 
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.BookieAdminClient;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.BookieDecommissionUtil;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.PodExecBookieAdminClient;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.common.json.JSONComparator;
 import com.datastax.oss.pulsaroperator.controllers.AbstractResourceSetsController;
@@ -114,7 +117,7 @@ public class BookKeeperController extends
     }
 
     @Override
-    protected void deleteResourceSet(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set) {
+    protected void deleteResourceSet(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> set, BookKeeper resource) {
         final BookKeeperResourcesFactory resourcesFactory = set.getResourceFactory();
         if (!set.getName().equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
             resourcesFactory.deleteService();
@@ -123,6 +126,13 @@ public class BookKeeperController extends
         resourcesFactory.deleteStorageClass();
         resourcesFactory.deleteConfigMap();
         resourcesFactory.deletePodDisruptionBudget();
+        cleanupOrphanPVCs(set, resource.getSpec(), resource.getMetadata().getNamespace());
+    }
+
+    @Override
+    protected void onSetReady(BookKeeperFullSpec lastAppliedFullSpec, BookKeeper resource,
+                              SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo) {
+        cleanupOrphanPVCs(setInfo, lastAppliedFullSpec, resource.getMetadata().getNamespace());
     }
 
     @Override
@@ -154,6 +164,17 @@ public class BookKeeperController extends
         }
     }
 
+    private void cleanupOrphanPVCs(SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo,
+                                   BookKeeperFullSpec lastAppliedFullSpec,
+                                   String namespace) {
+        final int deletedPvcs = setInfo.getResourceFactory().cleanupOrphanPVCs();
+        if (deletedPvcs > 0) {
+            final BookieAdminClient bookieAdminClient = createBookieAdminClient(namespace, setInfo.getName(),
+                    lastAppliedFullSpec);
+            bookieAdminClient.triggerAudit();
+        }
+    }
+
     @Override
     protected String getDefaultSetName() {
         return BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET;
@@ -177,7 +198,8 @@ public class BookKeeperController extends
 
     @Override
     protected JSONComparator.Result compareLastAppliedSetSpec(
-            BookKeeper resource, SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo, BookKeeperFullSpec spec,
+            BookKeeper resource, SetInfo<BookKeeperSetSpec, BookKeeperResourcesFactory> setInfo,
+            BookKeeperFullSpec spec,
             BookKeeperFullSpec lastApplied) {
         if (spec.getBookkeeper().getSets() != null) {
             spec = SerializationUtil.deepCloneObject(spec);
@@ -190,8 +212,33 @@ public class BookKeeperController extends
             lastApplied.getBookkeeper().getSets().entrySet()
                     .removeIf(e -> !e.getKey().equals(setInfo.getName()));
         }
-        final JSONComparator.Result result = SpecDiffer.generateDiff(spec, lastApplied);
+        final JSONComparator.Result result = SpecDiffer.generateDiff(lastApplied, spec);
         if (!result.areEquals()) {
+            if (lastApplied != null) {
+                final BookKeeperSetSpec lastAppliedSetSpec =
+                        lastApplied.getBookkeeper().getBookKeeperSetSpecRef(setInfo.getName());
+                final BookKeeperSetSpec desiredSetSpec =
+                        spec.getBookkeeper().getBookKeeperSetSpecRef(setInfo.getName());
+                if (lastAppliedSetSpec != null && desiredSetSpec != null) {
+
+                    final int currentReplicas = lastAppliedSetSpec.getReplicas().intValue();
+                    final int desiredReplicas = desiredSetSpec.getReplicas().intValue();
+                    final int delta = currentReplicas - desiredReplicas;
+                    if (delta > 0) {
+                        final BookieAdminClient bookieAdminClient =
+                                createBookieAdminClient(resource.getMetadata().getNamespace(),
+                                        setInfo.getName(), lastApplied);
+
+                        final int decommissioned = BookieDecommissionUtil
+                                .decommissionBookies(bookieAdminClient.collectBookieInfos(),
+                                        delta, bookieAdminClient);
+                        if (decommissioned != delta) {
+                            throw new IllegalStateException(
+                                    "Failed to decommission " + (delta - decommissioned) + " bookies, will retry");
+                        }
+                    }
+                }
+            }
             final PulsarClusterSpec pulsarClusterSpec = PulsarClusterSpec.builder()
                     .global(spec.getGlobal())
                     .bookkeeper(spec.getBookkeeper())
@@ -203,6 +250,18 @@ public class BookKeeperController extends
             bkRackDaemon.onSpecChange(pulsarClusterSpec, namespace);
         }
         return result;
+    }
+
+    protected BookieAdminClient createBookieAdminClient(String namespace,
+                                                        String setName,
+                                                        BookKeeperFullSpec lastApplied) {
+        final BookKeeperSetSpec lastAppliedSetSpec =
+                lastApplied.getBookkeeper().getBookKeeperSetSpecRef(setName);
+        return new PodExecBookieAdminClient(client,
+                namespace,
+                lastApplied.getGlobalSpec(),
+                setName,
+                lastAppliedSetSpec);
     }
 
     @Override

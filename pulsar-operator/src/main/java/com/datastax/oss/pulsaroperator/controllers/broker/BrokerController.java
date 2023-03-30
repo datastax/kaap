@@ -102,7 +102,7 @@ public class BrokerController extends
     }
 
     @Override
-    protected void deleteResourceSet(SetInfo<BrokerSetSpec, BrokerResourcesFactory> set) {
+    protected void deleteResourceSet(SetInfo<BrokerSetSpec, BrokerResourcesFactory> set, Broker resource) {
         final BrokerResourcesFactory resourcesFactory = set.getResourceFactory();
         if (!set.getName().equals(BrokerResourcesFactory.BROKER_DEFAULT_SET)) {
             resourcesFactory.deleteService();

@@ -52,6 +52,9 @@ public class BookKeeperRackDaemon extends NamespacedDaemonThread<BookKeeperFullS
         final BookKeeperAutoRackConfig autoRackConfig = newSpec.getBookkeeper().getAutoRackConfig();
         final BkRackClient zkClient =
                 bkRackClientFactory.newBkRackClient(namespace, newSpec, autoRackConfig);
+        if (zkClient == null) {
+            return;
+        }
         new BookKeeperRackMonitor(client, namespace, newSpec, zkClient).internalRun();
     }
 

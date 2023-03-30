@@ -64,5 +64,5 @@ public class BookKeeperAutoscalerSpec {
     @javax.validation.constraints.Min(1)
     Long stabilizationWindowMs;
 
-    Boolean cleanUpPvcs;
+
 }

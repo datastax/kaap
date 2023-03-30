@@ -584,7 +584,7 @@ public class PulsarClusterControllerTest {
                       scaleUpMaxLimit: 30
                       scaleDownBy: 1
                       stabilizationWindowMs: 300000
-                      cleanUpPvcs: true
+                    cleanUpPvcs: true
                     setsUpdateStrategy: RollingUpdate
                     autoRackConfig:
                       enabled: true

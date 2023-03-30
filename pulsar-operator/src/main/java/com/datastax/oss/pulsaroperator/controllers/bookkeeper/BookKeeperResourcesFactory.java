@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -187,7 +188,6 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         }
 
         appendConfigData(data, spec.getConfig());
-
 
 
         final ConfigMap configMap = new ConfigMapBuilder()
@@ -461,4 +461,29 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         return null;
     }
 
+    public int cleanupOrphanPVCs() {
+        if (spec.getCleanUpPvcs() == null || !spec.getCleanUpPvcs()) {
+            return 0;
+        }
+        log.infof("Cleaning up orphan PVCs for bookie-set '%s', replicas=%d", resourceName, spec.getReplicas());
+        final String journalPvPrefix = getJournalPvPrefix(spec, resourceName);
+        final String ledgersPvPrefix = getLedgersPvPrefix(spec, resourceName);
+        final AtomicInteger pvcCount = new AtomicInteger(0);
+        client.persistentVolumeClaims()
+                .inNamespace(namespace)
+                .withLabels(getLabels(spec.getLabels()))
+                .list().getItems().forEach(pvc -> {
+                    String name = pvc.getMetadata().getName();
+                    if (name.startsWith(journalPvPrefix)
+                            || name.startsWith(ledgersPvPrefix)) {
+                        int idx = Integer.parseInt(name.substring(name.lastIndexOf('-') + 1));
+                        if (idx >= spec.getReplicas()) {
+                            log.infof("Force deletion of bookie pvc: %s", name);
+                            client.resource(pvc).delete();
+                            pvcCount.incrementAndGet();
+                        }
+                    }
+                });
+        return pvcCount.get();
+    }
 }

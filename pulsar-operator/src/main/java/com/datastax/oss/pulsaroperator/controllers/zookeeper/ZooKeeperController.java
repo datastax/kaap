@@ -67,6 +67,7 @@ public class ZooKeeperController extends AbstractController<ZooKeeper> {
         resourcesFactory.patchService();
         resourcesFactory.patchCaService();
         resourcesFactory.patchStatefulSet();
+        log.info("Patched zookkeeper resources");
     }
 
     private ReconciliationResult checkReady(ZooKeeper resource,

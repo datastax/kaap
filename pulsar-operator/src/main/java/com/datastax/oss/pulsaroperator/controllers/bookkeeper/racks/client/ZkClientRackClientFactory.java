@@ -46,6 +46,7 @@ public class ZkClientRackClientFactory implements BkRackClientFactory{
             if (zkClientRackClient != null) {
                 zkClientRackClient.close();
             }
+            return null;
         }
 
         final ZkClientRackClient zkClient =

@@ -115,6 +115,14 @@ public class SpecDiffer {
     }
 
     public static void logDetailedSpecDiff(JSONComparator.Result diff, String currentAsJson, String newSpecAsJson) {
+        if (diff == EXPECTED_WAS_NULL_RESULT) {
+            log.info("Spec was null");
+            return;
+        }
+        if (diff == ACTUAL_WAS_NULL_RESULT) {
+            log.info("Spec is now null");
+            return;
+        }
         if (currentAsJson != null || newSpecAsJson != null) {
             log.infof("logging detailed diff: \nwas: %s\nnow: %s", currentAsJson, newSpecAsJson);
         }

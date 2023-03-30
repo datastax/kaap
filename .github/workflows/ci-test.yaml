@@ -88,6 +88,13 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      - name: Setup ssh access to build runner VM
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: apache/pulsar/.github/actions/ssh-access@master
+        continue-on-error: true
+        with:
+          limit-access-to-actor: true
+
       - name: Build
         run: mvn -B -T 1C -ntp -nsu clean install -DskipTests -pl tests -am -Dcheckstyle.skip -Dspotbugs.skip -Pskip-crds
 
@@ -97,3 +104,12 @@ jobs:
           mvn -B -ntp -nsu test -pl tests \
             -Dgroups='${{ matrix.group }}' \
             -Dpulsaroperator.tests.env.existing.k3s.agents='${{ matrix.num_agents }}'
+
+      - name: Upload Surefire reports
+        uses: actions/upload-artifact@v3
+        if: failure()
+        continue-on-error: true
+        with:
+          name: test-logs-${{ matrix.group }}
+          path: "**/target/operator-test-logs/*"
+          retention-days: 7

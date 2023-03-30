@@ -278,7 +278,7 @@ public class CertManagerCertificatesProvisioner {
         client.resource(ssCertificate)
                 .inNamespace(namespace)
                 .createOrReplace();
-        log.infof("Created self-signed certificate %s mapped to secret %s", name, secretName);
+        log.debugf("Created self-signed certificate %s mapped to secret %s", name, secretName);
     }
 
     private void createRootCACertificate() {
@@ -335,7 +335,7 @@ public class CertManagerCertificatesProvisioner {
         client.resource(caIssuer)
                 .inNamespace(namespace)
                 .createOrReplace();
-        log.infof("Created self-signed root CA certificate");
+        log.debug("Created self-signed root CA certificate");
     }
 
 

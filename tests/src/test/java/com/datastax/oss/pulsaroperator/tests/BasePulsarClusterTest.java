@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -68,6 +69,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     }
 
     public BasePulsarClusterTest() {
+        super(0);
     }
 
     @SneakyThrows
@@ -157,7 +159,6 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                         .periodMs(5000L)
                         .stabilizationWindowMs(10000L)
                         .minWritableBookies(1)
-                        .cleanUpPvcs(true)
                         .enabled(false)
                         .build())
                 .build());
@@ -224,6 +225,8 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
 
 
     protected void applyPulsarCluster(String content) {
+        // ensure pulsar image is already there to not count the pulling time in the await-ready condition
+        env.refreshImages();
         final PulsarCluster pulsarCluster = client.resources(PulsarCluster.class)
                 .inNamespace(namespace)
                 .load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
@@ -235,8 +238,14 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                     if (isCrdReady(PulsarCluster.class, pulsarCluster.getMetadata().getName())) {
                         return true;
                     }
-                    printPodLogs(getOperatorPodName(), 10);
-                    printNodesStatus();
+                    final String operatorPodName;
+                    try {
+                        operatorPodName = getOperatorPodName();
+                    } catch (KubernetesClientException clientException) {
+                        log.error("Error getting operator pod name", clientException);
+                        return false;
+                    }
+                    printPodLogs(operatorPodName, 10);
                     return false;
                 });
 

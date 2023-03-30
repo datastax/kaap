@@ -26,6 +26,8 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ListMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -137,6 +139,10 @@ public class MockKubernetesClient {
         when(client.pods()).thenAnswer(__ ->
                 mockExistingResourceByName(namespace, Pod.class, name -> resourcesResolver.podWithName(name))
         );
+        when(client.persistentVolumeClaims()).thenAnswer(__ ->
+                mockExistingResourceByName(namespace, PersistentVolumeClaim.class,
+                        name -> resourcesResolver.pvcWithName(name))
+        );
 
         final V1StorageAPIGroupDSL storage = mockStorage();
         when(storage.storageClasses()).thenAnswer(__ ->
@@ -197,6 +203,10 @@ public class MockKubernetesClient {
                 addCreatedResource(ic);
                 return null;
             });
+            when(interaction.delete()).thenAnswer(ic1 -> {
+                addDeletedResource(ic);
+                return null;
+            });
             return interaction;
         });
 
@@ -227,6 +237,11 @@ public class MockKubernetesClient {
     private void addCreatedResource(InvocationOnMock ic) {
         final HasMetadata argument = ic.getArgument(0);
         createdResources.add(new ResourceInteraction(argument));
+    }
+
+    private void addDeletedResource(InvocationOnMock ic) {
+        final HasMetadata argument = ic.getArgument(0);
+        deletedResources.add(new ResourceInteraction(argument));
     }
 
     @SneakyThrows
@@ -349,9 +364,14 @@ public class MockKubernetesClient {
                     get -> new ReplicaSetList(null, resourcesResolver.getResources(ReplicaSet.class, labels.get()),
                             null, null)).when(nonNamespaceOperation).list();
         } else if (resourceClass == Pod.class) {
-                doAnswer(
-                        get -> new PodList(null, resourcesResolver.getResources(Pod.class, labels.get()),
-                                null, null)).when(nonNamespaceOperation).list();
+            doAnswer(
+                    get -> new PodList(null, resourcesResolver.getResources(Pod.class, labels.get()),
+                            null, null)).when(nonNamespaceOperation).list();
+        } else if (resourceClass == PersistentVolumeClaim.class) {
+            doAnswer(
+                    get -> new PersistentVolumeClaimList(null,
+                            resourcesResolver.getResources(PersistentVolumeClaim.class, labels.get()),
+                            null, null)).when(nonNamespaceOperation).list();
         } else {
             doAnswer(get -> new ListImpl()).when(nonNamespaceOperation).list();
         }

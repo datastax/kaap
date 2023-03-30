@@ -2095,6 +2095,9 @@ spec:
                   sets:
                     additionalProperties:
                       properties:
+                        cleanUpPvcs:
+                          description: Cleanup PVCs after the bookie has been removed.
+                          type: boolean
                         updateStrategy:
                           description: Update strategy for the StatefulSet. Default
                             value is rolling update.
@@ -2224,8 +2227,6 @@ spec:
                               maximum: 1.0
                               minimum: 0.0
                               type: number
-                            cleanUpPvcs:
-                              type: boolean
                             scaleUpMaxLimit:
                               minimum: 1.0
                               type: integer
@@ -4256,6 +4257,9 @@ spec:
                     description: Sets update strategy. 'RollingUpdate' or 'Parallel'.
                       Default is 'RollingUpdate'.
                     type: string
+                  cleanUpPvcs:
+                    description: Cleanup PVCs after the bookie has been removed.
+                    type: boolean
                   updateStrategy:
                     description: Update strategy for the StatefulSet. Default value
                       is rolling update.
@@ -4385,8 +4389,6 @@ spec:
                         maximum: 1.0
                         minimum: 0.0
                         type: number
-                      cleanUpPvcs:
-                        type: boolean
                       scaleUpMaxLimit:
                         minimum: 1.0
                         type: integer

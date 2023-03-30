@@ -78,7 +78,7 @@ public abstract class AbstractResourceSetsController<T extends CustomResource<FU
 
     protected abstract void patchResourceSet(SetInfo<SETSPEC, FACTORY> set);
 
-    protected abstract void deleteResourceSet(SetInfo<SETSPEC, FACTORY> set);
+    protected abstract void deleteResourceSet(SetInfo<SETSPEC, FACTORY> set, T resource);
 
     protected abstract void patchCommonResources(SetInfo<SETSPEC, FACTORY> set);
 
@@ -157,7 +157,7 @@ public abstract class AbstractResourceSetsController<T extends CustomResource<FU
         if (allSetsReady) {
             log.infof("All %s-sets ready", componentNameForLogs);
             cleanupDeletedSets(clonedLastAppliedResource.getCommon(),
-                    namespace, desiredSets, lastAppliedResource);
+                    resource, desiredSets, lastAppliedResource);
             return newReadyResult(resource, lastAppliedResource);
         } else {
             return newNotReadyResult(resource, lastAppliedResource);
@@ -188,7 +188,7 @@ public abstract class AbstractResourceSetsController<T extends CustomResource<FU
     }
 
 
-    private void cleanupDeletedSets(FULLSPEC lastAppliedFullSpec, String namespace,
+    private void cleanupDeletedSets(FULLSPEC lastAppliedFullSpec, T resource,
                                     List<SetInfo<SETSPEC, FACTORY>> sets,
                                     SETSLASTAPPLIED setLastApplied) {
 
@@ -196,14 +196,21 @@ public abstract class AbstractResourceSetsController<T extends CustomResource<FU
             final Set<String> currentSets = sets.stream().map(SetInfo::getName)
                     .collect(Collectors.toSet());
             final List<SetInfo<SETSPEC, FACTORY>> toDelete =
-                    getSets(null, namespace, lastAppliedFullSpec, currentSets);
+                    getSets(null, resource.getMetadata().getNamespace(), lastAppliedFullSpec, currentSets);
             for (SetInfo<SETSPEC, FACTORY> set : toDelete) {
-                deleteResourceSet(set);
+                deleteResourceSet(set, resource);
                 log.infof("Deleted %s-set: '%s'", componentNameForLogs, set.getName());
                 setLastApplied.getSets().remove(set.getName());
             }
+
+            for (SetInfo<SETSPEC, FACTORY> set : sets) {
+                onSetReady(lastAppliedFullSpec, resource, set);
+            }
+
         }
     }
+
+    protected void onSetReady(FULLSPEC lastAppliedFullSpec, T resource, SetInfo<SETSPEC, FACTORY> setInfo) {}
 
     private List<SetInfo<SETSPEC, FACTORY>> getSets(OwnerReference ownerReference, String namespace, FULLSPEC spec) {
         return getSets(ownerReference, namespace, spec, Set.of());

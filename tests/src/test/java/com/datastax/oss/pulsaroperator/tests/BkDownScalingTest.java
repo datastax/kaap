@@ -65,7 +65,6 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
             specs.getBookkeeper().getAutoscaler().setMinWritableBookies(3);
             specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceLwm(0.999d);
             specs.getBookkeeper().getAutoscaler().setDiskUsageToleranceHwm(0.9999d);
-            specs.getBookkeeper().getAutoscaler().setCleanUpPvcs(true);
             applyPulsarCluster(specsToYaml(specs));
 
             Pod bookiePod = client.pods().inNamespace(namespace)
@@ -157,7 +156,6 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
             log.info("DONE");
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

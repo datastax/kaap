@@ -141,7 +141,7 @@ public class BookieRacksTest extends BaseHelmTest {
             Awaitility.await().untilAsserted(() -> {
                 final String bookieId = getBookieId(2, "set1");
 
-                assertBookiePlacedInRack(bookieId, "set1", nodeName);
+                assertBookiePlacedInRack(bookieId, "rack1", nodeName);
             });
 
             Awaitility.await().untilAsserted(() -> {
@@ -156,7 +156,6 @@ public class BookieRacksTest extends BaseHelmTest {
             awaitUninstalled();
         } catch (Throwable t) {
             log.error("test failed with {}", t.getMessage(), t);
-            printAllPodsLogs();
             throw new RuntimeException(t);
         }
     }

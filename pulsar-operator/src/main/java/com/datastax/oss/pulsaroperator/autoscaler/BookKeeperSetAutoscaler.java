@@ -15,7 +15,8 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
-import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.BookieAdminClient;
+import com.datastax.oss.pulsaroperator.autoscaler.bookkeeper.PodExecBookieAdminClient;
 import com.datastax.oss.pulsaroperator.controllers.PulsarClusterController;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperController;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
@@ -26,57 +27,23 @@ import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.PodResource;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
-import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 @JBossLog
 public class BookKeeperSetAutoscaler implements Runnable {
 
-    static final ObjectMapper MAPPER = new ObjectMapper();
-
-    @Data
-    @Builder
-    public static class BookieLedgerDiskInfo {
-        @Builder.Default
-        long maxBytes = 0L;
-        @Builder.Default
-        long usedBytes = 0L;
-    }
-
-    @Data
-    @Builder
-    public static class BookieInfo {
-        @Builder.Default
-        boolean isWritable = false;
-        @Builder.Default
-        String rackInfo = "/default-region/default-rack";
-
-        PodResource podResource;
-        List<BookieLedgerDiskInfo> ledgerDiskInfos;
-    }
 
     @Data
     public static class ClusterStats {
@@ -90,6 +57,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
     private final PulsarClusterSpec clusterSpec;
     private final String bookkeeperSetName;
     private final BookKeeperSetSpec desiredBookKeeperSetSpec;
+    private BookieAdminClient bookieAdminClient;
 
     public BookKeeperSetAutoscaler(KubernetesClient client, String namespace,
                                    String bookkeeperSetName,
@@ -116,6 +84,12 @@ public class BookKeeperSetAutoscaler implements Runnable {
         }
     }
 
+    protected BookieAdminClient newBookieAdminClient(GlobalSpec currentGlobalSpec,
+                                                     BookKeeperSetSpec currentBookKeeperSetSpec) {
+        return new PodExecBookieAdminClient(client, namespace, currentGlobalSpec, bookkeeperSetName,
+                currentBookKeeperSetSpec);
+    }
+
     @SneakyThrows
     void internalRun() {
         final BookKeeperAutoscalerSpec autoscalerSpec = desiredBookKeeperSetSpec.getAutoscaler();
@@ -131,7 +105,6 @@ public class BookKeeperSetAutoscaler implements Runnable {
         final int targetWritableBookiesCount = bkScalerSpec.getMinWritableBookies();
         final int bookieSafeStepUp = bkScalerSpec.getScaleUpBy();
         final int bookieSafeStepDown = bkScalerSpec.getScaleDownBy();
-        final boolean cleanUpPvcs = bkScalerSpec.getCleanUpPvcs();
         final int scaleUpMaxLimit = bkScalerSpec.getScaleUpMaxLimit();
 
         if (scaleUpMaxLimit < targetWritableBookiesCount) {
@@ -155,6 +128,8 @@ public class BookKeeperSetAutoscaler implements Runnable {
                 new BookKeeperFullSpec(currentGlobalSpec, bkCr.getSpec().getBookkeeper())
         ).get(bookkeeperSetName);
 
+        bookieAdminClient = newBookieAdminClient(currentGlobalSpec, currentBkSetSpec);
+
         final int currentExpectedReplicas = currentBkSetSpec.getReplicas();
 
         final String statefulsetName = BookKeeperResourcesFactory.getResourceName(clusterName,
@@ -177,25 +152,12 @@ public class BookKeeperSetAutoscaler implements Runnable {
                     clusterName, bkName, currentExpectedReplicas);
             return;
         }
-        final String bookieUrl = computeBookieUrl(currentBkSetSpec);
-        if (log.isDebugEnabled()) {
-            log.debugf("Using bookie url %s to access REST API", bookieUrl);
-        }
 
-        List<BookieInfo> bookieInfos = collectBookieInfos(bookieUrl, podSelector);
-
-        if (cleanUpPvcs) {
-            int cleanedUpCount = cleanupPvcs(podSelector, currentBkSetSpec);
-            if (cleanedUpCount > 0 && bookieInfos.size() > 0) {
-                // Trigger audit earlier.
-                // There is no point in skipping PVC deletion as the cookie is already deleted.
-                log.infof("Cleaned up %d PVCs for bookkeeper cluster %s, will trigger audit",
-                        cleanedUpCount, clusterName);
-                triggerAudit(bookieUrl, bookieInfos.get(0));
-            }
-        } else {
-            log.debugf("PVC cleanup is disabled for bookkeeper cluster %s", clusterName);
-        }
+        List<Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats>> bookieInfos =
+                this.bookieAdminClient.collectBookieInfos()
+                        .stream()
+                        .map(bookieInfo -> Pair.of(bookieInfo, this.bookieAdminClient.collectBookieStats(bookieInfo)))
+                        .collect(Collectors.toList());
 
         ClusterStats clusterStats = collectClusterStats(diskUsageHwm, bookieInfos);
 
@@ -215,7 +177,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
         }
 
         if (desiredScaleChange == 0 && clusterStats.writableBookiesTotal > targetWritableBookiesCount) {
-            boolean canScaleDown = checkIfCanScaleDown(bookieUrl, diskUsageLwm, bookieInfos, podSelector);
+            boolean canScaleDown = checkIfCanScaleDown(diskUsageLwm, bookieInfos);
             if (canScaleDown) {
                 desiredScaleChange -= Math.min(bookieSafeStepDown,
                         clusterStats.writableBookiesTotal - targetWritableBookiesCount);
@@ -224,77 +186,6 @@ public class BookKeeperSetAutoscaler implements Runnable {
             } else {
                 log.infof("Cannot scale down");
                 return;
-            }
-        }
-
-        if (desiredScaleChange < 0) {
-            log.infof("Downscaling is needed");
-            int sz = bookieInfos.size();
-            Set<BookieInfo> bookiesToUnset = new HashSet<>(sz);
-
-            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
-                bookiesToUnset.add(bookieInfos.get(i));
-                setReadOnly(bookieUrl, bookieInfos.get(i), true);
-            }
-
-            // wait for bookies to be read-only
-            Thread.sleep(3000);
-
-            boolean success = true;
-            for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
-                String bookieName = bookieInfos.get(i).getPodResource().get().getMetadata().getName();
-                log.infof("Attempting downscale of bookie %s with bookieId = %s",
-                        bookieName, getBookieId(bookieInfos.get(i).getPodResource()));
-
-                if (!runBookieRecovery(bookieInfos.get(i))) {
-                    log.warnf("Can't scale down, failed to recover %s with bookieId = %s",
-                            bookieName,
-                            getBookieId(bookieInfos.get(i).getPodResource()));
-                    success = false;
-                    break;
-                }
-            }
-
-            if (success && doesNotHaveUnderReplicatedLedgers(bookieUrl, podSelector)) {
-                log.infof("ledgers recovered successfully, proceeding with cookie removal");
-            } else {
-                log.warnf("Can't scale down, there are under replicated ledgers after recovery");
-                success = false;
-            }
-
-            if (success) {
-                for (int i = sz - 1; i >= sz + desiredScaleChange; i--) {
-                    // todo: I think it is possible to get into a bad state here
-                    // if the cookie delete passes but connection fails and k8s client returns error.
-                    // or if the disk cookie deletion fails due to some k8s/network error
-                    // Cookie on the disk will persist, PVC will be preserved,
-                    // and on restart the bookie will fail
-                    if (!deleteCookie(bookieInfos.get(i))) {
-                        log.warnf("Can't scale down, failed to delete cookie for %s",
-                                bookieInfos.get(i).getPodResource().get().getMetadata().getName());
-                        success = false;
-                        break;
-                    }
-                    bookiesToUnset.remove(bookieInfos.get(i));
-                }
-            }
-
-            if (!success || bookiesToUnset.size() > 0) {
-
-                int partiallySucceeded = sz - bookiesToUnset.size();
-
-                if (partiallySucceeded > 0 && partiallySucceeded < (-1 * desiredScaleChange)) {
-                    log.warnf("Downscale partially succeeded, %d bookies can be removed",
-                            partiallySucceeded);
-                    desiredScaleChange = -1 * partiallySucceeded;
-                } else {
-                    log.warnf("Downscale failed, will retry again later");
-                    desiredScaleChange = 0;
-                }
-
-                for (BookieInfo bInfo : bookiesToUnset) {
-                    setReadOnly(bookieUrl, bInfo, false);
-                }
             }
         }
 
@@ -324,118 +215,20 @@ public class BookKeeperSetAutoscaler implements Runnable {
     }
 
     private void applyScaleTo(BookKeeper bookKeeperCr, int scaleTo) {
-        if (bookkeeperSetName.equals(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET)) {
-            bookKeeperCr.getSpec().getBookkeeper().getDefaultBookKeeperSpecRef().setReplicas(scaleTo);
-        } else {
-            bookKeeperCr.getSpec().getBookkeeper().getSets().get(bookkeeperSetName).setReplicas(scaleTo);
-        }
+        bookKeeperCr.getSpec().getBookkeeper().getBookKeeperSetSpecRef(bookkeeperSetName).setReplicas(scaleTo);
     }
 
-    private String computeBookieUrl(BookKeeperSetSpec currentSpec) {
-        final String configKey = "%s%s".formatted(BaseResourcesFactory.CONFIG_PULSAR_PREFIX, "httpServerPort");
-        final Map<String, Object> config = currentSpec.getConfig();
-        final Object port;
-        if (config == null || !config.containsKey(configKey)) {
-            port = BookKeeperResourcesFactory.DEFAULT_HTTP_PORT;
-        } else {
-            port = config.getOrDefault(configKey, BookKeeperResourcesFactory.DEFAULT_HTTP_PORT);
-        }
-        return "%s://%s:%s".formatted(
-                BaseResourcesFactory.isTlsEnabledOnBookKeeper(clusterSpec.getGlobal()) ? "https" : "http",
-                "localhost",
-                String.valueOf(port)
-        );
-    }
 
-    protected boolean runBookieRecovery(BookieInfo bookieInfo) {
-        boolean success = false;
-        try {
-            String res = recoverAndDeleteCookieInZk(bookieInfo, false);
-            if (!res.contains("Recover bookie operation completed with rc: OK: No problem")) {
-                log.warnf("Recovery failed for bookie %s \n %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName(), res);
-                return false;
-            }
-
-            if (existLedgerOnBookie(bookieInfo)) {
-                log.warnf("Bookie %s still has ledgers assigned to it, will not delete cookie",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-                return false;
-            }
-
-            success = true;
-        } catch (Exception e) {
-            log.errorf(e, "Error while recovering bookie %s",
-                    bookieInfo.getPodResource().get().getMetadata().getName());
-        }
-        return success;
-    }
-
-    protected boolean deleteCookie(BookieInfo bookieInfo) {
-        boolean success = false;
-        try {
-            if (existLedgerOnBookie(bookieInfo)) {
-                log.warnf("Bookie %s has ledgers assigned to it, will not delete cookie",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-                return false;
-            }
-
-            for (int i = 0; i < 2; i++) {
-                // todo: figure out better way to check if cookie got deleted or change recover command
-                String res = recoverAndDeleteCookieInZk(bookieInfo, true);
-                if (res.contains("cookie is deleted") || res.contains("No cookie to remove")) {
-                    // have to do that, otherwise init bookie will fail if PVC survives
-                    deleteCookieOnDisk(bookieInfo);
-                    success = true;
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            log.errorf(e, "Error while deleting a cookie for bookie %s",
-                    bookieInfo.getPodResource().get().getMetadata().getName());
-        }
-        return success;
-    }
-
-    @SneakyThrows
-    private boolean existLedgerOnBookie(BookieInfo bookieInfo) {
-        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
-        CompletableFuture<String> out = AutoscalerUtils.execInPod(client, namespace,
-                podName,
-                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "bin/bookkeeper shell listledgers -meta -bookieid "
-                        + getBookieId(bookieInfo.getPodResource()));
-        out.whenComplete((s, e) -> {
-            if (e != null) {
-                log.errorf(e, "Error running listledgers for bookie %s",
-                        podName);
-            } else {
-                log.infof("listledgers for %s succeeded",
-                        podName);
-            }
-        });
-        String res = out.get();
-        log.infof("listledgers output: %s", res);
-        // error getting the info, err on the safe side
-        if (res.contains("Unable to read the ledger")
-                || res.contains("Received error return value while processing ledgers")
-                || res.contains("Received Exception while processing ledgers")) {
-            return true;
-        }
-        return res.contains("ledgerID: ");
-    }
-
-    private boolean checkIfCanScaleDown(String bookieUrl, double diskUsageLwm,
-                                        List<BookieInfo> bookieInfos,
-                                        Map<String, String> podSelector) {
+    private boolean checkIfCanScaleDown(double diskUsageLwm,
+                                        List<Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats>> bookieInfos) {
         boolean canScaleDown = true;
-        for (BookieInfo info : bookieInfos) {
-            if (info.isWritable()) {
-                long notReadyDiskCount = info.ledgerDiskInfos.stream()
+        for (Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats> info : bookieInfos) {
+            if (info.getRight().isWritable()) {
+                long notReadyDiskCount = info.getRight().getLedgerDiskInfos().stream()
                         .filter(d -> {
                             boolean res = isDiskUsageAboveTolerance(d, diskUsageLwm);
                             log.infof("isDiskUsageAboveTolerance: %s for %s (%s)", res,
-                                    info.getPodResource().get().getMetadata().getName(),
+                                    info.getLeft().getPodResource().get().getMetadata().getName(),
                                     d);
                             return res;
                         })
@@ -445,13 +238,13 @@ public class BookKeeperSetAutoscaler implements Runnable {
                     // don't want to go back and forth if bookies disk usage may result in
                     // switch to read-only/scale up soon
                     log.infof("Not all disks are ready for %s",
-                            info.getPodResource().get().getMetadata().getName());
+                            info.getLeft().getPodResource().get().getMetadata().getName());
                     return false;
                 }
             }
         }
 
-        boolean doesNotHaveUnderReplicatedLedgers = doesNotHaveUnderReplicatedLedgers(bookieUrl, podSelector);
+        boolean doesNotHaveUnderReplicatedLedgers = bookieAdminClient.doesNotHaveUnderReplicatedLedgers();
         if (!doesNotHaveUnderReplicatedLedgers) {
             log.infof("Found underreplicated ledgers, can't scale down");
             canScaleDown = false;
@@ -460,14 +253,16 @@ public class BookKeeperSetAutoscaler implements Runnable {
         return canScaleDown;
     }
 
-    private ClusterStats collectClusterStats(double diskUsageHwm, List<BookieInfo> bookieInfos) {
+    private ClusterStats collectClusterStats(double diskUsageHwm,
+                                             List<Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats>>
+                                                     bookieInfos) {
         ClusterStats clusterStats = new ClusterStats();
         // ignoring racks for now
-        for (BookieInfo info : bookieInfos) {
-            if (info.isWritable()) {
+        for (Pair<BookieAdminClient.BookieInfo, BookieAdminClient.BookieStats> info : bookieInfos) {
+            if (info.getRight().isWritable()) {
                 clusterStats.writableBookiesTotal++;
 
-                long disksNotAtRisk = info.ledgerDiskInfos.stream()
+                long disksNotAtRisk = info.getRight().getLedgerDiskInfos().stream()
                         .filter(d -> isDiskUsageBelowTolerance(d, diskUsageHwm))
                         .count();
                 if (disksNotAtRisk == 0) {
@@ -485,277 +280,13 @@ public class BookKeeperSetAutoscaler implements Runnable {
         return clusterStats;
     }
 
-    private List<BookieInfo> collectBookieInfos(String bookieUrl, Map<String, String> withLabels) {
-        List<BookieInfo> bookieInfos = client.pods().inNamespace(namespace).withLabels(withLabels).resources()
-                .map(pod -> getBoookieInfo(bookieUrl, namespace, pod))
-                .sorted(Comparator.comparing(b -> b.podResource.get().getMetadata().getName())).toList();
-        return bookieInfos;
-    }
 
-    private int cleanupPvcs(Map<String, String> pvcSelector, BookKeeperSetSpec currentSpec) {
-        log.infof("Checking PVCs for bookies with %s", pvcSelector);
-        final AtomicInteger pvcCount = new AtomicInteger(0);
-        client.persistentVolumeClaims()
-                .inNamespace(namespace)
-                .withLabels(pvcSelector)
-                .list().getItems().forEach(pvc -> {
-                    String name = pvc.getMetadata().getName();
-                    if (isLedgersPvc(name, currentSpec) || isJournalPvc(name, currentSpec)) {
-                        int idx = Integer.parseInt(name.substring(name.lastIndexOf('-') + 1));
-                        if (idx >= currentSpec.getReplicas()) {
-                            log.infof("Deleting PVC %s", name);
-                            client.resource(pvc).delete();
-                            pvcCount.incrementAndGet();
-                        } else {
-                            log.debugf("Keeping PVC %s", name);
-                        }
-                    }
-                });
-        return pvcCount.get();
-    }
-
-    private boolean isJournalPvc(String name, BookKeeperSetSpec currentSetSpec) {
-        GlobalSpec globalSpec = clusterSpec.getGlobalSpec();
-        String resourceName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
-                globalSpec.getComponents().getBookkeeperBaseName(), bookkeeperSetName,
-                currentSetSpec.getOverrideResourceName());
-        String ledgersVolumeName = BookKeeperResourcesFactory
-                .getJournalPvPrefix(clusterSpec.getBookkeeper(), resourceName);
-        return name.startsWith(ledgersVolumeName);
-    }
-
-    private boolean isLedgersPvc(String name, BookKeeperSetSpec currentSetSpec) {
-        GlobalSpec globalSpec = clusterSpec.getGlobalSpec();
-        String resourceName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
-                globalSpec.getComponents().getBookkeeperBaseName(), bookkeeperSetName,
-                currentSetSpec.getOverrideResourceName());
-        String ledgersVolumeName = BookKeeperResourcesFactory
-                .getLedgersPvPrefix(clusterSpec.getBookkeeper(), resourceName);
-        return name.startsWith(ledgersVolumeName);
-    }
-
-    @SneakyThrows
-    private String recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
-        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
-        CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
-                podName,
-                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "bin/bookkeeper shell recover -f " + (deleteCookie ? "-d " : "")
-                        + getBookieId(bookieInfo.getPodResource()));
-        recoverOut.whenComplete((s, e) -> {
-            if (e != null) {
-                log.errorf(e, "Error recovering bookie %s",
-                        podName);
-            } else {
-                log.infof("Bookie %s recovered",
-                        podName);
-            }
-        });
-        String res = recoverOut.get();
-        log.infof("Recover output: %s", res);
-        return res;
-    }
-
-    @SneakyThrows
-    private void deleteCookieOnDisk(BookieInfo bookieInfo) {
-        // moving rather than deleting, into a random name
-        CompletableFuture<String> cookieOut = AutoscalerUtils.execInPod(client, namespace,
-                bookieInfo.getPodResource().get().getMetadata().getName(),
-                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "mv /pulsar/data/bookkeeper/journal/current/VERSION "
-                        + "/pulsar/data/bookkeeper/journal/current/VERSION.old.$(head /dev/urandom | tr -dc a-z0-9 | "
-                        + "head -c 8)");
-        cookieOut.whenComplete((s, e) -> {
-            if (e != null) {
-                log.errorf(e, "Error deleting cookie at %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-            } else {
-                log.infof("Bookie's %s cookie is deleted",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-            }
-        });
-        String res = cookieOut.get();
-        log.infof("Cookie delete output: %s", res);
-    }
-
-    protected String getBookieId(PodResource podResource) {
-        Pod pod = podResource.get();
-        return getBookieId(pod, bookkeeperSetName, desiredBookKeeperSetSpec, clusterSpec.getGlobalSpec(), namespace);
-    }
-
-    public static String getBookieId(Pod pod, String bookieSet,
-                                     BookKeeperSetSpec setSpec,
-                                     GlobalSpec globalSpec,
-                                     String namespace) {
-        return getBookieId(pod.getSpec().getHostname(), bookieSet, setSpec, globalSpec, namespace);
-    }
-
-    public static String getBookieId(int podIndex, String bookieSet,
-                                     BookKeeperSetSpec setSpec,
-                                     GlobalSpec globalSpec,
-                                     String namespace) {
-
-        final String stsName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
-                globalSpec.getComponents().getBookkeeperBaseName(), bookieSet, setSpec.getOverrideResourceName());
-        return getBookieId("%s-%d".formatted(stsName, podIndex), bookieSet, setSpec, globalSpec, namespace);
-    }
-
-    public static String getBookieId(String podHostname, String bookieSet,
-                                     BookKeeperSetSpec setSpec,
-                                     GlobalSpec globalSpec,
-                                     String namespace) {
-        // https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#a-aaaa-records-1
-        // <pod-hostname>.<service-name>.<namespace>.svc.<cluster-domain>
-
-        // note that this might depend on bk configs:
-        // - 'useHostNameAsBookieID'
-        // - 'useShortHostName'
-        // - 'advertisedAddress'
-
-        final String svcName = BookKeeperResourcesFactory.getResourceName(globalSpec.getName(),
-                globalSpec.getComponents().getBookkeeperBaseName(), bookieSet, setSpec.getOverrideResourceName());
-        return String.format("%s.%s.%s.svc.%s:%d",
-                podHostname,
-                svcName,
-                namespace,
-                globalSpec.getKubernetesClusterDomain(),
-                BookKeeperResourcesFactory.DEFAULT_BK_PORT);
-    }
-
-    @SneakyThrows
-    private void triggerAudit(String bookieUrl, BookieInfo bookieInfo) {
-        CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
-                bookieInfo.getPodResource().get().getMetadata().getName(),
-                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "curl -s -X PUT " + bookieUrl + "/api/v1/autorecovery/trigger_audit");
-        curlOut.whenComplete((s, e) -> {
-            if (e != null) {
-                log.errorf(e, "Error triggering audit %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-            } else {
-                log.infof("Triggered audit",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-            }
-        });
-        curlOut.get();
-    }
-
-    @SneakyThrows
-    protected void setReadOnly(String bookieUrl, BookieInfo bookieInfo, boolean roStatus) {
-        CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
-                bookieInfo.getPodResource().get().getMetadata().getName(),
-                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "curl -s -X PUT -H \"Content-Type: application/json\" "
-                        + "-d '{\"readOnly\":" + roStatus + "}' "
-                        + bookieUrl + "/api/v1/bookie/state/readonly");
-        curlOut.whenComplete((s, e) -> {
-            if (e != null) {
-                log.errorf(e, "Error making bookie read-only %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-            } else {
-                log.infof("Bookie %s is set to read-only %b",
-                        roStatus,
-                        bookieInfo.getPodResource().get().getMetadata().getName());
-            }
-        });
-
-        curlOut.get();
-    }
-
-    @SneakyThrows
-    private boolean doesNotHaveUnderReplicatedLedgers(String bookieUrl, Map<String, String> podSelector) {
-        //TODO: improve BK API, add an option for true/false response if any UR ledger exists
-        // to avoid long wait for the full list, return json
-        /*
-        $ curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/
-        No under replicated ledgers found
-        */
-        Optional<PodResource> pod =
-                client.pods().inNamespace(namespace).withLabels(podSelector).resources().findFirst();
-        if (pod.isEmpty()) {
-            log.info("Could not get PodResource, assume something is underreplicated");
-            return true;
-        }
-        CompletableFuture<String> urLedgersOut = AutoscalerUtils.execInPod(client, namespace,
-                pod.get().get().getMetadata().getName(),
-                BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                "curl -s " + bookieUrl + "/api/v1/autorecovery/list_under_replicated_ledger/");
-
-        return urLedgersOut.get().contains("No under replicated ledgers found");
-    }
-
-    protected boolean isDiskUsageAboveTolerance(BookieLedgerDiskInfo diskInfo, double tolerance) {
+    protected boolean isDiskUsageAboveTolerance(BookieAdminClient.BookieLedgerDiskInfo diskInfo, double tolerance) {
         return !isDiskUsageBelowTolerance(diskInfo, tolerance);
     }
 
-    protected boolean isDiskUsageBelowTolerance(BookieLedgerDiskInfo diskInfo, double tolerance) {
+    protected boolean isDiskUsageBelowTolerance(BookieAdminClient.BookieLedgerDiskInfo diskInfo, double tolerance) {
         return diskInfo.getMaxBytes() > 0
                 && ((double) diskInfo.getUsedBytes() / diskInfo.getMaxBytes()) < tolerance;
-    }
-
-    @SneakyThrows
-    protected BookieInfo getBoookieInfo(String bookieUrl, String namespace, PodResource pod) {
-        if (log.isDebugEnabled()) {
-            log.debugf("getting BookieInfo for pod ()", pod.get().getMetadata().getName());
-        }
-
-        CompletableFuture<String> bkStateOut =
-                AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
-                        BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                        "curl -s " + bookieUrl + "/api/v1/bookie/state");
-
-        CompletableFuture<String> bkInfoOut =
-                AutoscalerUtils.execInPod(client, namespace, pod.get().getMetadata().getName(),
-                        BookKeeperResourcesFactory.getBookKeeperContainerName(clusterSpec.getGlobalSpec()),
-                        "curl -s " + bookieUrl + "/api/v1/bookie/info");
-
-        List<BookieLedgerDiskInfo> ledgerDiskInfos = new ArrayList<>(1);
-        BookieLedgerDiskInfo diskInfo = BookieLedgerDiskInfo.builder()
-                .build();
-        parseAndFillDiskUsage(diskInfo, bkInfoOut.get());
-        ledgerDiskInfos.add(diskInfo);
-
-        boolean writable = parseIsWritable(bkStateOut.get());
-
-        return BookieInfo.builder()
-                .podResource(pod)
-                .isWritable(writable)
-                .ledgerDiskInfos(ledgerDiskInfos)
-                .build();
-    }
-
-    @SneakyThrows
-    private boolean parseIsWritable(String bkStateOutput)
-            throws JsonProcessingException, InterruptedException, ExecutionException {
-        /*
-        $ curl -s localhost:8000/api/v1/bookie/state
-        {
-          "running" : true,
-          "readOnly" : false,
-          "shuttingDown" : false,
-          "availableForHighPriorityWrites" : true
-        }
-        */
-        JsonNode node = MAPPER.readTree(bkStateOutput);
-        boolean writable = node.get("running").asBoolean()
-                && !node.get("readOnly").asBoolean()
-                && !node.get("shuttingDown").asBoolean();
-        return writable;
-    }
-
-    @SneakyThrows
-    private void parseAndFillDiskUsage(BookieLedgerDiskInfo diskInfo, String bkStateOutput) {
-        /*
-        $ curl -s localhost:8000/api/v1/bookie/info
-        {
-          "freeSpace" : 49769177088,
-          "totalSpace" : 101129359360
-        }
-        */
-        JsonNode node = MAPPER.readTree(bkStateOutput);
-        long total = node.get("totalSpace").asLong(0);
-        long free = node.get("freeSpace").asLong(Long.MAX_VALUE);
-        diskInfo.setMaxBytes(total);
-        diskInfo.setUsedBytes(total - free);
     }
 }

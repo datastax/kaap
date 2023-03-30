@@ -103,7 +103,8 @@ public abstract class AbstractK3sContainer implements AutoCloseable {
             @Override
             @SneakyThrows
             public void run() {
-                log.info("Downloading docker image {} in k3s", imageName);
+                log.info("Downloading docker image {} in k3s ({}-{})", imageName, container.getContainerName(),
+                        container.getImage());
                 long start = System.currentTimeMillis();
                 final Container.ExecResult execResult;
                 try {

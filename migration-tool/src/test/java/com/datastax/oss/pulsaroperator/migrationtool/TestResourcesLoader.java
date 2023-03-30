@@ -19,25 +19,34 @@ import com.datastax.oss.pulsaroperator.mocks.MockResourcesResolver;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.function.Predicate;
 import lombok.SneakyThrows;
 
 public class TestResourcesLoader {
     private TestResourcesLoader() {
     }
 
-
     @SneakyThrows
     public static void importPathFromClasspath(String resourcePath, MockResourcesResolver resourcesResolver) {
-        final File file = new File(TestResourcesLoader.class.getResource(resourcePath).toURI());
-        importPathFromFile(file, resourcesResolver);
+        importPathFromClasspath(resourcePath, resourcesResolver, (s) -> true);
     }
 
     @SneakyThrows
-    public static void importPathFromFile(File file, MockResourcesResolver resourcesResolver) {
+    public static void importPathFromClasspath(String resourcePath, MockResourcesResolver resourcesResolver,
+                                               Predicate<String> filterOutFile) {
+        final File file = new File(TestResourcesLoader.class.getResource(resourcePath).toURI());
+        importPathFromFile(file, resourcesResolver, filterOutFile);
+    }
+
+    @SneakyThrows
+    public static void importPathFromFile(File file, MockResourcesResolver resourcesResolver,
+                                          Predicate<String> filterOutFile) {
         if (file.isDirectory()) {
-            Files.list(file.toPath()).forEach(path -> importPathFromFile(path.toFile(), resourcesResolver));
+            Files.list(file.toPath()).forEach(path -> importPathFromFile(path.toFile(), resourcesResolver, filterOutFile));
         } else {
-            resourcesResolver.importResource(Files.readString(file.toPath(), StandardCharsets.UTF_8));
+            if (filterOutFile.test(file.getName())) {
+                resourcesResolver.importResource(Files.readString(file.toPath(), StandardCharsets.UTF_8));
+            }
         }
     }
 }

@@ -62,6 +62,11 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
         return generatedSpec;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return generatedSpec.getReplicas() > 0;
+    }
+
     public void internalGenerateSpec() {
         final ConfigMap configMap = requireConfigMap(resourceName);
         final Deployment deployment = requireDeployment(resourceName);

@@ -62,6 +62,11 @@ public class BastionSpecGenerator extends BaseSpecGenerator<BastionSpec> {
         return generatedSpec;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return generatedSpec.getReplicas() > 0;
+    }
+
     public void internalGenerateSpec() {
         final ConfigMap configMap = getConfigMap(resourceName);
         if (configMap == null) {

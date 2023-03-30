@@ -78,6 +78,8 @@ public abstract class BaseSpecGenerator<T> {
 
     public abstract T generateSpec();
 
+    public abstract boolean isEnabled();
+
     public abstract PodDNSConfig getPodDnsConfig();
 
     public abstract boolean isRestartOnConfigMapChange();

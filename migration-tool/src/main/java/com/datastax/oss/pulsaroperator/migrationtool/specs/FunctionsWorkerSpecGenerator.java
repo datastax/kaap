@@ -69,6 +69,11 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
         return generatedSpec;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return generatedSpec.getReplicas() > 0;
+    }
+
     public void internalGenerateSpec() {
         final ConfigMap configMap = getConfigMap(resourceName);
         if (configMap == null) {

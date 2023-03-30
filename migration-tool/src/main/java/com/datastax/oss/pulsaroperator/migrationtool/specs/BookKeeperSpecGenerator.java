@@ -88,6 +88,11 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     }
 
     @Override
+    public boolean isEnabled() {
+        return generators.values().stream().filter(gen -> gen.isEnabled()).findAny().isPresent();
+    }
+
+    @Override
     public PodDNSConfig getPodDnsConfig() {
         return PulsarClusterResourceGenerator
                 .getValueAssertSame(p -> p.getPodDnsConfig(), false, "PodDnsConfig",

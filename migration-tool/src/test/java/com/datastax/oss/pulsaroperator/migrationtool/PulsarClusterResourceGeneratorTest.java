@@ -58,21 +58,52 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         assertValue(outputDir);
-        assertDiff(diff);
+        assertDiff(diff, 160);
     }
 
-    private void assertDiff(DiffCollectorOutputWriter diff) throws IOException {
+    @Test
+    public void testNoFunctions() throws Exception {
+
+        final MockResourcesResolver mockResourcesResolver = new MockResourcesResolver();
+        TestResourcesLoader.importPathFromClasspath("/pulsar-helm-chart/base-release",
+                mockResourcesResolver, file -> !file.contains("-function"));
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, mockResourcesResolver);
+
+        Path tmpDir = Files.createTempDirectory("test");
+
+        final DiffCollectorOutputWriter diff = generate(client, tmpDir);
+        final File outputDir = new File(tmpDir.toFile(), CONTEXT);
+        final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
+        assertDiff(diff, 122);
+        Assert.assertEquals(pulsar.getSpec().getFunctionsWorker().getReplicas(), 0);
+    }
+
+    @Test
+    public void testNoBastion() throws Exception {
+
+        final MockResourcesResolver mockResourcesResolver = new MockResourcesResolver();
+        TestResourcesLoader.importPathFromClasspath("/pulsar-helm-chart/base-release",
+                mockResourcesResolver, file -> !file.contains("-bastion"));
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, mockResourcesResolver);
+
+        Path tmpDir = Files.createTempDirectory("test");
+
+        final DiffCollectorOutputWriter diff = generate(client, tmpDir);
+        final File outputDir = new File(tmpDir.toFile(), CONTEXT);
+        final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
+        assertDiff(diff, 151);
+        Assert.assertEquals(pulsar.getSpec().getBastion().getReplicas(), 0);
+    }
+
+    private void assertDiff(DiffCollectorOutputWriter diff, int expected) throws IOException {
         var diffs = diff.getAll();
         diffs.entrySet().forEach(System.out::println);
-        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), 217L);
+        Assert.assertEquals(diffs.values().stream().flatMap(Collection::stream).count(), expected);
     }
 
     @SneakyThrows
     private void assertValue(File tmpDir) {
-        final String asString = Files.readString(SpecGenerator.getGeneratedPulsarClusterFileFromDir(tmpDir));
-        final PulsarCluster pulsarCluster = SerializationUtil.readYaml(
-                asString, PulsarCluster.class
-        );
+        final PulsarCluster pulsarCluster = getPulsarClusterFromOutputdir(tmpDir);
         Assert.assertEquals(
                 SerializationUtil.writeAsYaml(pulsarCluster),
                 """
@@ -977,6 +1008,7 @@ public class PulsarClusterResourceGeneratorTest {
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                               PULSAR_LOG_LEVEL: info
                               PULSAR_LOG_ROOT_LEVEL: info
+                              ensemblePlacementPolicy: ""
                               zkServers: pulsar-cluster-zookeeper-ca:2181
                             replicas: 1
                             annotations:
@@ -1247,6 +1279,14 @@ public class PulsarClusterResourceGeneratorTest {
                           conditions: []
                         """
         );
+    }
+
+    private PulsarCluster getPulsarClusterFromOutputdir(File tmpDir) throws IOException {
+        final String asString = Files.readString(SpecGenerator.getGeneratedPulsarClusterFileFromDir(tmpDir));
+        final PulsarCluster pulsarCluster = SerializationUtil.readYaml(
+                asString, PulsarCluster.class
+        );
+        return pulsarCluster;
     }
 
 

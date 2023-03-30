@@ -68,6 +68,11 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
         return generatedSpec;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return generatedSpec.getReplicas() > 0;
+    }
+
     public void internalGenerateSpec() {
         final PodDisruptionBudget podDisruptionBudget = getPodDisruptionBudget(resourceName);
         final ConfigMap configMap = requireConfigMap(resourceName);

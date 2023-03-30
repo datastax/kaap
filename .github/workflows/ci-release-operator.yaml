@@ -34,7 +34,7 @@ jobs:
 
       - name: Build and push
         run: |
-            mvn clean install -DskipTests -pl pulsar-operator -am -Pskip-crds
+            mvn clean install -DskipTests -Pskip-crds
             docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
             
             docker tag datastax/lunastreaming-operator:latest-dev ghcr.io/riptano/pulsar-operator:$docker_tag

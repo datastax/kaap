@@ -70,7 +70,11 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
     }
 
     public void internalGenerateSpec() {
-        final ConfigMap configMap = requireConfigMap(resourceName);
+        final ConfigMap configMap = getConfigMap(resourceName);
+        if (configMap == null) {
+            generatedSpec = FunctionsWorkerSpec.builder().replicas(0).build();
+            return;
+        }
         final ConfigMap configMapExtra = requireConfigMap(resourceName + "-extra");
         final StatefulSet statefulSet = requireStatefulSet(resourceName);
         final PodDisruptionBudget pdb = getPodDisruptionBudget(resourceName);

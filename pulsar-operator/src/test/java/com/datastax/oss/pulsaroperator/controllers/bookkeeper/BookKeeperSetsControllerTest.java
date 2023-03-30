@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.mockito.Mockito;
@@ -108,6 +109,31 @@ public class BookKeeperSetsControllerTest {
                 client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1").getResource());
         assertServiceEqualsDefault("set2",
                 client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2").getResource());
+    }
+
+
+    @Test
+    public void testBookKeeperSetsDefaultName() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    setsUpdateStrategy: Parallel
+                    sets:
+                      bookkeeper:
+                        config:
+                            myconfig: thevalue
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
+        Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 1);
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class).getResource()
+                        .getData().get("PULSAR_PREFIX_myconfig"), "thevalue");
+        Assert.assertEquals(client.getCreatedResources(PodDisruptionBudget.class).size(), 1);
+        System.out.println(client.getCreatedResources(Service.class).stream().map(d -> d.getResource().getMetadata().getName()).collect(
+                Collectors.toList()));
+        Assert.assertEquals(client.getCreatedResources(Service.class).size(), 2);
     }
 
 

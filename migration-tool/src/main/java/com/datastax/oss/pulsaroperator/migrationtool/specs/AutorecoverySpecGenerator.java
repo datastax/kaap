@@ -77,6 +77,9 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(deploymentSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
+        if (!config.containsKey("ensemblePlacementPolicy")) {
+            config.put("ensemblePlacementPolicy", "");
+        }
         tlsEntryConfig = createTlsEntryConfig(deployment);
 
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();

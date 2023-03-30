@@ -226,9 +226,9 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                         && desiredBrokerSetSpec.getAutoscaler().getEnabled()) {
                     final BrokerSetSpec currentBrokerSetSpec = currentSet.getValue();
                     if (currentBrokerSetSpec.getReplicas() != null) {
-                        if (desiredBrokerSetSpec.getReplicas() != null &&
-                                desiredBrokerSetSpec.getReplicas().intValue() != currentBrokerSetSpec.getReplicas()
-                                        .intValue()) {
+                        if (desiredBrokerSetSpec.getReplicas() != null
+                                && desiredBrokerSetSpec.getReplicas().intValue() != currentBrokerSetSpec.getReplicas()
+                                .intValue()) {
                             log.infof("Broker set %s has autoscaler enabled, "
                                             + "keeping the replicas to %d instead of using the manual value %d",
                                     currentSet.getKey(), currentBrokerSetSpec.getReplicas(),
@@ -270,8 +270,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
                         && desiredSetSpec.getAutoscaler().getEnabled()) {
                     final BookKeeperSetSpec currentSetSpec = currentSet.getValue();
                     if (currentSetSpec.getReplicas() != null) {
-                        if (desiredSetSpec.getReplicas() != null &&
-                                desiredSetSpec.getReplicas().intValue() != currentSetSpec.getReplicas().intValue()) {
+                        if (desiredSetSpec.getReplicas() != null
+                                && desiredSetSpec.getReplicas().intValue() != currentSetSpec.getReplicas().intValue()) {
                             log.infof("Bookie set %s has autoscaler enabled, "
                                             + "keeping the replicas to %d instead of using the manual value %d",
                                     currentSet.getKey(), currentSetSpec.getReplicas(), desiredSetSpec.getReplicas());

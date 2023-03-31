@@ -156,7 +156,7 @@ global:
     racks:
         rack1:
             host:
-		        enabled: true
+                enabled: true
 ```
 
 With `requireRackAffinity=false`, each pods of the same rack will be placed where a new pod of the same rack exists (if any exists), if possible.

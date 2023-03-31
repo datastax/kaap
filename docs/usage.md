@@ -1,6 +1,6 @@
 # Usage
 
-The `PulsarCluster` custom resource definition represent the desired state of your Apache Pulsar cluster.
+The `PulsarCluster` custom resource definition represents the desired state of your Apache Pulsar cluster.
 The main structure is:
 - `global` section, containing configurations shared by each component
 - a section for each component
@@ -33,8 +33,8 @@ functionsWorker:
 
 ### Authentication
 Apache Pulsar supports different authentication ways. 
-The operator have a specific option to facilitate the authentication.
-In order to setup [JWT Authentication](https://pulsar.apache.org/docs/2.11.x/security-jwt/), you can simply set authentication to true.
+The operator comes with options to facilitate the authentication.
+In order to setup the [JWT Authentication](https://pulsar.apache.org/docs/2.11.x/security-jwt/), you can simply set authentication to `true`.
 
 ```
 global:

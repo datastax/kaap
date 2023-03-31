@@ -28,6 +28,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BrokerAutoscalerSpec {
 
+    public static final String RESOURCE_USAGE_SOURCE_LOAD_BALANCER = "pulsar-load-balancer-report";
+    public static final String RESOURCE_USAGE_SOURCE_K8S_METRICS = "k8s-metrics";
+
     Boolean enabled;
     @Min(1000)
     @javax.validation.constraints.Min(1000)
@@ -55,5 +58,7 @@ public class BrokerAutoscalerSpec {
     @Min(1)
     @javax.validation.constraints.Min(1)
     Long stabilizationWindowMs;
+
+    String resourceUsageSource;
 
 }

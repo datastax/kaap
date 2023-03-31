@@ -26,7 +26,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.jbosslog.JBossLog;
 
+@JBossLog
 public class ZkClientRackClientFactory implements BkRackClientFactory{
 
     private final Map<String, ZkClientRackClient> zkClients = new ConcurrentHashMap<>();
@@ -48,6 +50,14 @@ public class ZkClientRackClientFactory implements BkRackClientFactory{
             }
             return null;
         }
+
+        if (LaunchMode.current() == LaunchMode.DEVELOPMENT) {
+            // when the operator is running in dev mode, the zk server must be reachable from the host.
+            // normally, this would require port-forwarding and using localhost as hostname.
+            log.infof("Zk Client disabled since we're in dev mode. Bookie auto-rack config is disabled.");
+            return null;
+        }
+
 
         final ZkClientRackClient zkClient =
                 zkClients.computeIfAbsent(zkConnectString,
@@ -83,11 +93,6 @@ public class ZkClientRackClientFactory implements BkRackClientFactory{
     }
 
     protected String getZkServers(String namespace, BookKeeperFullSpec newSpec) {
-        if (LaunchMode.current() == LaunchMode.DEVELOPMENT) {
-            // tls can't work in dev mode because in order to perform hostname validation you have to connect to the
-            // real hostname
-            return "localhost:2181";
-        }
         return BaseResourcesFactory.getZkServers(newSpec.getGlobal(), namespace);
     }
 

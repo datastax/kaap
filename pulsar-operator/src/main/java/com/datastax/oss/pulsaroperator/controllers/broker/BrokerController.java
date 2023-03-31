@@ -178,7 +178,7 @@ public class BrokerController extends
             lastApplied.getBroker().getSets().entrySet()
                     .removeIf(e -> !e.getKey().equals(setInfo.getName()));
         }
-        return SpecDiffer.generateDiff(spec, lastApplied);
+        return SpecDiffer.generateDiff(lastApplied, spec);
     }
 
     @Override

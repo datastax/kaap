@@ -1,0 +1,97 @@
+package com.datastax.oss.pulsaroperator.autoscaler.broker;
+
+import com.datastax.oss.pulsaroperator.autoscaler.AutoscalerUtils;
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
+import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.jbosslog.JBossLog;
+
+@JBossLog
+public class LoadReportResourceUsageSource implements BrokerResourceUsageSource {
+
+    private final KubernetesClient client;
+    private final String namespace;
+    private final Map<String, String> podSelector;
+    private final BrokerSetSpec brokerSetSpec;
+    private final GlobalSpec globalSpec;
+
+    public LoadReportResourceUsageSource(KubernetesClient client, String namespace,
+                                         Map<String, String> podSelector,
+                                         BrokerSetSpec brokerSetSpec,
+                                         GlobalSpec globalSpec) {
+        this.client = client;
+        this.namespace = namespace;
+        this.podSelector = podSelector;
+        this.brokerSetSpec = brokerSetSpec;
+        this.globalSpec = globalSpec;
+    }
+
+    @Override
+    @SneakyThrows
+    public List<ResourceUsage> getBrokersResourceUsages() {
+        final List<Pod> pods = client.pods()
+                .inNamespace(namespace)
+                .withLabels(podSelector)
+                .list()
+                .getItems();
+
+
+        List<ResourceUsage> result = new ArrayList<>();
+
+        final String brokerUrl = "http://localhost:%s/admin/v2/broker-stats/load-report/".formatted(
+                brokerSetSpec.getConfig().getOrDefault("webServicePort", BrokerResourcesFactory.DEFAULT_HTTP_PORT));
+        final String curlAuthHeader = BrokerResourcesFactory.computeCurlAuthHeader(globalSpec);
+        final String curlCommand = "curl %s %s".formatted(curlAuthHeader, brokerUrl);
+
+        for (Pod pod : pods) {
+            final String podName = pod.getMetadata().getName();
+
+            final String jsonOut = AutoscalerUtils.execInPod(client, pod.getMetadata().getNamespace(),
+                            podName,
+                            pod.getSpec().getContainers().get(0).getName(), curlCommand
+                    )
+                    .get(30, TimeUnit.SECONDS);
+
+            final Map<String, Object> json = SerializationUtil.readJson(jsonOut, Map.class);
+            if (!json.containsKey("cpu")) {
+                throw new IllegalStateException(
+                        "Broker %s didn't exposed valid report usage, expected 'cpu', found: %s".formatted(podName,
+                                jsonOut));
+            }
+            final LoadReportResourceUsage loadReportResourceUsage =
+                    SerializationUtil.convertValue(json.get("cpu"), LoadReportResourceUsage.class);
+            final float percentUsage = loadReportResourceUsage.percentUsage();
+            log.infof("Broker %s cpu usage: %f %%", podName,
+                    new BigDecimal(percentUsage).setScale(2, RoundingMode.HALF_EVEN));
+            result.add(new ResourceUsage(podName, percentUsage / 100));
+        }
+        return result;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class LoadReportResourceUsage {
+        double usage;
+        double limit;
+
+        public float percentUsage() {
+            float proportion = 0;
+            if (limit > 0) {
+                proportion = ((float) usage) / ((float) limit);
+            }
+            return proportion * 100;
+        }
+    }
+}

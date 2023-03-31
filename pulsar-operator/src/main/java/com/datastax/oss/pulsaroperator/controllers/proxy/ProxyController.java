@@ -185,6 +185,6 @@ public class ProxyController
             lastApplied.getProxy().getSets().entrySet()
                     .removeIf(e -> !e.getKey().equals(info.getName()));
         }
-        return SpecDiffer.generateDiff(spec, lastApplied);
+        return SpecDiffer.generateDiff(lastApplied, spec);
     }
 }

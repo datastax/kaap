@@ -7783,6 +7783,8 @@ spec:
                             min:
                               minimum: 1.0
                               type: integer
+                            resourceUsageSource:
+                              type: string
                             scaleUpBy:
                               minimum: 1.0
                               type: integer
@@ -9888,6 +9890,8 @@ spec:
                       min:
                         minimum: 1.0
                         type: integer
+                      resourceUsageSource:
+                        type: string
                       scaleUpBy:
                         minimum: 1.0
                         type: integer

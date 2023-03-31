@@ -229,7 +229,6 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
     public void patchStatefulSet() {
         if (!isComponentEnabled()) {
-            log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
         }

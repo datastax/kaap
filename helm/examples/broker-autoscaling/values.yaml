@@ -16,7 +16,7 @@
 #
 
 operator:
-  image: datastax/lunastreaming-operator:latest
+  image: nicoloboschi/pulsar-operator:v27
 cluster:
   create: true
   spec:
@@ -36,30 +36,33 @@ cluster:
         size: 100M
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"
     bookkeeper:
+      autoRackConfig:
+          enabled: false
+      replicas: 2
+      volumes:
+        journal:
+          size: 10Gi
+        ledgers:
+          size: 10Gi
+      resources:
+        requests:
+          cpu: "0.5"
+          memory: "1Gi"
+    broker:
       replicas: 2
       autoscaler:
         enabled: true
-        periodMs: 10000
-        diskUsageToleranceHwm: 0.8
-        diskUsageToleranceLwm: 0.2
-        minWritableBookies: 1
+        periodMs: 20000
+        min: 2
+        max: 10
+        lowerCpuThreshold: 0.4
+        higherCpuThreshold: 0.8
         scaleUpBy: 1
         scaleDownBy: 1
-        stabilizationWindowMs: 30000
-      volumes:
-        journal:
-          size: 1Gi
-        ledgers:
-          size: 1Gi
-      resources:
-        requests:
-          cpu: "0.1"
-          memory: "128Mi"
-    broker:
-      replicas: 1
+        stabilizationWindowMs: 60000
       config:
         managedLedgerDefaultAckQuorum: 1
         managedLedgerDefaultEnsembleSize: 1
@@ -74,17 +77,17 @@ cluster:
         enabled: false
       resources:
         requests:
-          cpu: "0.1"
-          memory: "128Mi"
+          cpu: "1"
+          memory: "1Gi"
     autorecovery:
       replicas: 1
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"
     bastion:
       replicas: 1
       resources:
         requests:
-          cpu: "0.1"
+          cpu: "0.5"
           memory: "128Mi"

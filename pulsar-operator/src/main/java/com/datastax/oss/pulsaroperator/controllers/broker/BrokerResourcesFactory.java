@@ -255,7 +255,6 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
 
     public void patchStatefulSet() {
         if (!isComponentEnabled()) {
-            log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
         }
@@ -485,8 +484,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         if (specProbe == null || !specProbe.getEnabled()) {
             return null;
         }
-        final String authHeader = isAuthTokenEnabled()
-                ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
+        final String authHeader = computeCurlAuthHeader(global);
         final String uri = liveness ? (spec.getProbes().getUseHealthCheckForLiveness()
                 ? "admin/v2/brokers/health" : "status.html") :
                 (spec.getProbes().getUseHealthCheckForReadiness() ? "admin/v2/brokers/health" : "metrics/");
@@ -498,6 +496,11 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                                 .formatted(specProbe.getTimeoutSeconds(), authHeader, uri))
                 .endExec()
                 .build();
+    }
+
+    public static String computeCurlAuthHeader(GlobalSpec globalSpec) {
+        return isAuthTokenEnabled(globalSpec)
+                ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
     }
 
     public void patchPodDisruptionBudget() {

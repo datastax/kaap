@@ -3,7 +3,7 @@
 
 ## GCP 
 
-Create a secret in the namespace `pcert` with the service account key file. 
+Create a secret with the service account key file. 
 You can download in this way:
 1. Go to https://console.cloud.google.com/iam-admin/serviceaccounts
 2. Select your project.
@@ -13,7 +13,7 @@ You can download in this way:
 
 ```
 json_file_path=gcp-credentials.json
-kubectl create secret generic gcp-credentials --from-file=gcp-credentials.json=$json_file_path -n pcert
+kubectl create secret generic gcp-credentials --from-file=gcp-credentials.json=$json_file_path
 ```
 
 Fill the placeholder in the PulsarCluster file (helm/examples/tiered-storage/values.yaml):
@@ -45,6 +45,6 @@ broker:
 
 Install the Pulsar Operator and the cluster.
 ```
-helm install pcert -n pcert --create-namespace helm/pulsar-stack \
+helm install pulsar-operator --create-namespace helm/pulsar-stack \
     --values helm/examples/tiered-storage/values.yaml 
 ```

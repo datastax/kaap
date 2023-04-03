@@ -771,9 +771,15 @@ public abstract class BaseResourcesFactory<T> {
         }
         final StatefulSetStatus status = sts.getStatus();
         if (!Objects.equals(status.getCurrentRevision(), status.getUpdateRevision())) {
+            log.debugf("statefulset %s is not ready, revision mismatch %s - %s", sts.getMetadata().getName(),
+                    status.getCurrentRevision(), status.getUpdateRevision());
             return false;
         }
-
+        if (log.isDebugEnabled()) {
+            log.debugf("check if statefulset %s is ready, replicas %d, ready replicas %d, updated replicas %d",
+                    sts.getMetadata().getName(),
+                    status.getReplicas(), status.getReadyReplicas(), status.getUpdatedReplicas());
+        }
         if (status.getReplicas() == null || status.getReadyReplicas() == null || status.getUpdatedReplicas() == null) {
             return false;
         }

@@ -439,6 +439,7 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void dumpAllResources(String filePrefix) {
+        dumpResources(filePrefix, Pod.class);
         dumpResources(filePrefix, Deployment.class);
         dumpResources(filePrefix, StatefulSet.class);
         dumpResources(filePrefix, PersistentVolume.class);

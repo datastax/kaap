@@ -223,6 +223,8 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @SneakyThrows
     private String internalRecoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
         final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
+        final long start = System.nanoTime();
+        log.info("Starting bookie recovery for bookie " + podName);
         CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
                 podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
@@ -233,11 +235,11 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
                 log.errorf(e, "Error recovering bookie %s",
                         podName);
             } else {
-                log.infof("Bookie %s recovered",
-                        podName);
+                log.infof("Bookie %s recovered in %d ms",
+                        podName, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
             }
         });
-        return recoverOut.get(1, TimeUnit.MINUTES);
+        return recoverOut.get();
     }
 
     @Override

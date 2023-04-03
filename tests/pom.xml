@@ -44,20 +44,6 @@
             <version>4.13.2</version>
             <scope>compile</scope>
         </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>pulsar-operator</artifactId>
-            <version>${project.version}</version>
-            <classifier>manifests</classifier>
-            <scope>test</scope>
-            <exclusions>
-              <exclusion>
-                <groupId>*</groupId>
-                <artifactId>*</artifactId>
-              </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>pulsar-operator</artifactId>

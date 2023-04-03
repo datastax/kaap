@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.controllers;
 
 import static org.mockito.Mockito.mock;
+import com.datastax.oss.pulsaroperator.OperatorRuntimeConfiguration;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.FullSpecWithDefaults;
@@ -34,6 +35,13 @@ import org.testng.Assert;
 
 public class ControllerTestUtil<X extends FullSpecWithDefaults,
         R extends CustomResource<X, BaseComponentStatus>> {
+
+    public static class TestOperatorRuntimeConfiguration implements OperatorRuntimeConfiguration{
+        @Override
+        public Integer reconciliationRescheduleSeconds() {
+            return 5;
+        }
+    }
 
     private final String namespace;
     private final String clusterName;
@@ -121,6 +129,7 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
         final AbstractController<R> controller =
                 controllerConstructor.apply(new ControllerConstructorInput(controllerClass,
                         mockKubernetesClient.getClient()));
+        controller.operatorRuntimeConfiguration = new TestOperatorRuntimeConfiguration();
         return controller.reconcile(cr, mock(Context.class));
     }
 

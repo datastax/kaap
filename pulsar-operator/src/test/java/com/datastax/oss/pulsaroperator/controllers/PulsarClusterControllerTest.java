@@ -675,6 +675,7 @@ public class PulsarClusterControllerTest {
                         return tokenAuthProvisioner;
                     }
                 };
+        controller.operatorRuntimeConfiguration = new ControllerTestUtil.TestOperatorRuntimeConfiguration();
 
         final PulsarCluster cr = new PulsarCluster();
         ObjectMeta meta = new ObjectMeta();

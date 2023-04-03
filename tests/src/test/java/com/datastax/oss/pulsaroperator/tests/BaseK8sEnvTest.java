@@ -61,6 +61,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -71,7 +72,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
-import org.testcontainers.utility.MountableFile;
 import org.testng.Assert;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
@@ -111,16 +111,6 @@ public abstract class BaseK8sEnvTest {
 
     public BaseK8sEnvTest() {
         this.agents = null;
-    }
-
-    @SneakyThrows
-    private static List<Path> getOperatorYamlManifests() {
-        return Files.list(
-                        Path.of(MountableFile
-                                .forClasspathResource("/manifests")
-                                .getResolvedPath())
-                ).filter(p -> p.toFile().getName().endsWith(".yml"))
-                .collect(Collectors.toList());
     }
 
     @SneakyThrows
@@ -194,13 +184,57 @@ public abstract class BaseK8sEnvTest {
         allRbac.addAll(Files.readAllLines(
                 Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "serviceaccount.yaml")));
 
-        final Map<String, String> vars = Map.of(
-                ".Release.Namespace", namespace,
-                ".Chart.Name", "pulsar-operator",
-                ".Release.Name", "test-release",
-                ".Chart.AppVersion | quote", "v1",
-                ".Values.serviceAccount.name", "pulsar-operator"
-        );
+        return simulateHelmRendering(allRbac);
+    }
+
+    private String getOperatorDeploymentManifest() throws IOException {
+        List<String> manifests = new ArrayList<>();
+        manifests.addAll(Files.readAllLines(
+                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "pulsar-operator.yaml")));
+        manifests.add("---");
+        manifests.addAll(Arrays.stream("""
+                apiVersion: v1
+                kind: ConfigMap
+                metadata:
+                  name: {{ include "pulsar-operator.name" . }}
+                  namespace: {{ .Release.Namespace }}
+                  labels:
+                      {{- include "pulsar-operator.labels" . | nindent 4 }}
+                data:
+                  QUARKUS_LOG_CATEGORY__COM_DATASTAX_OSS_PULSAROPERATOR__LEVEL: debug
+                """.split("\n")).toList());
+        return simulateHelmRendering(manifests);
+    }
+
+    private String simulateHelmRendering(List<String> allRbac) {
+        final Map<String, String> vars = new HashMap<>();
+
+        vars.put(".Release.Namespace", namespace);
+        vars.put(".Chart.Name", "pulsar-operator");
+        vars.put(".Release.Name", "test-release");
+        vars.put(".Chart.AppVersion | quote", "v1");
+        vars.put(".Values.serviceAccount.name", "pulsar-operator");
+        vars.put(".Values.operator.replicas", "1");
+        vars.put(".Values.operator.image", OPERATOR_IMAGE);
+        vars.put(".Values.operator.imagePullPolicy", "Never");
+        vars.put(".Values.operator.livenessProbe.failureThreshold", "3");
+        vars.put(".Values.operator.livenessProbe.initialDelaySeconds", "0");
+        vars.put(".Values.operator.livenessProbe.periodSeconds", "30");
+        vars.put(".Values.operator.livenessProbe.successThreshold", "1");
+        vars.put(".Values.operator.livenessProbe.timeoutSeconds", "10");
+        vars.put(".Values.operator.readinessProbe.failureThreshold", "3");
+        vars.put(".Values.operator.readinessProbe.initialDelaySeconds", "0");
+        vars.put(".Values.operator.readinessProbe.periodSeconds", "30");
+        vars.put(".Values.operator.readinessProbe.successThreshold", "1");
+        vars.put(".Values.operator.readinessProbe.timeoutSeconds", "10");
+        vars.put("include \"pulsar-operator.name\" .", "pulsar-operator");
+        vars.put("include \"pulsar-operator.roleName\" .", "pulsar-operator");
+        vars.put("include \"pulsar-operator.roleBindingName\" .", "pulsar-operator-role-binding");
+        vars.put("include \"pulsar-operator.serviceAccountName\" .", "pulsar-operator");
+        vars.put("include \"pulsar-operator.labels\" . | nindent 4", "{app.kubernetes.io/name: pulsar-operator}");
+        vars.put("include \"pulsar-operator.selectorLabels\" . | nindent 6", "{app.kubernetes.io/name: pulsar-operator}");
+        vars.put("include \"pulsar-operator.selectorLabels\" . | nindent 8", "{app.kubernetes.io/name: pulsar-operator}");
+        vars.put("include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum", "sha");
         String result = "";
         // simulate go templating
         for (String l : allRbac) {
@@ -212,8 +246,12 @@ public abstract class BaseK8sEnvTest {
             }
             for (Map.Entry<String, String> entry : vars.entrySet()) {
                 l = l.replace("{{ %s }}".formatted(entry.getKey()), entry.getValue());
+                l = l.replace("{{- %s }}".formatted(entry.getKey()), entry.getValue());
             }
             result += l + System.lineSeparator();
+        }
+        if (result.contains("{{")) {
+            throw new RuntimeException("Failed to replace all go templating vars, template: " + result);
         }
         return result;
     }
@@ -221,51 +259,15 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     protected void applyOperatorDeploymentAndCRDs() {
         getCRDsManifests().forEach(this::applyManifestFromFile);
-        for (Path yamlManifest : getOperatorYamlManifests()) {
-            if ("kubernetes.yml".equals(yamlManifest.toFile().getName())) {
-                final List<HasMetadata> resources =
-                        client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get();
-                resources
-                        .stream()
-                        .filter(hasMetadata -> hasMetadata instanceof Deployment)
-                        .forEach(d -> {
-                            Deployment deployment = (Deployment) d;
-                            deployment.getSpec().getTemplate().getSpec()
-                                    .getContainers()
-                                    .get(0)
-                                    .setImage(OPERATOR_IMAGE);
-                            client.resource(deployment).inNamespace(namespace)
-                                    .create();
-                            log.info("Applied operator deployment {}", SerializationUtil.writeAsJson(
-                                    deployment.getSpec().getTemplate()));
-                        });
-            } else {
-                // skip generated yml, we only use the kubernetes.yml.
-                // CRDs are applied separately from the helm chart directory.
-                // In this way we ensure correctness of released crds and we can skip generating them in the CI
-                log.debug("skipping {}", yamlManifest);
-            }
-        }
+        final String operatorDeploymentManifest = getOperatorDeploymentManifest();
+        applyManifest(operatorDeploymentManifest);
         awaitOperatorRunning();
     }
 
 
     @SneakyThrows
     protected void deleteOperatorDeploymentAndCRDs() {
-        for (Path yamlManifest : getOperatorYamlManifests()) {
-
-            if (yamlManifest.getFileName().equals("kubernetes.yml")) {
-                client.load(new ByteArrayInputStream(Files.readAllBytes(yamlManifest))).get()
-                        .stream()
-                        .filter(hasMetadata -> hasMetadata instanceof Deployment)
-                        .forEach(d -> {
-                            Deployment deployment = (Deployment) d;
-                            client.resource(deployment).inNamespace(namespace)
-                                    .delete();
-                            log.info("Deleted operator deployment");
-                        });
-            }
-        }
+        deleteManifest(getOperatorDeploymentManifest());
         getCRDsManifests().forEach(this::deleteManifestFromFile);
     }
 
@@ -437,6 +439,7 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void dumpAllResources(String filePrefix) {
+        dumpResources(filePrefix, Pod.class);
         dumpResources(filePrefix, Deployment.class);
         dumpResources(filePrefix, StatefulSet.class);
         dumpResources(filePrefix, PersistentVolume.class);

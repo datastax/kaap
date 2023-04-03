@@ -18,16 +18,22 @@
 ## Whether to create the Operator RBAC.
 rbac:
   create: true
+  operatorRole:
+    name: "pulsar-operator"
+  operatorRoleBinding:
+    name: "pulsar-operator-role-binding"
 
 ## Service account name and whether to create it.
 serviceAccount:
   create: true
-  name: pulsar-operator
+  name: "pulsar-operator"
 
 ## Whether to create the CRD.
 crd:
   create: true
 
+nameOverride: ""
+fullnameOverride: ""
 
 operator:
   enabled: true
@@ -47,6 +53,13 @@ operator:
     periodSeconds: 30
     successThreshold: 1
     initialDelaySeconds: 0
+
+  config:
+    logLevel: info
+    restartOnChange: true
+    operator:
+      reconciliationRescheduleSeconds: 5
+    quarkus: {}
 
 cluster:
   create: false

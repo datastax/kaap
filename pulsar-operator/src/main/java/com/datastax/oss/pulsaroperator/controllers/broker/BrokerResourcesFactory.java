@@ -68,7 +68,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         return List.of(getMainContainerName(resourceName));
     }
 
-    private static String getMainContainerName(String resourceName) {
+    public static String getMainContainerName(String resourceName) {
         return resourceName;
     }
 

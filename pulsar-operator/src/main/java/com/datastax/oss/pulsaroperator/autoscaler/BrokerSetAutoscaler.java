@@ -202,15 +202,15 @@ public class BrokerSetAutoscaler implements Runnable {
 
     private BrokerResourceUsageSource newBrokerResourceUsageSource(BrokerAutoscalerSpec brokerAutoscalerSpec,
                                                                    Map<String, String> podSelector) {
-        switch (brokerAutoscalerSpec.getResourceUsageSource()) {
+        switch (brokerAutoscalerSpec.getResourcesUsageSource()) {
             case BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_LOAD_BALANCER:
-                return new LoadReportResourceUsageSource(client, namespace, podSelector, desiredBrokerSetSpec,
-                        clusterSpec.getGlobalSpec());
+                return new LoadReportResourceUsageSource(client, namespace, podSelector, brokerSetName,
+                        desiredBrokerSetSpec, clusterSpec.getGlobalSpec());
             case BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_K8S_METRICS:
                 return new PodMetricResourceUsageSource(client, namespace, podSelector);
             default:
                 throw new IllegalArgumentException(
-                        "Unknown resource usage source: " + brokerAutoscalerSpec.getResourceUsageSource());
+                        "Unknown resource usage source: " + brokerAutoscalerSpec.getResourcesUsageSource());
         }
     }
 }

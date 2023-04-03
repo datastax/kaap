@@ -108,7 +108,7 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
 
     private static final Supplier<BrokerAutoscalerSpec> DEFAULT_AUTOSCALER_CONFIG = () -> BrokerAutoscalerSpec.builder()
             .enabled(false)
-            .resourceUsageSource(BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_LOAD_BALANCER)
+            .resourcesUsageSource(BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_LOAD_BALANCER)
             .periodMs(TimeUnit.MINUTES.toMillis(1))
             .min(1)
             .lowerCpuThreshold(0.3d)

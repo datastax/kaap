@@ -17,6 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
+import org.apache.commons.lang3.StringUtils;
 
 @JBossLog
 public class LoadReportResourceUsageSource implements BrokerResourceUsageSource {
@@ -24,16 +25,19 @@ public class LoadReportResourceUsageSource implements BrokerResourceUsageSource 
     private final KubernetesClient client;
     private final String namespace;
     private final Map<String, String> podSelector;
+    private final String brokerSet;
     private final BrokerSetSpec brokerSetSpec;
     private final GlobalSpec globalSpec;
 
     public LoadReportResourceUsageSource(KubernetesClient client, String namespace,
                                          Map<String, String> podSelector,
+                                         String brokerSet,
                                          BrokerSetSpec brokerSetSpec,
                                          GlobalSpec globalSpec) {
         this.client = client;
         this.namespace = namespace;
         this.podSelector = podSelector;
+        this.brokerSet = brokerSet;
         this.brokerSetSpec = brokerSetSpec;
         this.globalSpec = globalSpec;
     }
@@ -49,19 +53,22 @@ public class LoadReportResourceUsageSource implements BrokerResourceUsageSource 
 
 
         List<ResourceUsage> result = new ArrayList<>();
-
-        final String brokerUrl = "http://localhost:%s/admin/v2/broker-stats/load-report/".formatted(
-                brokerSetSpec.getConfig().getOrDefault("webServicePort", BrokerResourcesFactory.DEFAULT_HTTP_PORT));
+        String webServicePort = getWebServicePort();
+        final String brokerUrl =
+                "http://localhost:%s/admin/v2/broker-stats/load-report/".formatted(String.valueOf(webServicePort));
         final String curlAuthHeader = BrokerResourcesFactory.computeCurlAuthHeader(globalSpec);
-        final String curlCommand = "curl %s %s".formatted(curlAuthHeader, brokerUrl);
+        final String curlCommand = StringUtils.isBlank(curlAuthHeader) ?
+                "curl %s".formatted(brokerUrl) :
+                "curl %s %s".formatted(curlAuthHeader, brokerUrl);
 
+        final String containerName =
+                BrokerResourcesFactory.getMainContainerName(BrokerResourcesFactory.getResourceName(globalSpec.getName(),
+                        globalSpec.getComponents().getBrokerBaseName(), brokerSet,
+                        brokerSetSpec.getOverrideResourceName()));
         for (Pod pod : pods) {
             final String podName = pod.getMetadata().getName();
 
-            final String jsonOut = AutoscalerUtils.execInPod(client, pod.getMetadata().getNamespace(),
-                            podName,
-                            pod.getSpec().getContainers().get(0).getName(), curlCommand
-                    )
+            final String jsonOut = AutoscalerUtils.execInPod(client, namespace, podName, containerName, curlCommand)
                     .get(30, TimeUnit.SECONDS);
 
             final Map<String, Object> json = SerializationUtil.readJson(jsonOut, Map.class);
@@ -73,11 +80,26 @@ public class LoadReportResourceUsageSource implements BrokerResourceUsageSource 
             final LoadReportResourceUsage loadReportResourceUsage =
                     SerializationUtil.convertValue(json.get("cpu"), LoadReportResourceUsage.class);
             final float percentUsage = loadReportResourceUsage.percentUsage();
-            log.infof("Broker %s cpu usage: %f %%", podName,
-                    new BigDecimal(percentUsage).setScale(2, RoundingMode.HALF_EVEN));
-            result.add(new ResourceUsage(podName, percentUsage / 100));
+
+            final float rounded = new BigDecimal(percentUsage).setScale(2, RoundingMode.HALF_UP)
+                    .floatValue();
+
+
+            log.infof("Broker %s cpu usage: %f %%", podName, rounded * 100);
+            result.add(new ResourceUsage(podName, rounded));
         }
         return result;
+    }
+
+    private String getWebServicePort() {
+        Object webServicePort =
+                brokerSetSpec.getConfig() != null
+                        ? brokerSetSpec.getConfig().get("webServicePort")
+                        : null;
+        if (webServicePort == null) {
+            webServicePort = BrokerResourcesFactory.DEFAULT_HTTP_PORT;
+        }
+        return String.valueOf(webServicePort);
     }
 
     @Data
@@ -91,7 +113,7 @@ public class LoadReportResourceUsageSource implements BrokerResourceUsageSource 
             if (limit > 0) {
                 proportion = ((float) usage) / ((float) limit);
             }
-            return proportion * 100;
+            return proportion;
         }
     }
 }

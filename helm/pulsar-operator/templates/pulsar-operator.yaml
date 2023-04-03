@@ -26,16 +26,14 @@ metadata:
     prometheus.io/port: "8080"
     prometheus.io/scheme: http
   labels:
-    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-    app.kubernetes.io/name: {{ .Chart.Name }}
-  name: {{ .Chart.Name }}
+    {{- include "pulsar-operator.labels" . | nindent 4 }}
+  name: {{ include "pulsar-operator.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.operator.replicas }}
   selector:
     matchLabels:
-      app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-      app.kubernetes.io/name: {{ .Chart.Name }}
+      {{- include "pulsar-operator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -43,9 +41,11 @@ spec:
         prometheus.io/path: /q/metrics
         prometheus.io/port: "8080"
         prometheus.io/scheme: http
+{{- if .Values.operator.config.restartOnChange }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+{{- end }}
       labels:
-        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-        app.kubernetes.io/name: {{ .Chart.Name }}
+        {{- include "pulsar-operator.selectorLabels" . | nindent 8 }}
       namespace: {{ .Release.Namespace }}
     spec:
       containers:
@@ -54,6 +54,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          envFrom:
+            - configMapRef:
+                name: {{ include "pulsar-operator.name" . }}
           image: {{ .Values.operator.image }}
           imagePullPolicy: {{ .Values.operator.imagePullPolicy }}
           livenessProbe:
@@ -81,5 +84,5 @@ spec:
             periodSeconds: {{ .Values.operator.readinessProbe.periodSeconds }}
             successThreshold: {{ .Values.operator.readinessProbe.successThreshold }}
             timeoutSeconds: {{ .Values.operator.readinessProbe.timeoutSeconds }}
-      serviceAccountName: {{ .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "pulsar-operator.serviceAccountName" . }}
 {{- end }}

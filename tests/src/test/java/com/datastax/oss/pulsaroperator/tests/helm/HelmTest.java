@@ -18,6 +18,7 @@ package com.datastax.oss.pulsaroperator.tests.helm;
 import com.datastax.oss.pulsaroperator.LeaderElectionConfig;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import java.util.HashMap;
 import java.util.List;
@@ -34,17 +35,39 @@ public class HelmTest extends BaseHelmTest {
     @Test
     public void testHelm() throws Exception {
         try {
-            final Map<String, Map<String, Object>> specs = new HashMap<>(
-                    Map.of("operator", new HashMap<>(Map.of("image", OPERATOR_IMAGE,
-                                    "imagePullPolicy", "Never",
-                                    "replicas", 2
-                            )),
-                            "cluster", Map.of("create", "true",
-                                    "spec", getDefaultPulsarClusterSpecs()))
-            );
+            final String spec = """
+                    operator:
+                        image: %s
+                        imagePullPolicy: Never
+                        replicas: 2
+                        config:
+                            logLevel: trace
+                            quarkus:
+                                log.level: debug
+                                operator-sdk.controllers."controllers".retry.interval.initial: 2500
+                            operator:
+                                reconciliationRescheduleSeconds: 3
+                    """.formatted(OPERATOR_IMAGE);
+
+            Map<String, Map<String, Object>> specs = new HashMap<>();
+            specs.put("operator", (Map<String, Object>) SerializationUtil.readYaml(spec, Map.class).get("operator"));
+            specs.put("cluster", Map.of("create", "true", "spec", getDefaultPulsarClusterSpecs()));
             final String yaml = SerializationUtil.writeAsYaml(specs);
             helmInstall(Chart.OPERATOR, yaml);
             awaitOperatorRunning();
+            final ConfigMap configMap = client.configMaps().inNamespace(namespace)
+                    .withName("pulsar-operator")
+                    .get();
+            log.info("Found config map: {}", configMap.getData());
+            Assert.assertEquals(configMap.getData().get("QUARKUS_LOG_CATEGORY__COM_DATASTAX_OSS_PULSAROPERATOR__LEVEL"),
+                    "trace");
+            Assert.assertEquals(configMap.getData().get("QUARKUS_LOG_LEVEL"),
+                    "debug");
+            Assert.assertEquals(configMap.getData().get("QUARKUS_OPERATOR_SDK_CONTROLLERS__CONTROLLERS__RETRY_INTERVAL_INITIAL"),
+                    "2500");
+            Assert.assertEquals(configMap.getData().get("PULSAR_OPERATOR_RECONCILIATION_RESCHEDULE_SECONDS"),
+                    "3");
+
             final List<Pod> pods = getOperatorPods();
             Assert.assertEquals(pods.size(), 2);
             Awaitility.await().untilAsserted(() -> {

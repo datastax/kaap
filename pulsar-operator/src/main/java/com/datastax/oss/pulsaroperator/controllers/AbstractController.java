@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.controllers;
 
+import com.datastax.oss.pulsaroperator.OperatorRuntimeConfiguration;
 import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.crds.BaseComponentStatus;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -63,7 +65,8 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
 
     protected final KubernetesClient client;
     private final Validator validator;
-
+    @Inject
+    OperatorRuntimeConfiguration operatorRuntimeConfiguration;
 
     public AbstractController() {
         this(null);
@@ -173,7 +176,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
         final UpdateControl<T> update = UpdateControl.updateStatus(resource);
         if (reschedule) {
-            update.rescheduleAfter(5, TimeUnit.SECONDS);
+            update.rescheduleAfter(operatorRuntimeConfiguration.reconciliationRescheduleSeconds(), TimeUnit.SECONDS);
         }
         return update;
     }

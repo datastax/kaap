@@ -59,8 +59,7 @@ operator:
     restartOnChange: true
     operator:
       reconciliationRescheduleSeconds: 5
-    quarkus:
-      operator-sdk.controllers."controllers".retry.interval.initial: 2502
+    quarkus: {}
 
 cluster:
   create: false

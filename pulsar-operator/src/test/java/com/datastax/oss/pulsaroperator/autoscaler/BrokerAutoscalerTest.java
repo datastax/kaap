@@ -240,6 +240,7 @@ public class BrokerAutoscalerTest {
                     replicas: 3
                     autoscaler:
                         enabled: true
+                        resourcesUsageSource: K8SMetrics
                     resources:
                         requests:
                             cpu: 1
@@ -260,6 +261,7 @@ public class BrokerAutoscalerTest {
                     replicas: 3
                     autoscaler:
                         enabled: true
+                        resourcesUsageSource: K8SMetrics
                     resources:
                         requests:
                             cpu: 1
@@ -280,6 +282,7 @@ public class BrokerAutoscalerTest {
                     replicas: 3
                     autoscaler:
                         enabled: true
+                        resourcesUsageSource: K8SMetrics
                     resources:
                         requests:
                             cpu: 1
@@ -301,6 +304,7 @@ public class BrokerAutoscalerTest {
                     replicas: 3
                     autoscaler:
                         enabled: true
+                        resourcesUsageSource: K8SMetrics
                     resources:
                         requests:
                             cpu: 1
@@ -325,6 +329,7 @@ public class BrokerAutoscalerTest {
                     replicas: 1
                     autoscaler:
                         enabled: true
+                        resourcesUsageSource: K8SMetrics
                     resources:
                         requests:
                             cpu: 1

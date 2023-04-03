@@ -337,7 +337,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
 
     public void patchDeployment() {
         if (!isComponentEnabled()) {
-            log.warn("Got replicas=0, deleting deployments");
             deleteDeployment();
             return;
         }

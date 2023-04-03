@@ -121,7 +121,6 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
 
     public void patchDeployment() {
         if (!isComponentEnabled()) {
-            log.warn("Got replicas=0, deleting deployments");
             deleteDeployment();
             return;
         }

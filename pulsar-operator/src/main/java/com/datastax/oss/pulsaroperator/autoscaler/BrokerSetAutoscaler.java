@@ -15,6 +15,9 @@
  */
 package com.datastax.oss.pulsaroperator.autoscaler;
 
+import com.datastax.oss.pulsaroperator.autoscaler.broker.BrokerResourceUsageSource;
+import com.datastax.oss.pulsaroperator.autoscaler.broker.LoadReportResourceUsageSource;
+import com.datastax.oss.pulsaroperator.autoscaler.broker.PodMetricResourceUsageSource;
 import com.datastax.oss.pulsaroperator.controllers.PulsarClusterController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerController;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
@@ -25,16 +28,11 @@ import com.datastax.oss.pulsaroperator.crds.broker.BrokerAutoscalerSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerFullSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetrics;
-import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.SneakyThrows;
@@ -64,14 +62,12 @@ public class BrokerSetAutoscaler implements Runnable {
     @Override
     public void run() {
         try {
-            log.infof("Broker autoscaler starting for broker set %s", brokerSetName);
             internalRun();
-            log.infof("Broker autoscaler finished for broker set %s", brokerSetName);
         } catch (Throwable tt) {
             if (ExceptionUtils.indexOfThrowable(tt, RejectedExecutionException.class) >= 0) {
                 return;
             }
-            log.errorf("Broker (broker set %s) autoscaler error", brokerSetName, tt);
+            log.errorf(tt, "Broker (broker set %s) autoscaler error", brokerSetName);
         }
     }
 
@@ -115,20 +111,12 @@ public class BrokerSetAutoscaler implements Runnable {
                 namespace, statefulsetName, podSelector, currentExpectedReplicas)) {
             return;
         }
+        BrokerResourceUsageSource brokerResourceUsageSource =
+                newBrokerResourceUsageSource(autoscalerSpec, podSelector);
+        Optional<Boolean> scaleUpOrDown = decideScaleUpOrDown(autoscalerSpec, brokerResourceUsageSource);
 
-        final PodMetricsList metrics =
-                client.top()
-                        .pods()
-                        .withLabels(podSelector)
-                        .inNamespace(namespace)
-                        .metrics();
-
-        log.infof("Got %d broker pod metrics", metrics.getItems().size());
-
-        Boolean scaleUpOrDown = decideScaleUpOrDown(autoscalerSpec, metrics);
-
-        if (scaleUpOrDown != null) {
-            int scaleTo = scaleUpOrDown
+        if (scaleUpOrDown.isPresent()) {
+            int scaleTo = scaleUpOrDown.get()
                     ? currentExpectedReplicas + autoscalerSpec.getScaleUpBy()
                     : currentExpectedReplicas - autoscalerSpec.getScaleDownBy();
 
@@ -174,91 +162,56 @@ public class BrokerSetAutoscaler implements Runnable {
         }
     }
 
-    private Boolean decideScaleUpOrDown(BrokerAutoscalerSpec autoscalerSpec, PodMetricsList metrics) {
-        Boolean scaleUpOrDown = null;
-
+    private Optional<Boolean> decideScaleUpOrDown(BrokerAutoscalerSpec autoscalerSpec,
+                                        BrokerResourceUsageSource brokerResourceUsageSource) {
         float cpuLowerThreshold = autoscalerSpec.getLowerCpuThreshold().floatValue();
         float cpuHigherThreshold = autoscalerSpec.getHigherCpuThreshold().floatValue();
 
-        class BrokerStat {
-            float usedCpu;
-            float requestedCpu;
-        }
-        List<BrokerStat> brokerStats = new ArrayList<>();
 
-        for (PodMetrics item : metrics.getItems()) {
-            final String podName = item.getMetadata().getName();
+        final List<BrokerResourceUsageSource.ResourceUsage> brokersResourceUsages =
+                brokerResourceUsageSource.getBrokersResourceUsages();
 
-            float cpuUsage;
-            float requestedCpu;
-
-            Quantity cpuUsageQuantity = item.getContainers().get(0)
-                    .getUsage().get("cpu");
-
-            if (cpuUsageQuantity == null) {
-                log.infof("Broker pod %s doesn't exposed CPU usage", podName);
-                continue;
-            } else {
-                cpuUsage = quantityToBytes(cpuUsageQuantity);
-            }
-
-            final Quantity requestedCpuQuantity = client.pods()
-                    .inNamespace(namespace)
-                    .withName(podName)
-                    .get().getSpec()
-                    .getContainers()
-                    .get(0)
-                    .getResources()
-                    .getRequests()
-                    .get("cpu");
-            if (requestedCpuQuantity == null) {
-                log.infof("Broker pod %s CPU requests not set", podName);
-                continue;
-            } else {
-                requestedCpu = quantityToBytes(requestedCpuQuantity);
-
-            }
-            float percentage = cpuUsage / requestedCpu;
-
-            log.infof("Broker pod %s CPU used/requested: %f/%f, rate %f",
-                    podName,
-                    new BigDecimal(cpuUsage).setScale(2, RoundingMode.HALF_EVEN),
-                    new BigDecimal(requestedCpu).setScale(2, RoundingMode.HALF_EVEN),
-                    new BigDecimal(percentage).setScale(2, RoundingMode.HALF_EVEN));
-
-            final BrokerStat stat = new BrokerStat();
-            stat.requestedCpu = requestedCpu;
-            stat.usedCpu = cpuUsage;
-            brokerStats.add(stat);
-        }
-
-        for (BrokerStat brokerStat : brokerStats) {
-            float percentage = brokerStat.usedCpu / brokerStat.requestedCpu;
-
-            if (percentage < cpuLowerThreshold) {
-                if (scaleUpOrDown != null && scaleUpOrDown) {
-                    scaleUpOrDown = null;
-                    break;
+        boolean scaleUp = false;
+        boolean scaleDown = false;
+        for (BrokerResourceUsageSource.ResourceUsage brokerUsage : brokersResourceUsages) {
+            final double cpuPercentage = brokerUsage.getPercentCpu();
+            if (cpuPercentage < cpuLowerThreshold) {
+                if (scaleUp) {
+                    return Optional.empty();
                 }
-                scaleUpOrDown = false;
-            } else if (percentage > cpuHigherThreshold) {
-                if (scaleUpOrDown != null && !scaleUpOrDown) {
-                    scaleUpOrDown = null;
-                    break;
+                scaleDown = true;
+            } else if (cpuPercentage > cpuHigherThreshold) {
+                if (scaleDown) {
+                    return Optional.empty();
                 }
-                scaleUpOrDown = true;
+                scaleUp = true;
             } else {
-                scaleUpOrDown = null;
-                break;
+                return Optional.empty();
             }
         }
-        return scaleUpOrDown;
+        if (scaleUp && scaleDown) {
+            throw new IllegalStateException();
+        }
+        if (scaleUp) {
+            return Optional.of(true);
+        }
+        if (scaleDown) {
+            return Optional.of(false);
+        }
+        throw new IllegalStateException();
     }
 
-    private float quantityToBytes(Quantity quantity) {
-        return Quantity.getAmountInBytes(quantity)
-                .setScale(2, RoundingMode.HALF_EVEN)
-                .floatValue();
+    private BrokerResourceUsageSource newBrokerResourceUsageSource(BrokerAutoscalerSpec brokerAutoscalerSpec,
+                                                                   Map<String, String> podSelector) {
+        switch (brokerAutoscalerSpec.getResourcesUsageSource()) {
+            case BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_LOAD_BALANCER:
+                return new LoadReportResourceUsageSource(client, namespace, podSelector, brokerSetName,
+                        desiredBrokerSetSpec, clusterSpec.getGlobalSpec());
+            case BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_K8S_METRICS:
+                return new PodMetricResourceUsageSource(client, namespace, podSelector);
+            default:
+                throw new IllegalArgumentException(
+                        "Unknown resource usage source: " + brokerAutoscalerSpec.getResourcesUsageSource());
+        }
     }
-
 }

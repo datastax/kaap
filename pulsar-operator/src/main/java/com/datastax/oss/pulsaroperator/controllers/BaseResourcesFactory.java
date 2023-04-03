@@ -902,6 +902,10 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected boolean isAuthTokenEnabled() {
+        return isAuthTokenEnabled(global);
+    }
+
+    public static boolean isAuthTokenEnabled(GlobalSpec global) {
         final AuthConfig auth = global.getAuth();
         return auth != null
                 && auth.getEnabled()

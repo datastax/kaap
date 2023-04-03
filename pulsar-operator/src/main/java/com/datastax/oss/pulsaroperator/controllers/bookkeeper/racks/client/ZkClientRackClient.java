@@ -32,7 +32,7 @@ import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryForever;
+import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.client.ZKClientConfig;
 import org.apache.zookeeper.data.Stat;
@@ -78,7 +78,7 @@ public class ZkClientRackClient implements BkRackClient {
         }
         this.zkClient = CuratorFrameworkFactory
                 .newClient(zkConnectString, 60_000, 15_000,
-                        new RetryForever(5000),
+                        new RetryUntilElapsed(30_000, 5000),
                         zkClientConfig);
         zkClient.start();
     }

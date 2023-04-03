@@ -100,27 +100,30 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
             .maxUnavailable(1)
             .build();
 
-    public static final Supplier<BrokerSpec.ServiceConfig> DEFAULT_SERVICE_CONFIG = () -> BrokerSpec.ServiceConfig.builder()
-            .type("ClusterIP")
-            .build();
+    public static final Supplier<BrokerSpec.ServiceConfig> DEFAULT_SERVICE_CONFIG =
+            () -> BrokerSpec.ServiceConfig.builder()
+                    .type("ClusterIP")
+                    .build();
 
 
-    private static final Supplier<BrokerAutoscalerSpec> DEFAULT_BROKER_CONFIG = () -> BrokerAutoscalerSpec.builder()
+    private static final Supplier<BrokerAutoscalerSpec> DEFAULT_AUTOSCALER_CONFIG = () -> BrokerAutoscalerSpec.builder()
             .enabled(false)
-            .periodMs(TimeUnit.SECONDS.toMillis(10))
+            .resourcesUsageSource(BrokerAutoscalerSpec.RESOURCE_USAGE_SOURCE_LOAD_BALANCER)
+            .periodMs(TimeUnit.MINUTES.toMillis(1))
             .min(1)
             .lowerCpuThreshold(0.3d)
             .higherCpuThreshold(0.8d)
             .scaleUpBy(1)
             .scaleDownBy(1)
-            .stabilizationWindowMs(TimeUnit.SECONDS.toMillis(300))
+            .stabilizationWindowMs(TimeUnit.MINUTES.toMillis(5))
             .build();
 
-    private static final Supplier<BrokerSpec.TransactionCoordinatorConfig> DEFAULT_TRANSACTION_COORDINATOR_CONFIG = () ->
-            BrokerSpec.TransactionCoordinatorConfig.builder()
-                    .enabled(false)
-                    .partitions(16)
-                    .build();
+    private static final Supplier<BrokerSpec.TransactionCoordinatorConfig> DEFAULT_TRANSACTION_COORDINATOR_CONFIG =
+            () ->
+                    BrokerSpec.TransactionCoordinatorConfig.builder()
+                            .enabled(false)
+                            .partitions(16)
+                            .build();
 
     @Data
     @NoArgsConstructor
@@ -255,44 +258,10 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
 
     private void applyAutoscalerDefaults() {
         if (autoscaler == null) {
-            autoscaler = DEFAULT_BROKER_CONFIG.get();
+            autoscaler = DEFAULT_AUTOSCALER_CONFIG.get();
+        } else {
+            autoscaler = ConfigUtil.applyDefaultsWithReflection(autoscaler, DEFAULT_AUTOSCALER_CONFIG);
         }
-        autoscaler.setEnabled(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getEnabled(),
-                () -> DEFAULT_BROKER_CONFIG.get().getEnabled()
-        ));
-        autoscaler.setPeriodMs(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getPeriodMs(),
-                () -> DEFAULT_BROKER_CONFIG.get().getPeriodMs()
-        ));
-        autoscaler.setMin(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getMin(),
-                () -> DEFAULT_BROKER_CONFIG.get().getMin()
-        ));
-        autoscaler.setMax(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getMax(),
-                () -> DEFAULT_BROKER_CONFIG.get().getMax()
-        ));
-        autoscaler.setLowerCpuThreshold(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getLowerCpuThreshold(),
-                () -> DEFAULT_BROKER_CONFIG.get().getLowerCpuThreshold()
-        ));
-        autoscaler.setHigherCpuThreshold(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getHigherCpuThreshold(),
-                () -> DEFAULT_BROKER_CONFIG.get().getHigherCpuThreshold()
-        ));
-        autoscaler.setScaleUpBy(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getScaleUpBy(),
-                () -> DEFAULT_BROKER_CONFIG.get().getScaleUpBy()
-        ));
-        autoscaler.setScaleDownBy(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getScaleDownBy(),
-                () -> DEFAULT_BROKER_CONFIG.get().getScaleDownBy()
-        ));
-        autoscaler.setStabilizationWindowMs(ObjectUtils.getFirstNonNull(
-                () -> autoscaler.getStabilizationWindowMs(),
-                () -> DEFAULT_BROKER_CONFIG.get().getStabilizationWindowMs()
-        ));
     }
 
     @Override

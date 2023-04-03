@@ -49,7 +49,6 @@ cluster:
         scaleUpBy: 1
         scaleDownBy: 1
         stabilizationWindowMs: 30000
-        cleanUpPvcs: true
       volumes:
         journal:
           size: 1Gi

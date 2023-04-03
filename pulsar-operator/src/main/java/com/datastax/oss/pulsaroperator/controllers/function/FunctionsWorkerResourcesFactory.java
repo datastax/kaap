@@ -341,7 +341,6 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
     public void patchStatefulSet() {
         if (!isComponentEnabled()) {
-            log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
         }

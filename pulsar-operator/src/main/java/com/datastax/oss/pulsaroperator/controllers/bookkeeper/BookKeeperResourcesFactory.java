@@ -205,7 +205,6 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
     public void patchStatefulSet() {
         if (!isComponentEnabled()) {
-            log.warn("Got replicas=0, deleting sts");
             deleteStatefulSet();
             return;
         }

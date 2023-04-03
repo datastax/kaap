@@ -150,31 +150,59 @@ spec:
                           description: Autoscaling config.
                           properties:
                             periodMs:
+                              description: The interval in milliseconds between two
+                                consecutive autoscaling checks.
                               minimum: 1000.0
                               type: integer
                             diskUsageToleranceLwm:
+                              description: The threshold to trigger a scale up. The
+                                autoscaler will scale up if all the bookies' disk
+                                usage is higher than this threshold. Default is '0.75'
                               maximum: 1.0
                               minimum: 0.0
                               type: number
                             scaleUpMaxLimit:
+                              description: "Max number of bookies. If the number of\
+                                \ bookies is equals to this value, the autoscaler\
+                                \ will never scale up."
                               minimum: 1.0
                               type: integer
                             diskUsageToleranceHwm:
+                              description: The threshold to trigger a scale down.
+                                The autoscaler will scale down if all the bookies'
+                                disk usage is lower than this threshold. Default is
+                                '0.92'
                               maximum: 1.0
                               minimum: 0.0
                               type: number
                             enabled:
+                              description: Enable autoscaling for bookies.
                               type: boolean
                             minWritableBookies:
+                              description: "Min number of writable bookies. The autoscaler\
+                                \ will scale up if not enough writable bookies are\
+                                \ detected. For instance, if a bookie went to read-only\
+                                \ mode, the autoscaler will scale up to replace it.\
+                                \ Default is '3'."
                               minimum: 1.0
                               type: integer
                             scaleUpBy:
+                              description: The number of bookies to add at each scale
+                                up. Default is '1'
                               minimum: 1.0
                               type: integer
                             stabilizationWindowMs:
+                              description: The stabilization window is used to restrict
+                                the flapping of replica count when the metrics used
+                                for scaling keep fluctuating. The autoscaling algorithm
+                                uses this window to infer a previous desired state
+                                and avoid unwanted changes to workload scale.Default
+                                value is 5 minutes after the pod readiness.
                               minimum: 1.0
                               type: integer
                             scaleDownBy:
+                              description: The number of bookies to remove at each
+                                scale down. Default is '1'
                               minimum: 1.0
                               type: integer
                           type: object
@@ -2312,31 +2340,57 @@ spec:
                     description: Autoscaling config.
                     properties:
                       periodMs:
+                        description: The interval in milliseconds between two consecutive
+                          autoscaling checks.
                         minimum: 1000.0
                         type: integer
                       diskUsageToleranceLwm:
+                        description: The threshold to trigger a scale up. The autoscaler
+                          will scale up if all the bookies' disk usage is higher than
+                          this threshold. Default is '0.75'
                         maximum: 1.0
                         minimum: 0.0
                         type: number
                       scaleUpMaxLimit:
+                        description: "Max number of bookies. If the number of bookies\
+                          \ is equals to this value, the autoscaler will never scale\
+                          \ up."
                         minimum: 1.0
                         type: integer
                       diskUsageToleranceHwm:
+                        description: The threshold to trigger a scale down. The autoscaler
+                          will scale down if all the bookies' disk usage is lower
+                          than this threshold. Default is '0.92'
                         maximum: 1.0
                         minimum: 0.0
                         type: number
                       enabled:
+                        description: Enable autoscaling for bookies.
                         type: boolean
                       minWritableBookies:
+                        description: "Min number of writable bookies. The autoscaler\
+                          \ will scale up if not enough writable bookies are detected.\
+                          \ For instance, if a bookie went to read-only mode, the\
+                          \ autoscaler will scale up to replace it. Default is '3'."
                         minimum: 1.0
                         type: integer
                       scaleUpBy:
+                        description: The number of bookies to add at each scale up.
+                          Default is '1'
                         minimum: 1.0
                         type: integer
                       stabilizationWindowMs:
+                        description: The stabilization window is used to restrict
+                          the flapping of replica count when the metrics used for
+                          scaling keep fluctuating. The autoscaling algorithm uses
+                          this window to infer a previous desired state and avoid
+                          unwanted changes to workload scale.Default value is 5 minutes
+                          after the pod readiness.
                         minimum: 1.0
                         type: integer
                       scaleDownBy:
+                        description: The number of bookies to remove at each scale
+                          down. Default is '1'
                         minimum: 1.0
                         type: integer
                     type: object

@@ -115,16 +115,6 @@ public abstract class BaseK8sEnvTest {
     }
 
     @SneakyThrows
-    private static List<Path> getOperatorYamlManifests() {
-        return Files.list(
-                        Path.of(MountableFile
-                                .forClasspathResource("/manifests")
-                                .getResolvedPath())
-                ).filter(p -> p.toFile().getName().endsWith(".yml"))
-                .collect(Collectors.toList());
-    }
-
-    @SneakyThrows
     private static List<Path> getCRDsManifests() {
         return Files.list(
                         Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "crds")

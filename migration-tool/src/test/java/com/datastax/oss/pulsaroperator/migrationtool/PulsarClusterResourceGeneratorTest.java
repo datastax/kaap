@@ -488,13 +488,14 @@ public class PulsarClusterResourceGeneratorTest {
                               type: ClusterIP
                             autoscaler:
                               enabled: false
-                              periodMs: 10000
+                              periodMs: 60000
                               min: 1
                               lowerCpuThreshold: 0.3
                               higherCpuThreshold: 0.8
                               scaleUpBy: 1
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
+                              resourcesUsageSource: PulsarLBReport
                             sets:
                               broker:
                                 image: pulsar:latest

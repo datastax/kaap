@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.RejectedExecutionException;
 import lombok.SneakyThrows;
@@ -112,10 +113,10 @@ public class BrokerSetAutoscaler implements Runnable {
         }
         BrokerResourceUsageSource brokerResourceUsageSource =
                 newBrokerResourceUsageSource(autoscalerSpec, podSelector);
-        Boolean scaleUpOrDown = decideScaleUpOrDown(autoscalerSpec, brokerResourceUsageSource);
+        Optional<Boolean> scaleUpOrDown = decideScaleUpOrDown(autoscalerSpec, brokerResourceUsageSource);
 
-        if (scaleUpOrDown != null) {
-            int scaleTo = scaleUpOrDown
+        if (scaleUpOrDown.isPresent()) {
+            int scaleTo = scaleUpOrDown.get()
                     ? currentExpectedReplicas + autoscalerSpec.getScaleUpBy()
                     : currentExpectedReplicas - autoscalerSpec.getScaleDownBy();
 
@@ -161,7 +162,7 @@ public class BrokerSetAutoscaler implements Runnable {
         }
     }
 
-    private Boolean decideScaleUpOrDown(BrokerAutoscalerSpec autoscalerSpec,
+    private Optional<Boolean> decideScaleUpOrDown(BrokerAutoscalerSpec autoscalerSpec,
                                         BrokerResourceUsageSource brokerResourceUsageSource) {
         float cpuLowerThreshold = autoscalerSpec.getLowerCpuThreshold().floatValue();
         float cpuHigherThreshold = autoscalerSpec.getHigherCpuThreshold().floatValue();
@@ -176,26 +177,26 @@ public class BrokerSetAutoscaler implements Runnable {
             final double cpuPercentage = brokerUsage.getPercentCpu();
             if (cpuPercentage < cpuLowerThreshold) {
                 if (scaleUp) {
-                    return null;
+                    return Optional.empty();
                 }
                 scaleDown = true;
             } else if (cpuPercentage > cpuHigherThreshold) {
                 if (scaleDown) {
-                    return null;
+                    return Optional.empty();
                 }
                 scaleUp = true;
             } else {
-                return null;
+                return Optional.empty();
             }
         }
         if (scaleUp && scaleDown) {
             throw new IllegalStateException();
         }
         if (scaleUp) {
-            return true;
+            return Optional.of(true);
         }
         if (scaleDown) {
-            return false;
+            return Optional.of(false);
         }
         throw new IllegalStateException();
     }

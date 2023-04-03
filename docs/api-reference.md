@@ -14129,7 +14129,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale down. The autoscaler will scale down if all the bookies' disk usage is lower than this threshold. Default is '0.92'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -14139,7 +14139,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceLwm</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale up. The autoscaler will scale up if all the bookies' disk usage is higher than this threshold. Default is '0.75'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -14149,14 +14149,14 @@ Autoscaling config.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          <br/>
+          Enable autoscaling for bookies.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>minWritableBookies</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Min number of writable bookies. The autoscaler will scale up if not enough writable bookies are detected. For instance, if a bookie went to read-only mode, the autoscaler will scale up to replace it. Default is '3'.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -14165,7 +14165,7 @@ Autoscaling config.
         <td><b>periodMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The interval in milliseconds between two consecutive autoscaling checks.<br/>
           <br/>
             <i>Minimum</i>: 1000<br/>
         </td>
@@ -14174,7 +14174,7 @@ Autoscaling config.
         <td><b>scaleDownBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of bookies to remove at each scale down. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -14183,7 +14183,7 @@ Autoscaling config.
         <td><b>scaleUpBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of bookies to add at each scale up. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -14192,7 +14192,7 @@ Autoscaling config.
         <td><b>scaleUpMaxLimit</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Max number of bookies. If the number of bookies is equals to this value, the autoscaler will never scale up.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -14201,7 +14201,7 @@ Autoscaling config.
         <td><b>stabilizationWindowMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The stabilization window is used to restrict the flapping of replica count when the metrics used for scaling keep fluctuating. The autoscaling algorithm uses this window to infer a previous desired state and avoid unwanted changes to workload scale.Default value is 5 minutes after the pod readiness.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -20706,7 +20706,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale down. The autoscaler will scale down if all the bookies' disk usage is lower than this threshold. Default is '0.92'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -20716,7 +20716,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceLwm</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale up. The autoscaler will scale up if all the bookies' disk usage is higher than this threshold. Default is '0.75'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -20726,14 +20726,14 @@ Autoscaling config.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          <br/>
+          Enable autoscaling for bookies.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>minWritableBookies</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Min number of writable bookies. The autoscaler will scale up if not enough writable bookies are detected. For instance, if a bookie went to read-only mode, the autoscaler will scale up to replace it. Default is '3'.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -20742,7 +20742,7 @@ Autoscaling config.
         <td><b>periodMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The interval in milliseconds between two consecutive autoscaling checks.<br/>
           <br/>
             <i>Minimum</i>: 1000<br/>
         </td>
@@ -20751,7 +20751,7 @@ Autoscaling config.
         <td><b>scaleDownBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of bookies to remove at each scale down. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -20760,7 +20760,7 @@ Autoscaling config.
         <td><b>scaleUpBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of bookies to add at each scale up. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -20769,7 +20769,7 @@ Autoscaling config.
         <td><b>scaleUpMaxLimit</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Max number of bookies. If the number of bookies is equals to this value, the autoscaler will never scale up.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -20778,7 +20778,7 @@ Autoscaling config.
         <td><b>stabilizationWindowMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The stabilization window is used to restrict the flapping of replica count when the metrics used for scaling keep fluctuating. The autoscaling algorithm uses this window to infer a previous desired state and avoid unwanted changes to workload scale.Default value is 5 minutes after the pod readiness.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -32337,14 +32337,14 @@ Autoscaling config.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          <br/>
+          Enable autoscaling for brokers.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>higherCpuThreshold</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale up. The autoscaler will scale up if all the brokers cpu usage is higher than this threshold. Default is '0.8'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -32354,7 +32354,7 @@ Autoscaling config.
         <td><b>lowerCpuThreshold</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale down. The autoscaler will scale down if all the brokers cpu usage is lower than this threshold. Default is '0.4'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -32364,14 +32364,14 @@ Autoscaling config.
         <td><b>max</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Max number of brokers. If the number of brokers is equals to this value, the autoscaler will never scale up.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>min</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Min number of brokers. If the number of brokers is equals to this value, the autoscaler will never scale down.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -32380,16 +32380,23 @@ Autoscaling config.
         <td><b>periodMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The interval in milliseconds between two consecutive autoscaling checks.<br/>
           <br/>
             <i>Minimum</i>: 1000<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>resourcesUsageSource</b></td>
+        <td>string</td>
+        <td>
+          Source for getting the brokers resources usage. Possible values are 'PulsarLBReport' and 'K8SMetrics'. Default is 'PulsarLBReport'<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>scaleDownBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of brokers to remove at each scale down. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -32398,7 +32405,7 @@ Autoscaling config.
         <td><b>scaleUpBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of brokers to add at each scale up. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -32407,7 +32414,7 @@ Autoscaling config.
         <td><b>stabilizationWindowMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The stabilization window is used to restrict the flapping of replica count when the metrics used for scaling keep fluctuating. The autoscaling algorithm uses this window to infer a previous desired state and avoid unwanted changes to workload scale.Default value is 5 minutes after the pod readiness.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -38933,14 +38940,14 @@ Autoscaling config.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          <br/>
+          Enable autoscaling for brokers.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>higherCpuThreshold</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale up. The autoscaler will scale up if all the brokers cpu usage is higher than this threshold. Default is '0.8'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -38950,7 +38957,7 @@ Autoscaling config.
         <td><b>lowerCpuThreshold</b></td>
         <td>number</td>
         <td>
-          <br/>
+          The threshold to trigger a scale down. The autoscaler will scale down if all the brokers cpu usage is lower than this threshold. Default is '0.4'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -38960,14 +38967,14 @@ Autoscaling config.
         <td><b>max</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Max number of brokers. If the number of brokers is equals to this value, the autoscaler will never scale up.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>min</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          Min number of brokers. If the number of brokers is equals to this value, the autoscaler will never scale down.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -38976,16 +38983,23 @@ Autoscaling config.
         <td><b>periodMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The interval in milliseconds between two consecutive autoscaling checks.<br/>
           <br/>
             <i>Minimum</i>: 1000<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>resourcesUsageSource</b></td>
+        <td>string</td>
+        <td>
+          Source for getting the brokers resources usage. Possible values are 'PulsarLBReport' and 'K8SMetrics'. Default is 'PulsarLBReport'<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>scaleDownBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of brokers to remove at each scale down. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -38994,7 +39008,7 @@ Autoscaling config.
         <td><b>scaleUpBy</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The number of brokers to add at each scale up. Default is '1'<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>
@@ -39003,7 +39017,7 @@ Autoscaling config.
         <td><b>stabilizationWindowMs</b></td>
         <td>integer</td>
         <td>
-          <br/>
+          The stabilization window is used to restrict the flapping of replica count when the metrics used for scaling keep fluctuating. The autoscaling algorithm uses this window to infer a previous desired state and avoid unwanted changes to workload scale.Default value is 5 minutes after the pod readiness.<br/>
           <br/>
             <i>Minimum</i>: 1<br/>
         </td>

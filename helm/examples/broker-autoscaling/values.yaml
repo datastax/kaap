@@ -15,79 +15,78 @@
 # limitations under the License.
 #
 
-operator:
-  image: nicoloboschi/pulsar-operator:v27
-cluster:
-  create: true
-  spec:
-    global:
-      name: pulsar
-      image: datastax/lunastreaming-all:2.10_3.4
-      restartOnConfigMapChange: true
-      storage:
-        existingStorageClassName: default
-      antiAffinity:
-        host:
+pulsar-operator:
+  cluster:
+    create: true
+    spec:
+      global:
+        name: pulsar
+        image: datastax/lunastreaming-all:2.10_3.4
+        restartOnConfigMapChange: true
+        storage:
+          existingStorageClassName: default
+        antiAffinity:
+          host:
+            enabled: false
+      zookeeper:
+        replicas: 1
+        dataVolume:
+          name: data
+          size: 100M
+        resources:
+          requests:
+            cpu: "0.5"
+            memory: "128Mi"
+      bookkeeper:
+        autoRackConfig:
+            enabled: false
+        replicas: 2
+        volumes:
+          journal:
+            size: 10Gi
+          ledgers:
+            size: 10Gi
+        resources:
+          requests:
+            cpu: "0.5"
+            memory: "1Gi"
+      broker:
+        replicas: 2
+        autoscaler:
+          enabled: true
+          periodMs: 20000
+          min: 2
+          max: 10
+          lowerCpuThreshold: 0.4
+          higherCpuThreshold: 0.8
+          scaleUpBy: 1
+          scaleDownBy: 1
+          stabilizationWindowMs: 60000
+        config:
+          managedLedgerDefaultAckQuorum: 1
+          managedLedgerDefaultEnsembleSize: 1
+          managedLedgerDefaultWriteQuorum: 1
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: "128Mi"
+      proxy:
+        replicas: 1
+        webSocket:
           enabled: false
-    zookeeper:
-      replicas: 1
-      dataVolume:
-        name: data
-        size: 100M
-      resources:
-        requests:
-          cpu: "0.5"
-          memory: "128Mi"
-    bookkeeper:
-      autoRackConfig:
-          enabled: false
-      replicas: 2
-      volumes:
-        journal:
-          size: 10Gi
-        ledgers:
-          size: 10Gi
-      resources:
-        requests:
-          cpu: "0.5"
-          memory: "1Gi"
-    broker:
-      replicas: 2
-      autoscaler:
-        enabled: true
-        periodMs: 20000
-        min: 2
-        max: 10
-        lowerCpuThreshold: 0.4
-        higherCpuThreshold: 0.8
-        scaleUpBy: 1
-        scaleDownBy: 1
-        stabilizationWindowMs: 60000
-      config:
-        managedLedgerDefaultAckQuorum: 1
-        managedLedgerDefaultEnsembleSize: 1
-        managedLedgerDefaultWriteQuorum: 1
-      resources:
-        requests:
-          cpu: "0.1"
-          memory: "128Mi"
-    proxy:
-      replicas: 1
-      webSocket:
-        enabled: false
-      resources:
-        requests:
-          cpu: "1"
-          memory: "1Gi"
-    autorecovery:
-      replicas: 1
-      resources:
-        requests:
-          cpu: "0.5"
-          memory: "128Mi"
-    bastion:
-      replicas: 1
-      resources:
-        requests:
-          cpu: "0.5"
-          memory: "128Mi"
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+      autorecovery:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.5"
+            memory: "128Mi"
+      bastion:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.5"
+            memory: "128Mi"

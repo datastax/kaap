@@ -20,7 +20,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "pulsar-operator.roleName" $ }}
+  name: {{ include "pulsar-operator.roleName" . }}
 rules:
   - apiGroups:
       - "apiextensions.k8s.io"
@@ -38,12 +38,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "pulsar-operator.roleBindingName" $ }}
+  name: {{ include "pulsar-operator.roleBindingName" . }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
-  name: {{ include "pulsar-operator.roleName" $ }}
+  name: {{ include "pulsar-operator.roleName" . }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "pulsar-operator.serviceAccountName" . }}
@@ -52,7 +52,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "pulsar-operator.roleName" $ }}
+  name: {{ include "pulsar-operator.roleName" . }}
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
@@ -155,12 +155,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "pulsar-operator.roleBindingName" $ }}
+  name: {{ include "pulsar-operator.roleBindingName" . }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
   apiGroup: rbac.authorization.k8s.io
-  name: {{ include "pulsar-operator.roleName" $ }}
+  name: {{ include "pulsar-operator.roleName" . }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "pulsar-operator.serviceAccountName" . }}

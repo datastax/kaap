@@ -179,22 +179,6 @@
                             </resources>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>copy-manifests</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/manifests</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/target/kubernetes</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -206,23 +190,10 @@
                         <id>default-jar</id>
                     </execution>
                     <execution>
-                        <id>manifests-jar</id>
-                        <phase>package</phase>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>test-jar</goal>
                         </goals>
-                        <configuration>
-                            <classifier>manifests</classifier>
-                            <includes>
-                                <include>**/**/*.yml</include>
-                            </includes>
-                        </configuration>
                     </execution>
-                        <execution>
-                            <goals>
-                                <goal>test-jar</goal>
-                            </goals>
-                        </execution>
                 </executions>
             </plugin>
         </plugins>

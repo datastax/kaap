@@ -455,6 +455,9 @@ public class PulsarClusterControllerTest {
                           cpu: 1
                           memory: 1Gi
                       probes: {}
+                    kafka:
+                      enabled: false
+                      exposePort: true
                     setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []
@@ -518,6 +521,9 @@ public class PulsarClusterControllerTest {
                       scaleDownBy: 1
                       stabilizationWindowMs: 300000
                       resourcesUsageSource: PulsarLBReport
+                    kafka:
+                      enabled: false
+                      exposePort: true
                     setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []

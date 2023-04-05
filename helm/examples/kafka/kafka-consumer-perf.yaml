@@ -50,7 +50,6 @@ spec:
               kafka-consumer-perf-test \
                 --topic test  \
                 --consumer.config consumer-props.conf \
-                --bootstrap-server pulsar-proxy:9092 \ 
                 --print-metrics \
                 --from-latest \
                 --messages 1000000000 \

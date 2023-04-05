@@ -17,6 +17,7 @@ package com.datastax.oss.pulsaroperator.tests.helm;
 
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.KafkaConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,10 @@ public class KafkaTlsTest extends BaseHelmTest {
 
             final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
             specs.getGlobal()
+                    .setAuth(AuthConfig.builder()
+                            .enabled(false)
+                            .build());
+            specs.getGlobal()
                     .setTls(TlsConfig.builder()
                             .enabled(true)
                             .certProvisioner(TlsConfig.CertProvisionerConfig.builder()
@@ -70,7 +75,6 @@ public class KafkaTlsTest extends BaseHelmTest {
                     .build());
             applyPulsarCluster(specsToYaml(specs));
             awaitInstalled();
-
 
             applyManifest("""
                     apiVersion: apps/v1
@@ -101,7 +105,11 @@ public class KafkaTlsTest extends BaseHelmTest {
                                 - "-c"
                                 - >-
                                   keytool -import --trustcacerts -file /pulsar-certs/tls.crt -keystore cert.jks -storepass pulsar -noprompt &&
-                                  kafka-producer-perf-test --topic test --num-records 1000 --record-size 10240 --throughput 1000 --producer-props bootstrap.servers=pulsar-proxy:9093 security.protocol=SSL ssl.truststore.location=cert.jks ssl.truststore.password=pulsar
+                                  echo 'bootstrap.servers=pulsar-proxy:9093\\n' >> producer.conf &&
+                                  echo 'security.protocol=SSL\\n' >> producer.conf &&
+                                  echo 'ssl.truststore.location=cert.jks\\n' >> producer.conf &&
+                                  echo 'ssl.truststore.password=pulsar\\n' >> producer.conf &&
+                                  kafka-producer-perf-test --topic test --num-records 1000 --record-size 10240 --throughput 1000 --producer.config producer.conf
                               volumeMounts:
                                 - mountPath: /pulsar-certs
                                   name: certs
@@ -135,16 +143,18 @@ public class KafkaTlsTest extends BaseHelmTest {
                                 - >-
                                   set -e &&
                                   keytool -import --trustcacerts -file /pulsar-certs/tls.crt -keystore cert.jks -storepass pulsar -noprompt &&
-                                  echo "bootstrap.servers=pulsar-proxy:9093
-                                  security.protocol=SSL
-                                  ssl.truststore.location=cert.jks
-                                  ssl.truststore.password=pulsar" > consumer-props.conf &&
-                                  kafka-consumer-perf-test --topic test  --timeout 240000 --consumer.config consumer-props.conf --bootstrap-server pulsar-proxy:9093 --print-metrics --from-latest --messages 1000 --show-detailed-stats --reporting-interval 1000
+                                  echo 'bootstrap.servers=pulsar-proxy:9093\\n' >> consumer-props.conf &&
+                                  echo 'security.protocol=SSL\\n' >> consumer-props.conf &&
+                                  echo 'ssl.truststore.location=cert.jks\\n' >> consumer-props.conf &&
+                                  echo 'ssl.truststore.password=pulsar\\n' >> consumer-props.conf &&
+                                  kafka-consumer-perf-test --topic test --timeout 240000 --consumer.config consumer-props.conf --bootstrap-server pulsar-proxy:9093 --print-metrics --from-latest --messages 1000 --show-detailed-stats --reporting-interval 1000
                               volumeMounts:
                                 - mountPath: /pulsar-certs
                                   name: certs
                                   readOnly: true
                     """);
+
+
 
             // we need to also consider the download of the image
             awaitJobCompleted("kafka-client-consumer", 3);

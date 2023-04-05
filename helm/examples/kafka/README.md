@@ -1,7 +1,7 @@
 # Scaling the Pulsar Broker with a Kafka Client Workload
 
 This folder contains a sample configuration and demo about how to run a Apache Kafka® workload
-on a Apache Pulsar® cluster with the Broker Auto Scaling feature.
+on an Apache Pulsar® cluster with the Broker Auto Scaling feature.
 
 Support for the Kafka wire protocol is provided by [Starlight for Kafka](https://github.com/datastax/starlight-for-kafka).
 
@@ -44,13 +44,13 @@ kubectl logs -f deploy/kafka-client-consumer
 
 Open a terminal and see the logs of the Operator
 ```
-kubectl logs -f deploy/pulsar-operator -n mypulsar
+kubectl logs -f deploy/pulsar-operator
 ```
 
 
 You can use kubectl in order to scale in/out the client applications.
 ```
-kubectl -n mypulsar scale deploy/kafka-client-consumer  --replicas 10
+kubectl scale deploy/kafka-client-consumer  --replicas 10
 ```
 
 As the load increases you will see the Operator scales out the Broker STS.

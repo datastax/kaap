@@ -19,7 +19,6 @@ import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.KafkaConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
@@ -106,6 +105,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                     --topic test  \\
                                     --num-records 1000 \\
                                     --record-size 10240 \\
+                                    --throughput 1000 \\
                                     --producer-props bootstrap.servers=pulsar-proxy:9093 security.protocol=SSL ssl.truststore.location=cert.jks ssl.truststore.password=pulsar
                               volumeMounts:
                                 - mountPath: /pulsar-certs
@@ -121,10 +121,6 @@ public class KafkaTlsTest extends BaseHelmTest {
                       labels:
                         role: kafka-client-consumer
                     spec:
-                      replicas: 1
-                      selector:
-                        matchLabels:
-                          role: kafka-client-consumer
                       template:
                         metadata:
                           labels:
@@ -151,7 +147,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                   kafka-consumer-perf-test \\
                                     --topic test  \\
                                     --consumer.config consumer-props.conf \\
-                                    --bootstrap-server pulsar-proxy:9092 \\
+                                    --bootstrap-server pulsar-proxy:9093 \\
                                     --print-metrics \\
                                     --from-latest \\
                                     --messages 1000 \\
@@ -164,9 +160,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                     """);
 
             // we need to also consider the download of the image
-            client.batch().v1().jobs().inNamespace(namespace)
-                    .withName("kafka-client-consumer").waitUntilReady(3, TimeUnit.MINUTES);
-
+            awaitJobCompleted("kafka-client-consumer", 3);
             client.resources(PulsarCluster.class)
                     .inNamespace(namespace)
                     .withName("pulsar-cluster")

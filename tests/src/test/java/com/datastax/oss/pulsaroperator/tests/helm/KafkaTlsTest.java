@@ -101,12 +101,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                 - "-c"
                                 - >-
                                   keytool -import --trustcacerts -file /pulsar-certs/tls.crt -keystore cert.jks -storepass pulsar -noprompt &&
-                                  kafka-producer-perf-test \\
-                                    --topic test  \\
-                                    --num-records 1000 \\
-                                    --record-size 10240 \\
-                                    --throughput 1000 \\
-                                    --producer-props bootstrap.servers=pulsar-proxy:9093 security.protocol=SSL ssl.truststore.location=cert.jks ssl.truststore.password=pulsar
+                                  kafka-producer-perf-test --topic test --num-records 1000 --record-size 10240 --throughput 1000 --producer-props bootstrap.servers=pulsar-proxy:9093 security.protocol=SSL ssl.truststore.location=cert.jks ssl.truststore.password=pulsar
                               volumeMounts:
                                 - mountPath: /pulsar-certs
                                   name: certs
@@ -144,16 +139,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                   security.protocol=SSL
                                   ssl.truststore.location=cert.jks
                                   ssl.truststore.password=pulsar" > consumer-props.conf &&
-                                  kafka-consumer-perf-test \\
-                                    --topic test  \\
-                                    --timeout 3600000 \\
-                                    --consumer.config consumer-props.conf \\
-                                    --bootstrap-server pulsar-proxy:9093 \\
-                                    --print-metrics \\
-                                    --from-latest \\
-                                    --messages 1000 \\
-                                    --show-detailed-stats \\
-                                    --reporting-interval 1000
+                                  kafka-consumer-perf-test --topic test  --timeout 240000 --consumer.config consumer-props.conf --bootstrap-server pulsar-proxy:9093 --print-metrics --from-latest --messages 1000 --show-detailed-stats --reporting-interval 1000
                               volumeMounts:
                                 - mountPath: /pulsar-certs
                                   name: certs

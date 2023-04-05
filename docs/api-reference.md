@@ -29007,6 +29007,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerkafka">kafka</a></b></td>
+        <td>object</td>
+        <td>
+          Enable Kafka protocol.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>labels</b></td>
         <td>map[string]string</td>
         <td>
@@ -34854,6 +34861,39 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.broker.kafka
+
+
+
+Enable Kafka protocol.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Allow the cluster to accept Kafka protocol. Default is 'false'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>exposePort</b></td>
+        <td>boolean</td>
+        <td>
+          Expose the kafka protocol port.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.nodeAffinity
 
 
@@ -35621,6 +35661,13 @@ Service configuration.
         <td>[]object</td>
         <td>
           Init containers<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeykafka">kafka</a></b></td>
+        <td>object</td>
+        <td>
+          Enable Kafka protocol.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -41451,6 +41498,39 @@ Autoscaling config.
         <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].kafka
+
+
+
+Enable Kafka protocol.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Allow the cluster to accept Kafka protocol. Default is 'false'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>exposePort</b></td>
+        <td>boolean</td>
+        <td>
+          Expose the kafka protocol port.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57660,6 +57740,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxykafka">kafka</a></b></td>
+        <td>object</td>
+        <td>
+          Enable Kafka protocol.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>labels</b></td>
         <td>map[string]string</td>
         <td>
@@ -63395,6 +63482,39 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.proxy.kafka
+
+
+
+Enable Kafka protocol.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Allow the cluster to accept Kafka protocol. Default is 'false'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>exposePort</b></td>
+        <td>boolean</td>
+        <td>
+          Expose the kafka protocol port.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.nodeAffinity
 
 
@@ -64148,6 +64268,13 @@ Service configuration.
         <td>[]object</td>
         <td>
           Init containers<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeykafka">kafka</a></b></td>
+        <td>object</td>
+        <td>
+          Enable Kafka protocol.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -69866,6 +69993,39 @@ Indicates the provisioner property for the StorageClass.
         <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].kafka
+
+
+
+Enable Kafka protocol.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Allow the cluster to accept Kafka protocol. Default is 'false'.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>exposePort</b></td>
+        <td>boolean</td>
+        <td>
+          Expose the kafka protocol port.<br/>
         </td>
         <td>false</td>
       </tr></tbody>

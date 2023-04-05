@@ -19,7 +19,6 @@ import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.ControllerTestUtil;
 import com.datastax.oss.pulsaroperator.controllers.KubeTestUtil;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
-import com.datastax.oss.pulsaroperator.crds.SpecDiffer;
 import com.datastax.oss.pulsaroperator.crds.proxy.Proxy;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxyFullSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;

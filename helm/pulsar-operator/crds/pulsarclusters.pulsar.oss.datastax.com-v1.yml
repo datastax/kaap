@@ -7786,6 +7786,17 @@ spec:
                                   type: boolean
                               type: object
                           type: object
+                        kafka:
+                          description: Enable Kafka protocol.
+                          properties:
+                            exposePort:
+                              description: Expose the kafka protocol port.
+                              type: boolean
+                            enabled:
+                              description: Allow the cluster to accept Kafka protocol.
+                                Default is 'false'.
+                              type: boolean
+                          type: object
                         transactions:
                           description: Enable transactions in the broker.
                           properties:
@@ -9922,6 +9933,17 @@ spec:
                             description: Enables the probe.
                             type: boolean
                         type: object
+                    type: object
+                  kafka:
+                    description: Enable Kafka protocol.
+                    properties:
+                      exposePort:
+                        description: Expose the kafka protocol port.
+                        type: boolean
+                      enabled:
+                        description: Allow the cluster to accept Kafka protocol. Default
+                          is 'false'.
+                        type: boolean
                     type: object
                   transactions:
                     description: Enable transactions in the broker.
@@ -14203,6 +14225,17 @@ spec:
                                   type: boolean
                               type: object
                           type: object
+                        kafka:
+                          description: Enable Kafka protocol.
+                          properties:
+                            exposePort:
+                              description: Expose the kafka protocol port.
+                              type: boolean
+                            enabled:
+                              description: Allow the cluster to accept Kafka protocol.
+                                Default is 'false'.
+                              type: boolean
+                          type: object
                         service:
                           description: Service configuration.
                           properties:
@@ -16331,6 +16364,17 @@ spec:
                             description: Enables the probe.
                             type: boolean
                         type: object
+                    type: object
+                  kafka:
+                    description: Enable Kafka protocol.
+                    properties:
+                      exposePort:
+                        description: Expose the kafka protocol port.
+                        type: boolean
+                      enabled:
+                        description: Allow the cluster to accept Kafka protocol. Default
+                          is 'false'.
+                        type: boolean
                     type: object
                   service:
                     description: Service configuration.

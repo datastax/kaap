@@ -25,9 +25,6 @@ import org.testng.annotations.Test;
 @Test(groups = "helm")
 public class TlsTest extends BaseHelmTest {
 
-    public static final String CERT_MANAGER_CRDS =
-            "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml";
-
     @Test
     public void testPerComponents() throws Exception {
         test(true);

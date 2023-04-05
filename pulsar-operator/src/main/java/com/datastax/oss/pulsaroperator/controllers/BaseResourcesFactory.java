@@ -302,6 +302,26 @@ public abstract class BaseResourcesFactory<T> {
                 && global.getTls().getBroker().getEnabled();
     }
 
+    protected boolean isTlsEnabledOnBrokerSet(String brokerSet) {
+        final boolean tlsEnabledGlobally = isTlsEnabledGlobally();
+        if (!tlsEnabledGlobally) {
+            return false;
+        }
+        final TlsConfig.TlsEntryConfig tlsConfigForBrokerSet = getTlsConfigForBrokerSet(brokerSet);
+        return tlsConfigForBrokerSet != null && tlsConfigForBrokerSet.getEnabled();
+    }
+
+
+    protected TlsConfig.TlsEntryConfig getTlsConfigForBrokerSet(String brokerSet) {
+        if (global.getTls().getBrokerResourceSets() == null
+                || !global.getTls().getBrokerResourceSets().containsKey(brokerSet)) {
+            return global.getTls().getBroker();
+        }
+        return ObjectUtils.firstNonNull(
+                global.getTls().getBrokerResourceSets().get(brokerSet),
+                global.getTls().getBroker());
+    }
+
     protected boolean isTlsEnabledOnProxy() {
         return isTlsEnabledGlobally()
                 && global.getTls().getProxy() != null

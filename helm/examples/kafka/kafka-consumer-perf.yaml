@@ -31,8 +31,33 @@ spec:
       labels:
         role: kafka-client-consumer
     spec:
+      volumes:
+        - name: certs
+          secret:
+            secretName: pulsar-tls
       containers:
         - name: kclient
           image: confluentinc/cp-kafka
           command: ["/bin/sh"]
-          args: ["-c", "kafka-consumer-perf-test  --topic test --bootstrap-server pulsar-proxy:9092 --print-metrics --from-latest --messages 1000000000 --show-detailed-stats --reporting-interval 1000"]
+          args:
+            - "-c"
+            - >-
+              keytool -import --trustcacerts -file /pulsar-certs/tls.crt -keystore cert.jks -storepass pulsar -noprompt &&
+              echo "bootstrap.servers=pulsar-proxy:9093
+              security.protocol=SSL
+              ssl.truststore.location=cert.jks
+              ssl.truststore.password=pulsar" > consumer-props.conf &&
+              kafka-consumer-perf-test \
+                --topic test  \
+                --consumer.config consumer-props.conf \
+                --bootstrap-server pulsar-proxy:9092 \ 
+                --print-metrics \
+                --from-latest \
+                --messages 1000000000 \
+                --show-detailed-stats \
+                --reporting-interval 1000
+          volumeMounts:
+            - mountPath: /pulsar-certs
+              name: certs
+              readOnly: true
+

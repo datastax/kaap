@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "helm")
+@Test(groups = "helm-tls")
 public class TlsTest extends BaseHelmTest {
 
     @Test

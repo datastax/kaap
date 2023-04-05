@@ -56,6 +56,9 @@ jobs:
           - name: Helm
             group: helm
             num_agents: 0
+          - name: Helm (TLS)
+            group: helm-tls
+            num_agents: 0
           - name: Multi nodes
             group: multi-nodes
             num_agents: 1

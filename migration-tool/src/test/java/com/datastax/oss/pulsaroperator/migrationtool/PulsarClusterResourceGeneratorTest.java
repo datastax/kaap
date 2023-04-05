@@ -496,6 +496,9 @@ public class PulsarClusterResourceGeneratorTest {
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
                               resourcesUsageSource: PulsarLBReport
+                            kafka:
+                              enabled: false
+                              exposePorts: true
                             sets:
                               broker:
                                 image: pulsar:latest
@@ -728,6 +731,9 @@ public class PulsarClusterResourceGeneratorTest {
                                   cpu: 1
                                   memory: 1Gi
                               probes: {}
+                            kafka:
+                              enabled: false
+                              exposePorts: true
                             sets:
                               proxy:
                                 image: pulsar:latest

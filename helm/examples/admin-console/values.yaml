@@ -16,15 +16,12 @@
 #
 
 pulsar-operator:
-  operator:
-    image: datastax/lunastreaming-operator:latest-dev
-    imagePullPolicy: Never
   cluster:
     create: true
     spec:
       global:
         name: pulsar
-        image: datastax/lunastreaming-all:2.10_2.4
+        image: datastax/lunastreaming-all:2.10_3.4
         restartOnConfigMapChange: true
         storage:
           existingStorageClassName: default
@@ -86,7 +83,6 @@ pulsar-operator:
             cpu: "0.2"
             memory: "128Mi"
         service:
-        # type: LoadBalancer -> enable load balancer on the proxy
       autorecovery:
         replicas: 1
         resources:
@@ -114,10 +110,6 @@ pulsar-operator:
 
 pulsar-admin-console:
   enabled: true
-  image:
-    repository: datastax/pulsar-admin-console
-    pullPolicy: Always
-    tag: latest
   env:
     - name: NODE_EXTRA_CA_CERTS
       value: /pulsar/certs/ca.crt
@@ -137,14 +129,11 @@ pulsar-admin-console:
       readOnly: true
   createUserSecret:
     enabled: true
-    user: superuser
-    password: password
+    user: admin
+    password: mypass
   config:
     auth_mode: k8s
-    cluster_name: default
-    tenant: public
     oauth_client_id: "pulsar-admin-console"
-    api_version: "2.11.0"
     grafana_url: "http://pulsar-grafana:3000"
     host_overrides:
       pulsar: "pulsar+ssl://pulsar-broker:6651"

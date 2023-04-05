@@ -146,6 +146,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                   ssl.truststore.password=pulsar" > consumer-props.conf &&
                                   kafka-consumer-perf-test \\
                                     --topic test  \\
+                                    --timeout 3600000 \\
                                     --consumer.config consumer-props.conf \\
                                     --bootstrap-server pulsar-proxy:9093 \\
                                     --print-metrics \\

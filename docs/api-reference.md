@@ -34884,7 +34884,7 @@ Enable Kafka protocol.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>exposePort</b></td>
+        <td><b>exposePorts</b></td>
         <td>boolean</td>
         <td>
           Expose the kafka protocol port.<br/>
@@ -41527,7 +41527,7 @@ Enable Kafka protocol.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>exposePort</b></td>
+        <td><b>exposePorts</b></td>
         <td>boolean</td>
         <td>
           Expose the kafka protocol port.<br/>
@@ -63505,7 +63505,7 @@ Enable Kafka protocol.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>exposePort</b></td>
+        <td><b>exposePorts</b></td>
         <td>boolean</td>
         <td>
           Expose the kafka protocol port.<br/>
@@ -70022,7 +70022,7 @@ Enable Kafka protocol.
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>exposePort</b></td>
+        <td><b>exposePorts</b></td>
         <td>boolean</td>
         <td>
           Expose the kafka protocol port.<br/>

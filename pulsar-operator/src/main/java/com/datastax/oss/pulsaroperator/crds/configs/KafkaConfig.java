@@ -30,5 +30,5 @@ public class KafkaConfig {
     @JsonPropertyDescription("Allow the cluster to accept Kafka protocol. Default is 'false'.")
     private Boolean enabled;
     @JsonPropertyDescription("Expose the kafka protocol port.")
-    private Boolean exposePort;
+    private Boolean exposePorts;
 }

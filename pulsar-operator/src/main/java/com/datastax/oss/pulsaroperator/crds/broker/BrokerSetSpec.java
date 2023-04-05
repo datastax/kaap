@@ -129,7 +129,7 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
     private static final Supplier<KafkaConfig> DEFAULT_KAFKA_CONFIG =
             () -> KafkaConfig.builder()
                             .enabled(false)
-                            .exposePort(true)
+                            .exposePorts(true)
                             .build();
 
     @Data

@@ -457,7 +457,7 @@ public class PulsarClusterControllerTest {
                       probes: {}
                     kafka:
                       enabled: false
-                      exposePort: true
+                      exposePorts: true
                     setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []
@@ -523,7 +523,7 @@ public class PulsarClusterControllerTest {
                       resourcesUsageSource: PulsarLBReport
                     kafka:
                       enabled: false
-                      exposePort: true
+                      exposePorts: true
                     setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []

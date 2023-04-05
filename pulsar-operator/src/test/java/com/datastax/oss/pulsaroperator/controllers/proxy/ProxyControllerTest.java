@@ -1727,7 +1727,7 @@ public class ProxyControllerTest {
                 proxy:
                     kafka:
                         enabled: true
-                        exposePort: false
+                        exposePorts: false
                 """;
         client = invokeController(spec);
 

@@ -138,7 +138,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                     .withPort(DEFAULT_PULSARSSL_PORT)
                     .build());
         }
-        if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getExposePort()) {
+        if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getexposePorts()) {
             if (tlsEnabledOnBrokerSet) {
                 ports.add(new ServicePortBuilder()
                         .withName("kafkassl")

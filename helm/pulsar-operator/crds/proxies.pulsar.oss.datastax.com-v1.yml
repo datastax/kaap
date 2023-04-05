@@ -191,7 +191,7 @@ spec:
                         kafka:
                           description: Enable Kafka protocol.
                           properties:
-                            exposePort:
+                            exposePorts:
                               description: Expose the kafka protocol port.
                               type: boolean
                             enabled:
@@ -2331,7 +2331,7 @@ spec:
                   kafka:
                     description: Enable Kafka protocol.
                     properties:
-                      exposePort:
+                      exposePorts:
                         description: Expose the kafka protocol port.
                         type: boolean
                       enabled:

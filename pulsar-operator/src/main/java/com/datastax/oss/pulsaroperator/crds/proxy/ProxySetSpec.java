@@ -100,7 +100,7 @@ public class ProxySetSpec extends BaseComponentSpec<ProxySetSpec> {
     private static final Supplier<KafkaConfig> DEFAULT_KAFKA_CONFIG =
             () -> KafkaConfig.builder()
                     .enabled(false)
-                    .exposePort(true)
+                    .exposePorts(true)
                     .build();
 
     @Data

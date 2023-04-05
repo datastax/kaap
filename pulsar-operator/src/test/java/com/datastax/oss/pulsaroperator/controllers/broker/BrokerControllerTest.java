@@ -1883,7 +1883,7 @@ public class BrokerControllerTest {
                 broker:
                     kafka:
                         enabled: true
-                        exposePort: false
+                        exposePorts: false
                 """;
         client = invokeController(spec);
 

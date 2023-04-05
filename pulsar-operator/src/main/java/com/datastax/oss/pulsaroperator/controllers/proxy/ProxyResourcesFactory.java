@@ -175,7 +175,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                     .withPort(DEFAULT_WS_PORT)
                     .build());
         }
-        if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getExposePort()) {
+        if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getexposePorts()) {
             if (tlsEnabledOnProxy) {
                 ports.add(new ServicePortBuilder()
                         .withName("kafkassl")

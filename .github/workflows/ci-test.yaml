@@ -83,7 +83,7 @@ jobs:
           
           helm dependency build helm/pulsar-operator
           helm dependency build helm/pulsar-stack
-        if: ${{ matrix.group == 'helm' }}
+        if: ${{ matrix.group == 'helm' or matrix.group == 'helm-tls' }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3

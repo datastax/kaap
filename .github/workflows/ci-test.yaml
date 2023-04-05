@@ -70,7 +70,7 @@ jobs:
         with:
           version: latest
           token: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ matrix.group == 'helm' }}
+        if: ${{ matrix.group == 'helm' or matrix.group == 'helm-tls' }}
 
       - name: Build Helm charts
         run: |

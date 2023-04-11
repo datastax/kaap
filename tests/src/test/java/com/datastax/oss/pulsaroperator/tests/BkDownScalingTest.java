@@ -28,7 +28,7 @@ import org.awaitility.Awaitility;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "scaling")
+@Test(groups = "bk-scaling")
 public class BkDownScalingTest extends BasePulsarClusterTest {
 
     @Test

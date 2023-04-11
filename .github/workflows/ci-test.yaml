@@ -50,6 +50,9 @@ jobs:
           - name: Scaling
             group: scaling
             num_agents: 0
+          - name: Scaling (BookKeeper)
+            group: bk-scaling
+            num_agents: 0
           - name: Misc
             group: misc
             num_agents: 0

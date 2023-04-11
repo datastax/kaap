@@ -56,11 +56,11 @@ jobs:
           - name: Helm
             group: helm
             num_agents: 0
-            setup_helm: true
+            setup_helm: "true"
           - name: Helm (TLS)
             group: helm-tls
             num_agents: 0
-            setup_helm: true
+            setup_helm: "true"
           - name: Multi nodes
             group: multi-nodes
             num_agents: 1

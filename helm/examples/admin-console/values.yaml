@@ -26,7 +26,7 @@ pulsar-operator:
         storage:
           existingStorageClassName: default
         auth:
-          enabled: false
+          enabled: true
         tls:
           enabled: true
           zookeeper:
@@ -82,7 +82,11 @@ pulsar-operator:
           requests:
             cpu: "0.2"
             memory: "128Mi"
-        service:
+        webSocket:
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
       autorecovery:
         replicas: 1
         resources:

@@ -56,9 +56,11 @@ jobs:
           - name: Helm
             group: helm
             num_agents: 0
+            setup_helm: true
           - name: Helm (TLS)
             group: helm-tls
             num_agents: 0
+            setup_helm: true
           - name: Multi nodes
             group: multi-nodes
             num_agents: 1
@@ -70,7 +72,7 @@ jobs:
         with:
           version: latest
           token: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ matrix.group == 'helm' or matrix.group == 'helm-tls' }}
+        if: ${{ matrix.setup_helm == 'true' }}
 
       - name: Build Helm charts
         run: |
@@ -83,7 +85,7 @@ jobs:
           
           helm dependency build helm/pulsar-operator
           helm dependency build helm/pulsar-stack
-        if: ${{ matrix.group == 'helm' or matrix.group == 'helm-tls' }}
+        if: ${{ matrix.setup_helm == 'true' }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3

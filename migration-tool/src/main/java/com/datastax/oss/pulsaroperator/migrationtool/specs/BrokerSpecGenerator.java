@@ -56,7 +56,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                     client
             );
             generators.put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSetSpecGenerator);
-            final BrokerSpec brokerSpec = brokerSetSpecGenerator.generateSpec();
+            final BrokerSetSpec brokerSpec = brokerSetSpecGenerator.generateSpec();
             generatedSpec.setSets(new LinkedHashMap<>(Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSpec)));
         } else {
             LinkedHashMap<String, BrokerSetSpec> sets = new LinkedHashMap<>();

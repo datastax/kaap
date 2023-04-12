@@ -18,7 +18,6 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
-import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
@@ -44,7 +43,7 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
 
     public static final String SPEC_NAME = "Broker";
     private final String resourceName;
-    private BrokerSpec generatedSpec;
+    private BrokerSetSpec generatedSpec;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -70,7 +69,7 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
     }
 
     @Override
-    public BrokerSpec generateSpec() {
+    public BrokerSetSpec generateSpec() {
         return generatedSpec;
     }
 
@@ -114,7 +113,7 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
         final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
 
 
-        generatedSpec = BrokerSpec.builder()
+        generatedSpec = BrokerSetSpec.builder()
                 .annotations(statefulSet.getMetadata().getAnnotations())
                 .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
                 .image(container.getImage())

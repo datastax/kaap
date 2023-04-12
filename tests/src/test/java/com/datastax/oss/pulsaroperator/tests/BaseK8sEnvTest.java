@@ -302,7 +302,8 @@ public abstract class BaseK8sEnvTest {
 
             final String prefix = "%s.%s".formatted(testResult.getTestClass().getRealClass().getSimpleName(),
                     testResult.getMethod().getMethodName());
-            dumpAllPodsLogs(prefix);
+            dumpAllPodsLogs(prefix, namespace);
+            dumpAllPodsLogs(prefix, "kube-system");
             dumpEvents(prefix);
             dumpAllResources(prefix);
         }
@@ -392,7 +393,7 @@ public abstract class BaseK8sEnvTest {
 
     protected void printPodLogs(String podName, int tailingLines) {
         final String sep = "=".repeat(100);
-        withPodLogs(podName, tailingLines, (container, logs) -> {
+        withPodLogs(podName, namespace, tailingLines, (container, logs) -> {
             log.info("{}\n{}\n{}/{} pod logs (last {} lines}:\n{}\n{}\n{}", sep, sep, podName,
                     container,
                     tailingLines, logs, sep, sep);
@@ -400,7 +401,7 @@ public abstract class BaseK8sEnvTest {
     }
 
 
-    protected void withPodLogs(String podName, int tailingLines, BiConsumer<String, String> consumer) {
+    protected void withPodLogs(String podName, String namespace, int tailingLines, BiConsumer<String, String> consumer) {
         if (podName != null) {
             try {
                 client.pods().inNamespace(namespace)
@@ -421,14 +422,14 @@ public abstract class BaseK8sEnvTest {
         }
     }
 
-    protected void dumpAllPodsLogs(String filePrefix) {
+    protected void dumpAllPodsLogs(String filePrefix, String namespace) {
         client.pods().inNamespace(namespace).list().getItems()
-                .forEach(pod -> dumpPodLogs(pod.getMetadata().getName(), filePrefix));
+                .forEach(pod -> dumpPodLogs(pod.getMetadata().getName(), namespace, filePrefix));
     }
 
-    protected void dumpPodLogs(String podName, String filePrefix) {
+    protected void dumpPodLogs(String podName, String namespace, String filePrefix) {
         TEST_LOGS_DIR.mkdirs();
-        withPodLogs(podName, -1, (container, logs) -> {
+        withPodLogs(podName, namespace, -1, (container, logs) -> {
             final File outputFile = new File(TEST_LOGS_DIR, "%s.%s.%s.log".formatted(filePrefix, podName, container));
             try (FileWriter writer = new FileWriter(outputFile)) {
                 writer.write(logs);
@@ -478,11 +479,12 @@ public abstract class BaseK8sEnvTest {
         TEST_LOGS_DIR.mkdirs();
         final File outputFile = new File(TEST_LOGS_DIR, "%s-events.log".formatted(filePrefix));
         try (FileWriter writer = new FileWriter(outputFile)) {
-            client.resources(Event.class).inNamespace(namespace).list()
+            client.resources(Event.class).inAnyNamespace().list()
                     .getItems()
                     .forEach(event -> {
                         try {
-                            writer.write("[%s/%s] %s: %s\n".formatted(event.getRegarding().getKind(),
+                            writer.write("[%s] [%s/%s] %s: %s\n".formatted(event.getMetadata().getNamespace(),
+                                    event.getRegarding().getKind(),
                                     event.getRegarding().getName(), event.getReason(), event.getNote()));
                         } catch (IOException e) {
                             log.error("failed to write event {} to file {}", event, outputFile, e);

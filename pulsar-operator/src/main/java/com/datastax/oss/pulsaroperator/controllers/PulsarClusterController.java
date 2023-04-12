@@ -111,7 +111,7 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
             );
         }
 
-        adjustBookKeeperReplicas(currentNamespace, clusterSpec);
+
         if (!checkReadyOrPatchBookKeeper(currentNamespace, clusterSpec, ownerReference)) {
             log.info("waiting for bookkeeper to become ready");
             return new ReconciliationResult(
@@ -121,7 +121,6 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         }
         autoscaler.getBookKeeperAutoscalerDaemon().onSpecChange(clusterSpec, currentNamespace);
 
-        adjustBrokerReplicas(currentNamespace, clusterSpec);
         final boolean brokerReady = checkReadyOrPatchBroker(currentNamespace, clusterSpec, ownerReference);
         autoscaler.getBrokerAutoscalerDaemon().onSpecChange(clusterSpec, currentNamespace);
 
@@ -204,17 +203,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         }
     }
 
-    private void adjustBrokerReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
+    private void adjustBrokerReplicas(Broker current, PulsarClusterSpec clusterSpec) {
         if (clusterSpec.getBroker() != null) {
-            final String crFullName = computeCustomResourceName(clusterSpec, CUSTOM_RESOURCE_BROKER);
-            final Broker current = client.resources(Broker.class)
-                    .inNamespace(currentNamespace)
-                    .withName(crFullName)
-                    .get();
-            if (current == null) {
-                return;
-            }
-
             final LinkedHashMap<String, BrokerSetSpec> desiredBrokerSetSpecs =
                     BrokerController.getBrokerSetSpecs(clusterSpec.getBroker());
             final LinkedHashMap<String, BrokerSetSpec> currentBrokerSetSpecs =
@@ -239,17 +229,8 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         }
     }
 
-    private void adjustBookKeeperReplicas(String currentNamespace, PulsarClusterSpec clusterSpec) {
+    private void adjustBookKeeperReplicas(BookKeeper current, PulsarClusterSpec clusterSpec) {
         if (clusterSpec.getBookkeeper() != null) {
-            final String crFullName = computeCustomResourceName(clusterSpec, CUSTOM_RESOURCE_BOOKKEEPER);
-            final BookKeeper current = client.resources(BookKeeper.class)
-                    .inNamespace(currentNamespace)
-                    .withName(crFullName)
-                    .get();
-            if (current == null) {
-                return;
-            }
-
             final LinkedHashMap<String, BookKeeperSetSpec> desiredSpecs =
                     BookKeeperController.getBookKeeperSetSpecs(clusterSpec.getBookkeeper());
             final LinkedHashMap<String, BookKeeperSetSpec> currentSpecs =
@@ -389,6 +370,12 @@ public class PulsarClusterController extends AbstractController<PulsarCluster> {
         final String crFullName = computeCustomResourceName(clusterSpec, customResourceName);
         final CR current = getExistingCustomResource(resourceClass, namespace, crFullName);
         if (current != null) {
+            if (CUSTOM_RESOURCE_BOOKKEEPER.equals(customResourceName)) {
+                adjustBookKeeperReplicas((BookKeeper) current, clusterSpec);
+            }
+            if (CUSTOM_RESOURCE_BROKER.equals(customResourceName)) {
+                adjustBrokerReplicas((Broker) current, clusterSpec);
+            }
             final SPEC currentSpec = current.getSpec();
 
             final String currentAsJson = SerializationUtil.writeAsJson(currentSpec);

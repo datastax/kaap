@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperAutoRackConfig;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
@@ -49,7 +50,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
     private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
         final List<InputClusterSpecs.BookKeeperSpecs.BookKeeperSetSpecs> bkSets =
                 inputSpecs.getBookkeeper().getBookkeeperSets();
-        generatedSpec = new BookKeeperSpec();
+
         if (bkSets == null || bkSets.isEmpty()) {
             final BookKeeperSetSpecGenerator brokerSetSpecGenerator = new BookKeeperSetSpecGenerator(
                     inputSpecs,
@@ -58,9 +59,8 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                     client
             );
             generators.put(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, brokerSetSpecGenerator);
-            final BookKeeperSetSpec bkSpec = brokerSetSpecGenerator.generateSpec();
-            generatedSpec.setSets(
-                    new LinkedHashMap<>(Map.of(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, bkSpec)));
+            generatedSpec = SerializationUtil.convertValue(brokerSetSpecGenerator.generateSpec(),
+                    BookKeeperSpec.class);
         } else {
             LinkedHashMap<String, BookKeeperSetSpec> sets = new LinkedHashMap<>();
             bkSets.stream().map(
@@ -70,6 +70,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                 generators.put(pair.getLeft(), pair.getRight());
                 sets.put(pair.getLeft(), pair.getRight().generateSpec());
             });
+            generatedSpec = new BookKeeperSpec();
             generatedSpec.setSets(sets);
         }
         generatedSpec.setAutoRackConfig(BookKeeperAutoRackConfig.builder()

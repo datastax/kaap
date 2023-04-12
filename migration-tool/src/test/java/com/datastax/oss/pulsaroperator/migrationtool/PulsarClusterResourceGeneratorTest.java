@@ -262,39 +262,150 @@ public class PulsarClusterResourceGeneratorTest {
                             metadataInitializationJob:
                               timeout: 60
                           bookkeeper:
+                            image: pulsar:latest
                             imagePullPolicy: IfNotPresent
+                            nodeSelectors: {}
                             replicas: 3
                             pdb:
                               enabled: true
                               maxUnavailable: 1
+                            tolerations: []
+                            antiAffinity:
+                              host:
+                                enabled: true
+                                required: false
+                              zone:
+                                enabled: false
+                            annotations:
+                              meta.helm.sh/release-name: pulsar-cluster
+                              meta.helm.sh/release-namespace: pulsar
+                            podAnnotations:
+                              checksum/config: e45a01b57a5257d67a86fe0350096152e0d173fc27bcd87f03b0ddab8b10e3a2
+                              kubectl.kubernetes.io/restartedAt: 2021-11-01T15:53:51-04:00
+                              prometheus.io/port: 8000
+                              prometheus.io/scrape: "true"
+                            labels:
+                              app: pulsar
+                              app.kubernetes.io/managed-by: Helm
+                              chart: pulsar-1.0.32
+                              cluster: pulsar-cluster
+                              component: bookkeeper
+                              heritage: Helm
+                              release: pulsar-cluster
+                            podLabels:
+                              app: pulsar
+                              cluster: pulsar-cluster
+                              component: bookkeeper
+                              release: pulsar-cluster
+                            matchLabels:
+                              app: pulsar
+                              cluster: ""
+                              component: bookkeeper
+                              release: pulsar-cluster
+                            imagePullSecrets: []
+                            env: []
+                            sidecars: []
+                            initContainers:
+                            - args:
+                              - |-
+                                until bin/pulsar zookeeper-shell -server pulsar-cluster-zookeeper ls /admin/clusters | grep "^\\[.*pulsar-cluster.*\\]"; do
+                                  sleep 3;
+                                done;
+                              command:
+                              - sh
+                              - -c
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: wait-zookeeper-ready
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                            - args:
+                              - |
+                                bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/bkenv.sh && bin/bookkeeper shell metaformat --nonInteractive || true;
+                              command:
+                              - sh
+                              - -c
+                              envFrom:
+                              - configMapRef:
+                                  name: pulsar-cluster-bookkeeper
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: pulsar-bookkeeper-metaformat
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                            config:
+                              BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
+                              BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
+                              PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                              PULSAR_LOG_LEVEL: info
+                              PULSAR_LOG_ROOT_LEVEL: info
+                              autoRecoveryDaemonEnabled: "false"
+                              compactionRateByEntries: 5000
+                              dbStorage_readAheadCacheBatchSize: 2000
+                              dbStorage_readAheadCacheMaxSizeMb: 1024
+                              dbStorage_rocksDB_blockCacheSize: 500000000
+                              dbStorage_writeCacheMaxSizeMb: 1024
+                              gcWaitTime: 300000
+                              httpServerEnabled: "true"
+                              journalAdaptiveGroupWrites: "true"
+                              journalBufferedWritesThreshold: 1024
+                              journalMaxGroupWaitMSec: 1
+                              journalMaxSizeMB: 2048
+                              journalPreAllocSizeMB: 128
+                              journalSyncData: "false"
+                              journalWriteBufferSizeKB: 4096
+                              majorCompactionInterval: 1200
+                              maxPendingAddRequestsPerThread: 500000
+                              maxPendingReadRequestsPerThread: 500000
+                              minorCompactionInterval: 600
+                              numAddWorkerThreads: 8
+                              numJournalCallbackThreads: 64
+                              numReadWorkerThreads: 8
+                              statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
+                              useHostNameAsBookieID: "true"
+                              writeBufferSizeBytes: 4194304
+                              zkServers: pulsar-cluster-zookeeper-ca:2181
                             probes:
                               readiness:
                                 enabled: true
-                                timeoutSeconds: 5
+                                timeoutSeconds: 1
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
+                                failureThreshold: 3
+                                successThreshold: 1
                               liveness:
                                 enabled: true
-                                timeoutSeconds: 5
+                                timeoutSeconds: 1
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
+                                failureThreshold: 3
+                                successThreshold: 1
                             updateStrategy:
                               type: RollingUpdate
-                            podManagementPolicy: Parallel
+                            podManagementPolicy: OrderedReady
                             gracePeriod: 60
                             resources:
                               requests:
-                                cpu: 1
-                                memory: 2Gi
+                                cpu: 2
+                                memory: 8Gi
                             volumes:
                               journal:
                                 name: journal
-                                size: 20Gi
-                                existingStorageClassName: default
+                                size: 100Gi
+                                existingStorageClassName: pulsar-cluster-bookkeeper-journal
                               ledgers:
                                 name: ledgers
-                                size: 50Gi
-                                existingStorageClassName: default
+                                size: 52Gi
+                                existingStorageClassName: pulsar-cluster-bookkeeper-ledgers
+                            service:
+                              annotations:
+                                meta.helm.sh/release-name: pulsar-cluster
+                                meta.helm.sh/release-namespace: pulsar
+                                publishNotReadyAddresses: "true"
+                                service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+                              additionalPorts: []
                             autoscaler:
                               enabled: false
                               periodMs: 10000
@@ -306,185 +417,203 @@ public class PulsarClusterResourceGeneratorTest {
                               scaleDownBy: 1
                               stabilizationWindowMs: 300000
                             cleanUpPvcs: true
-                            sets:
-                              bookkeeper:
-                                image: pulsar:latest
-                                imagePullPolicy: IfNotPresent
-                                nodeSelectors: {}
-                                replicas: 3
-                                pdb:
-                                  enabled: true
-                                  maxUnavailable: 1
-                                tolerations: []
-                                antiAffinity:
-                                  host:
-                                    enabled: true
-                                    required: false
-                                  zone:
-                                    enabled: false
-                                annotations:
-                                  meta.helm.sh/release-name: pulsar-cluster
-                                  meta.helm.sh/release-namespace: pulsar
-                                podAnnotations:
-                                  checksum/config: e45a01b57a5257d67a86fe0350096152e0d173fc27bcd87f03b0ddab8b10e3a2
-                                  kubectl.kubernetes.io/restartedAt: 2021-11-01T15:53:51-04:00
-                                  prometheus.io/port: 8000
-                                  prometheus.io/scrape: "true"
-                                labels:
-                                  app: pulsar
-                                  app.kubernetes.io/managed-by: Helm
-                                  chart: pulsar-1.0.32
-                                  cluster: pulsar-cluster
-                                  component: bookkeeper
-                                  heritage: Helm
-                                  release: pulsar-cluster
-                                podLabels:
-                                  app: pulsar
-                                  cluster: pulsar-cluster
-                                  component: bookkeeper
-                                  release: pulsar-cluster
-                                matchLabels:
-                                  app: pulsar
-                                  cluster: ""
-                                  component: bookkeeper
-                                  release: pulsar-cluster
-                                imagePullSecrets: []
-                                env: []
-                                sidecars: []
-                                initContainers:
-                                - args:
-                                  - |-
-                                    until bin/pulsar zookeeper-shell -server pulsar-cluster-zookeeper ls /admin/clusters | grep "^\\[.*pulsar-cluster.*\\]"; do
-                                      sleep 3;
-                                    done;
-                                  command:
-                                  - sh
-                                  - -c
-                                  image: pulsar:latest
-                                  imagePullPolicy: IfNotPresent
-                                  name: wait-zookeeper-ready
-                                  resources: {}
-                                  terminationMessagePath: /dev/termination-log
-                                  terminationMessagePolicy: File
-                                - args:
-                                  - |
-                                    bin/apply-config-from-env.py conf/bookkeeper.conf && bin/apply-config-from-env.py conf/bkenv.sh && bin/bookkeeper shell metaformat --nonInteractive || true;
-                                  command:
-                                  - sh
-                                  - -c
-                                  envFrom:
-                                  - configMapRef:
-                                      name: pulsar-cluster-bookkeeper
-                                  image: pulsar:latest
-                                  imagePullPolicy: IfNotPresent
-                                  name: pulsar-bookkeeper-metaformat
-                                  resources: {}
-                                  terminationMessagePath: /dev/termination-log
-                                  terminationMessagePolicy: File
-                                config:
-                                  BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
-                                  BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
-                                  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                                  PULSAR_LOG_LEVEL: info
-                                  PULSAR_LOG_ROOT_LEVEL: info
-                                  autoRecoveryDaemonEnabled: "false"
-                                  compactionRateByEntries: 5000
-                                  dbStorage_readAheadCacheBatchSize: 2000
-                                  dbStorage_readAheadCacheMaxSizeMb: 1024
-                                  dbStorage_rocksDB_blockCacheSize: 500000000
-                                  dbStorage_writeCacheMaxSizeMb: 1024
-                                  gcWaitTime: 300000
-                                  httpServerEnabled: "true"
-                                  journalAdaptiveGroupWrites: "true"
-                                  journalBufferedWritesThreshold: 1024
-                                  journalMaxGroupWaitMSec: 1
-                                  journalMaxSizeMB: 2048
-                                  journalPreAllocSizeMB: 128
-                                  journalSyncData: "false"
-                                  journalWriteBufferSizeKB: 4096
-                                  majorCompactionInterval: 1200
-                                  maxPendingAddRequestsPerThread: 500000
-                                  maxPendingReadRequestsPerThread: 500000
-                                  minorCompactionInterval: 600
-                                  numAddWorkerThreads: 8
-                                  numJournalCallbackThreads: 64
-                                  numReadWorkerThreads: 8
-                                  statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
-                                  useHostNameAsBookieID: "true"
-                                  writeBufferSizeBytes: 4194304
-                                  zkServers: pulsar-cluster-zookeeper-ca:2181
-                                probes:
-                                  readiness:
-                                    enabled: true
-                                    timeoutSeconds: 1
-                                    initialDelaySeconds: 10
-                                    periodSeconds: 30
-                                    failureThreshold: 3
-                                    successThreshold: 1
-                                  liveness:
-                                    enabled: true
-                                    timeoutSeconds: 1
-                                    initialDelaySeconds: 10
-                                    periodSeconds: 30
-                                    failureThreshold: 3
-                                    successThreshold: 1
-                                updateStrategy:
-                                  type: RollingUpdate
-                                podManagementPolicy: OrderedReady
-                                gracePeriod: 60
-                                resources:
-                                  requests:
-                                    cpu: 2
-                                    memory: 8Gi
-                                volumes:
-                                  journal:
-                                    name: journal
-                                    size: 100Gi
-                                    existingStorageClassName: pulsar-cluster-bookkeeper-journal
-                                  ledgers:
-                                    name: ledgers
-                                    size: 52Gi
-                                    existingStorageClassName: pulsar-cluster-bookkeeper-ledgers
-                                service:
-                                  annotations:
-                                    meta.helm.sh/release-name: pulsar-cluster
-                                    meta.helm.sh/release-namespace: pulsar
-                                    publishNotReadyAddresses: "true"
-                                    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-                                  additionalPorts: []
                             setsUpdateStrategy: RollingUpdate
                             autoRackConfig:
                               enabled: false
                               periodMs: 60000
                           broker:
+                            image: pulsar:latest
                             imagePullPolicy: IfNotPresent
+                            nodeSelectors: {}
                             replicas: 3
                             pdb:
                               enabled: true
                               maxUnavailable: 1
+                            tolerations: []
+                            antiAffinity:
+                              host:
+                                enabled: true
+                                required: false
+                              zone:
+                                enabled: false
+                            annotations:
+                              meta.helm.sh/release-name: pulsar-cluster
+                              meta.helm.sh/release-namespace: pulsar
+                            podAnnotations:
+                              checksum/config: b5ed0b35c448ff4bb2aa18d4b436516875c4b5fb75d535c8cffe212202ecb289
+                              kubectl.kubernetes.io/restartedAt: 2023-01-18T16:02:36-05:00
+                              prometheus.io/path: /metrics/
+                              prometheus.io/port: 8080
+                              prometheus.io/scrape: "true"
+                            labels:
+                              app: pulsar
+                              app.kubernetes.io/managed-by: Helm
+                              chart: pulsar-1.0.32
+                              cluster: pulsar-cluster
+                              component: broker
+                              heritage: Helm
+                              release: pulsar-cluster
+                            podLabels:
+                              app: pulsar
+                              cluster: pulsar-cluster
+                              component: broker
+                              release: pulsar-cluster
+                            matchLabels:
+                              app: pulsar
+                              cluster: ""
+                              component: broker
+                              release: pulsar-cluster
+                            imagePullSecrets: []
+                            env:
+                            - name: PULSAR_PREFIX_kafkaAdvertisedListeners
+                              value: SASL_PLAINTEXT://advertisedAddress:9092
+                            - name: kafkaAdvertisedListeners
+                              value: SASL_PLAINTEXT://advertisedAddress:9092
+                            - name: PULSAR_PREFIX_kafkaListeners
+                              value: SASL_PLAINTEXT://0.0.0.0:9092
+                            - name: kafkaListeners
+                              value: SASL_PLAINTEXT://0.0.0.0:9092
+                            - name: managedLedgerDefaultAckQuorum
+                              value: 2
+                            - name: managedLedgerDefaultEnsembleSize
+                              value: 2
+                            - name: managedLedgerDefaultWriteQuorum
+                              value: 2
+                            sidecars: []
+                            initContainers:
+                            - args:
+                              - |-
+                                until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
+                                  sleep 3;
+                                done;
+                              command:
+                              - sh
+                              - -c
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: wait-bookkeeper-ready
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                            config:
+                              PF_clientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
+                              PF_clientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+                              PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                              PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
+                              PULSAR_LOG_LEVEL: info
+                              PULSAR_LOG_ROOT_LEVEL: info
+                              PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
+                              acknowledgmentAtBatchIndexLevelEnabled: "true"
+                              allowAutoTopicCreation: "true"
+                              allowAutoTopicCreationType: non-partitioned
+                              authParams: file:///pulsar/token-superuser-stripped.jwt
+                              authPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+                              authenticationEnabled: "true"
+                              authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
+                              authorizationEnabled: "true"
+                              backlogQuotaDefaultRetentionPolicy: producer_exception
+                              bookkeeperClientRegionawarePolicyEnabled: "false"
+                              brokerClientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
+                              brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+                              brokerClientTlsEnabled: "true"
+                              brokerClientTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+                              brokerDeduplicationEnabled: "false"
+                              brokerDeleteInactivePartitionedTopicMetadataEnabled: "true"
+                              brokerDeleteInactiveTopicsEnabled: "true"
+                              brokerEntryMetadataInterceptors: "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common.intercept.AppendBrokerTimestampMetadataInterceptor"
+                              brokerPublisherThrottlingTickTimeMillis: 50
+                              brokerServicePortTls: 6651
+                              clusterName: pulsar-cluster
+                              configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
+                              dispatcherMaxReadBatchSize: 1000
+                              enableBusyWait: "true"
+                              exposeConsumerLevelMetricsInPrometheus: "false"
+                              exposeTopicLevelMetricsInPrometheus: "true"
+                              forceDeleteNamespaceAllowed: "true"
+                              forceDeleteTenantAllowed: "true"
+                              kafkaAdvertisedListeners: SASL_PLAINTEXT://advertisedAddress:9092
+                              kafkaListeners: SASL_PLAINTEXT://0.0.0.0:9092
+                              kafkaManageSystemNamespaces: "false"
+                              kafkaNamespace: kafka
+                              kafkaTransactionCoordinatorEnabled: "true"
+                              kafkaTransactionProducerIdsNamespace: __kafka_unlimited
+                              kopSchemaRegistryEnable: "true"
+                              kopSchemaRegistryNamespace: __kafka_unlimited
+                              loadBalancerBrokerOverloadedThresholdPercentage: 95
+                              loadBalancerLoadSheddingStrategy: org.apache.pulsar.broker.loadbalance.impl.OverloadShedder
+                              managedLedgerCacheEvictionTimeThresholdMillis: 10000
+                              managedLedgerCacheSizeMB: 2000
+                              managedLedgerDefaultAckQuorum: 2
+                              managedLedgerDefaultEnsembleSize: 2
+                              managedLedgerDefaultWriteQuorum: 2
+                              managedLedgerMaxLedgerRolloverTimeMinutes: 240
+                              managedLedgerMaxSizePerLedgerMbytes: 2000
+                              managedLedgerMinLedgerRolloverTimeMinutes: 0
+                              managedLedgerNumSchedulerThreads: 32
+                              managedLedgerNumWorkerThreads: 32
+                              managedLedgerOffloadMaxThreads: 4
+                              messagingProtocols: kafka
+                              protocolHandlerDirectory: ./protocols
+                              proxyRoles: create-tenant
+                              saslAllowedMechanisms: PLAIN
+                              statusFilePath: /pulsar/status
+                              subscriptionExpirationTimeMinutes: 20160
+                              superUserRoles: "superuser-backup,create-tenant,admin"
+                              tlsCertificateFilePath: /pulsar/certs/tls.crt
+                              tlsEnabled: "true"
+                              tlsKeyFilePath: /pulsar/tls-pk8.key
+                              tlsProtocols: "TLSv1.3,TLSv1.2"
+                              tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+                              tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+                              topicFencingTimeoutSeconds: 5
+                              topicPublisherThrottlingTickTimeMillis: 10
+                              webServicePortTls: 8443
+                              zookeeperServers: pulsar-cluster-zookeeper-ca:2181
+                              zookeeperSessionExpiredPolicy: shutdown
                             probes:
                               readiness:
                                 enabled: true
                                 timeoutSeconds: 5
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
+                                failureThreshold: 5
+                                successThreshold: 1
                               liveness:
                                 enabled: true
                                 timeoutSeconds: 5
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
-                              useHealthCheckForLiveness: true
+                                failureThreshold: 5
+                                successThreshold: 1
+                              useHealthCheckForLiveness: false
                               useHealthCheckForReadiness: true
                             functionsWorkerEnabled: false
                             transactions:
                               enabled: false
                               partitions: 16
+                            updateStrategy:
+                              rollingUpdate:
+                                partition: 0
+                              type: RollingUpdate
+                            podManagementPolicy: OrderedReady
                             gracePeriod: 60
                             resources:
                               requests:
                                 cpu: 1
-                                memory: 2Gi
+                                memory: 4Gi
                             service:
+                              annotations:
+                                meta.helm.sh/release-name: pulsar-cluster
+                                meta.helm.sh/release-namespace: pulsar
+                              additionalPorts:
+                              - name: kafkaplaintext
+                                port: 9092
+                                protocol: TCP
+                                targetPort: 9092
+                              - name: kafkassl
+                                port: 9093
+                                protocol: TCP
+                                targetPort: 9093
                               type: ClusterIP
                             autoscaler:
                               enabled: false
@@ -499,218 +628,196 @@ public class PulsarClusterResourceGeneratorTest {
                             kafka:
                               enabled: false
                               exposePorts: true
-                            sets:
-                              broker:
-                                image: pulsar:latest
-                                imagePullPolicy: IfNotPresent
-                                nodeSelectors: {}
-                                replicas: 3
-                                pdb:
-                                  enabled: true
-                                  maxUnavailable: 1
-                                tolerations: []
-                                antiAffinity:
-                                  host:
-                                    enabled: true
-                                    required: false
-                                  zone:
-                                    enabled: false
-                                annotations:
-                                  meta.helm.sh/release-name: pulsar-cluster
-                                  meta.helm.sh/release-namespace: pulsar
-                                podAnnotations:
-                                  checksum/config: b5ed0b35c448ff4bb2aa18d4b436516875c4b5fb75d535c8cffe212202ecb289
-                                  kubectl.kubernetes.io/restartedAt: 2023-01-18T16:02:36-05:00
-                                  prometheus.io/path: /metrics/
-                                  prometheus.io/port: 8080
-                                  prometheus.io/scrape: "true"
-                                labels:
-                                  app: pulsar
-                                  app.kubernetes.io/managed-by: Helm
-                                  chart: pulsar-1.0.32
-                                  cluster: pulsar-cluster
-                                  component: broker
-                                  heritage: Helm
-                                  release: pulsar-cluster
-                                podLabels:
-                                  app: pulsar
-                                  cluster: pulsar-cluster
-                                  component: broker
-                                  release: pulsar-cluster
-                                matchLabels:
-                                  app: pulsar
-                                  cluster: ""
-                                  component: broker
-                                  release: pulsar-cluster
-                                imagePullSecrets: []
-                                env:
-                                - name: PULSAR_PREFIX_kafkaAdvertisedListeners
-                                  value: SASL_PLAINTEXT://advertisedAddress:9092
-                                - name: kafkaAdvertisedListeners
-                                  value: SASL_PLAINTEXT://advertisedAddress:9092
-                                - name: PULSAR_PREFIX_kafkaListeners
-                                  value: SASL_PLAINTEXT://0.0.0.0:9092
-                                - name: kafkaListeners
-                                  value: SASL_PLAINTEXT://0.0.0.0:9092
-                                - name: managedLedgerDefaultAckQuorum
-                                  value: 2
-                                - name: managedLedgerDefaultEnsembleSize
-                                  value: 2
-                                - name: managedLedgerDefaultWriteQuorum
-                                  value: 2
-                                sidecars: []
-                                initContainers:
-                                - args:
-                                  - |-
-                                    until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
-                                      sleep 3;
-                                    done;
-                                  command:
-                                  - sh
-                                  - -c
-                                  image: pulsar:latest
-                                  imagePullPolicy: IfNotPresent
-                                  name: wait-bookkeeper-ready
-                                  resources: {}
-                                  terminationMessagePath: /dev/termination-log
-                                  terminationMessagePolicy: File
-                                config:
-                                  PF_clientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
-                                  PF_clientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
-                                  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                                  PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
-                                  PULSAR_LOG_LEVEL: info
-                                  PULSAR_LOG_ROOT_LEVEL: info
-                                  PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
-                                  acknowledgmentAtBatchIndexLevelEnabled: "true"
-                                  allowAutoTopicCreation: "true"
-                                  allowAutoTopicCreationType: non-partitioned
-                                  authParams: file:///pulsar/token-superuser-stripped.jwt
-                                  authPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
-                                  authenticationEnabled: "true"
-                                  authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
-                                  authorizationEnabled: "true"
-                                  backlogQuotaDefaultRetentionPolicy: producer_exception
-                                  bookkeeperClientRegionawarePolicyEnabled: "false"
-                                  brokerClientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
-                                  brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
-                                  brokerClientTlsEnabled: "true"
-                                  brokerClientTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
-                                  brokerDeduplicationEnabled: "false"
-                                  brokerDeleteInactivePartitionedTopicMetadataEnabled: "true"
-                                  brokerDeleteInactiveTopicsEnabled: "true"
-                                  brokerEntryMetadataInterceptors: "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common.intercept.AppendBrokerTimestampMetadataInterceptor"
-                                  brokerPublisherThrottlingTickTimeMillis: 50
-                                  brokerServicePortTls: 6651
-                                  clusterName: pulsar-cluster
-                                  configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
-                                  dispatcherMaxReadBatchSize: 1000
-                                  enableBusyWait: "true"
-                                  exposeConsumerLevelMetricsInPrometheus: "false"
-                                  exposeTopicLevelMetricsInPrometheus: "true"
-                                  forceDeleteNamespaceAllowed: "true"
-                                  forceDeleteTenantAllowed: "true"
-                                  kafkaAdvertisedListeners: SASL_PLAINTEXT://advertisedAddress:9092
-                                  kafkaListeners: SASL_PLAINTEXT://0.0.0.0:9092
-                                  kafkaManageSystemNamespaces: "false"
-                                  kafkaNamespace: kafka
-                                  kafkaTransactionCoordinatorEnabled: "true"
-                                  kafkaTransactionProducerIdsNamespace: __kafka_unlimited
-                                  kopSchemaRegistryEnable: "true"
-                                  kopSchemaRegistryNamespace: __kafka_unlimited
-                                  loadBalancerBrokerOverloadedThresholdPercentage: 95
-                                  loadBalancerLoadSheddingStrategy: org.apache.pulsar.broker.loadbalance.impl.OverloadShedder
-                                  managedLedgerCacheEvictionTimeThresholdMillis: 10000
-                                  managedLedgerCacheSizeMB: 2000
-                                  managedLedgerDefaultAckQuorum: 2
-                                  managedLedgerDefaultEnsembleSize: 2
-                                  managedLedgerDefaultWriteQuorum: 2
-                                  managedLedgerMaxLedgerRolloverTimeMinutes: 240
-                                  managedLedgerMaxSizePerLedgerMbytes: 2000
-                                  managedLedgerMinLedgerRolloverTimeMinutes: 0
-                                  managedLedgerNumSchedulerThreads: 32
-                                  managedLedgerNumWorkerThreads: 32
-                                  managedLedgerOffloadMaxThreads: 4
-                                  messagingProtocols: kafka
-                                  protocolHandlerDirectory: ./protocols
-                                  proxyRoles: create-tenant
-                                  saslAllowedMechanisms: PLAIN
-                                  statusFilePath: /pulsar/status
-                                  subscriptionExpirationTimeMinutes: 20160
-                                  superUserRoles: "superuser-backup,create-tenant,admin"
-                                  tlsCertificateFilePath: /pulsar/certs/tls.crt
-                                  tlsEnabled: "true"
-                                  tlsKeyFilePath: /pulsar/tls-pk8.key
-                                  tlsProtocols: "TLSv1.3,TLSv1.2"
-                                  tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
-                                  tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
-                                  topicFencingTimeoutSeconds: 5
-                                  topicPublisherThrottlingTickTimeMillis: 10
-                                  webServicePortTls: 8443
-                                  zookeeperServers: pulsar-cluster-zookeeper-ca:2181
-                                  zookeeperSessionExpiredPolicy: shutdown
-                                probes:
-                                  readiness:
-                                    enabled: true
-                                    timeoutSeconds: 5
-                                    initialDelaySeconds: 10
-                                    periodSeconds: 30
-                                    failureThreshold: 5
-                                    successThreshold: 1
-                                  liveness:
-                                    enabled: true
-                                    timeoutSeconds: 5
-                                    initialDelaySeconds: 10
-                                    periodSeconds: 30
-                                    failureThreshold: 5
-                                    successThreshold: 1
-                                  useHealthCheckForLiveness: false
-                                  useHealthCheckForReadiness: true
-                                functionsWorkerEnabled: false
-                                transactions:
-                                  enabled: false
-                                updateStrategy:
-                                  rollingUpdate:
-                                    partition: 0
-                                  type: RollingUpdate
-                                podManagementPolicy: OrderedReady
-                                gracePeriod: 60
-                                resources:
-                                  requests:
-                                    cpu: 1
-                                    memory: 4Gi
-                                service:
-                                  annotations:
-                                    meta.helm.sh/release-name: pulsar-cluster
-                                    meta.helm.sh/release-namespace: pulsar
-                                  additionalPorts:
-                                  - name: kafkaplaintext
-                                    port: 9092
-                                    protocol: TCP
-                                    targetPort: 9092
-                                  - name: kafkassl
-                                    port: 9093
-                                    protocol: TCP
-                                    targetPort: 9093
-                                  type: ClusterIP
                             setsUpdateStrategy: RollingUpdate
                           proxy:
+                            image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            replicas: 3
+                            nodeSelectors: {}
+                            replicas: 1
                             pdb:
                               enabled: true
                               maxUnavailable: 1
+                            tolerations: []
+                            antiAffinity:
+                              host:
+                                enabled: true
+                                required: false
+                              zone:
+                                enabled: false
+                            annotations:
+                              deployment.kubernetes.io/revision: 138
+                              meta.helm.sh/release-name: pulsar-cluster
+                              meta.helm.sh/release-namespace: pulsar
+                            podAnnotations:
+                              checksum/config: cbb34e869a79e09b1db23364ccc46bf773b11b8376182b444ef48bfe08ecb238
+                              prometheus.io/path: /metrics/
+                              prometheus.io/port: 8080
+                              prometheus.io/scrape: "true"
+                            labels:
+                              app: pulsar
+                              app.kubernetes.io/managed-by: Helm
+                              chart: pulsar-1.0.32
+                              cluster: pulsar-cluster
+                              component: proxy
+                              heritage: Helm
+                              release: pulsar-cluster
+                            podLabels:
+                              app: pulsar
+                              cluster: pulsar-cluster
+                              component: proxy
+                              release: pulsar-cluster
+                            matchLabels:
+                              app: pulsar
+                              cluster: ""
+                              component: proxy
+                              release: pulsar-cluster
+                            imagePullSecrets: []
+                            env:
+                            - name: PULSAR_PREFIX_brokerProxyAllowedHostNames
+                              value: "10.*,192.168.*,pulsar-cluster-broker*"
+                            - name: PULSAR_PREFIX_brokerProxyAllowedIPAddresses
+                              value: "10.0.0.0/8,192.168.0.0/16"
+                            sidecars:
+                            - env:
+                              - name: PORT
+                                value: 8964
+                              - name: ClusterName
+                                value: pulsar-cluster
+                              - name: WebsocketURL
+                                value: ws://localhost:8000
+                              - name: BrokerProxyURL
+                                value: http://pulsar-cluster-broker:8080
+                              - name: FunctionProxyURL
+                                value: http://pulsar-cluster-function:6750
+                              - name: SuperRoles
+                                value: "superuser-backup,create-tenant,admin"
+                              - name: StreamingAPIKey
+                                valueFrom:
+                                  secretKeyRef:
+                                    key: streaming-api-key.txt
+                                    name: api-key
+                              - name: PulsarToken
+                                valueFrom:
+                                  secretKeyRef:
+                                    key: superuser.jwt
+                                    name: token-superuser
+                              - name: HTTPAuthImpl
+                              - name: PulsarURL
+                                value: pulsar://pulsar-cluster-broker:6650
+                              - name: PulsarPublicKey
+                                value: /pulsar/token-public-key/pulsar-public.key
+                              - name: PulsarPrivateKey
+                                value: /pulsar/token-private-key/pulsar-private.key
+                              - name: CertFile
+                                value: /pulsar/certs/tls.crt
+                              - name: KeyFile
+                                value: /pulsar/certs/tls.key
+                              - name: TrustStore
+                                value: /etc/ssl/certs/ca-bundle.crt
+                              - name: FEDERATED_PROM_URL
+                                value: http://pulsar-cluster-kub-prometheus:9090/federate
+                              - name: FederatedPromURL
+                                value: http://pulsar-cluster-kub-prometheus:9090/federate
+                              - name: TenantsUsageDisabled
+                              - name: TenantManagmentTopic
+                                value: persistent://public/default/tenant-management
+                              - name: LogLevel
+                                value: info
+                              - name: LogServerPort
+                                value: :4040
+                              - name: AdminRestPrefix
+                                value: /admin/v2
+                              - name: FunctionWorkerDomain
+                                value: .pulsar-cluster-function.pulsar.svc.cluster.local
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: pulsar-cluster-proxy-burnell
+                              ports:
+                              - containerPort: 8964
+                                name: burnell
+                                protocol: TCP
+                              - containerPort: 9090
+                                name: metrics
+                                protocol: TCP
+                              resources:
+                                requests:
+                                  cpu: 100m
+                                  memory: 128Mi
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                              volumeMounts:
+                              - mountPath: /pulsar/certs
+                                name: certs
+                                readOnly: true
+                              - mountPath: /pulsar/token-private-key
+                                name: token-private-key
+                                readOnly: true
+                              - mountPath: /pulsar/token-public-key
+                                name: token-public-key
+                                readOnly: true
+                            initContainers:
+                            - args:
+                              - |-
+                                until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
+                                  sleep 3;
+                                done;
+                              command:
+                              - sh
+                              - -c
+                              image: pulsar:latest
+                              imagePullPolicy: IfNotPresent
+                              name: wait-bookkeeper-ready
+                              resources: {}
+                              terminationMessagePath: /dev/termination-log
+                              terminationMessagePolicy: File
+                            config:
+                              PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
+                              PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                              PULSAR_GC: -XX:+UseG1GC
+                              PULSAR_LOG_LEVEL: info
+                              PULSAR_LOG_ROOT_LEVEL: info
+                              PULSAR_MEM: -Xms400m -Xmx400m -XX:MaxDirectMemorySize=400m
+                              authenticateMetricsEndpoint: "false"
+                              authenticationEnabled: "true"
+                              authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
+                              authorizationEnabled: "true"
+                              brokerClientAuthenticationParameters: file:///pulsar/token-proxy/proxy.jwt
+                              brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+                              brokerClientTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+                              brokerServicePortTls: 6651
+                              brokerServiceURL: pulsar://pulsar-cluster-broker:6650
+                              brokerServiceURLTLS: pulsar+ssl://pulsar-cluster-broker:6651
+                              brokerWebServiceURL: http://pulsar-cluster-broker:8080
+                              brokerWebServiceURLTLS: https://pulsar-cluster-broker:8443
+                              configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
+                              functionWorkerWebServiceURL: http://pulsar-cluster-function-ca:6750
+                              numHttpServerThreads: 8
+                              servicePortTls: 6651
+                              superUserRoles: "superuser-backup,create-tenant,admin"
+                              tlsCertificateFilePath: /pulsar/certs/tls.crt
+                              tlsEnabledInProxy: "true"
+                              tlsEnabledWithBroker: "false"
+                              tlsKeyFilePath: /pulsar/tls-pk8.key
+                              tlsProtocols: "TLSv1.3,TLSv1.2"
+                              tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+                              tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+                              webServicePortTls: 8443
+                              zookeeperServers: pulsar-cluster-zookeeper-ca:2181
                             probes:
                               readiness:
                                 enabled: true
-                                timeoutSeconds: 5
+                                timeoutSeconds: 2
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
+                                failureThreshold: 3
+                                successThreshold: 1
                               liveness:
                                 enabled: true
-                                timeoutSeconds: 5
+                                timeoutSeconds: 2
                                 initialDelaySeconds: 10
                                 periodSeconds: 30
+                                failureThreshold: 3
+                                successThreshold: 1
                             updateStrategy:
                               rollingUpdate:
                                 maxSurge: 1
@@ -719,291 +826,81 @@ public class PulsarClusterResourceGeneratorTest {
                             gracePeriod: 60
                             resources:
                               requests:
-                                cpu: 1
-                                memory: 1Gi
+                                cpu: 100m
+                                memory: 400Mi
                             service:
+                              annotations:
+                                external-dns.alpha.kubernetes.io/hostname: pulsar-gcp-useast4.dev.streaming.datastax.com
+                                meta.helm.sh/release-name: pulsar-cluster
+                                meta.helm.sh/release-namespace: pulsar
+                                projectcontour.io/upstream-protocol.tls: "https,8964"
+                              additionalPorts:
+                              - name: wsstoken
+                                nodePort: 30323
+                                port: 8500
+                                protocol: TCP
+                                targetPort: 8500
+                              - name: pulsarbeam
+                                nodePort: 32041
+                                port: 8085
+                                protocol: TCP
+                                targetPort: 8085
+                              - name: burnell
+                                nodePort: 30847
+                                port: 8964
+                                protocol: TCP
+                                targetPort: 8964
+                              - name: tokenserver
+                                nodePort: 32480
+                                port: 3000
+                                protocol: TCP
+                                targetPort: 3000
                               type: LoadBalancer
-                              enablePlainTextWithTLS: false
+                              enablePlainTextWithTLS: true
                             webSocket:
                               enabled: true
                               resources:
                                 requests:
-                                  cpu: 1
-                                  memory: 1Gi
-                              probes: {}
+                                  cpu: 100m
+                                  memory: 400Mi
+                              config:
+                                PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
+                                PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
+                                PULSAR_GC: -XX:+UseG1GC
+                                PULSAR_LOG_LEVEL: info
+                                PULSAR_LOG_ROOT_LEVEL: info
+                                PULSAR_MEM: -Xms400m -Xmx400m -XX:MaxDirectMemorySize=400m
+                                authenticateMetricsEndpoint: "false"
+                                authenticationEnabled: "true"
+                                authenticationProviders: "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,org.apache.pulsar.broker.authentication.AuthenticationProviderTls"
+                                authorizationEnabled: "true"
+                                brokerClientAuthenticationParameters: file:///pulsar/token-websocket/websocket.jwt
+                                brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
+                                brokerClientTlsEnabled: "true"
+                                brokerServiceUrl: pulsar://pulsar-cluster-broker:6650
+                                brokerServiceUrlTls: pulsar+ssl://pulsar-cluster-broker:6651
+                                clusterName: pulsar-cluster
+                                configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
+                                numHttpServerThreads: 8
+                                serviceUrl: http://pulsar-cluster-broker:8080
+                                serviceUrlTls: https://pulsar-cluster-broker:8443
+                                superUserRoles: "superuser-backup,create-tenant,admin"
+                                tlsCertificateFilePath: /pulsar/certs/tls.crt
+                                tlsEnabled: "true"
+                                tlsKeyFilePath: /pulsar/tls-pk8.key
+                                tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
+                                tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
+                                webServicePort: 8000
+                                webServicePortTls: 8001
+                                zookeeperServers: pulsar-cluster-zookeeper-ca:2181
+                              probes:
+                                readiness:
+                                  enabled: false
+                                liveness:
+                                  enabled: false
                             kafka:
                               enabled: false
                               exposePorts: true
-                            sets:
-                              proxy:
-                                image: pulsar:latest
-                                imagePullPolicy: IfNotPresent
-                                nodeSelectors: {}
-                                replicas: 1
-                                pdb:
-                                  enabled: true
-                                  maxUnavailable: 1
-                                tolerations: []
-                                antiAffinity:
-                                  host:
-                                    enabled: true
-                                    required: false
-                                  zone:
-                                    enabled: false
-                                annotations:
-                                  deployment.kubernetes.io/revision: 138
-                                  meta.helm.sh/release-name: pulsar-cluster
-                                  meta.helm.sh/release-namespace: pulsar
-                                podAnnotations:
-                                  checksum/config: cbb34e869a79e09b1db23364ccc46bf773b11b8376182b444ef48bfe08ecb238
-                                  prometheus.io/path: /metrics/
-                                  prometheus.io/port: 8080
-                                  prometheus.io/scrape: "true"
-                                labels:
-                                  app: pulsar
-                                  app.kubernetes.io/managed-by: Helm
-                                  chart: pulsar-1.0.32
-                                  cluster: pulsar-cluster
-                                  component: proxy
-                                  heritage: Helm
-                                  release: pulsar-cluster
-                                podLabels:
-                                  app: pulsar
-                                  cluster: pulsar-cluster
-                                  component: proxy
-                                  release: pulsar-cluster
-                                matchLabels:
-                                  app: pulsar
-                                  cluster: ""
-                                  component: proxy
-                                  release: pulsar-cluster
-                                imagePullSecrets: []
-                                env:
-                                - name: PULSAR_PREFIX_brokerProxyAllowedHostNames
-                                  value: "10.*,192.168.*,pulsar-cluster-broker*"
-                                - name: PULSAR_PREFIX_brokerProxyAllowedIPAddresses
-                                  value: "10.0.0.0/8,192.168.0.0/16"
-                                sidecars:
-                                - env:
-                                  - name: PORT
-                                    value: 8964
-                                  - name: ClusterName
-                                    value: pulsar-cluster
-                                  - name: WebsocketURL
-                                    value: ws://localhost:8000
-                                  - name: BrokerProxyURL
-                                    value: http://pulsar-cluster-broker:8080
-                                  - name: FunctionProxyURL
-                                    value: http://pulsar-cluster-function:6750
-                                  - name: SuperRoles
-                                    value: "superuser-backup,create-tenant,admin"
-                                  - name: StreamingAPIKey
-                                    valueFrom:
-                                      secretKeyRef:
-                                        key: streaming-api-key.txt
-                                        name: api-key
-                                  - name: PulsarToken
-                                    valueFrom:
-                                      secretKeyRef:
-                                        key: superuser.jwt
-                                        name: token-superuser
-                                  - name: HTTPAuthImpl
-                                  - name: PulsarURL
-                                    value: pulsar://pulsar-cluster-broker:6650
-                                  - name: PulsarPublicKey
-                                    value: /pulsar/token-public-key/pulsar-public.key
-                                  - name: PulsarPrivateKey
-                                    value: /pulsar/token-private-key/pulsar-private.key
-                                  - name: CertFile
-                                    value: /pulsar/certs/tls.crt
-                                  - name: KeyFile
-                                    value: /pulsar/certs/tls.key
-                                  - name: TrustStore
-                                    value: /etc/ssl/certs/ca-bundle.crt
-                                  - name: FEDERATED_PROM_URL
-                                    value: http://pulsar-cluster-kub-prometheus:9090/federate
-                                  - name: FederatedPromURL
-                                    value: http://pulsar-cluster-kub-prometheus:9090/federate
-                                  - name: TenantsUsageDisabled
-                                  - name: TenantManagmentTopic
-                                    value: persistent://public/default/tenant-management
-                                  - name: LogLevel
-                                    value: info
-                                  - name: LogServerPort
-                                    value: :4040
-                                  - name: AdminRestPrefix
-                                    value: /admin/v2
-                                  - name: FunctionWorkerDomain
-                                    value: .pulsar-cluster-function.pulsar.svc.cluster.local
-                                  image: pulsar:latest
-                                  imagePullPolicy: IfNotPresent
-                                  name: pulsar-cluster-proxy-burnell
-                                  ports:
-                                  - containerPort: 8964
-                                    name: burnell
-                                    protocol: TCP
-                                  - containerPort: 9090
-                                    name: metrics
-                                    protocol: TCP
-                                  resources:
-                                    requests:
-                                      cpu: 100m
-                                      memory: 128Mi
-                                  terminationMessagePath: /dev/termination-log
-                                  terminationMessagePolicy: File
-                                  volumeMounts:
-                                  - mountPath: /pulsar/certs
-                                    name: certs
-                                    readOnly: true
-                                  - mountPath: /pulsar/token-private-key
-                                    name: token-private-key
-                                    readOnly: true
-                                  - mountPath: /pulsar/token-public-key
-                                    name: token-public-key
-                                    readOnly: true
-                                initContainers:
-                                - args:
-                                  - |-
-                                    until nslookup pulsar-cluster-bookkeeper-2.pulsar-cluster-bookkeeper.pulsar; do
-                                      sleep 3;
-                                    done;
-                                  command:
-                                  - sh
-                                  - -c
-                                  image: pulsar:latest
-                                  imagePullPolicy: IfNotPresent
-                                  name: wait-bookkeeper-ready
-                                  resources: {}
-                                  terminationMessagePath: /dev/termination-log
-                                  terminationMessagePolicy: File
-                                config:
-                                  PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
-                                  PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                                  PULSAR_GC: -XX:+UseG1GC
-                                  PULSAR_LOG_LEVEL: info
-                                  PULSAR_LOG_ROOT_LEVEL: info
-                                  PULSAR_MEM: -Xms400m -Xmx400m -XX:MaxDirectMemorySize=400m
-                                  authenticateMetricsEndpoint: "false"
-                                  authenticationEnabled: "true"
-                                  authenticationProviders: org.apache.pulsar.broker.authentication.AuthenticationProviderToken
-                                  authorizationEnabled: "true"
-                                  brokerClientAuthenticationParameters: file:///pulsar/token-proxy/proxy.jwt
-                                  brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
-                                  brokerClientTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
-                                  brokerServicePortTls: 6651
-                                  brokerServiceURL: pulsar://pulsar-cluster-broker:6650
-                                  brokerServiceURLTLS: pulsar+ssl://pulsar-cluster-broker:6651
-                                  brokerWebServiceURL: http://pulsar-cluster-broker:8080
-                                  brokerWebServiceURLTLS: https://pulsar-cluster-broker:8443
-                                  configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
-                                  functionWorkerWebServiceURL: http://pulsar-cluster-function-ca:6750
-                                  numHttpServerThreads: 8
-                                  servicePortTls: 6651
-                                  superUserRoles: "superuser-backup,create-tenant,admin"
-                                  tlsCertificateFilePath: /pulsar/certs/tls.crt
-                                  tlsEnabledInProxy: "true"
-                                  tlsEnabledWithBroker: "false"
-                                  tlsKeyFilePath: /pulsar/tls-pk8.key
-                                  tlsProtocols: "TLSv1.3,TLSv1.2"
-                                  tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
-                                  tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
-                                  webServicePortTls: 8443
-                                  zookeeperServers: pulsar-cluster-zookeeper-ca:2181
-                                probes:
-                                  readiness:
-                                    enabled: true
-                                    timeoutSeconds: 2
-                                    initialDelaySeconds: 10
-                                    periodSeconds: 30
-                                    failureThreshold: 3
-                                    successThreshold: 1
-                                  liveness:
-                                    enabled: true
-                                    timeoutSeconds: 2
-                                    initialDelaySeconds: 10
-                                    periodSeconds: 30
-                                    failureThreshold: 3
-                                    successThreshold: 1
-                                updateStrategy:
-                                  rollingUpdate:
-                                    maxSurge: 1
-                                    maxUnavailable: 0
-                                  type: RollingUpdate
-                                gracePeriod: 60
-                                resources:
-                                  requests:
-                                    cpu: 100m
-                                    memory: 400Mi
-                                service:
-                                  annotations:
-                                    external-dns.alpha.kubernetes.io/hostname: pulsar-gcp-useast4.dev.streaming.datastax.com
-                                    meta.helm.sh/release-name: pulsar-cluster
-                                    meta.helm.sh/release-namespace: pulsar
-                                    projectcontour.io/upstream-protocol.tls: "https,8964"
-                                  additionalPorts:
-                                  - name: wsstoken
-                                    nodePort: 30323
-                                    port: 8500
-                                    protocol: TCP
-                                    targetPort: 8500
-                                  - name: pulsarbeam
-                                    nodePort: 32041
-                                    port: 8085
-                                    protocol: TCP
-                                    targetPort: 8085
-                                  - name: burnell
-                                    nodePort: 30847
-                                    port: 8964
-                                    protocol: TCP
-                                    targetPort: 8964
-                                  - name: tokenserver
-                                    nodePort: 32480
-                                    port: 3000
-                                    protocol: TCP
-                                    targetPort: 3000
-                                  type: LoadBalancer
-                                  enablePlainTextWithTLS: true
-                                webSocket:
-                                  enabled: true
-                                  resources:
-                                    requests:
-                                      cpu: 100m
-                                      memory: 400Mi
-                                  config:
-                                    PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
-                                    PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                                    PULSAR_GC: -XX:+UseG1GC
-                                    PULSAR_LOG_LEVEL: info
-                                    PULSAR_LOG_ROOT_LEVEL: info
-                                    PULSAR_MEM: -Xms400m -Xmx400m -XX:MaxDirectMemorySize=400m
-                                    authenticateMetricsEndpoint: "false"
-                                    authenticationEnabled: "true"
-                                    authenticationProviders: "org.apache.pulsar.broker.authentication.AuthenticationProviderToken,org.apache.pulsar.broker.authentication.AuthenticationProviderTls"
-                                    authorizationEnabled: "true"
-                                    brokerClientAuthenticationParameters: file:///pulsar/token-websocket/websocket.jwt
-                                    brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
-                                    brokerClientTlsEnabled: "true"
-                                    brokerServiceUrl: pulsar://pulsar-cluster-broker:6650
-                                    brokerServiceUrlTls: pulsar+ssl://pulsar-cluster-broker:6651
-                                    clusterName: pulsar-cluster
-                                    configurationStoreServers: pulsar-cluster-zookeeper-ca:2181
-                                    numHttpServerThreads: 8
-                                    serviceUrl: http://pulsar-cluster-broker:8080
-                                    serviceUrlTls: https://pulsar-cluster-broker:8443
-                                    superUserRoles: "superuser-backup,create-tenant,admin"
-                                    tlsCertificateFilePath: /pulsar/certs/tls.crt
-                                    tlsEnabled: "true"
-                                    tlsKeyFilePath: /pulsar/tls-pk8.key
-                                    tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
-                                    tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
-                                    webServicePort: 8000
-                                    webServicePortTls: 8001
-                                    zookeeperServers: pulsar-cluster-zookeeper-ca:2181
-                                  probes:
-                                    readiness:
-                                      enabled: false
-                                    liveness:
-                                      enabled: false
                             setsUpdateStrategy: RollingUpdate
                           autorecovery:
                             image: pulsar:latest

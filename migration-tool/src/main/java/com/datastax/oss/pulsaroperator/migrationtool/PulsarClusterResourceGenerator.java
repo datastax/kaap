@@ -19,6 +19,7 @@ import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
+import com.datastax.oss.pulsaroperator.crds.configs.ResourceSetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.AutorecoverySpecGenerator;
 import com.datastax.oss.pulsaroperator.migrationtool.specs.BaseSpecGenerator;
@@ -34,6 +35,7 @@ import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -108,12 +110,36 @@ public class PulsarClusterResourceGenerator {
                 .proxy(proxySpecGenerator.generateSpec())
                 .functionsWorker(functionsWorkerSpecGenerator.generateSpec())
                 .build();
+
+        detectAndSetResourceSets(clusterSpec);
         clusterSpec.applyDefaults(global);
         generatedResource = new PulsarCluster();
         generatedResource.setMetadata(new ObjectMetaBuilder()
                 .withName(inputSpecs.getClusterName())
                 .build());
         generatedResource.setSpec(clusterSpec);
+    }
+
+    private void detectAndSetResourceSets(PulsarClusterSpec clusterSpec) {
+        Map<String, ResourceSetConfig> resourceSets = new HashMap<>();
+        if (clusterSpec.getBookkeeper() != null && clusterSpec.getBookkeeper().getSets() != null) {
+            clusterSpec.getBookkeeper().getSets().keySet().forEach(k -> {
+                resourceSets.put(k, null);
+            });
+        }
+        if (clusterSpec.getBroker() != null && clusterSpec.getBroker().getSets() != null) {
+            clusterSpec.getBroker().getSets().keySet().forEach(k -> {
+                resourceSets.put(k, null);
+            });
+        }
+        if (clusterSpec.getProxy() != null && clusterSpec.getProxy().getSets() != null) {
+            clusterSpec.getProxy().getSets().keySet().forEach(k -> {
+                resourceSets.put(k, null);
+            });
+        }
+        if (!resourceSets.isEmpty()) {
+            clusterSpec.getGlobal().setResourceSets(resourceSets);
+        }
     }
 
     private TlsConfig getTlsConfig() {

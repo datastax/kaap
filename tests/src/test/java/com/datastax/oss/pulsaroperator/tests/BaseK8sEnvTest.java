@@ -332,6 +332,11 @@ public abstract class BaseK8sEnvTest {
     private void deleteNamespaceSync() {
         client.namespaces().withName(namespace).delete();
         client.pods().inNamespace(namespace).delete();
+        client.persistentVolumes().list().getItems().forEach(pv -> {
+            if (pv.getSpec().getClaimRef() == null || namespace.equals(pv.getSpec().getClaimRef().getNamespace())) {
+                client.resource(pv).delete();
+            }
+        });
         Awaitility.await().untilAsserted(() -> {
             List<String> pods = client.pods()
                     .inNamespace(namespace)

@@ -99,7 +99,7 @@ public class LoadReportResourceUsageSource implements BrokerResourceUsageSource 
                     .floatValue();
 
 
-            log.infof("Broker %s cpu usage: %f %%", podName, rounded * 100);
+            log.infof("Broker %s cpu usage: %f %%", podName, rounded * 100, null);
             result.add(new ResourceUsage(podName, rounded));
         }
         return result;

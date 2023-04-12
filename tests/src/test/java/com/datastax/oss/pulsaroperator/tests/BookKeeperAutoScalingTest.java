@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "scaling")
+@Test(groups = "bk-scaling")
 public class BookKeeperAutoScalingTest extends BasePulsarClusterTest {
 
     @Test

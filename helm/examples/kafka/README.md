@@ -1,9 +1,9 @@
 # Scaling the Pulsar Broker with a Kafka Client Workload
 
 This folder contains a sample configuration and demo about how to run a Apache Kafka® workload
-on a Apache Pulsar® cluster with the Broker Auto Scaling feature.
+on an Apache Pulsar® cluster with the Broker Auto Scaling feature.
 
-Support for the Kafka wire protocol is provided by [Startlight for Kafka](https://github.com/datastax/starlight-for-kafka).
+Support for the Kafka wire protocol is provided by [Starlight for Kafka](https://github.com/datastax/starlight-for-kafka).
 
 The client work load is generated using the basic Kafka Performance tools.
 
@@ -12,38 +12,31 @@ The client work load is generated using the basic Kafka Performance tools.
 
 ### Deploy the Pulsar cluster
 
-Install the operator and the CRDs
+Install the operator and the cluster.
 
 ```
-helm install -n mypulsar --create-namespace pos helm/pulsar-operator
+helm install pos helm/pulsar-stack --values helm/examples/kafka/values.yaml
 ```
-
-Install a Pulsar cluster Custom Resource
-```
-kubectl -n mypulsar apply -f helm/examples/kafka/kafka-autoscaler.yaml
-```
-
-Wait for the Pulsar Cluster to be fully operational.
 
 
 Deploy the producers
 ```
-kubectl -n mypulsar apply -f helm/examples/kafka/kafka-producer-perf.yaml
+kubectl apply -f helm/examples/kafka/kafka-producer-perf.yaml
 ```
 
 See the logs of the producers
 ```
-kubectl -n mypulsar logs -f deploy/kafka-client-producer
+kubectl logs -f deploy/kafka-client-producer
 ```
 
 Deploy the consumers
 ```
-kubectl -n mypulsar apply -f helm/examples/kafka/kafka-consumer-perf.yaml
+kubectl apply -f helm/examples/kafka/kafka-consumer-perf.yaml
 ```
 
 See the logs of the consumers
 ```
-kubectl -n mypulsar logs -f deploy/kafka-client-consumer
+kubectl logs -f deploy/kafka-client-consumer
 ```
 
 
@@ -51,13 +44,13 @@ kubectl -n mypulsar logs -f deploy/kafka-client-consumer
 
 Open a terminal and see the logs of the Operator
 ```
-kubectl logs -f deploy/pulsar-operator -n mypulsar
+kubectl logs -f deploy/pulsar-operator
 ```
 
 
 You can use kubectl in order to scale in/out the client applications.
 ```
-kubectl -n mypulsar scale deploy/kafka-client-consumer  --replicas 10
+kubectl scale deploy/kafka-client-consumer  --replicas 10
 ```
 
-As the load increases you will see the Operator scales out the Broker STS. 
+As the load increases you will see the Operator scales out the Broker STS.

@@ -39,6 +39,7 @@ import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 import org.testng.Assert;
@@ -455,6 +456,9 @@ public class PulsarClusterControllerTest {
                           cpu: 1
                           memory: 1Gi
                       probes: {}
+                    kafka:
+                      enabled: false
+                      exposePorts: true
                     setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []
@@ -518,6 +522,9 @@ public class PulsarClusterControllerTest {
                       scaleDownBy: 1
                       stabilizationWindowMs: 300000
                       resourcesUsageSource: PulsarLBReport
+                    kafka:
+                      enabled: false
+                      exposePorts: true
                     setsUpdateStrategy: RollingUpdate
                 status:
                   conditions: []
@@ -875,4 +882,150 @@ public class PulsarClusterControllerTest {
     }
 
 
+    @Test
+    public void testAdjustBookKeeperReplicas() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                bookkeeper:
+                    replicas: 1
+                    autoscaler:
+                        enabled: true
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        UpdateControl<PulsarCluster> control = invokeController(client, spec, r -> null);
+        final MockKubernetesClient.ResourceInteraction<ZooKeeper> createdZk =
+                client.getCreatedResource(ZooKeeper.class);
+        assertZkYaml(createdZk.getResourceYaml());
+        Assert.assertEquals(client.countCreatedResources(), 1);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+
+
+        // zk ready, bk starts
+        setReadyCondition(createdZk.getResource().getStatus(), true);
+        client = new MockKubernetesClient(NAMESPACE);
+        control = invokeController(client, spec, r -> {
+            if (r.isAssignableFrom(ZooKeeper.class)) {
+                return createdZk.getResource();
+            }
+
+            return null;
+        });
+        Assert.assertEquals(client.countCreatedResources(), 1);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+        final MockKubernetesClient.ResourceInteraction<BookKeeper> createdBk =
+                client.getCreatedResource(BookKeeper.class);
+        Assert.assertEquals(createdBk.getResource().getSpec().getBookkeeper().getDefaultBookKeeperSpecRef()
+                .getReplicas(), 1);
+
+        // bk ready
+        setReadyCondition(createdBk.getResource().getStatus(), true);
+        client = new MockKubernetesClient(NAMESPACE);
+        control = invokeController(client, spec, r -> {
+            if (r.isAssignableFrom(ZooKeeper.class)) {
+                return createdZk.getResource();
+            }
+            if (r.isAssignableFrom(BookKeeper.class)) {
+                return createdBk.getResource();
+            }
+            return null;
+        });
+        Assert.assertEquals(client.countCreatedResources(), 4);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+
+
+        AtomicInteger bkGetCount = new AtomicInteger();
+        // simulate bk autoscaler changed the replicas to 2
+        createdBk.getResource().getSpec().getBookkeeper().getDefaultBookKeeperSpecRef().setReplicas(2);
+        client = new MockKubernetesClient(NAMESPACE);
+        control = invokeController(client, spec, r -> {
+            if (r.isAssignableFrom(ZooKeeper.class)) {
+                return createdZk.getResource();
+            }
+            if (r.isAssignableFrom(BookKeeper.class)) {
+                bkGetCount.incrementAndGet();
+                return createdBk.getResource();
+            }
+            return null;
+        });
+        Assert.assertEquals(client.countCreatedResources(), 4);
+        // it's important the controller works always with the same version of the bk resource
+        Assert.assertEquals(bkGetCount.get(), 1);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+    }
+
+    @Test
+    public void testAdjustBrokerReplicas() throws Exception {
+        String spec = """
+                global:
+                    name: pulsarname
+                    image: apachepulsar/pulsar:2.10.2
+                broker:
+                    replicas: 1
+                    autoscaler:
+                        enabled: true
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        UpdateControl<PulsarCluster> control = invokeController(client, spec, r -> null);
+        final MockKubernetesClient.ResourceInteraction<ZooKeeper> createdZk =
+                client.getCreatedResource(ZooKeeper.class);
+        assertZkYaml(createdZk.getResourceYaml());
+        Assert.assertEquals(client.countCreatedResources(), 1);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+
+
+        // zk ready, bk starts
+        setReadyCondition(createdZk.getResource().getStatus(), true);
+        client = new MockKubernetesClient(NAMESPACE);
+        control = invokeController(client, spec, r -> {
+            if (r.isAssignableFrom(ZooKeeper.class)) {
+                return createdZk.getResource();
+            }
+
+            return null;
+        });
+        Assert.assertEquals(client.countCreatedResources(), 1);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+        final MockKubernetesClient.ResourceInteraction<BookKeeper> createdBk =
+                client.getCreatedResource(BookKeeper.class);
+
+        setReadyCondition(createdBk.getResource().getStatus(), true);
+        client = new MockKubernetesClient(NAMESPACE);
+        control = invokeController(client, spec, r -> {
+            if (r.isAssignableFrom(ZooKeeper.class)) {
+                return createdZk.getResource();
+            }
+            if (r.isAssignableFrom(BookKeeper.class)) {
+                return createdBk.getResource();
+            }
+            return null;
+        });
+        Assert.assertEquals(client.countCreatedResources(), 4);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+        final MockKubernetesClient brokerClient = client;
+        brokerClient.getCreatedResource(Broker.class).getResource().getSpec().getBroker().getDefaultBrokerSpecRef()
+                .setReplicas(2);
+
+        AtomicInteger brokerGetCount = new AtomicInteger();
+        client = new MockKubernetesClient(NAMESPACE);
+
+        control = invokeController(client, spec, r -> {
+            if (r.isAssignableFrom(ZooKeeper.class)) {
+                return createdZk.getResource();
+            }
+            if (r.isAssignableFrom(BookKeeper.class)) {
+                return createdBk.getResource();
+            }
+            if (r.isAssignableFrom(Broker.class)) {
+                brokerGetCount.incrementAndGet();
+                return brokerClient.getCreatedResource(Broker.class).getResource();
+            }
+            return null;
+        });
+        Assert.assertEquals(client.countCreatedResources(), 3);
+        // it's important the controller works always with the same version of the bk resource
+        Assert.assertEquals(brokerGetCount.get(), 1);
+        KubeTestUtil.assertUpdateControlInitializing(control);
+    }
 }

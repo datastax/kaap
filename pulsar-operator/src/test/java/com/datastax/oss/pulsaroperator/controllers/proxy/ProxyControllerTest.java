@@ -1653,6 +1653,189 @@ public class ProxyControllerTest {
     }
 
 
+    @Test
+    public void testKafka() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    kafka:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+
+        expectedData.put("PULSAR_PREFIX_brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryEnable", "true");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryProxyPort", "8081");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryProxyEnableTls", "false");
+        expectedData.put("PULSAR_PREFIX_proxyExtensions", "kafka");
+        expectedData.put("PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_kafkaNamespace", "kafka");
+        expectedData.put("PULSAR_PREFIX_kafkaListeners", "PLAINTEXT://0.0.0.0:9092");
+        expectedData.put("PULSAR_PREFIX_kafkaAdvertisedListeners", "PLAINTEXT://pul-proxy:9092");
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkaplaintext"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                9092);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkaschemaregistry"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                8081);
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    kafka:
+                        enabled: true
+                        exposePorts: false
+                """;
+        client = invokeController(spec);
+
+        Assert.assertFalse(client.getCreatedResource(Service.class)
+                .getResource()
+                .getSpec()
+                .getPorts()
+                .stream().filter(p -> p.getName().equals("kafkaplaintext"))
+                .findFirst()
+                .isPresent());
+
+        Assert.assertFalse(client.getCreatedResource(Service.class)
+                .getResource()
+                .getSpec()
+                .getPorts()
+                .stream().filter(p -> p.getName().equals("kafkaschemaregistry"))
+                .findFirst()
+                .isPresent());
+    }
+
+
+    @Test
+    public void testKafkaTls() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        proxy:
+                            enabled: true
+                            enabledWithBroker: true
+                proxy:
+                    kafka:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_brokerServiceURL", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
+        expectedData.put("PULSAR_PREFIX_brokerServiceURLTLS", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURL", "http://pul-broker.ns.svc.cluster.local:8080/");
+        expectedData.put("PULSAR_PREFIX_brokerWebServiceURLTLS", "https://pul-broker.ns.svc.cluster.local:8443/");
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+
+        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_numHttpServerThreads", "10");
+        expectedData.put("PULSAR_PREFIX_tlsEnabledWithKeyStore", "true");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls.keystore.jks");
+        expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/tls.truststore.jks");
+        expectedData.put("PULSAR_PREFIX_brokerClientTlsTrustStore", "/pulsar/tls.truststore.jks");
+        expectedData.put("PULSAR_PREFIX_tlsEnabledInProxy", "true");
+        expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
+        expectedData.put("PULSAR_PREFIX_servicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_tlsEnabledWithBroker", "true");
+        expectedData.put("PULSAR_PREFIX_tlsHostnameVerificationEnabled", "true");
+
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryEnable", "true");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryProxyPort", "8081");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryProxyEnableTls", "true");
+        expectedData.put("PULSAR_PREFIX_proxyExtensions", "kafka");
+        expectedData.put("PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_kafkaNamespace", "kafka");
+        expectedData.put("PULSAR_PREFIX_kafkaListeners", "SASL_SSL://0.0.0.0:9093");
+        expectedData.put("PULSAR_PREFIX_kafkaAdvertisedListeners", "SASL_SSL://pul-proxy:9093");
+        expectedData.put("PULSAR_PREFIX_kopSslTruststoreLocation", "/pulsar/tls.truststore.jks");
+        expectedData.put("PULSAR_PREFIX_kopTlsEnabledWithBroker", "true");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkassl"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                9093);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkaschemaregistry"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                8081);
+    }
+
+
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
         new ControllerTestUtil<ProxyFullSpec, Proxy>(NAMESPACE, CLUSTER_NAME)

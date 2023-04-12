@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.controllers.proxy;
 
 import com.datastax.oss.pulsaroperator.controllers.BaseResourcesFactory;
+import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.CRDConstants;
 import com.datastax.oss.pulsaroperator.crds.GlobalSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.AuthConfig;
@@ -66,6 +67,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
     public static final int DEFAULT_PULSAR_PORT = 6650;
     public static final int DEFAULT_WS_PORT = 8000;
     public static final int DEFAULT_WSS_PORT = 8001;
+    public static final int KAFKA_PORT = 9092;
+    public static final int KAFKA_SSL_PORT = 9093;
+    public static final int KAFKA_SCHEMA_REGISTRY_PORT = 8081;
 
 
     public static List<String> getContainerNames(String resourceName) {
@@ -171,6 +175,23 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                     .withPort(DEFAULT_WS_PORT)
                     .build());
         }
+        if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getExposePorts()) {
+            if (tlsEnabledOnProxy) {
+                ports.add(new ServicePortBuilder()
+                        .withName("kafkassl")
+                        .withPort(KAFKA_SSL_PORT)
+                        .build());
+            } else {
+                ports.add(new ServicePortBuilder()
+                        .withName("kafkaplaintext")
+                        .withPort(KAFKA_PORT)
+                        .build());
+            }
+            ports.add(new ServicePortBuilder()
+                    .withName("kafkaschemaregistry")
+                    .withPort(KAFKA_SCHEMA_REGISTRY_PORT)
+                    .build());
+        }
         if (serviceSpec.getAdditionalPorts() != null) {
             ports.addAll(serviceSpec.getAdditionalPorts());
         }
@@ -223,7 +244,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("brokerClientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-proxy/proxy.jwt");
         }
-        if (isTlsEnabledOnProxySet(proxySet)) {
+        final boolean tlsEnabledOnProxySet = isTlsEnabledOnProxySet(proxySet);
+        final boolean tlsEnabledWithBroker = getTlsConfigForProxySet(proxySet).getEnabledWithBroker();
+        if (tlsEnabledOnProxySet) {
             data.put("tlsEnabledWithKeyStore", "true");
             data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
             data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
@@ -234,15 +257,35 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             final String fullCaPath = getFullCaPath();
             data.put("tlsTrustCertsFilePath", fullCaPath);
             data.put("brokerClientTrustCertsFilePath", fullCaPath);
-            data.put("brokerServicePortTls", "6651");
-            data.put("webServicePortTls", "8443");
-            data.put("servicePortTls", "6651");
-            if (getTlsConfigForProxySet(proxySet).getEnabledWithBroker()) {
+            data.put("brokerServicePortTls", BrokerResourcesFactory.DEFAULT_PULSARSSL_PORT + "");
+            data.put("webServicePortTls", BrokerResourcesFactory.DEFAULT_HTTPS_PORT + "");
+            data.put("servicePortTls", BrokerResourcesFactory.DEFAULT_PULSARSSL_PORT + "");
+            if (tlsEnabledWithBroker) {
                 data.put("tlsEnabledWithBroker", "true");
                 data.put("tlsHostnameVerificationEnabled", "true");
             }
             if (isTlsEnabledOnFunctionsWorker()) {
                 data.put("functionWorkerWebServiceURLTLS", functionsWorkerServiceUrl);
+            }
+        }
+
+        if (spec.getKafka() != null && spec.getKafka().getEnabled()) {
+            data.put("kopSchemaRegistryEnable", "true");
+            data.put("kopSchemaRegistryProxyPort", KAFKA_SCHEMA_REGISTRY_PORT + "");
+            data.put("kopSchemaRegistryProxyEnableTls", "false");
+            data.put("proxyExtensions", "kafka");
+            data.put("kafkaTransactionCoordinatorEnabled", "true");
+            data.put("kafkaNamespace", "kafka");
+            data.put("kafkaListeners", "PLAINTEXT://0.0.0.0:%d".formatted(KAFKA_PORT));
+            data.put("kafkaAdvertisedListeners", "PLAINTEXT://%s:%d".formatted(resourceName, KAFKA_PORT));
+            if (tlsEnabledOnProxySet) {
+                data.put("kopSchemaRegistryProxyEnableTls", "true");
+                data.put("kafkaListeners", "SASL_SSL://0.0.0.0:%d".formatted(KAFKA_SSL_PORT));
+                data.put("kafkaAdvertisedListeners", "SASL_SSL://%s:%d".formatted(resourceName, KAFKA_SSL_PORT));
+                data.put("kopSslTruststoreLocation", "/pulsar/tls.truststore.jks");
+                if (tlsEnabledWithBroker) {
+                    data.put("kopTlsEnabledWithBroker", "true");
+                }
             }
         }
 

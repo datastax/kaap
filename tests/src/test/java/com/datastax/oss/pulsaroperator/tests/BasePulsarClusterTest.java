@@ -478,9 +478,13 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
 
     }
 
-    private void awaitJobCompleted(String name) {
+    protected void awaitJobCompleted(String name) {
+        awaitJobCompleted(name, 2);
+    }
+
+    protected void awaitJobCompleted(String name, long minutes) {
         Awaitility.await()
-                .atMost(2, TimeUnit.MINUTES)
+                .atMost(minutes, TimeUnit.MINUTES)
                 .untilAsserted(() -> {
                     final Job job = client.batch().v1().jobs()
                             .inNamespace(namespace)

@@ -1804,6 +1804,195 @@ public class BrokerControllerTest {
                 .getVolumeMounts(), "vol1", "/pulsar/custom", true);
     }
 
+
+    @Test
+    public void testKafka() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    kafka:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
+
+        expectedData.put("PULSAR_PREFIX_protocolHandlerDirectory", "./protocols");
+        expectedData.put("PULSAR_PREFIX_messagingProtocols", "kafka");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryEnable", "true");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryPort", "8081");
+        expectedData.put("PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_kafkaNamespace", "kafka");
+        expectedData.put("PULSAR_PREFIX_kafkaListeners", "PLAINTEXT://0.0.0.0:9092");
+        expectedData.put("PULSAR_PREFIX_kafkaAdvertisedListeners", "PLAINTEXT://advertisedAddress:9092");
+        expectedData.put("PULSAR_PREFIX_brokerEntryMetadataInterceptors",
+                "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common"
+                        + ".intercept.AppendBrokerTimestampMetadataInterceptor");
+        expectedData.put("PULSAR_PREFIX_brokerDeleteInactiveTopicsEnabled", "false");
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkaplaintext"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                9092);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkaschemaregistry"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                8081);
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    kafka:
+                        enabled: true
+                        exposePorts: false
+                """;
+        client = invokeController(spec);
+
+        Assert.assertFalse(client.getCreatedResource(Service.class)
+                .getResource()
+                .getSpec()
+                .getPorts()
+                .stream().filter(p -> p.getName().equals("kafkaplaintext"))
+                .findFirst()
+                .isPresent());
+
+        Assert.assertFalse(client.getCreatedResource(Service.class)
+                .getResource()
+                .getSpec()
+                .getPorts()
+                .stream().filter(p -> p.getName().equals("kafkaschemaregistry"))
+                .findFirst()
+                .isPresent());
+    }
+
+
+    @Test
+    public void testKafkaTls() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                broker:
+                    kafka:
+                        enabled: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        MockKubernetesClient.ResourceInteraction<ConfigMap> createdResource =
+                client.getCreatedResource(ConfigMap.class);
+
+        Map<String, String> expectedData = new HashMap<>();
+        expectedData.put("PULSAR_PREFIX_zookeeperServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
+        expectedData.put("PULSAR_PREFIX_clusterName", "pul");
+        expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
+        expectedData.put("PULSAR_MEM",
+                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                        + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
+        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_LOG_LEVEL", "info");
+        expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
+        expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
+        expectedData.put("PULSAR_PREFIX_brokerDeduplicationEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus", "true");
+        expectedData.put("PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus", "false");
+        expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
+        expectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
+        expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_webServicePortTls", "8443");
+        expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
+        expectedData.put("PULSAR_PREFIX_brokerClient_tlsHostnameVerificationEnable", "true");
+        expectedData.put("PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled", "true");
+
+        expectedData.put("PULSAR_PREFIX_protocolHandlerDirectory", "./protocols");
+        expectedData.put("PULSAR_PREFIX_messagingProtocols", "kafka");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryEnable", "true");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryPort", "8081");
+        expectedData.put("PULSAR_PREFIX_kafkaTransactionCoordinatorEnabled", "true");
+        expectedData.put("PULSAR_PREFIX_kafkaNamespace", "kafka");
+        expectedData.put("PULSAR_PREFIX_kafkaListeners", "SASL_SSL://0.0.0.0:9093");
+        expectedData.put("PULSAR_PREFIX_kafkaAdvertisedListeners", "SASL_SSL://advertisedAddress:9093");
+        expectedData.put("PULSAR_PREFIX_brokerEntryMetadataInterceptors",
+                "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common"
+                        + ".intercept.AppendBrokerTimestampMetadataInterceptor");
+        expectedData.put("PULSAR_PREFIX_brokerDeleteInactiveTopicsEnabled", "false");
+        expectedData.put("PULSAR_PREFIX_kopSchemaRegistryEnableTls", "true");
+        expectedData.put("PULSAR_PREFIX_kopSslTruststoreLocation", "/pulsar/tls.truststore.jks");
+
+
+
+        final Map<String, String> data = createdResource.getResource().getData();
+        Assert.assertEquals(data, expectedData);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkassl"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                9093);
+
+        Assert.assertEquals(client.getCreatedResource(Service.class)
+                        .getResource()
+                        .getSpec()
+                        .getPorts()
+                        .stream().filter(p -> p.getName().equals("kafkaschemaregistry"))
+                        .findFirst()
+                        .get()
+                        .getPort(),
+                8081);
+    }
+
     @SneakyThrows
     private void invokeControllerAndAssertError(String spec, String expectedErrorMessage) {
         controllerTestUtil

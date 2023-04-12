@@ -58,6 +58,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
     public static final int DEFAULT_PULSAR_PORT = 6650;
     public static final int DEFAULT_HTTPS_PORT = 8443;
     public static final int DEFAULT_PULSARSSL_PORT = 6651;
+    public static final int KAFKA_SSL_PORT = 9093;
+    public static final int KAFKA_PORT = 9092;
+    public static final int KAFKA_SCHEMA_REGISTRY_PORT = 8081;
 
     public static String getComponentBaseName(GlobalSpec globalSpec) {
         return globalSpec.getComponents().getBrokerBaseName();
@@ -124,7 +127,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                 .withName("pulsar")
                 .withPort(DEFAULT_PULSAR_PORT)
                 .build());
-        if (isTlsEnabledOnBroker()) {
+        final boolean tlsEnabledOnBrokerSet = isTlsEnabledOnBrokerSet(brokerSet);
+        if (tlsEnabledOnBrokerSet) {
             ports.add(new ServicePortBuilder()
                     .withName("https")
                     .withPort(DEFAULT_HTTPS_PORT)
@@ -133,6 +137,24 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                     .withName("pulsarssl")
                     .withPort(DEFAULT_PULSARSSL_PORT)
                     .build());
+        }
+        if (spec.getKafka() != null && spec.getKafka().getEnabled() && spec.getKafka().getExposePorts()) {
+            if (tlsEnabledOnBrokerSet) {
+                ports.add(new ServicePortBuilder()
+                        .withName("kafkassl")
+                        .withPort(KAFKA_SSL_PORT)
+                        .build());
+            } else {
+                ports.add(new ServicePortBuilder()
+                        .withName("kafkaplaintext")
+                        .withPort(KAFKA_PORT)
+                        .build());
+            }
+            ports.add(new ServicePortBuilder()
+                    .withName("kafkaschemaregistry")
+                    .withPort(KAFKA_SCHEMA_REGISTRY_PORT)
+                    .build());
+
         }
         if (serviceSpec.getAdditionalPorts() != null) {
             ports.addAll(serviceSpec.getAdditionalPorts());
@@ -178,15 +200,16 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
         }
 
-        if (isTlsEnabledOnBroker()) {
+        final boolean tlsEnabledOnBrokerSet = isTlsEnabledOnBrokerSet(brokerSet);
+        if (tlsEnabledOnBrokerSet) {
             data.put("tlsEnabled", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
             data.put("tlsKeyFilePath", " /pulsar/tls-pk8.key");
             final String fullCaPath = getFullCaPath();
             data.put("tlsTrustCertsFilePath", fullCaPath);
-            data.put("brokerServicePortTls", "6651");
+            data.put("brokerServicePortTls", DEFAULT_PULSARSSL_PORT + "");
             data.put("brokerClientTlsEnabled", "true");
-            data.put("webServicePortTls", "8443");
+            data.put("webServicePortTls", DEFAULT_HTTPS_PORT + "");
             data.put("brokerClientTrustCertsFilePath", fullCaPath);
             data.put("brokerClient_tlsHostnameVerificationEnable", "true");
         }
@@ -206,11 +229,32 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
 
             // Since function worker connects on localhost, we can always non-TLS ports
             // when running with the broker
-            data.put("pulsarServiceUrl", "pulsar://localhost:6650");
-            data.put("pulsarWebServiceUrl", "http://localhost:8080");
+            data.put("pulsarServiceUrl", "pulsar://localhost:%d".formatted(DEFAULT_PULSAR_PORT));
+            data.put("pulsarWebServiceUrl", "http://localhost:%d".formatted(DEFAULT_HTTP_PORT));
         }
         if (spec.getTransactions() != null && spec.getTransactions().getEnabled()) {
             data.put("transactionCoordinatorEnabled", "true");
+        }
+        if (spec.getKafka() != null && spec.getKafka().getEnabled()) {
+            data.put("protocolHandlerDirectory", "./protocols");
+            data.put("messagingProtocols", "kafka");
+            data.put("kopSchemaRegistryEnable", "true");
+            data.put("kopSchemaRegistryPort", KAFKA_SCHEMA_REGISTRY_PORT + "");
+            data.put("kafkaTransactionCoordinatorEnabled", "true");
+            data.put("kafkaNamespace", "kafka");
+            data.put("kafkaListeners", "PLAINTEXT://0.0.0.0:%d".formatted(KAFKA_PORT));
+            data.put("kafkaAdvertisedListeners", "PLAINTEXT://advertisedAddress:%d".formatted(KAFKA_PORT));
+            data.put("brokerEntryMetadataInterceptors",
+                    "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor,org.apache.pulsar.common"
+                            + ".intercept.AppendBrokerTimestampMetadataInterceptor");
+            data.put("brokerDeleteInactiveTopicsEnabled", "false");
+
+            if (tlsEnabledOnBrokerSet) {
+                data.put("kopSchemaRegistryEnableTls", "true");
+                data.put("kafkaListeners", "SASL_SSL://0.0.0.0:%d".formatted(KAFKA_SSL_PORT));
+                data.put("kafkaAdvertisedListeners", "SASL_SSL://advertisedAddress:%d".formatted(KAFKA_SSL_PORT));
+                data.put("kopSslTruststoreLocation", "/pulsar/tls.truststore.jks");
+            }
         }
 
         data.put("allowAutoTopicCreationType", "non-partitioned");
@@ -277,7 +321,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
 
-        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBrokerSet(brokerSet);
         final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
 
         if (tlsEnabledOnBroker || tlsEnabledOnZooKeeper) {
@@ -412,7 +456,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        final boolean tlsEnabled = isTlsEnabledOnBroker();
+        final boolean tlsEnabled = isTlsEnabledOnBrokerSet(brokerSet);
         if (tlsEnabled) {
             addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
         }

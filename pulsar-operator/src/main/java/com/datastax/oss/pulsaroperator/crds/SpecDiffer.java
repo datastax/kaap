@@ -123,8 +123,8 @@ public class SpecDiffer {
             log.info("Spec is now null");
             return;
         }
-        if (currentAsJson != null || newSpecAsJson != null) {
-            log.infof("logging detailed diff: \nwas: %s\nnow: %s", currentAsJson, newSpecAsJson);
+        if (log.isDebugEnabled() && (currentAsJson != null || newSpecAsJson != null)) {
+            log.debugf("logging detailed diff: \nwas: %s\nnow: %s", currentAsJson, newSpecAsJson);
         }
         for (JSONComparator.FieldComparisonDiff failure : diff.diffs()) {
             final String actualValue = failure.actual();

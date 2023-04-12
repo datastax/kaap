@@ -31,8 +31,25 @@ spec:
       labels:
         role: kafka-client-producer
     spec:
+      volumes:
+        - name: certs
+          secret:
+            secretName: pulsar-tls
       containers:
         - name: kclient
           image: confluentinc/cp-kafka
           command: ["/bin/sh"]
-          args: ["-c", "kafka-producer-perf-test  --topic test --num-records 10000000 --throughput 10000 --record-size 10240  --producer-props bootstrap.servers=pulsar-proxy:9092"]
+          args:
+            - "-c"
+            - >-
+              keytool -import --trustcacerts -file /pulsar-certs/tls.crt -keystore cert.jks -storepass pulsar -noprompt &&
+              kafka-producer-perf-test \
+                --topic test  \
+                --num-records 10000000 \
+                --throughput 10000 \
+                --record-size 10240 \
+                --producer-props bootstrap.servers=pulsar-proxy:9093 security.protocol=SSL ssl.truststore.location=cert.jks ssl.truststore.password=pulsar
+          volumeMounts:
+            - mountPath: /pulsar-certs
+              name: certs
+              readOnly: true

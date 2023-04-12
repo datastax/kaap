@@ -47,6 +47,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -735,6 +736,29 @@ public class ZooKeeperControllerTest {
     }
 
     @Test
+    public void testEnvEmpty() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    env: []
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<ZooKeeper> zooKeeperUpdateControl = invokeController(spec, client);
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().get(0)
+                        .getEnv().size(),
+                1
+        );
+
+        final ZooKeeperFullSpec lastApplied = SerializationUtil.readJson(zooKeeperUpdateControl
+                .getResource().getStatus().getLastApplied(), ZooKeeperFullSpec.class);
+        Assert.assertTrue(lastApplied.getZookeeper().getEnv().isEmpty());
+    }
+
+    @Test
     public void testInitContainers() throws Exception {
         String spec = """
                 global:
@@ -822,6 +846,30 @@ public class ZooKeeperControllerTest {
                           readOnly: true
                         """
         );
+    }
+
+
+
+    @Test
+    public void testSidecarsEmpty() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    image: apachepulsar/pulsar:global
+                zookeeper:
+                    sidecars: []
+                """;
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
+        final UpdateControl<ZooKeeper> zooKeeperUpdateControl = invokeController(spec, client);
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getContainers().size(),
+                1
+        );
+
+        final ZooKeeperFullSpec lastApplied = SerializationUtil.readJson(zooKeeperUpdateControl
+                .getResource().getStatus().getLastApplied(), ZooKeeperFullSpec.class);
+        Assert.assertTrue(lastApplied.getZookeeper().getSidecars().isEmpty());
     }
 
     @Test
@@ -1750,6 +1798,15 @@ public class ZooKeeperControllerTest {
     private MockKubernetesClient invokeController(String spec) {
         return new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
                 .invokeController(spec,
+                        ZooKeeper.class,
+                        ZooKeeperFullSpec.class,
+                        ZooKeeperController.class);
+    }
+
+    @SneakyThrows
+    private UpdateControl<ZooKeeper> invokeController(String spec, MockKubernetesClient client) {
+        return new ControllerTestUtil<ZooKeeperFullSpec, ZooKeeper>(NAMESPACE, CLUSTER_NAME)
+                .invokeController(client, spec,
                         ZooKeeper.class,
                         ZooKeeperFullSpec.class,
                         ZooKeeperController.class);

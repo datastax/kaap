@@ -100,8 +100,9 @@ public abstract class BaseResourcesFactory<T> {
                                 GlobalSpec global, OwnerReference ownerReference) {
         this.client = client;
         this.namespace = namespace;
-        this.spec = spec;
-        this.global = global;
+        // clone spec objects to avoid unintended object modifications.
+        this.spec = SerializationUtil.deepCloneObject(spec);
+        this.global = SerializationUtil.deepCloneObject(global);
         this.resourceName = resourceName;
         this.ownerReference = ownerReference;
     }

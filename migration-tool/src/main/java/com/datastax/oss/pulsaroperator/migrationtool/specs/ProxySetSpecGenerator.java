@@ -18,7 +18,6 @@ package com.datastax.oss.pulsaroperator.migrationtool.specs;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
-import com.datastax.oss.pulsaroperator.crds.proxy.ProxySpec;
 import com.datastax.oss.pulsaroperator.migrationtool.InputClusterSpecs;
 import com.datastax.oss.pulsaroperator.migrationtool.PulsarClusterResourceGenerator;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -38,12 +37,12 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySpec> {
+public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
 
     public static final String SPEC_NAME = "Proxy";
     private final InputClusterSpecs.ProxySpecs.ProxySetSpecs proxyInputSpecs;
     private final String resourceName;
-    private ProxySpec generatedSpec;
+    private ProxySetSpec generatedSpec;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -66,7 +65,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySpec> {
     }
 
     @Override
-    public ProxySpec generateSpec() {
+    public ProxySetSpec generateSpec() {
         return generatedSpec;
     }
 
@@ -115,7 +114,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySpec> {
 
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
         final Map<String, String> matchLabels = getMatchLabels(deploymentSpec.getSelector());
-        generatedSpec = ProxySpec.builder()
+        generatedSpec = ProxySetSpec.builder()
                 .overrideResourceName(proxyInputSpecs.getOverrideName())
                 .annotations(deployment.getMetadata().getAnnotations())
                 .podAnnotations(deploymentSpec.getTemplate().getMetadata().getAnnotations())

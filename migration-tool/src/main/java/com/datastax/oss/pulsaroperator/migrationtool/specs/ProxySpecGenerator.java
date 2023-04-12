@@ -56,7 +56,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                     client
             );
             generators.put(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySetSpecGenerator);
-            final ProxySpec proxySpec = proxySetSpecGenerator.generateSpec();
+            final ProxySetSpec proxySpec = proxySetSpecGenerator.generateSpec();
             generatedSpec.setSets(new LinkedHashMap<>(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySpec)));
         } else {
             LinkedHashMap<String, ProxySetSpec> sets = new LinkedHashMap<>();

@@ -16,6 +16,7 @@
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
 import com.datastax.oss.pulsaroperator.controllers.bookkeeper.BookKeeperResourcesFactory;
+import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSpec;
 import com.datastax.oss.pulsaroperator.crds.configs.PodDisruptionBudgetConfig;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
@@ -40,11 +41,11 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
+public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSetSpec> {
 
     public static final String SPEC_NAME = "BookKeeper";
     private final String resourceName;
-    private BookKeeperSpec generatedSpec;
+    private BookKeeperSetSpec generatedSpec;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
     private String priorityClassName;
@@ -68,7 +69,7 @@ public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSpec
     }
 
     @Override
-    public BookKeeperSpec generateSpec() {
+    public BookKeeperSetSpec generateSpec() {
         return generatedSpec;
     }
 
@@ -109,7 +110,7 @@ public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSpec
         final List<PersistentVolumeClaim> volumeClaimTemplates = statefulSetSpec.getVolumeClaimTemplates();
         final PersistentVolumeClaim journalPvc = requirePvc("%s-journal".formatted(resourceName), volumeClaimTemplates);
         final PersistentVolumeClaim ledgersPvc = requirePvc("%s-ledgers".formatted(resourceName), volumeClaimTemplates);
-        generatedSpec = BookKeeperSpec.builder()
+        generatedSpec = BookKeeperSetSpec.builder()
                 .annotations(statefulSet.getMetadata().getAnnotations())
                 .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
                 .image(container.getImage())

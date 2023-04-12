@@ -58,7 +58,7 @@ public class BookKeeperSpecGenerator extends BaseSpecGenerator<BookKeeperSpec> {
                     client
             );
             generators.put(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, brokerSetSpecGenerator);
-            final BookKeeperSpec bkSpec = brokerSetSpecGenerator.generateSpec();
+            final BookKeeperSetSpec bkSpec = brokerSetSpecGenerator.generateSpec();
             generatedSpec.setSets(
                     new LinkedHashMap<>(Map.of(BookKeeperResourcesFactory.BOOKKEEPER_DEFAULT_SET, bkSpec)));
         } else {

@@ -192,6 +192,8 @@ public class SpecGenerator {
         final LinkedHashMap<String, BookKeeperSetSpec> sets = BookKeeperController.getBookKeeperSetSpecs(
                 pulsarCluster.getSpec().getBookkeeper());
         for (Map.Entry<String, BookKeeperSetSpec> set : sets.entrySet()) {
+            System.out.println("create bkResourceFactory" + pulsarCluster);
+            System.out.println("create bkResourceFactory-global" + pulsarCluster.getSpec().getGlobal());
             final BookKeeperResourcesFactory bkResourceFactory =
                     new BookKeeperResourcesFactory(local.getClient(), inputSpecs.
                             getNamespace(), set.getKey(), set.getValue(),

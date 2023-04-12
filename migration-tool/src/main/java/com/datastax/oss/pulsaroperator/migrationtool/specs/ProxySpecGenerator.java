@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.proxy.ProxyResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.configs.tls.TlsConfig;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
@@ -48,7 +49,6 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
     private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
         final List<InputClusterSpecs.ProxySpecs.ProxySetSpecs> proxySets =
                 inputSpecs.getProxy().getProxySets();
-        generatedSpec = new ProxySpec();
         if (proxySets == null || proxySets.isEmpty()) {
             final ProxySetSpecGenerator proxySetSpecGenerator = new ProxySetSpecGenerator(
                     inputSpecs,
@@ -56,8 +56,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                     client
             );
             generators.put(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySetSpecGenerator);
-            final ProxySetSpec proxySpec = proxySetSpecGenerator.generateSpec();
-            generatedSpec.setSets(new LinkedHashMap<>(Map.of(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySpec)));
+            generatedSpec = SerializationUtil.convertValue(proxySetSpecGenerator.generateSpec(), ProxySpec.class);
         } else {
             LinkedHashMap<String, ProxySetSpec> sets = new LinkedHashMap<>();
             proxySets.stream().map(
@@ -66,6 +65,7 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
                 generators.put(pair.getLeft(), pair.getRight());
                 sets.put(pair.getLeft(), pair.getRight().generateSpec());
             });
+            generatedSpec = new ProxySpec();
             generatedSpec.setSets(sets);
         }
     }

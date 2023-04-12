@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.pulsaroperator.migrationtool.specs;
 
+import com.datastax.oss.pulsaroperator.common.SerializationUtil;
 import com.datastax.oss.pulsaroperator.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSpec;
@@ -48,7 +49,6 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
     private void internalGenerateSpec(InputClusterSpecs inputSpecs, KubernetesClient client) {
         final List<InputClusterSpecs.BrokerSpecs.BrokerSetSpecs> brokerSets =
                 inputSpecs.getBroker().getBrokerSets();
-        generatedSpec = new BrokerSpec();
         if (brokerSets == null || brokerSets.isEmpty()) {
             final BrokerSetSpecGenerator brokerSetSpecGenerator = new BrokerSetSpecGenerator(
                     inputSpecs,
@@ -56,8 +56,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                     client
             );
             generators.put(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSetSpecGenerator);
-            final BrokerSetSpec brokerSpec = brokerSetSpecGenerator.generateSpec();
-            generatedSpec.setSets(new LinkedHashMap<>(Map.of(BrokerResourcesFactory.BROKER_DEFAULT_SET, brokerSpec)));
+            generatedSpec = SerializationUtil.convertValue(brokerSetSpecGenerator.generateSpec(), BrokerSpec.class);
         } else {
             LinkedHashMap<String, BrokerSetSpec> sets = new LinkedHashMap<>();
             brokerSets.stream().map(
@@ -66,6 +65,7 @@ public class BrokerSpecGenerator extends BaseSpecGenerator<BrokerSpec> {
                 generators.put(pair.getLeft(), pair.getRight());
                 sets.put(pair.getLeft(), pair.getRight().generateSpec());
             });
+            generatedSpec = new BrokerSpec();
             generatedSpec.setSets(sets);
         }
     }

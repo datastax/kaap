@@ -383,3 +383,17 @@ kube-prometheus-stack:
             - source_labels: [__meta_kubernetes_pod_name]
               action: replace
               target_label: kubernetes_pod_name
+
+bkvm:
+  enabled: false
+  server:
+    metadataServiceUri: zk://pulsar-zookeeper-ca:2181/ledgers
+    env:
+      - name: BKVM_topology.enabled
+        value: "true"
+      - name: BKVM_user.1.username
+        value: admin
+      - name: BKVM_user.1.password
+        value: pulsar
+      - name: BKVM_user.1.role
+        value: Admin

@@ -50,7 +50,7 @@ pulsar-admin-console:
 #      pulsar: "pulsar+ssl://pulsar-broker:6651"
 #      ws: "wss://pulsar-proxy:8001"
 #      http: "https://pulsar-broker:8443"
-#    server_config:
+    server_config:
 #      pulsar_url: "https://pulsar-broker:8443"
 #      websocket_url: "wss://pulsar-proxy:8001"
 #      function_worker_url: "https://pulsar-function:6751"

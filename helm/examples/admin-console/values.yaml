@@ -121,6 +121,9 @@ pulsar-admin-console:
     - name: certs
       secret:
         secretName: pulsar-tls
+    - name: token-superuser
+      secret:
+        secretName: token-superuser
     - name: token-private-key
       secret:
         secretName: token-private-key
@@ -128,6 +131,9 @@ pulsar-admin-console:
     - name: certs
       readOnly: true
       mountPath: /pulsar/certs
+    - name: token-superuser
+      mountPath: "/pulsar/token-superuser"
+      readOnly: true
     - name: token-private-key
       mountPath: "/pulsar/token-private-key"
       readOnly: true
@@ -137,6 +143,7 @@ pulsar-admin-console:
     password: mypass
   config:
     auth_mode: k8s
+    cluster_name: pulsar
     oauth_client_id: "pulsar-admin-console"
     grafana_url: "http://pulsar-grafana:3000"
     host_overrides:
@@ -148,6 +155,10 @@ pulsar-admin-console:
       websocket_url: "wss://pulsar-proxy:8001"
       function_worker_url: "https://pulsar-function:6751"
       log_level: info
+      token_path: "/pulsar/token-superuser/superuser.jwt"
+      token_options:
+        private_key_path: "/pulsar/token-private-key/my-private.key"
+        algorithm: RS256
       ssl:
         enabled: true
         ca_path: "/pulsar/certs/ca.crt"

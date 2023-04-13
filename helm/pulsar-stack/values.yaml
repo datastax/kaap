@@ -33,7 +33,6 @@ pulsar-admin-console:
 #    - name: certs
 #      secret:
 #        secretName: pulsar-tls
-
 # Only if auth is enabled
 #
 #   additionalVolumes:

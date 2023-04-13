@@ -1,0 +1,172 @@
+#
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+pulsar-operator:
+  cluster:
+    create: true
+    spec:
+      global:
+        name: pulsar
+        image: datastax/lunastreaming-all:2.10_3.4
+        restartOnConfigMapChange: true
+        storage:
+          existingStorageClassName: default
+        auth:
+          enabled: true
+        tls:
+          enabled: true
+          zookeeper:
+            enabled: true
+          bookkeeper:
+            enabled: true
+          autorecovery:
+            enabled: true
+          proxy:
+            enabled: true
+            enabledWithBroker: true
+          broker:
+            enabled: true
+          functionsWorker:
+            enabled: true
+            enabledWithBroker: true
+          certProvisioner:
+            selfSigned:
+              enabled: true
+      zookeeper:
+        replicas: 1
+        dataVolume:
+          name: data
+          size: 100M
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      bookkeeper:
+        replicas: 1
+        volumes:
+          journal:
+            size: 1Gi
+          ledgers:
+            size: 1Gi
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      broker:
+        replicas: 1
+        config:
+          managedLedgerDefaultAckQuorum: "1"
+          managedLedgerDefaultEnsembleSize: "1"
+          managedLedgerDefaultWriteQuorum: "1"
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      proxy:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+        webSocket:
+          resources:
+            requests:
+              cpu: "0.2"
+              memory: "128Mi"
+      autorecovery:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      bastion:
+        replicas: 1
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: "128Mi"
+      functionsWorker:
+        replicas: 1
+        runtime: kubernetes
+        config:
+          numFunctionPackageReplicas: 1
+          functionInstanceMaxResources:
+            disk: 10000000000
+            ram: 500000000
+            cpu: 0.3
+        resources:
+          requests:
+            cpu: "0.3"
+
+pulsar-admin-console:
+  enabled: true
+  env:
+    - name: NODE_EXTRA_CA_CERTS
+      value: /pulsar/certs/ca.crt
+  additionalVolumes:
+    - name: certs
+      secret:
+        secretName: pulsar-tls
+    - name: token-superuser
+      secret:
+        secretName: token-superuser
+    - name: token-private-key
+      secret:
+        secretName: token-private-key
+  additionalVolumeMounts:
+    - name: certs
+      readOnly: true
+      mountPath: /pulsar/certs
+    - name: token-superuser
+      mountPath: "/pulsar/token-superuser"
+      readOnly: true
+    - name: token-private-key
+      mountPath: "/pulsar/token-private-key"
+      readOnly: true
+  createUserSecret:
+    enabled: true
+    user: admin
+    password: mypass
+  config:
+    auth_mode: k8s
+    oauth_client_id: "pulsar-admin-console"
+    grafana_url: "http://pulsar-grafana:3000"
+    host_overrides:
+      pulsar: "pulsar+ssl://pulsar-broker:6651"
+      ws: "wss://pulsar-proxy:8001"
+      http: "https://pulsar-broker:8443"
+    server_config:
+      pulsar_url: "https://pulsar-broker:8443"
+      websocket_url: "wss://pulsar-proxy:8001"
+      function_worker_url: "https://pulsar-function:6751"
+      token_path: "/pulsar/token-superuser/superuser.jwt"
+      token_options:
+        private_key_path: "/pulsar/token-private-key/my-private.key"
+      ssl:
+        enabled: true
+
+cert-manager:
+  enabled: true
+  installCRDs: true
+
+pulsarGrafanaDashboards:
+  enabled: true
+
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    adminPassword: grafana1

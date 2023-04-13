@@ -24,6 +24,47 @@ pulsar-operator:
 
 pulsar-admin-console:
   enabled: false
+# Only if TLS is enabled
+#
+#   env:
+#    - name: NODE_EXTRA_CA_CERTS
+#      value: /pulsar/certs/ca.crt
+#   additionalVolumes:
+#    - name: certs
+#      secret:
+#        secretName: pulsar-tls
+
+# Only if auth is enabled
+#
+#   additionalVolumes:
+#    - name: token-superuser
+#      secret:
+#        secretName: token-superuser
+#    - name: token-private-key
+#      secret:
+#        secretName: token-private-key
+  config:
+    cluster_name: pulsar
+#    oauth_client_id: "pulsar-admin-console"
+#    grafana_url: "http://pulsar-grafana:3000"
+#    host_overrides:
+#      pulsar: "pulsar+ssl://pulsar-broker:6651"
+#      ws: "wss://pulsar-proxy:8001"
+#      http: "https://pulsar-broker:8443"
+#    server_config:
+#      pulsar_url: "https://pulsar-broker:8443"
+#      websocket_url: "wss://pulsar-proxy:8001"
+#      function_worker_url: "https://pulsar-function:6751"
+#      log_level: info
+#      token_path: "/pulsar/token-superuser/superuser.jwt"
+      token_options:
+#        private_key_path: "/pulsar/token-private-key/my-private.key"
+        algorithm: RS256
+      ssl:
+        enabled: false
+        ca_path: "/pulsar/certs/ca.crt"
+        cert_path: "/pulsar/certs/tls.crt"
+        key_path: "/pulsar/certs/tls.key"
 
 # Deploy Keycloak
 keycloak:

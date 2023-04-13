@@ -46,5 +46,5 @@ dependencies:
     condition: pulsar-admin-console.enabled
   - name: bkvm
     version: 0.1.x
-    repository: https://diennea.github.io/bookkeeper-visual-manager/
+    repository: https://diennea.github.io/bookkeeper-visual-manager
     condition: bkvm.enabled

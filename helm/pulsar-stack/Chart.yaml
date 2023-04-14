@@ -44,3 +44,7 @@ dependencies:
     version: 0.1.x
     repository: https://datastax.github.io/charts
     condition: pulsar-admin-console.enabled
+  - name: bkvm
+    version: 0.1.x
+    repository: https://diennea.github.io/bookkeeper-visual-manager
+    condition: bkvm.enabled

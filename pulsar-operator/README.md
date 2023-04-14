@@ -1,6 +1,6 @@
 # pulsar-operator
 
-![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square)
+![Version: 0.0.4](https://img.shields.io/badge/Version-0.0.4-informational?style=flat-square)
 
 Operator for managing Apache Pulsar on Kubernetes
 
@@ -13,6 +13,12 @@ Operator for managing Apache Pulsar on Kubernetes
 | cluster.spec.global.name | string | `"pulsar"` |  |
 | cluster.spec.global.storage.existingStorageClassName | string | `"default"` |  |
 | crd.create | bool | `true` |  |
+| fullnameOverride | string | `""` |  |
+| nameOverride | string | `""` |  |
+| operator.config.logLevel | string | `"info"` |  |
+| operator.config.operator.reconciliationRescheduleSeconds | int | `5` |  |
+| operator.config.quarkus | object | `{}` |  |
+| operator.config.restartOnChange | bool | `true` |  |
 | operator.enabled | bool | `true` |  |
 | operator.image | string | `"datastax/lunastreaming-operator:latest"` |  |
 | operator.imagePullPolicy | string | `"IfNotPresent"` |  |
@@ -28,6 +34,8 @@ Operator for managing Apache Pulsar on Kubernetes
 | operator.readinessProbe.timeoutSeconds | int | `10` |  |
 | operator.replicas | int | `1` |  |
 | rbac.create | bool | `true` |  |
+| rbac.operatorRole.name | string | `"pulsar-operator"` |  |
+| rbac.operatorRoleBinding.name | string | `"pulsar-operator-role-binding"` |  |
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `"pulsar-operator"` |  |
 

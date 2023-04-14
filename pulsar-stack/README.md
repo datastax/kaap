@@ -1,6 +1,6 @@
 # pulsar-stack
 
-![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square)
+![Version: 0.0.4](https://img.shields.io/badge/Version-0.0.4-informational?style=flat-square)
 
 Apache Pulsar stack on Kubernetes
 
@@ -12,12 +12,24 @@ Apache Pulsar stack on Kubernetes
 | https://charts.bitnami.com/bitnami | external-dns | v6.13.x |
 | https://charts.bitnami.com/bitnami | keycloak | 9.x.x |
 | https://charts.jetstack.io | cert-manager | v1.11.x |
+| https://datastax.github.io/charts | pulsar-admin-console | 0.1.x |
+| https://diennea.github.io/bookkeeper-visual-manager | bkvm | 0.1.x |
 | https://prometheus-community.github.io/helm-charts | kube-prometheus-stack | 41.x.x |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| bkvm.enabled | bool | `false` |  |
+| bkvm.server.env[0].name | string | `"BKVM_topology.enabled"` |  |
+| bkvm.server.env[0].value | string | `"true"` |  |
+| bkvm.server.env[1].name | string | `"BKVM_user.1.username"` |  |
+| bkvm.server.env[1].value | string | `"admin"` |  |
+| bkvm.server.env[2].name | string | `"BKVM_user.1.password"` |  |
+| bkvm.server.env[2].value | string | `"pulsar"` |  |
+| bkvm.server.env[3].name | string | `"BKVM_user.1.role"` |  |
+| bkvm.server.env[3].value | string | `"Admin"` |  |
+| bkvm.server.metadataServiceUri | string | `"zk://pulsar-zookeeper-ca:2181/ledgers"` |  |
 | cert-manager.enabled | bool | `false` |  |
 | cert-manager.installCRDs | bool | `false` |  |
 | external-dns.enabled | bool | `false` |  |
@@ -187,6 +199,13 @@ Apache Pulsar stack on Kubernetes
 | kube-prometheus-stack.prometheus.prometheusSpec.additionalScrapeConfigs[0].relabel_configs[6].target_label | string | `"kubernetes_pod_name"` |  |
 | kube-prometheus-stack.prometheus.prometheusSpec.retention | string | `"10d"` |  |
 | kube-prometheus-stack.prometheusOperator.enabled | bool | `true` |  |
+| pulsar-admin-console.config.cluster_name | string | `"pulsar"` |  |
+| pulsar-admin-console.config.server_config.ssl.ca_path | string | `"/pulsar/certs/ca.crt"` |  |
+| pulsar-admin-console.config.server_config.ssl.cert_path | string | `"/pulsar/certs/tls.crt"` |  |
+| pulsar-admin-console.config.server_config.ssl.enabled | bool | `false` |  |
+| pulsar-admin-console.config.server_config.ssl.key_path | string | `"/pulsar/certs/tls.key"` |  |
+| pulsar-admin-console.config.server_config.token_options.algorithm | string | `"RS256"` |  |
+| pulsar-admin-console.enabled | bool | `false` |  |
 | pulsar-operator.enabled | bool | `true` |  |
 | pulsarGrafanaDashboards.enabled | bool | `false` |  |
 

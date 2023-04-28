@@ -28,6 +28,7 @@ import com.datastax.oss.pulsaroperator.controllers.zookeeper.ZooKeeperResourcesF
 import com.datastax.oss.pulsaroperator.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.pulsaroperator.crds.broker.BrokerSetSpec;
 import com.datastax.oss.pulsaroperator.crds.cluster.PulsarCluster;
+import com.datastax.oss.pulsaroperator.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.pulsaroperator.crds.proxy.ProxySetSpec;
 import com.datastax.oss.pulsaroperator.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -40,6 +41,8 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +65,7 @@ public class SpecGenerator {
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
     public static final String ORIGINAL_PREFIX = "original";
     public static final String GENERATED_PREFIX = "generated";
-    public static final String CRD_GENERATED_FIX = "crd-generated-pulsar-cluster";
+    public static final String CRD_GENERATED_PREFIX = "crd-generated-pulsar-cluster";
 
     private final String outputDirectory;
     private final InputClusterSpecs inputSpecs;
@@ -86,7 +89,7 @@ public class SpecGenerator {
     @SneakyThrows
     public static Path getGeneratedPulsarClusterFileFromDir(File dir) {
         return Files.list(dir.toPath())
-                .filter(p -> p.toFile().getName().startsWith(CRD_GENERATED_FIX + "-") && p.toFile().getName()
+                .filter(p -> p.toFile().getName().startsWith(CRD_GENERATED_PREFIX + "-") && p.toFile().getName()
                         .endsWith(".yaml"))
                 .findFirst()
                 .get();
@@ -95,7 +98,7 @@ public class SpecGenerator {
     @SneakyThrows
     public static Path getGeneratedPulsarClusterJSONFileFromDir(File dir) {
         return Files.list(dir.toPath())
-                .filter(p -> p.toFile().getName().startsWith(CRD_GENERATED_FIX + "-") && p.toFile().getName()
+                .filter(p -> p.toFile().getName().startsWith(CRD_GENERATED_PREFIX + "-") && p.toFile().getName()
                         .endsWith(".json"))
                 .findFirst()
                 .get();
@@ -295,29 +298,56 @@ public class SpecGenerator {
         asJson.remove("status");
 
         final File resultFileJson = new File(directory,
-                "%s-%s.json".formatted(CRD_GENERATED_FIX, spec.getMetadata().getName())
+                "%s-%s.json".formatted(CRD_GENERATED_PREFIX, spec.getMetadata().getName())
         );
 
         MAPPER.writeValue(resultFileJson, asJson);
         log.info("Resource PulsarClusterSpec exported to {}", resultFileJson.getAbsolutePath());
 
         final File resultFileYaml = new File(directory,
-                "%s-%s.yaml".formatted(CRD_GENERATED_FIX, spec.getMetadata().getName()));
+                "%s-%s.yaml".formatted(CRD_GENERATED_PREFIX, spec.getMetadata().getName()));
         prettyPrintYaml(asJson, resultFileYaml);
         log.info("Resource PulsarClusterSpec exported to {}", resultFileYaml.getAbsolutePath());
+        dumpValuesToFile(directory, spec.getSpec());
+    }
+
+    private static void dumpValuesToFile(String directory, PulsarClusterSpec spec) throws IOException {
+        final Map specMap = MAPPER.convertValue(spec, Map.class);
+        final Map<String, Object> valuesMap = Map.of("pulsar-operator",
+                Map.of("cluster", Map.of(
+                        "create", true,
+                        "spec", specMap
+                )));
+
+
+        final String yaml = prettyPrintYaml(valuesMap);
+        final Path path = Path.of(directory, "values.yaml");
+        Files.write(path, yaml.getBytes(StandardCharsets.UTF_8));
+        log.info("Operator values exported to {}", path.toFile().getAbsolutePath());
+    }
+
+    private static String prettyPrintYaml(Map<String, Object> asJson) throws IOException {
+        try (final StringWriter stringWriter = new StringWriter();) {
+            prettyPrintYaml(asJson, stringWriter);
+            return stringWriter.toString();
+        }
+
     }
 
     private static void prettyPrintYaml(Map<String, Object> asJson, File resultFileYaml) throws IOException {
+        try (final FileWriter fileWriter = new FileWriter(resultFileYaml, StandardCharsets.UTF_8);) {
+            prettyPrintYaml(asJson, fileWriter);
+        }
+    }
+
+    private static void prettyPrintYaml(Map<String, Object> asJson, Writer writer) {
         DumperOptions options = new DumperOptions();
         options.setAllowReadOnlyProperties(true);
         options.setIndent(2);
         options.setPrettyFlow(true);
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(options);
-        try (final FileWriter fileWriter = new FileWriter(resultFileYaml, StandardCharsets.UTF_8);) {
-            yaml.dump(asJson, fileWriter);
-        }
+        yaml.dump(asJson, writer);
     }
-
 
 }

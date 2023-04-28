@@ -14,6 +14,14 @@
 # limitations under the License.
 #
 
-context: default
+context: gke_datastax-astrastreaming-dev_us-east4_astra-streaming-dp-dev-us-east4
 namespace: pulsar
-clusterName: pulsar
+clusterName: pulsar-gcp-useast4-dev
+proxy:
+ proxySets:
+  - name: proxy
+  - name: rabbitmqproxy
+    overrideName: pulsar-gcp-useast4-dev-rabbitmqproxy
+  - name: kafkaproxy
+    overrideName: pulsar-gcp-useast4-dev-kafkaproxy 
+

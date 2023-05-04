@@ -1036,9 +1036,15 @@ public abstract class BaseResourcesFactory<T> {
             sslClientOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
             sslClientOpts.put("zookeeper.client.secure", "true");
             sslClientOpts.put("zookeeper.ssl.keyStore.location", keyStoreLocation);
-            sslClientOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            final boolean zookeeperPlainPassword = global.getZookeeperPlainSslStorePassword();
+            if (zookeeperPlainPassword) {
+                sslClientOpts.put("zookeeper.ssl.keyStore.password", "$(cat /pulsar/keystoreSecret.txt)");
+                sslClientOpts.put("zookeeper.ssl.trustStore.passwordPath", "$(cat /pulsar/keystoreSecret.txt)");
+            } else {
+                sslClientOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+                sslClientOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            }
             sslClientOpts.put("zookeeper.ssl.trustStore.location", trustStoreLocation);
-            sslClientOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
             sslClientOpts.put("zookeeper.ssl.hostnameVerification", "true");
 
             final Map<String, String> sslClientAndQuorumOpts = new HashMap<>(sslClientOpts);
@@ -1046,9 +1052,14 @@ public abstract class BaseResourcesFactory<T> {
             sslClientAndQuorumOpts.put("zookeeper.serverCnxnFactory",
                     "org.apache.zookeeper.server.NettyServerCnxnFactory");
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.location", keyStoreLocation);
-            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            if (zookeeperPlainPassword) {
+                sslClientOpts.put("zookeeper.ssl.quorum.keyStore.password", "$(cat /pulsar/keystoreSecret.txt)");
+                sslClientOpts.put("zookeeper.ssl.quorum.trustStore.password", "$(cat /pulsar/keystoreSecret.txt)");
+            } else {
+                sslClientOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+                sslClientOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+            }
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.location", trustStoreLocation);
-            sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.hostnameVerification", "true");
             final String pulsarOptsStr = sslClientAndQuorumOpts.entrySet()
                     .stream()
@@ -1060,7 +1071,7 @@ public abstract class BaseResourcesFactory<T> {
                     .map(e -> "-D%s=%s".formatted(e.getKey(), e.getValue()))
                     .collect(Collectors.joining(" "));
             script += """
-                    passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && (
+                    (
                     cat >> conf/pulsar_env.sh << EOF
                                         
                     PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} %s"

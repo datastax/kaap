@@ -486,15 +486,15 @@ public class BookKeeperControllerTest {
                         -trustcacerts -noprompt
                 } &&
                 certconverter &&
-                passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && (
+                (
                 cat >> conf/pulsar_env.sh << EOF
                                 
-                PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
+                PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
                 EOF
                 ) && (
                 cat >> conf/bkenv.sh << EOF
                                 
-                BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
+                BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
                 EOF
                 ) &&
                 echo '' && OPTS="${OPTS} -Dlog4j2.formatMsgNoLookups=true" exec bin/pulsar bookie""");
@@ -549,15 +549,15 @@ public class BookKeeperControllerTest {
                         -trustcacerts -noprompt
                 } &&
                 certconverter &&
-                passwordArg="passwordPath=/pulsar/keystoreSecret.txt" && (
+                (
                 cat >> conf/pulsar_env.sh << EOF
                                 
-                PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
+                PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.keyStore.location=${keyStoreFile} -Dzookeeper.sslQuorum=true -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.ssl.quorum.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.quorum.hostnameVerification=true -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory"
                 EOF
                 ) && (
                 cat >> conf/bkenv.sh << EOF
                                 
-                BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
+                BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} -Dzookeeper.client.secure=true -Dzookeeper.ssl.hostnameVerification=true -Dzookeeper.ssl.quorum.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.keyStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.quorum.trustStore.passwordPath=/pulsar/keystoreSecret.txt -Dzookeeper.ssl.trustStore.location=${trustStoreFile} -Dzookeeper.ssl.keyStore.location=${keyStoreFile} -Dzookeeper.clientCnxnSocket=org.apache.zookeeper.ClientCnxnSocketNetty"
                 EOF
                 ) &&
                 echo '' && bin/apply-config-from-env.py conf/bookkeeper.conf && bin/bookkeeper shell metaformat --nonInteractive || true;""");

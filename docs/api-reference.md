@@ -56003,6 +56003,13 @@ The default value is 'cluster.local'.
           TLS configuration for the cluster.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>zookeeperPlainSslStorePassword</b></td>
+        <td>boolean</td>
+        <td>
+          Use plain password in zookeeper server and client configuration. Default is false. Old versions of Apache Zookeeper (<3.8.0) does not support getting password from file. In that case, set this to true.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 

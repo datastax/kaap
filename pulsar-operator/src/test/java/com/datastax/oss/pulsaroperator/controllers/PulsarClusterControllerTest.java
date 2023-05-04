@@ -106,7 +106,8 @@ public class PulsarClusterControllerTest {
                     enabled: true
                     required: true
                   zone:
-                    enabled: false""";
+                    enabled: false
+                zookeeperPlainSslStorePassword: false""";
     static final String NAMESPACE = "ns";
 
     TokenAuthProvisioner tokenAuthProvisioner;

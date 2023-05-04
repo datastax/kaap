@@ -204,6 +204,10 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private Map<String, ResourceSetConfig> resourceSets;
     @JsonPropertyDescription("Racks configuration.")
     private Map<String, RackConfig> racks;
+    @JsonPropertyDescription("Use plain password in zookeeper server and client configuration. Default is false. Old "
+            + "versions of Apache Zookeeper (<3.8.0) does not support getting password from file. In that case, set "
+            + "this to true.")
+    private Boolean zookeeperPlainSslStorePassword;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -237,6 +241,9 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         applyAuthDefaults();
         applyAntiAffinityDefaults();
         applyRacksDefaults();
+        if (zookeeperPlainSslStorePassword == null) {
+            zookeeperPlainSslStorePassword = false;
+        }
     }
 
     private void applyTlsDefaults() {

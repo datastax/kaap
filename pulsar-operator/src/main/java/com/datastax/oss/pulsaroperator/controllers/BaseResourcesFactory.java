@@ -1054,11 +1054,11 @@ public abstract class BaseResourcesFactory<T> {
                     "org.apache.zookeeper.server.NettyServerCnxnFactory");
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.location", keyStoreLocation);
             if (zookeeperPlainPassword) {
-                sslClientOpts.put("zookeeper.ssl.quorum.keyStore.password", "$(cat /pulsar/keystoreSecret.txt)");
-                sslClientOpts.put("zookeeper.ssl.quorum.trustStore.password", "$(cat /pulsar/keystoreSecret.txt)");
+                sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.password", "$(cat /pulsar/keystoreSecret.txt)");
+                sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.password", "$(cat /pulsar/keystoreSecret.txt)");
             } else {
-                sslClientOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
-                sslClientOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
+                sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
+                sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
             }
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.trustStore.location", trustStoreLocation);
             sslClientAndQuorumOpts.put("zookeeper.ssl.quorum.hostnameVerification", "true");

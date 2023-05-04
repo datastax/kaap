@@ -73,6 +73,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1032,14 +1033,14 @@ public abstract class BaseResourcesFactory<T> {
             final String keyStoreLocation = "${keyStoreFile}";
             final String trustStoreLocation = "${trustStoreFile}";
 
-            final Map<String, String> sslClientOpts = new HashMap<>();
+            final Map<String, String> sslClientOpts = new LinkedHashMap<>();
             sslClientOpts.put("zookeeper.clientCnxnSocket", "org.apache.zookeeper.ClientCnxnSocketNetty");
             sslClientOpts.put("zookeeper.client.secure", "true");
             sslClientOpts.put("zookeeper.ssl.keyStore.location", keyStoreLocation);
             final boolean zookeeperPlainPassword = global.getZookeeperPlainSslStorePassword();
             if (zookeeperPlainPassword) {
                 sslClientOpts.put("zookeeper.ssl.keyStore.password", "$(cat /pulsar/keystoreSecret.txt)");
-                sslClientOpts.put("zookeeper.ssl.trustStore.passwordPath", "$(cat /pulsar/keystoreSecret.txt)");
+                sslClientOpts.put("zookeeper.ssl.trustStore.password", "$(cat /pulsar/keystoreSecret.txt)");
             } else {
                 sslClientOpts.put("zookeeper.ssl.keyStore.passwordPath", "/pulsar/keystoreSecret.txt");
                 sslClientOpts.put("zookeeper.ssl.trustStore.passwordPath", "/pulsar/keystoreSecret.txt");
@@ -1047,7 +1048,7 @@ public abstract class BaseResourcesFactory<T> {
             sslClientOpts.put("zookeeper.ssl.trustStore.location", trustStoreLocation);
             sslClientOpts.put("zookeeper.ssl.hostnameVerification", "true");
 
-            final Map<String, String> sslClientAndQuorumOpts = new HashMap<>(sslClientOpts);
+            final Map<String, String> sslClientAndQuorumOpts = new LinkedHashMap<>(sslClientOpts);
             sslClientAndQuorumOpts.put("zookeeper.sslQuorum", "true");
             sslClientAndQuorumOpts.put("zookeeper.serverCnxnFactory",
                     "org.apache.zookeeper.server.NettyServerCnxnFactory");

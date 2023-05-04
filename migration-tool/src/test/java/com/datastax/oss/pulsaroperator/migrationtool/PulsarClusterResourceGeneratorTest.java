@@ -173,6 +173,7 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: true
                               zone:
                                 enabled: false
+                            zookeeperPlainSslStorePassword: false
                           zookeeper:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent

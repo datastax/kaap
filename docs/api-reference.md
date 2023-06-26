@@ -2,7 +2,7 @@
 
 Packages:
 
-- [k8saap.oss.datastax.com/v1alpha1](#pulsarossdatastaxcomv1alpha1)
+- [k8saap.oss.datastax.com/v1alpha1](#k8saapossdatastaxcomv1alpha1)
 
 # k8saap.oss.datastax.com/v1alpha1
 

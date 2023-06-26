@@ -20,6 +20,8 @@ import com.datastax.oss.k8saap.tests.BaseK8sEnvTest;
 import com.datastax.oss.k8saap.tests.env.k3s.AbstractK3sContainer;
 import com.datastax.oss.k8saap.tests.env.k3s.MultiNodesK3sContainer;
 import com.datastax.oss.k8saap.tests.env.k3s.SingleServerK3sContainer;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectVolumeResponse;
 import io.fabric8.kubernetes.client.Config;
 import java.io.File;
 import java.nio.file.Files;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Network;
 
 @Slf4j
@@ -103,6 +106,18 @@ public class K3sEnv implements K8sEnv {
     @Override
     public void cleanup() {
         container.closeHelm3();
+        final DockerClient client = DockerClientFactory.lazyClient();
+        try {
+            final List<InspectVolumeResponse> volumes = client.listVolumesCmd()
+                    .withDanglingFilter(true)
+                    .exec()
+                    .getVolumes();
+            volumes.forEach(volume -> client.removeVolumeCmd(volume.getName()).exec());
+            log.info("Removed {} dangling volumes", volumes.size());
+        } catch (Exception e) {
+            log.warn("Failed to list and remove dangling volumes", e);
+            return;
+        }
     }
 
     @Override

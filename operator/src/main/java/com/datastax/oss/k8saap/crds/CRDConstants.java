@@ -17,7 +17,7 @@ package com.datastax.oss.k8saap.crds;
 
 public final class CRDConstants {
     public static final String VERSION = "v1alpha1";
-    public static final String GROUP = "pulsar.oss.datastax.com";
+    public static final String GROUP = "k8saap.oss.datastax.com";
 
     public static final String LABEL_APP = "app";
     public static final String LABEL_APP_VALUE = "pulsar";

@@ -190,7 +190,7 @@ public abstract class BaseK8sEnvTest {
     private String getOperatorDeploymentManifest() throws IOException {
         List<String> manifests = new ArrayList<>();
         manifests.addAll(Files.readAllLines(
-                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "k8saap.yaml")));
+                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "operator.yaml")));
         manifests.add("---");
         manifests.addAll(Arrays.stream("""
                 apiVersion: v1

@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-pulsar-operator:
+k8saap:
   cluster:
     create: true
     spec:

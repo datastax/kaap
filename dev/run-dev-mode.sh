@@ -15,5 +15,5 @@
 # limitations under the License.
 #
 
-kubectl apply -f helm/pulsar-operator/crds --server-side
-mvn -pl pulsar-operator quarkus:dev -Dquarkus.operator-sdk.crd.generate=false  -Dquarkus.operator-sdk.crd.apply=false
+kubectl apply -f helm/operator/crds --server-side
+mvn -pl operator quarkus:dev -Dquarkus.operator-sdk.crd.generate=false  -Dquarkus.operator-sdk.crd.apply=false

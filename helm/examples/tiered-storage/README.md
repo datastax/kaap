@@ -43,8 +43,8 @@ broker:
         gcsManagedLedgerOffloadServiceAccountKeyFile: "/pulsar/gcp-credentials/gcp-credentials.json"
 ```
 
-Install the Pulsar Operator and the cluster.
+Install the K8s Autoscaling for Apache Pulsar and the cluster.
 ```
-helm install pulsar-operator --create-namespace helm/pulsar-stack \
+helm install k8saap --create-namespace helm/k8saap-stack \
     --values helm/examples/tiered-storage/values.yaml 
 ```

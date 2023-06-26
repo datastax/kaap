@@ -30,16 +30,16 @@ validate_new_version() {
 }
 validate_artifact() {
   local v=$1
-  [[ "$v" == "pulsar-operator" || "$v" == "pulsar-stack" || "$v" == "operator-image" ]] || (echo "artifact must be one of pulsar-operator,pulsar-stack,operator-image. got $v"; exit 1)
+  [[ "$v" == "operator-chart" || "$v" == "stack-chart" || "$v" == "operator-image" ]] || (echo "artifact must be one of operator-chart,stack-chart,operator-image. got $v"; exit 1)
 }
 check_current_version_in_chart() {
   local v=$1
-  if [[ -z $(grep -r "version: ${v}" helm/pulsar-operator/Chart.yaml) ]]; then
-    echo "Version $v is not set in helm/pulsar-operator/Chart.yaml"
+  if [[ -z $(grep -r "version: ${v}" helm/k8saap/Chart.yaml) ]]; then
+    echo "Version $v is not set in helm/k8saap/Chart.yaml"
     exit 1
   fi
-  if [[ -z $(grep -r "version: ${v}" helm/pulsar-stack/Chart.yaml) ]]; then
-      echo "Version $v is not set in helm/pulsar-stack/Chart.yaml"
+  if [[ -z $(grep -r "version: ${v}" helm/k8saap-stack/Chart.yaml) ]]; then
+      echo "Version $v is not set in helm/k8saap-stack/Chart.yaml"
       exit 1
   fi
 }
@@ -56,8 +56,8 @@ new_version=$2
 usage="./release.sh <artifact> <new-version>
   artifact:
       - operator-image (docker image)
-      - pulsar-operator (operator Helm chart)
-      - pulsar-stack (stack Helm chart)
+      - operator-chart (operator Helm chart)
+      - stack-chart (stack Helm chart)
   new-version: new version in format MAJOR.MINOR.PATCH"
 if [[ -z $artifact ]]; then
     echo "Required argument artifact is missing"
@@ -77,16 +77,16 @@ validate_artifact $artifact
 if [[ "$artifact" == "operator-image" ]]; then
   mvn release:prepare -DreleaseVersion=$new_version -Dresume=false -Pskip-crds
   echo "$new_version released."
-elif [[ "$artifact" == "pulsar-operator" ]]; then
-  replace_version_in_chart helm/pulsar-operator/Chart.yaml $new_version
-  git commit -am "Release pulsar-operator chart $new_version"
-  git tag pulsar-operator-$new_version
+elif [[ "$artifact" == "operator-chart" ]]; then
+  replace_version_in_chart helm/k8saap/Chart.yaml $new_version
+  git commit -am "Release operator chart $new_version"
+  git tag operator-$new_version
   git push
   git push --tags
-elif [[ "$artifact" == "pulsar-stack" ]]; then
-  replace_version_in_chart helm/pulsar-stack/Chart.yaml $new_version
-  git commit -am "Release pulsar-stack chart $new_version"
-  git tag pulsar-stack-$new_version
+elif [[ "$artifact" == "stack-chart" ]]; then
+  replace_version_in_chart helm/k8saap-stack/Chart.yaml $new_version
+  git commit -am "Release stack chart $new_version"
+  git tag stack-$new_version
   git push
   git push --tags
 fi

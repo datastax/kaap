@@ -1,0 +1,399 @@
+#
+#
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+k8saap:
+  enabled: true
+# create a new pulsar cluster coupled with this Helm release
+#  cluster:
+#    create: true
+#    spec: {}
+
+pulsar-admin-console:
+  enabled: false
+# Only if TLS is enabled
+#
+#   env:
+#    - name: NODE_EXTRA_CA_CERTS
+#      value: /pulsar/certs/ca.crt
+#   additionalVolumes:
+#    - name: certs
+#      secret:
+#        secretName: pulsar-tls
+# Only if auth is enabled
+#
+#   additionalVolumes:
+#    - name: token-superuser
+#      secret:
+#        secretName: token-superuser
+#    - name: token-private-key
+#      secret:
+#        secretName: token-private-key
+  config:
+    cluster_name: pulsar
+#    oauth_client_id: "pulsar-admin-console"
+#    grafana_url: "http://pulsar-grafana:3000"
+#    host_overrides:
+#      pulsar: "pulsar+ssl://pulsar-broker:6651"
+#      ws: "wss://pulsar-proxy:8001"
+#      http: "https://pulsar-broker:8443"
+    server_config:
+#      pulsar_url: "https://pulsar-broker:8443"
+#      websocket_url: "wss://pulsar-proxy:8001"
+#      function_worker_url: "https://pulsar-function:6751"
+#      log_level: info
+#      token_path: "/pulsar/token-superuser/superuser.jwt"
+      token_options:
+#        private_key_path: "/pulsar/token-private-key/my-private.key"
+        algorithm: RS256
+      ssl:
+        enabled: false
+        ca_path: "/pulsar/certs/ca.crt"
+        cert_path: "/pulsar/certs/tls.crt"
+        key_path: "/pulsar/certs/tls.key"
+
+# Deploy Keycloak
+keycloak:
+  enabled: false
+  # This block sets up an example Pulsar Realm
+  # https://www.keycloak.org/docs/latest/server_admin/#_export_import
+  extraStartupArgs: "-Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/realm/pulsar-realm.json -Dkeycloak.migration.strategy=IGNORE_EXISTING"
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: realm-config
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: "/realm/"
+      readOnly: true
+  auth:
+    # curl -d "client_id=pulsar-admin-example-client" -d "client_secret=XX" -d "grant_type=client_credentials" "http://pstack-keycloak/realms/pulsar/protocol/openid-connect/token"
+    # adminUser: "admin2"
+    # adminPassword: "adminpassword"
+    tls:
+      enabled: false
+  # Config specific to this helm chart
+  # The realm to use when the Pulsar Admin Console calls Keycloak (this configures nginx)
+  # Note that this is the realm in the pre-configured realm that ships with this helm chart
+  realm: "pulsar"
+
+# Deploy cert-manager
+cert-manager:
+  enabled: false
+  # namespaceOverride: cert-manager
+  installCRDs: false
+
+
+external-dns:
+  enabled: false
+  provider: ""
+  txtOwnerId: k8saap-stack
+  sources:
+    - service
+
+
+# Deploy Grafana dashboard for Pulsar.
+# These dashboards will be discovered by the kube-prometheus-stack
+# if it is running the same namespace as the stack
+
+pulsarGrafanaDashboards:
+    enabled: false
+  #  namespaceOverride: monitoring
+
+# Deploy the kube-prometheus-stack which includes:
+# * Prometheus (using Prometheus Operator)
+# * Alertmanager (using Prometheus Operator)
+# * Grafana
+# * Prometheus node exporter
+#
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+#
+# The default values will enable Prometheus and
+# Grafana, but not AlertManager.
+# Scraping configs for Pulsar pods are included. By default,
+# pods in the namespace of the deployment will be scraped.
+#
+# The stack can add standard Kubernetes alert rules, but those
+# are disabled by default.
+#
+# A set of Pulsar-specific rules are included below.
+# The threshold for some of the rules are low and should
+# be adjusted to match the performance/use of the Pulsar
+# deployment. To be notified when the rules are triggered,
+# you need to enable and configure Alertmanager. It supports
+# many targets including email, Slack, OpsGenie, PagerDuty.
+#
+
+kube-prometheus-stack:
+  enabled: false
+  # namespaceOverride: monitoring
+  prometheus-node-exporter:
+  # namespaceOverride: monitoring
+  defaultRules:
+    create: false
+    rules:
+      alertmanager: true
+      etcd: true
+      general: true
+      k8s: true
+      kubeApiserver: true
+      kubePrometheusNodeAlerting: true
+      kubePrometheusNodeRecording: true
+      kubeScheduler: true
+      kubernetesAbsent: true
+      kubernetesApps: true
+      kubernetesResources: true
+      kubernetesStorage: true
+      kubernetesSystem: true
+      node: true
+      prometheusOperator: true
+      prometheus: true
+  additionalPrometheusRulesMap:
+    general-rules:
+      groups:
+        - name: acks
+          rules:
+            - alert: unacked-message-high
+              expr: pulsar_subscription_unacked_messages > 100
+              for: 1m
+              labels:
+                severity: critical
+              annotations:
+                identifier: '{{ $labels.topic }}:{{ $labels.subscription }}'
+                description: 'Unacked messages on subscription high'
+            - alert: subscription-blocked-on-unacked-messages
+              expr: pulsar_subscription_blocked_on_unacked_messages > 1
+              for: 1m
+              labels:
+                severity: critical
+              annotations:
+                identifier: '{{ $labels.topic }}:{{ $labels.subscription }}'
+                description: Subscription is blocked on unacked messages
+        - name: components
+          rules:
+            - alert: zookeeper-write-latency-high
+              expr: zookeeper_server_requests_latency_ms > 500
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                identifier: '{{ $labels.kubernetes_pod_name }}'
+                description: 'Zookeeper write latency is high'
+            - alert: bookkeeper-add-latency-high
+              expr: bookkeeper_server_ADD_ENTRY_REQUEST > 1500
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Add latency to BookKeeper is high
+                identifier: '{{ $labels.kubernetes_pod_name }}'
+            - alert: bookkeeper-read-latency-high
+              expr: bookkeeper_server_READ_ENTRY_REQUEST > 1000
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Read latency from BookKeeper is high
+                identifier: '{{ $labels.kubernetes_pod_name }}'
+            - alert: bookkeeper-bookie-readonly
+              expr: bookie_SERVER_STATUS == 0
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Bookie is read-only
+                identifier: '{{ $labels.kubernetes_pod_name }}'
+    cluster-normal:
+      groups:
+        - name: exp-counts-rates
+          rules:
+            - alert: producers-high
+              expr: pulsar_producers_count > 500
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Producer count is high
+                identifier: '{{ $labels.topic }}'
+            - alert: consumers-high
+              expr: pulsar_consumers_count > 500
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Consumer count is high
+                identifier: '{{ $labels.topic }}'
+            - alert: in-rate-high
+              expr: pulsar_rate_in > 5000
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Incoming message rate is high on broker
+                identifier: '{{ $labels.topic }}'
+            - alert: out-rate-high
+              expr: pulsar_rate_out > 5000
+              for: 1m
+              labels:
+                severity: warning
+              annotations:
+                description: Outgoing message rate is high on broker
+                identifier: '{{ $labels.topic }}'
+    volumes:
+      groups:
+        - name: volumes-filling
+          rules:
+            - alert: KubePersistentVolumeFillingUp
+              expr: kubelet_volume_stats_available_bytes{job="kubelet",metrics_path="/metrics",namespace=~".*"} / kubelet_volume_stats_capacity_bytes{job="kubelet",metrics_path="/metrics",namespace=~".*"} < 0.10
+              for: 1m
+              labels:
+                severity: critical
+              annotations:
+                message: The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} is only {{ $value | humanizePercentage }} free.
+
+  alertmanager:
+    enabled: false
+
+  grafana:
+    enabled: true
+    # namespaceOverride: "monitoring"
+    testFramework:
+      enabled: false
+    defaultDashboardsEnabled: true
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'default'
+            orgId: 1
+            folder: ''
+            type: file
+            disableDeletion: true
+            editable: false
+            options:
+              path: /var/lib/grafana/dashboards/default
+    dashboards:
+      default:
+        zookeeper:
+          gnetId: 10465
+          revision: 4
+          datasource: Prometheus
+        operator-metrics:
+          gnetId: 14370
+          revision: 6
+          datasource: Prometheus
+    # Configure to set a default admin password for Grafana
+    adminPassword:
+    service:
+      type: LoadBalancer
+      port: 3000
+    ingress:
+      enabled: false
+      hosts:
+        - grafana.example.com
+      path: /
+    grafana.ini:
+      server:
+        root_url: 'http://localhost:3000'
+      security:
+        allow_embedding: true
+        cookie_samesite: 'lax'
+
+  kubeApiServer:
+    enabled: true
+  kubelet:
+    enabled: true
+  kubeControllerManager:
+    enabled: false
+  coreDns:
+    enabled: true
+  kubeDns:
+    enabled: false
+  kubeEtcd:
+    enabled: true
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeStateMetrics:
+    enabled: true
+  nodeExporter:
+    enabled: true
+
+  prometheusOperator:
+    enabled: true
+
+  prometheus:
+    enabled: true
+    ingress:
+      enabled: false
+      hosts:
+        - prometheus.example.com
+    prometheusSpec:
+      retention: 10d
+      # storageSpec:
+      #   volumeClaimTemplate:
+      #     spec:
+      #       storageClassName: default
+      #       resources:
+      #         requests:
+      #           storage: 50Gi
+      additionalScrapeConfigs:
+        - job_name: 'pulsar-pods'
+          honor_labels: true
+          kubernetes_sd_configs:
+            - role: pod
+              # namespaces:
+              #   names:
+              #   - pulsar
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              action: replace
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: kubernetes_namespace
+            - source_labels: [__meta_kubernetes_pod_label_component]
+              action: replace
+              target_label: job
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: kubernetes_pod_name
+
+bkvm:
+  enabled: false
+  server:
+    metadataServiceUri: zk://pulsar-zookeeper-ca:2181/ledgers
+    env:
+      - name: BKVM_topology.enabled
+        value: "true"
+      - name: BKVM_user.1.username
+        value: admin
+      - name: BKVM_user.1.password
+        value: pulsar
+      - name: BKVM_user.1.role
+        value: Admin

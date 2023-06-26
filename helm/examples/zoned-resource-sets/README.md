@@ -6,7 +6,7 @@ This helps a lot in reducing effectively the latency between the client and the 
 ## Example
 
 ```
-helm install pulsar-operator helm/pulsar-operator \
+helm install k8saap helm/k8saap \
     --values helm/examples/zoned-resource-sets/values.yaml 
 ```
 

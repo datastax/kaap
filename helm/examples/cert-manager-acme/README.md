@@ -23,7 +23,7 @@ The proxy will need a secret called `pulsar-tls`.
 This secret will be created by `cert-manager`.
 
 ```
-helm install pulsar-operator helm/pulsar-stack \
+helm install k8saap helm/k8saap-stack \
     --values helm/examples/cert-manager-acme/values.yaml \
     --set cert-manager.global.leaderElection.namespace=default
 ```

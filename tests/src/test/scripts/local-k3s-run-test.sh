@@ -42,7 +42,7 @@ wait_image() {
   local image_name=$1
   echo "check for the local k3s server to load image $image_name"
   while true; do
-    docker_output=$(docker exec -it pulsaroperator-local-k3s ctr -a /run/k3s/containerd/containerd.sock image ls 2>&1)
+    docker_output=$(docker exec -it k8saap-local-k3s ctr -a /run/k3s/containerd/containerd.sock image ls 2>&1)
     if (echo "$docker_output" | grep -q $image_name); then
         break
     fi
@@ -52,15 +52,15 @@ wait_image() {
 }
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 
-docker inspect pulsaroperator-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
+docker inspect k8saap-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
   wait_container $container
 done
 
 wait_image lunastreaming-operator
 wait_image lunastreaming
 
-mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dpulsaroperator.tests.env.existing \
-  -Dpulsaroperator.tests.existingenv.kubeconfig.context=pulsaroperator-local-k3s \
-  -Dpulsaroperator.tests.existingenv.helmcontainer.network=pulsaroperator-local-k3s-network \
-  -Dpulsaroperator.tests.existingenv.kubeconfig.overrideserver="https://pulsaroperator-local-k3s:6443" \
-  -Dpulsaroperator.tests.existingenv.storageclass=local-path "$@"
+mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dk8saap.tests.env.existing \
+  -Dk8saap.tests.existingenv.kubeconfig.context=k8saap-local-k3s \
+  -Dk8saap.tests.existingenv.helmcontainer.network=k8saap-local-k3s-network \
+  -Dk8saap.tests.existingenv.kubeconfig.overrideserver="https://k8saap-local-k3s:6443" \
+  -Dk8saap.tests.existingenv.storageclass=local-path "$@"

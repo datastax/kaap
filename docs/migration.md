@@ -13,7 +13,7 @@ Once the report is generated, is up to you to decide if you want to proceed with
 
 ### Usage
 Java 17+ it's required.
-Download the jar from the [latest release](https://github.com/riptano/pulsar-operator/releases).
+Download the jar from the [latest release](https://github.com/riptano/k8saap/releases).
 
 Create the input file `input-cluster-specs.yaml` with the following content:
 ```yaml
@@ -44,9 +44,9 @@ java -jar migration-tool.jar diff -d output/<context-name>
 Once you're happy with the report, you can proceed with the migration. 
 The migration supposes the existing cluster has been created using Helm.
 
-Create a new `values.yaml` file for the operator. Then in the `pulsar-operator.cluster` section copy the crd's spec.
+Create a new `values.yaml` file for the operator. Then in the `k8saap.cluster` section copy the crd's spec.
 ```
-pulsar-operator:
+k8saap:
     cluster:
         create: true
         name: <cluster-name>
@@ -57,7 +57,7 @@ pulsar-operator:
 
 1. Install the operator release with the above values. 
     ```
-    helm install pulsar-operator datastax/pulsar-stack --values <values.yaml>
+    helm install k8saap datastax/k8saap-stack --values <values.yaml>
     ```
 
 2. Wait for the operator to take control of the cluster. Check the PulsarCluster status to be ready. Since each resource will match the existing ones, the following behaviours are expected:

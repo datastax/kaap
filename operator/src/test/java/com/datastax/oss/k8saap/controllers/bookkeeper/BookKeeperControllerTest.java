@@ -92,7 +92,7 @@ public class BookKeeperControllerTest {
                           name: pulsarname-bookkeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                          - apiVersion: k8saap.oss.datastax.com/v1alpha1
                             kind: BookKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -128,7 +128,7 @@ public class BookKeeperControllerTest {
                   name: pulsarname-bookkeeper
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                  - apiVersion: k8saap.oss.datastax.com/v1alpha1
                     kind: BookKeeper
                     blockOwnerDeletion: true
                     controller: true
@@ -160,7 +160,7 @@ public class BookKeeperControllerTest {
                   name: pulsarname-bookkeeper
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                  - apiVersion: k8saap.oss.datastax.com/v1alpha1
                     kind: BookKeeper
                     blockOwnerDeletion: true
                     controller: true
@@ -305,7 +305,7 @@ public class BookKeeperControllerTest {
                           name: pulsarname-bookkeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                          - apiVersion: k8saap.oss.datastax.com/v1alpha1
                             kind: BookKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -1696,13 +1696,13 @@ public class BookKeeperControllerTest {
         System.out.println(sts.getSpec().getTemplate()
                 .getMetadata().getAnnotations());
         final String checksum1 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bookkeeper");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-bookkeeper");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         Assert.assertEquals(sts.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bookkeeper"),
+                        .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-bookkeeper"),
                 checksum1);
 
         spec = """
@@ -1719,7 +1719,7 @@ public class BookKeeperControllerTest {
         client = invokeController(spec);
         sts = client.getCreatedResource(StatefulSet.class).getResource();
         final String checksum2 = sts.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-bookkeeper");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-bookkeeper");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
     }

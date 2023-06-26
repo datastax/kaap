@@ -2,9 +2,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: zookeepers.pulsar.oss.datastax.com
+  name: zookeepers.k8saap.oss.datastax.com
 spec:
-  group: pulsar.oss.datastax.com
+  group: k8saap.oss.datastax.com
   names:
     kind: ZooKeeper
     plural: zookeepers

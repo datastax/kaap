@@ -121,7 +121,7 @@ rules:
     verbs:
       - "*"
   - apiGroups:
-      - pulsar.oss.datastax.com
+      - k8saap.oss.datastax.com
     resources:
         - pulsarclusters
         - pulsarclusters/status

@@ -20,7 +20,7 @@ set -e
 echo "Generating CRDs docs"
 mvn package -Pupdate-crds -pl operator
 docker run -u $(id -u):$(id -g) --rm -v ${PWD}:/workdir ghcr.io/fybrik/crdoc:latest \
-  --resources /workdir/helm/k8saap/crds/pulsarclusters.pulsar.oss.datastax.com-v1.yml \
+  --resources /workdir/helm/k8saap/crds/pulsarclusters.k8saap.oss.datastax.com-v1.yml \
   --template /workdir/src/reference-markdown-template.tmpl \
   --output /workdir/docs/api-reference.md
 echo "Generated docs at docs/api-reference.md"

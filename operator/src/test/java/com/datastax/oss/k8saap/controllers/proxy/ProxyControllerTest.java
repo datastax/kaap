@@ -84,7 +84,7 @@ public class ProxyControllerTest {
                           name: pulsarname-proxy
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                          - apiVersion: k8saap.oss.datastax.com/v1alpha1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
@@ -120,7 +120,7 @@ public class ProxyControllerTest {
                           name: pulsarname-proxy-ws
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                          - apiVersion: k8saap.oss.datastax.com/v1alpha1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
@@ -157,7 +157,7 @@ public class ProxyControllerTest {
                   name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                  - apiVersion: k8saap.oss.datastax.com/v1alpha1
                     kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
@@ -192,7 +192,7 @@ public class ProxyControllerTest {
                   name: pulsarname-proxy
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                  - apiVersion: k8saap.oss.datastax.com/v1alpha1
                     kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
@@ -310,7 +310,7 @@ public class ProxyControllerTest {
                           name: pulsarname-proxy
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                          - apiVersion: k8saap.oss.datastax.com/v1alpha1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
@@ -1570,20 +1570,20 @@ public class ProxyControllerTest {
         System.out.println(depl.getSpec().getTemplate()
                 .getMetadata().getAnnotations());
         final String checksum1 = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-proxy");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-proxy");
         Assert.assertNotNull(checksum1);
 
         final String checksum1ws = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-proxy-ws");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-proxy-ws");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         depl = client.getCreatedResource(Deployment.class).getResource();
         Assert.assertEquals(depl.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-proxy"),
+                        .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-proxy"),
                 checksum1);
         Assert.assertEquals(depl.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-proxy-ws"),
+                        .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-proxy-ws"),
                 checksum1ws);
 
         spec = """
@@ -1603,12 +1603,12 @@ public class ProxyControllerTest {
         client = invokeController(spec);
         depl = client.getCreatedResource(Deployment.class).getResource();
         final String checksum2 = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-proxy");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-proxy");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
 
         final String checksum2ws = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-proxy-ws");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-proxy-ws");
         Assert.assertNotNull(checksum2ws);
         Assert.assertNotEquals(checksum1ws, checksum2ws);
     }

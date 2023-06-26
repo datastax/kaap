@@ -17,7 +17,7 @@
 
 {{- if .Values.cluster.create }}
 ---
-apiVersion: pulsar.oss.datastax.com/v1alpha1
+apiVersion: k8saap.oss.datastax.com/v1alpha1
 kind: PulsarCluster
 metadata:
   name: {{ .Values.cluster.spec.global.name | quote }}

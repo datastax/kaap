@@ -74,7 +74,7 @@ public class AutorecoveryControllerTest {
                           name: pulsarname-autorecovery
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                          - apiVersion: k8saap.oss.datastax.com/v1alpha1
                             kind: Autorecovery
                             blockOwnerDeletion: true
                             controller: true
@@ -104,7 +104,7 @@ public class AutorecoveryControllerTest {
                   name: pulsarname-autorecovery
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: pulsar.oss.datastax.com/v1alpha1
+                  - apiVersion: k8saap.oss.datastax.com/v1alpha1
                     kind: Autorecovery
                     blockOwnerDeletion: true
                     controller: true
@@ -910,13 +910,13 @@ public class AutorecoveryControllerTest {
         System.out.println(depl.getSpec().getTemplate()
                 .getMetadata().getAnnotations());
         final String checksum1 = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-autorecovery");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-autorecovery");
         Assert.assertNotNull(checksum1);
 
         client = invokeController(spec);
         depl = client.getCreatedResource(Deployment.class).getResource();
         Assert.assertEquals(depl.getSpec().getTemplate()
-                        .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-autorecovery"),
+                        .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-autorecovery"),
                 checksum1);
 
         spec = """
@@ -933,7 +933,7 @@ public class AutorecoveryControllerTest {
         client = invokeController(spec);
         depl = client.getCreatedResource(Deployment.class).getResource();
         final String checksum2 = depl.getSpec().getTemplate()
-                .getMetadata().getAnnotations().get("pulsar.oss.datastax.com/configmap-pul-autorecovery");
+                .getMetadata().getAnnotations().get("k8saap.oss.datastax.com/configmap-pul-autorecovery");
         Assert.assertNotNull(checksum2);
         Assert.assertNotEquals(checksum1, checksum2);
     }

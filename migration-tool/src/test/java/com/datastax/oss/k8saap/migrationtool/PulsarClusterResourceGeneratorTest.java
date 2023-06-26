@@ -108,7 +108,7 @@ public class PulsarClusterResourceGeneratorTest {
                 SerializationUtil.writeAsYaml(pulsarCluster),
                 """
                         ---
-                        apiVersion: pulsar.oss.datastax.com/v1alpha1
+                        apiVersion: k8saap.oss.datastax.com/v1alpha1
                         kind: PulsarCluster
                         metadata:
                           name: pulsar-cluster

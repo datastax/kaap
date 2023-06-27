@@ -1,14 +1,14 @@
 # Release a new version
 
 The project contains 3 different and independents artifacts:
-1. Pulsar Operator docker image
+1. K8s Autoscaling for Apache Pulsar docker image
 2. Pulsar Stack Helm Chart
-3. Pulsar Operator Helm Chart
+3. K8s Autoscaling for Apache Pulsar Helm Chart
 
 The releases process are independent.
 
 
-## Pulsar Operator docker image
+## K8s Autoscaling for Apache Pulsar docker image
 
 Run the following command:
 
@@ -25,18 +25,18 @@ This will create a new tag `operator-<version>`, bump the pom versions and push 
 Run the following command:
 
 ```bash
-./release/release.sh pulsar-stack <version>
+./release/release.sh k8saap-stack <version>
 ```
 
-This will create a new tag `pulsar-stack-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.
+This will create a new tag `stack-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.
 
 
-## Pulsar Operator Helm Chart
+## K8s Autoscaling for Apache Pulsar Helm Chart
 
 Run the following command:
 
 ```bash
-./release/release.sh pulsar-operator <version>
+./release/release.sh k8saap <version>
 ```
 
-This will create a new tag `pulsar-operator-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.
+This will create a new tag `k8saap-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.

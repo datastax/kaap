@@ -27,14 +27,14 @@ mvn_or_mvnd() {
 }
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 tmp_dir=$(mktemp -d)
-mvn_or_mvnd -f $this_dir/../../../../pulsar-operator/pom.xml package -Dcheckstyle.skip -Dspotbugs.skip -DskipTests
-GENERATE_IMAGE_DIGEST_TARGET=$tmp_dir/pulsar-operator.bin mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dtest="LocalK8sEnvironment#updateImage"
-echo "image digest generated: $tmp_dir/pulsar-operator.bin"
+mvn_or_mvnd -f $this_dir/../../../../operator/pom.xml package -Dcheckstyle.skip -Dspotbugs.skip -DskipTests
+GENERATE_IMAGE_DIGEST_TARGET=$tmp_dir/operator.bin mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dtest="LocalK8sEnvironment#updateImage"
+echo "image digest generated: $tmp_dir/operator.bin"
 
-docker inspect pulsaroperator-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
-  docker cp $tmp_dir/pulsar-operator.bin $container:/tmp/pulsar-operator.bin
+docker inspect k8saap-local-k3s-network  | jq -r '.[0].Containers[].Name' | while read container; do
+  docker cp $tmp_dir/operator.bin $container:/tmp/operator.bin
   echo "image digest copied into container $container"
   docker exec -t $container sh -c "(ctr image rm docker.io/datastax/lunastreaming-operator:latest-dev) || (docker image rm -f docker.io/datastax/lunastreaming-operator:latest-dev)"
-  docker exec -t $container sh -c "(ctr image import /tmp/pulsar-operator.bin) || (docker image load /tmp/pulsar-operator.bin)"
+  docker exec -t $container sh -c "(ctr image import /tmp/operator.bin) || (docker image load /tmp/operator.bin)"
   echo "image imported in $container"
 done

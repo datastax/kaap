@@ -3,7 +3,7 @@
 Broker autoscaling is a feature that allows to scale up/down the number of broker in a cluster based on the current resource usage.
 
 ```
-helm install pulsar-operator helm/pulsar-stack \
+helm install k8saap helm/k8saap-stack \
     --values helm/examples/broker-autoscaling/values.yaml 
 ```
 

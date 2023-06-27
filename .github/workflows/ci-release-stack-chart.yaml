@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'pulsar-stack-*'
+      - 'stack-*'
 
 jobs:
   release-stack-chart:
@@ -26,29 +26,29 @@ jobs:
       - name: Install Helm releaser
         run: |
           #!/bin/bash
-          chart=helm/pulsar-stack
+          chart=helm/k8saap-stack
           helm dependency update "$chart"
           helm package "$chart" --destination .cr-release-packages
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
         with:
-          charts_dir: helm/pulsar-stack
+          charts_dir: helm/k8saap-stack
           skip_packaging: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Update doc
         run: |
-          cd helm/pulsar-stack
+          cd helm/k8saap-stack
           docker run --rm --volume "$(pwd):/helm-docs" -u $(id -u) jnorwood/helm-docs:latest
           mv README.md /tmp/README.md
           cd ../..
           git reset --hard
           git checkout gh-pages
-          mkdir -p pulsar-stack
-          mv /tmp/README.md pulsar-stack/README.md 
-          git add pulsar-stack/README.md
-          git commit -m "pulsar-stack/README.md"
+          mkdir -p k8saap-stack
+          mv /tmp/README.md k8saap-stack/README.md 
+          git add k8saap-stack/README.md
+          git commit -m "k8saap-stack/README.md"
           git pull --rebase origin gh-pages
           git push origin gh-pages

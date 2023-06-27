@@ -19,16 +19,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datastax.oss</groupId>
-    <artifactId>pulsar-operator-parent</artifactId>
+    <artifactId>k8saap</artifactId>
     <packaging>pom</packaging>
     <version>0.0.6-SNAPSHOT</version>
     <modules>
-        <module>pulsar-operator-common</module>
-        <module>pulsar-operator</module>
+        <module>operator-common</module>
+        <module>operator</module>
         <module>tests</module>
         <module>migration-tool</module>
     </modules>
-    <name>pulsar-operator-parent</name>
+    <name>K8saap :: Kubernetes Autoscaling for Apache Pulsar</name>
     <scm>
         <developerConnection>
             scm:git:git@github.com:riptano/pulsar-operator.git
@@ -302,7 +302,7 @@
                         <licenseSet>
                             <header>src/license-header.txt</header>
                             <excludes>
-                                <exclude>helm/pulsar-operator/crds/**</exclude>
+                                <exclude>helm/k8saap/crds/**</exclude>
                             </excludes>
                         </licenseSet>
                     </licenseSets>

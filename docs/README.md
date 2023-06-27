@@ -1,7 +1,6 @@
-# Pulsar Operator Docs
-
-- [Pulsar Stack](pulsar-stack.md)
-- [Pulsar Operator](pulsar-operator.md)
+# K8s Autoscaling for Apache Pulsar Docs
+- [K8saap Stack Operator](k8saap-stack.md)
+- [K8saap Operator](k8saap.md)
 - [Usage](usage.md)
   - [Staged upgrades](staged-upgrades.md)
   - [Resource Sets and Racks](resource-sets.md)

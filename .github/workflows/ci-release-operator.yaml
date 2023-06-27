@@ -37,14 +37,8 @@ jobs:
             mvn clean install -DskipTests -Pskip-crds
             docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
             
-            docker tag datastax/lunastreaming-operator:latest-dev ghcr.io/riptano/pulsar-operator:$docker_tag
             docker tag datastax/lunastreaming-operator:latest-dev datastax/lunastreaming-operator:$docker_tag
-            
-            docker tag datastax/lunastreaming-operator:latest-dev ghcr.io/riptano/pulsar-operator:latest
             docker tag datastax/lunastreaming-operator:latest-dev datastax/lunastreaming-operator:latest
-            
-            docker push ghcr.io/riptano/pulsar-operator:$docker_tag
-            docker push ghcr.io/riptano/pulsar-operator:latest
             docker push datastax/lunastreaming-operator:$docker_tag
             docker push datastax/lunastreaming-operator:latest
 

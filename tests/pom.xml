@@ -18,7 +18,7 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>pulsar-operator-parent</artifactId>
+        <artifactId>k8saap</artifactId>
         <groupId>com.datastax.oss</groupId>
         <version>0.0.6-SNAPSHOT</version>
     </parent>
@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pulsar-operator</artifactId>
+            <artifactId>k8saap-operator</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>pulsar-operator-common</artifactId>
+            <artifactId>k8saap-operator-common</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -144,8 +144,8 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <pulsaroperator.tests.env.existing>true</pulsaroperator.tests.env.existing>
-                                <pulsaroperator.tests.existingenv.kubeconfig.context>current</pulsaroperator.tests.existingenv.kubeconfig.context>
+                                <k8saap.tests.env.existing>true</k8saap.tests.env.existing>
+                                <k8saap.tests.existingenv.kubeconfig.context>current</k8saap.tests.existingenv.kubeconfig.context>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -161,10 +161,10 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <pulsaroperator.tests.env.existing>true</pulsaroperator.tests.env.existing>
-                                <pulsaroperator.tests.existingenv.kubeconfig.context>current</pulsaroperator.tests.existingenv.kubeconfig.context>
-                                <pulsaroperator.tests.existingenv.helmcontainer.network>pulsaroperator-local-k3s-network</pulsaroperator.tests.existingenv.helmcontainer.network>
-                                <pulsaroperator.tests.existingenv.kubeconfig.overrideserver>https://pulsaroperator-local-k3s:6443</pulsaroperator.tests.existingenv.kubeconfig.overrideserver>
+                                <k8saap.tests.env.existing>true</k8saap.tests.env.existing>
+                                <k8saap.tests.existingenv.kubeconfig.context>current</k8saap.tests.existingenv.kubeconfig.context>
+                                <k8saap.tests.existingenv.helmcontainer.network>k8saap-local-k3s-network</k8saap.tests.existingenv.helmcontainer.network>
+                                <k8saap.tests.existingenv.kubeconfig.overrideserver>https://k8saap-local-k3s:6443</k8saap.tests.existingenv.kubeconfig.overrideserver>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

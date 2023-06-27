@@ -84,10 +84,10 @@ jobs:
             chart=$1
             cat $chart/Chart.yaml | grep "repository:" | grep -e "https://" -e "http://" | awk '{print $2}' | awk -F'/' '{print $NF} {print $0}' | xargs -n2 helm repo add
           }
-          add_repos helm/pulsar-stack
+          add_repos helm/k8saap-stack
           
-          helm dependency build helm/pulsar-operator
-          helm dependency build helm/pulsar-stack
+          helm dependency build helm/k8saap
+          helm dependency build helm/k8saap-stack
         if: ${{ matrix.setup_helm == 'true' }}
 
       - name: Set up JDK 17
@@ -111,7 +111,7 @@ jobs:
           #!/bin/bash
           mvn -B -ntp -nsu test -pl tests \
             -Dgroups='${{ matrix.group }}' \
-            -Dpulsaroperator.tests.env.existing.k3s.agents='${{ matrix.num_agents }}'
+            -Dk8saap.tests.env.existing.k3s.agents='${{ matrix.num_agents }}'
 
       - name: Upload Surefire reports
         uses: actions/upload-artifact@v3

@@ -8,7 +8,7 @@ The operator is built upon the [quarkus-operator-sdk](https://quarkiverse.github
 
 ## Creates the operator docker image
 ```
-mvn package -DskipTests -pl pulsar-operator -am -Pskip-crds
+mvn package -DskipTests -pl k8saap -am -Pskip-crds
 ```
 
 If you want to use a public k8s cluster, you would need to deploy the operator image to DockerHub or another public registry.
@@ -60,10 +60,10 @@ This will build and push the new docker image to the container.
 
 ### Use the Quarkus dev mode
 
-In this mode, the `pulsar-operator` code is hot reloaded at every change in the source code.
+In this mode, the `k8saap` code is hot reloaded at every change in the source code.
 
 ```
-mvn quarkus:dev -pl pulsar-operator -am -Pskip-crds
+mvn quarkus:dev -pl k8saap -am -Pskip-crds
 ```
 
 ### Deploy the operator and the Pulsar cluster
@@ -83,7 +83,7 @@ mvn -pl tests test -Dtest='CRDsTest' -Prun-tests-current-context
 ```
 
 If you're using a public cluster (e.g. GCP, EKS) you have to deploy the operator image to a public Docker registry.
-You can also use a specific StorageClass for the test by setting ´pulsaroperator.tests.existingenv.storageclass`.
+You can also use a specific StorageClass for the test by setting ´k8saap.tests.existingenv.storageclass`.
 
 To run a test in GCP:
 
@@ -92,7 +92,7 @@ docker push <operator-image>
 gcloud container clusters get-credentials gcp-cluster # or set it as current context with kubectl
 
 mvn -pl tests test -Dtest='CRDsTest' -Prun-tests-current-context \
-    -Dpulsaroperator.tests.operator.image=<operator-image> 
+    -Dk8saap.tests.operator.image=<operator-image> 
 ```
 
 

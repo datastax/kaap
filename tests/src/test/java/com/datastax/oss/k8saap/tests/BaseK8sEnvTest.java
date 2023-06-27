@@ -84,7 +84,7 @@ public abstract class BaseK8sEnvTest {
     public static final Path PULSAR_OPERATOR_CHART_PATH = Paths.get("..", "helm", "k8saap");
 
     public static final String OPERATOR_IMAGE = System.getProperty("k8saap.tests.operator.image",
-            "datastax/lunastreaming-operator:latest-dev");
+            "datastax/k8saap:latest-dev");
 
     public static final String PULSAR_IMAGE = System.getProperty("k8saap.tests.pulsar.image",
             "docker.io/datastax/lunastreaming-all:2.10_3.4");

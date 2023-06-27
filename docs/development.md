@@ -15,9 +15,9 @@ If you want to use a public k8s cluster, you would need to deploy the operator i
 
 ```
 $dockerhub_repo=<your dockerhub repo>
-docker tag datastax/lunastreaming-operator:latest-dev
-$dockerhub_repo/lunastreaming-operator:latest
-docker push $dockerhub_repo/lunastreaming-operator:latest
+docker tag datastax/k8saap:latest-dev
+$dockerhub_repo/k8saap:latest
+docker push $dockerhub_repo/k8saap:latest
 ```
 
 ## Local deployment
@@ -69,7 +69,7 @@ mvn quarkus:dev -pl k8saap -am -Pskip-crds
 ### Deploy the operator and the Pulsar cluster
 Check at `helm/examples` to get some ideas about how to deploy a Pulsar cluster.
 Note that the k3s registry DOES NOT use your host docker registry, so every image will be downloaded from upstream.
-The k3s cluster already contains the dev version of the operator, named `datastax/lunastreaming-operator:latest-dev`.
+The k3s cluster already contains the dev version of the operator, named `datastax/k8saap:latest-dev`.
 The k3s cluster also contains a Pulsar/LunaStreaming image to use.
 
 ### Integration tests

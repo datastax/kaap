@@ -56,7 +56,7 @@ docker inspect k8saap-local-k3s-network  | jq -r '.[0].Containers[].Name' | whil
   wait_container $container
 done
 
-wait_image lunastreaming-operator
+wait_image k8saap
 wait_image lunastreaming
 
 mvn_or_mvnd -f $this_dir/../../../pom.xml test -Dk8saap.tests.env.existing \

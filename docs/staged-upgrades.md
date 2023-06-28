@@ -1,7 +1,7 @@
 # Staged upgrades
 
 The operator performs cluster upgrades in a very conservative manner.
-The goal is to reduce the mainteinance window time when doing an upgrade.
+The goal is to reduce the maintenance window time when doing an upgrade.
 
 
 The operator follows a fixed schema to upgrade the cluster:

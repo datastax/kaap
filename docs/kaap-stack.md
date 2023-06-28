@@ -10,18 +10,18 @@ The chart is able to install:
 
 
 ## Installation
-The Chart is private so you need to [download](https://github.com/riptano/kaap/releases/download/pulsar-stack-0.0.2/pulsar-stack-0.0.2.tgz) it first.
+You need to [download](https://github.com/datastax/kaap/releases/download/kaap-stack-0.1.0/kaap-stack-0.1.0.tgz) it first.
 
 Then install the chart using the tarball.
 ```
-helm install kaap-stack 
+helm install kaap-stack-0.1.0.tgz
 ```
 
 ## Usage
 
 Install the Pulsar stack with a PulsarCluster up and running
 ```
-helm install pulsar pulsar-stack-0.0.2.tgz --set kaap.cluster.create=true
+helm install pulsar kaap-stack-0.1.0.tgz --set kaap.cluster.create=true
 ```
 
 Wait for the cluster to be up and running

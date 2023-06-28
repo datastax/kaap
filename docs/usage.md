@@ -188,8 +188,8 @@ global:
 This will generate all the secrets needed by the components. The name of each secret is gathered from the `secretName` configured.
 
 
-The repository contains examples for [real TLS example with acme](https://github.com/riptano/kaap/tree/main/helm/examples/cert-manager-acme) 
-and [self-signed certificates](https://github.com/riptano/kaap/tree/main/helm/examples/cert-manager-self-signed). 
+The repository contains examples for [real TLS example with acme](https://github.com/datastax/kaap/tree/main/helm/examples/cert-manager-acme) 
+and [self-signed certificates](https://github.com/datastax/kaap/tree/main/helm/examples/cert-manager-self-signed). 
 
 
 ### Affinity, antiaffinity and high availability
@@ -256,4 +256,4 @@ To get a full list of the spec you can check the [API reference](api-reference.m
 
 ## Examples
 
-See some examples in the [docs](https://github.com/riptano/kaap/tree/main/helm/examples).
+See some examples in the [docs](https://github.com/datastax/kaap/tree/main/helm/examples).

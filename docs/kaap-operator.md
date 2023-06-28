@@ -1,13 +1,13 @@
-# K8s Autoscaling for Apache Pulsar
+# Operator
 
-K8s Autoscaling for Apache Pulsar manages Apache Pulsar clusters guided by a single CRD, called `PulsarCluster`.
+Kaap manages Apache Pulsar clusters guided by a single CRD, called `PulsarCluster`.
 
 ## Installation
-The Chart is private so you need to [download](https://github.com/riptano/kaap/releases/download/kaap-0.0.2/kaap-0.0.2.tgz) it first.
+You need to [download](https://github.com/datastax/kaap/releases/download/kaap-0.1.0/kaap-0.1.0.tgz) it first.
 
 Then install the chart using the tarball:
 ```
-helm install kaap kaap-0.0.2.tgz
+helm install kaap kaap-0.1.0.tgz
 ```
 
 
@@ -15,7 +15,7 @@ helm install kaap kaap-0.0.2.tgz
 
 Install a PulsarCluster resource.
 ```
-helm upgrade kaap kaap-0.0.2.tgz -f helm/examples/grafana/values.yaml
+helm upgrade kaap kaap-0.1.0.tgz -f helm/examples/grafana/values.yaml
 ```
 
 Wait for the cluster to be up and running

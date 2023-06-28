@@ -10,18 +10,19 @@ The chart is able to install:
 
 
 ## Installation
-You need to [download](https://github.com/datastax/kaap/releases/download/kaap-stack-0.1.0/kaap-stack-0.1.0.tgz) it first.
 
-Then install the chart using the tarball.
+Import the repository and install the stack operator:
 ```
-helm install kaap-stack-0.1.0.tgz
+helm repo add kaap https://datastax.github.io/kaap
+helm repo update
+helm install kaap kaap/kaap-stack 
 ```
 
 ## Usage
 
 Install the Pulsar stack with a PulsarCluster up and running
 ```
-helm install pulsar kaap-stack-0.1.0.tgz --set kaap.cluster.create=true
+helm install pulsar kaap/kaap-stack --set kaap.cluster.create=true
 ```
 
 Wait for the cluster to be up and running

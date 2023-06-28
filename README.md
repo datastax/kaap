@@ -66,14 +66,14 @@ kubectl get crds | grep kaap
 ```
 Result:
 ```
-autorecoveries.pulsar.oss.datastax.com           2023-05-12T16:35:59Z
-bastions.pulsar.oss.datastax.com                 2023-05-12T16:36:00Z
-bookkeepers.pulsar.oss.datastax.com              2023-05-12T16:36:00Z
-brokers.pulsar.oss.datastax.com                  2023-05-12T16:36:01Z
-functionsworkers.pulsar.oss.datastax.com         2023-05-12T16:36:01Z
-proxies.pulsar.oss.datastax.com                  2023-05-12T16:36:02Z
-pulsarclusters.pulsar.oss.datastax.com           2023-05-12T16:36:04Z
-zookeepers.pulsar.oss.datastax.com               2023-05-12T16:36:06Z
+autorecoveries.kaap.oss.datastax.com             2023-06-28T15:37:39Z
+bastions.kaap.oss.datastax.com                   2023-06-28T15:37:39Z
+bookkeepers.kaap.oss.datastax.com                2023-06-28T15:37:39Z
+brokers.kaap.oss.datastax.com                    2023-06-28T15:37:40Z
+functionsworkers.kaap.oss.datastax.com           2023-06-28T15:37:40Z
+proxies.kaap.oss.datastax.com                    2023-06-28T15:37:40Z
+pulsarclusters.kaap.oss.datastax.com             2023-06-28T15:37:41Z
+zookeepers.kaap.oss.datastax.com                 2023-06-28T15:37:41Z
 ```
 
 ## Uninstall KAAP
@@ -88,28 +88,6 @@ release "kaap" uninstalled
 ```
 
 For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
-
-## Build KAAP from source
-
-* JDK17+
-* Maven
-* Docker
-
-To build operator from source:
-
-1. Clone this repo and change directory to root.
-```
-cd kaap
-mvn package -DskipTests -pl pulsar-operator -am -Pskip-crds
-```
-
-2. To use a public Kubernetes cluster, you must deploy the operator image to DockerHub or another public registry:
-```
-$dockerhub_repo=<your dockerhub repo>
-docker tag datastax/lunastreaming-operator:latest-dev
-$dockerhub_repo/lunastreaming-operator:latest
-docker push $dockerhub_repo/lunastreaming-operator:latest
-```
 
 ## Resources
 For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).

@@ -1,7 +1,7 @@
 # Migrate existing cluster to the operator
 
 Migrating from a existing Apache Pulsar cluster to the operator is a complex process. The operator is not able to migrate the cluster automatically. 
-However, the migration tool CLI is a great friend to help you migrating your cluster.
+However, the migration tool CLI is a great friend to help you to migrate your cluster.
 
 
 ## Migration tool
@@ -13,7 +13,7 @@ Once the report is generated, is up to you to decide if you want to proceed with
 
 ### Usage
 Java 17+ it's required.
-Download the jar from the [latest release](https://github.com/riptano/kaap/releases).
+Download the jar from the [latest release](https://github.com/datastax/kaap/releases).
 
 Create the input file `input-cluster-specs.yaml` with the following content:
 ```yaml

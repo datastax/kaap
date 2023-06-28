@@ -4,9 +4,7 @@ Kaap manages Apache Pulsar clusters guided by a single CRD, called `PulsarCluste
 
 ## Installation
 
-You need to [download](https://github.com/datastax/kaap/releases/download/kaap-0.1.0/kaap-0.1.0.tgz) it first.
-
-Then install the chart using the tarball:
+Import the repository and install the operator:
 ```
 helm repo add kaap https://datastax.github.io/kaap
 helm repo update
@@ -18,7 +16,7 @@ helm install kaap kaap/kaap
 
 Install a PulsarCluster resource.
 ```
-helm upgrade kaap kaap-0.1.0.tgz -f helm/examples/grafana/values.yaml
+helm upgrade kaap kaap/kaap -f helm/examples/grafana/values.yaml
 ```
 
 Wait for the cluster to be up and running

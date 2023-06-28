@@ -76,6 +76,17 @@ pulsarclusters.pulsar.oss.datastax.com           2023-05-12T16:36:04Z
 zookeepers.pulsar.oss.datastax.com               2023-05-12T16:36:06Z
 ```
 
+## Uninstall KAAP
+
+To uninstall KAAP:
+```
+helm delete kaap
+```
+Result:
+```
+release "kaap" uninstalled
+```
+
 For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
 ## Build KAAP from source

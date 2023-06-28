@@ -46,7 +46,7 @@ STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 ```
-3. Ensure pulsar-operator is up and running:
+3. Ensure the operator is up and running:
 ```
 kubectl get deployment
 ```
@@ -58,7 +58,7 @@ kaap   1/1     1            1           13m
 
 4. You've now installed KAAP.
 By default, when KAAP is installed, the PulsarCluster CRDs are also created.
-This setting is defined in the Pulsar operator values.yaml file as `crd: create: true`.
+This setting is defined in the KAAP values.yaml file as `crd: {create: true}`.
 
 5. To see available CRDs:
 ```

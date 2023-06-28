@@ -31,7 +31,7 @@
     <name>Kaap :: Kubernetes Autoscaling for Apache Pulsar</name>
     <scm>
         <developerConnection>
-            scm:git:git@github.com:riptano/pulsar-operator.git
+            scm:git:git@github.com:datastax/kaap.git
         </developerConnection>
       <tag>HEAD</tag>
   </scm>

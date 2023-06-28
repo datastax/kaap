@@ -74,7 +74,7 @@ check_clean
 validate_new_version $new_version
 validate_artifact $artifact
 
-if [[ "$artifact" == "operator-image" ]]; then
+if [[ "$artifact" == "operator" ]]; then
   mvn release:prepare -DreleaseVersion=$new_version -Dresume=false -Pskip-crds
   echo "$new_version released."
 elif [[ "$artifact" == "kaap-chart" ]]; then
@@ -89,4 +89,7 @@ elif [[ "$artifact" == "kaap-stack-chart" ]]; then
   git tag kaap-stack-$new_version
   git push
   git push --tags
+else
+  echo "Unknown artifact $artifact"
+  exit 1
 fi

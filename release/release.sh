@@ -30,7 +30,7 @@ validate_new_version() {
 }
 validate_artifact() {
   local v=$1
-  [[ "$v" == "operator-chart" || "$v" == "stack-chart" || "$v" == "operator-image" ]] || (echo "artifact must be one of operator-chart,stack-chart,operator-image. got $v"; exit 1)
+  [[ "$v" == "operator" || "$v" == "kaap-stack-chart" || "$v" == "kaap-chart" ]] || (echo "artifact must be one of kaap-chart,kaap-stack-chart,operator. got $v"; exit 1)
 }
 check_current_version_in_chart() {
   local v=$1
@@ -55,9 +55,9 @@ new_version=$2
 
 usage="./release.sh <artifact> <new-version>
   artifact:
-      - operator-image (docker image)
-      - operator-chart (operator Helm chart)
-      - stack-chart (stack Helm chart)
+      - operator (docker image)
+      - kaap-chart (kaap Helm chart)
+      - kaap-stack-chart (kaap stack Helm chart)
   new-version: new version in format MAJOR.MINOR.PATCH"
 if [[ -z $artifact ]]; then
     echo "Required argument artifact is missing"
@@ -77,16 +77,16 @@ validate_artifact $artifact
 if [[ "$artifact" == "operator-image" ]]; then
   mvn release:prepare -DreleaseVersion=$new_version -Dresume=false -Pskip-crds
   echo "$new_version released."
-elif [[ "$artifact" == "operator-chart" ]]; then
+elif [[ "$artifact" == "kaap-chart" ]]; then
   replace_version_in_chart helm/kaap/Chart.yaml $new_version
-  git commit -am "Release operator chart $new_version"
-  git tag operator-$new_version
+  git commit -am "Release kaap chart $new_version"
+  git tag kaap-$new_version
   git push
   git push --tags
-elif [[ "$artifact" == "stack-chart" ]]; then
+elif [[ "$artifact" == "kaap-stack-chart" ]]; then
   replace_version_in_chart helm/kaap-stack/Chart.yaml $new_version
-  git commit -am "Release stack chart $new_version"
-  git tag stack-$new_version
+  git commit -am "Release kaap stack chart $new_version"
+  git tag kaap-stack-$new_version
   git push
   git push --tags
 fi

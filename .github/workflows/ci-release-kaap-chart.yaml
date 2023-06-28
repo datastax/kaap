@@ -1,14 +1,14 @@
-name: Release Stack Chart
+name: Release Operator Chart
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - 'stack-*'
+      - 'kaap-*'
 
 jobs:
-  release-stack-chart:
-    name: Release Stack Chart
+  release-operator-chart:
+    name: Release Operator Chart
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -26,29 +26,29 @@ jobs:
       - name: Install Helm releaser
         run: |
           #!/bin/bash
-          chart=helm/kaap-stack
+          chart=helm/kaap
           helm dependency update "$chart"
           helm package "$chart" --destination .cr-release-packages
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
         with:
-          charts_dir: helm/kaap-stack
+          charts_dir: helm/kaap
           skip_packaging: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Update doc
         run: |
-          cd helm/kaap-stack
+          cd helm/kaap
           docker run --rm --volume "$(pwd):/helm-docs" -u $(id -u) jnorwood/helm-docs:latest
           mv README.md /tmp/README.md
           cd ../..
           git reset --hard
           git checkout gh-pages
-          mkdir -p kaap-stack
-          mv /tmp/README.md kaap-stack/README.md 
-          git add kaap-stack/README.md
-          git commit -m "kaap-stack/README.md"
+          mkdir -p kaap
+          mv /tmp/README.md kaap/README.md 
+          git add kaap/README.md
+          git commit -m "kaap/README.md"
           git pull --rebase origin gh-pages
           git push origin gh-pages

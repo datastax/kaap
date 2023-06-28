@@ -15,4 +15,4 @@
 #
 
 operator:
-  image: datastax/lunastreaming-operator:latest-dev
+  image: datastax/k8saap:latest-dev

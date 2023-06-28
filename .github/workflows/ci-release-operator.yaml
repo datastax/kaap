@@ -37,10 +37,10 @@ jobs:
             mvn clean install -DskipTests -Pskip-crds
             docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
             
-            docker tag datastax/lunastreaming-operator:latest-dev datastax/lunastreaming-operator:$docker_tag
-            docker tag datastax/lunastreaming-operator:latest-dev datastax/lunastreaming-operator:latest
-            docker push datastax/lunastreaming-operator:$docker_tag
-            docker push datastax/lunastreaming-operator:latest
+            docker tag datastax/k8saap:latest-dev datastax/k8saap:$docker_tag
+            docker tag datastax/k8saap:latest-dev datastax/k8saap:latest
+            docker push datastax/k8saap:$docker_tag
+            docker push datastax/k8saap:latest
 
       - uses: ncipollo/release-action@v1
         with:

@@ -26,29 +26,29 @@ jobs:
       - name: Install Helm releaser
         run: |
           #!/bin/bash
-          chart=helm/k8saap-stack
+          chart=helm/kaap-stack
           helm dependency update "$chart"
           helm package "$chart" --destination .cr-release-packages
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
         with:
-          charts_dir: helm/k8saap-stack
+          charts_dir: helm/kaap-stack
           skip_packaging: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Update doc
         run: |
-          cd helm/k8saap-stack
+          cd helm/kaap-stack
           docker run --rm --volume "$(pwd):/helm-docs" -u $(id -u) jnorwood/helm-docs:latest
           mv README.md /tmp/README.md
           cd ../..
           git reset --hard
           git checkout gh-pages
-          mkdir -p k8saap-stack
-          mv /tmp/README.md k8saap-stack/README.md 
-          git add k8saap-stack/README.md
-          git commit -m "k8saap-stack/README.md"
+          mkdir -p kaap-stack
+          mv /tmp/README.md kaap-stack/README.md 
+          git add kaap-stack/README.md
+          git commit -m "kaap-stack/README.md"
           git pull --rebase origin gh-pages
           git push origin gh-pages

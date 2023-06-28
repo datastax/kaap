@@ -37,10 +37,10 @@ jobs:
             mvn clean install -DskipTests -Pskip-crds
             docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
             
-            docker tag datastax/k8saap:latest-dev datastax/k8saap:$docker_tag
-            docker tag datastax/k8saap:latest-dev datastax/k8saap:latest
-            docker push datastax/k8saap:$docker_tag
-            docker push datastax/k8saap:latest
+            docker tag datastax/kaap:latest-dev datastax/kaap:$docker_tag
+            docker tag datastax/kaap:latest-dev datastax/kaap:latest
+            docker push datastax/kaap:$docker_tag
+            docker push datastax/kaap:latest
 
       - uses: ncipollo/release-action@v1
         with:

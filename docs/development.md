@@ -8,16 +8,16 @@ The operator is built upon the [quarkus-operator-sdk](https://quarkiverse.github
 
 ## Creates the operator docker image
 ```
-mvn package -DskipTests -pl k8saap -am -Pskip-crds
+mvn package -DskipTests -pl kaap -am -Pskip-crds
 ```
 
 If you want to use a public k8s cluster, you would need to deploy the operator image to DockerHub or another public registry.
 
 ```
 $dockerhub_repo=<your dockerhub repo>
-docker tag datastax/k8saap:latest-dev
-$dockerhub_repo/k8saap:latest
-docker push $dockerhub_repo/k8saap:latest
+docker tag datastax/kaap:latest-dev
+$dockerhub_repo/kaap:latest
+docker push $dockerhub_repo/kaap:latest
 ```
 
 ## Local deployment
@@ -60,16 +60,16 @@ This will build and push the new docker image to the container.
 
 ### Use the Quarkus dev mode
 
-In this mode, the `k8saap` code is hot reloaded at every change in the source code.
+In this mode, the `kaap` code is hot reloaded at every change in the source code.
 
 ```
-mvn quarkus:dev -pl k8saap -am -Pskip-crds
+mvn quarkus:dev -pl kaap -am -Pskip-crds
 ```
 
 ### Deploy the operator and the Pulsar cluster
 Check at `helm/examples` to get some ideas about how to deploy a Pulsar cluster.
 Note that the k3s registry DOES NOT use your host docker registry, so every image will be downloaded from upstream.
-The k3s cluster already contains the dev version of the operator, named `datastax/k8saap:latest-dev`.
+The k3s cluster already contains the dev version of the operator, named `datastax/kaap:latest-dev`.
 The k3s cluster also contains a Pulsar/LunaStreaming image to use.
 
 ### Integration tests
@@ -83,7 +83,7 @@ mvn -pl tests test -Dtest='CRDsTest' -Prun-tests-current-context
 ```
 
 If you're using a public cluster (e.g. GCP, EKS) you have to deploy the operator image to a public Docker registry.
-You can also use a specific StorageClass for the test by setting ´k8saap.tests.existingenv.storageclass`.
+You can also use a specific StorageClass for the test by setting ´kaap.tests.existingenv.storageclass`.
 
 To run a test in GCP:
 
@@ -92,7 +92,7 @@ docker push <operator-image>
 gcloud container clusters get-credentials gcp-cluster # or set it as current context with kubectl
 
 mvn -pl tests test -Dtest='CRDsTest' -Prun-tests-current-context \
-    -Dk8saap.tests.operator.image=<operator-image> 
+    -Dkaap.tests.operator.image=<operator-image> 
 ```
 
 

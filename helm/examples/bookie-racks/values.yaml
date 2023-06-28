@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-k8saap:
+kaap:
   cluster:
     create: true
     spec:

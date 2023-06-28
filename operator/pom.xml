@@ -18,13 +18,13 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>k8saap</artifactId>
+        <artifactId>kaap</artifactId>
         <groupId>com.datastax.oss</groupId>
         <version>0.0.6-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>k8saap-operator</artifactId>
+    <artifactId>kaap-operator</artifactId>
 
     <properties>
         <quarkus.container-image.build>true</quarkus.container-image.build>
@@ -34,7 +34,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>k8saap-operator-common</artifactId>
+            <artifactId>kaap-operator-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -118,7 +118,7 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>k8saap-operator-common</artifactId>
+            <artifactId>kaap-operator-common</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
@@ -167,12 +167,12 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/../helm/k8saap/crds</outputDirectory>
+                            <outputDirectory>${project.basedir}/../helm/kaap/crds</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.build.directory}/kubernetes</directory>
                                     <includes>
-                                        <include>*.k8saap.oss.datastax.com-*.yml</include>
+                                        <include>*.kaap.oss.datastax.com-*.yml</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>

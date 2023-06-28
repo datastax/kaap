@@ -5,6 +5,6 @@ Resource Sets are a way to create different sets of the same components. This is
 ## Example
 
 ```
-helm install k8saap helm/k8saap \
+helm install kaap helm/kaap \
     --values helm/examples/resource-sets/values.yaml 
 ```

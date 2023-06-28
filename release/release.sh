@@ -34,12 +34,12 @@ validate_artifact() {
 }
 check_current_version_in_chart() {
   local v=$1
-  if [[ -z $(grep -r "version: ${v}" helm/k8saap/Chart.yaml) ]]; then
-    echo "Version $v is not set in helm/k8saap/Chart.yaml"
+  if [[ -z $(grep -r "version: ${v}" helm/kaap/Chart.yaml) ]]; then
+    echo "Version $v is not set in helm/kaap/Chart.yaml"
     exit 1
   fi
-  if [[ -z $(grep -r "version: ${v}" helm/k8saap-stack/Chart.yaml) ]]; then
-      echo "Version $v is not set in helm/k8saap-stack/Chart.yaml"
+  if [[ -z $(grep -r "version: ${v}" helm/kaap-stack/Chart.yaml) ]]; then
+      echo "Version $v is not set in helm/kaap-stack/Chart.yaml"
       exit 1
   fi
 }
@@ -78,13 +78,13 @@ if [[ "$artifact" == "operator-image" ]]; then
   mvn release:prepare -DreleaseVersion=$new_version -Dresume=false -Pskip-crds
   echo "$new_version released."
 elif [[ "$artifact" == "operator-chart" ]]; then
-  replace_version_in_chart helm/k8saap/Chart.yaml $new_version
+  replace_version_in_chart helm/kaap/Chart.yaml $new_version
   git commit -am "Release operator chart $new_version"
   git tag operator-$new_version
   git push
   git push --tags
 elif [[ "$artifact" == "stack-chart" ]]; then
-  replace_version_in_chart helm/k8saap-stack/Chart.yaml $new_version
+  replace_version_in_chart helm/kaap-stack/Chart.yaml $new_version
   git commit -am "Release stack chart $new_version"
   git tag stack-$new_version
   git push

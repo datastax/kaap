@@ -6,7 +6,7 @@ This helps a lot in reducing effectively the latency between the client and the 
 ## Example
 
 ```
-helm install k8saap helm/k8saap \
+helm install kaap helm/kaap \
     --values helm/examples/zoned-resource-sets/values.yaml 
 ```
 

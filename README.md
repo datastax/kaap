@@ -62,7 +62,7 @@ This setting is defined in the KAAP values.yaml file as `crd: {create: true}`.
 
 5. To see available CRDs:
 ```
-kubectl get crds | grep datastax
+kubectl get crds | grep kaap
 ```
 Result:
 ```

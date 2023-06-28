@@ -3,11 +3,11 @@
 K8s Autoscaling for Apache Pulsar manages Apache Pulsar clusters guided by a single CRD, called `PulsarCluster`.
 
 ## Installation
-The Chart is private so you need to [download](https://github.com/riptano/k8saap/releases/download/k8saap-0.0.2/k8saap-0.0.2.tgz) it first.
+The Chart is private so you need to [download](https://github.com/riptano/kaap/releases/download/kaap-0.0.2/kaap-0.0.2.tgz) it first.
 
 Then install the chart using the tarball:
 ```
-helm install k8saap k8saap-0.0.2.tgz
+helm install kaap kaap-0.0.2.tgz
 ```
 
 
@@ -15,7 +15,7 @@ helm install k8saap k8saap-0.0.2.tgz
 
 Install a PulsarCluster resource.
 ```
-helm upgrade k8saap k8saap-0.0.2.tgz -f helm/examples/grafana/values.yaml
+helm upgrade kaap kaap-0.0.2.tgz -f helm/examples/grafana/values.yaml
 ```
 
 Wait for the cluster to be up and running
@@ -25,7 +25,7 @@ kubectl wait pulsar pulsar-cluster --for condition=Ready=True --timeout=240s
 
 Uninstall the operator and the PulsarCluster
 ```
-helm delete k8saap
+helm delete kaap
 ```
 
 
@@ -34,7 +34,7 @@ Since now the CRDs are in version `v1alpha1` you need to replace them when they 
 Note this is only needed in the early stages of the project.
 
 ```
-kubectl replace -f helm/k8saap/crds
+kubectl replace -f helm/kaap/crds
 ```
 Now you can proceed with the upgrade of the operator.
 

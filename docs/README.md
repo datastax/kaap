@@ -1,6 +1,6 @@
 # K8s Autoscaling for Apache Pulsar Docs
-- [K8saap Stack Operator](k8saap-stack.md)
-- [K8saap Operator](k8saap.md)
+- [Kaap Stack Operator](kaap-stack.md)
+- [Kaap Operator](kaap.md)
 - [Usage](usage.md)
   - [Staged upgrades](staged-upgrades.md)
   - [Resource Sets and Racks](resource-sets.md)

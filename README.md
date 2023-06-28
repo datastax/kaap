@@ -18,7 +18,7 @@ Some of the key features and benefits of the KAAP operator include:
 
 - **Lifecycle Management**: The operator takes care of common Pulsar cluster lifecycle tasks, such as cluster creation, upgrade, configuration updates, and graceful shutdowns.
 
-- **Integration with Kubernetes Ecosystem**: The Apache Pulsar Kubernetes Operator seamlessly integrates with other Kubernetes-native tools and features, such as Kubernetes RBAC, Prometheus, and Grafana, enabling a cohesive and comprehensive ecosystem for managing Pulsar clusters.
+- **Integration with Kubernetes Ecosystem**: it seamlessly integrates with other Kubernetes-native tools and features, such as Kubernetes RBAC, Prometheus, and Grafana, enabling a cohesive and comprehensive ecosystem for managing Pulsar clusters.
 
 Whether you are a developer looking to leverage the power of Apache Pulsar in your Kubernetes environment or an operator seeking to streamline the management of Pulsar clusters, the KAAP Operator provides a robust and user-friendly solution. In this documentation, we will explore the installation, configuration, and usage of the operator, empowering you to harness the full potential of Apache Pulsar within your Kubernetes deployments.
 

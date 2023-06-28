@@ -23,7 +23,7 @@ The proxy will need a secret called `pulsar-tls`.
 This secret will be created by `cert-manager`.
 
 ```
-helm install kaap helm/kaap-stack \
+helm install kaap kaap/kaap-stack \
     --values helm/examples/cert-manager-acme/values.yaml \
     --set cert-manager.global.leaderElection.namespace=default
 ```

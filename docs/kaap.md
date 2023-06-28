@@ -1,13 +1,16 @@
-# Operator
+# KAAP chart
 
 Kaap manages Apache Pulsar clusters guided by a single CRD, called `PulsarCluster`.
 
 ## Installation
+
 You need to [download](https://github.com/datastax/kaap/releases/download/kaap-0.1.0/kaap-0.1.0.tgz) it first.
 
 Then install the chart using the tarball:
 ```
-helm install kaap kaap-0.1.0.tgz
+helm repo add kaap https://datastax.github.io/kaap
+helm repo update
+helm install kaap kaap/kaap 
 ```
 
 

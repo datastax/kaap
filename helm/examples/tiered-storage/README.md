@@ -45,6 +45,6 @@ broker:
 
 Install the K8s Autoscaling for Apache Pulsar and the cluster.
 ```
-helm install kaap --create-namespace helm/kaap-stack \
+helm install kaap --create-namespace kaap/kaap-stack \
     --values helm/examples/tiered-storage/values.yaml 
 ```

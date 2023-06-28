@@ -2,7 +2,7 @@
 
 Install a Pulsar cluster with prometheus stack enabled and Pulsar grafana dashboards.
 ```
-helm install pstack -n pstack --create-namespace helm/kaap-stack --values helm/examples/grafana/values.yaml 
+helm install pstack -n pstack --create-namespace kaap/kaap-stack --values helm/examples/grafana/values.yaml 
 ```
 
 Login to grafana UI:

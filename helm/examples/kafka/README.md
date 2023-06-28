@@ -15,7 +15,7 @@ The client work load is generated using the basic Kafka Performance tools.
 Install the operator and the cluster.
 
 ```
-helm install pos helm/kaap-stack --values helm/examples/kafka/values.yaml
+helm install pos kaap/kaap-stack --values helm/examples/kafka/values.yaml
 ```
 
 

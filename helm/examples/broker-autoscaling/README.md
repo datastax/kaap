@@ -3,7 +3,7 @@
 Broker autoscaling is a feature that allows to scale up/down the number of broker in a cluster based on the current resource usage.
 
 ```
-helm install kaap helm/kaap-stack \
+helm install kaap kaap/kaap-stack \
     --values helm/examples/broker-autoscaling/values.yaml 
 ```
 

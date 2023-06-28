@@ -44,6 +44,6 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "migration-tool/target/migration-tool-*.jar"
+          artifacts: "migration-tool/target/kaap-migration-tool-*.jar"
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true

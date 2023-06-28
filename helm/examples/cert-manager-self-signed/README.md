@@ -2,7 +2,7 @@
 
 Install a Pulsar cluster with cert manager enabled and self signed cert priv enabled.
 ```
-helm install k8saap --create-namespace helm/k8saap-stack \
+helm install kaap --create-namespace helm/kaap-stack \
     --values helm/examples/cert-manager-self-signed/values.yaml \
     --set cert-manager.global.leaderElection.namespace=default 
 ```

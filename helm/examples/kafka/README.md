@@ -15,7 +15,7 @@ The client work load is generated using the basic Kafka Performance tools.
 Install the operator and the cluster.
 
 ```
-helm install pos helm/k8saap-stack --values helm/examples/kafka/values.yaml
+helm install pos helm/kaap-stack --values helm/examples/kafka/values.yaml
 ```
 
 
@@ -44,7 +44,7 @@ kubectl logs -f deploy/kafka-client-consumer
 
 Open a terminal and see the logs of the Operator
 ```
-kubectl logs -f deploy/k8saap
+kubectl logs -f deploy/kaap
 ```
 
 

@@ -51,7 +51,7 @@ $this_dir/../bin/migration-tool generate -i $tempdir/input-specs.yaml -o $tempdi
 
 yes_or_no "Pulsar cluster installed and migration CRD generated. Do you want to proceed with the migration?"
 # Install the K8s Autoscaling for Apache Pulsar
-helm install k8saap $this_dir/../helm/k8saap -f $this_dir/operator-values.yaml  --debug
+helm install kaap $this_dir/../helm/kaap -f $this_dir/operator-values.yaml  --debug
 
 kubectl apply -f $tempdir/outputs/$current_context/crd-generated-pulsar-cluster-*.json
 

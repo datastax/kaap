@@ -10,6 +10,6 @@ For example, the Pulsar proxy can redirect traffic to proxy closer to the broker
 ## Example
 
 ```
-helm install k8saap helm/k8saap \
+helm install kaap helm/kaap \
     --values helm/examples/racks/values.yaml 
 ```

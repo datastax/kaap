@@ -16,7 +16,7 @@ Run the operator locally but targeting the remote cluster:
 ./dev/run-dev-mode.sh
 ```
 
-Note that CRDs are not re-applied when they change. If you change the CRDs, you have to stop the process, build the `k8saap` module (`mvn package`) and restart the dev mode.
+Note that CRDs are not re-applied when they change. If you change the CRDs, you have to stop the process, build the `kaap` module (`mvn package`) and restart the dev mode.
 
 
 ## Deploy a pulsar cluster
@@ -26,5 +26,5 @@ You must disable the operator deployment in the chart because it's served by the
 
 For example, you can install the bookie racks example:
 ```
-helm install k8saap helm/k8saap --values helm/examples/bookie-racks/values.yaml --set operator.enabled=false
+helm install kaap helm/kaap --values helm/examples/bookie-racks/values.yaml --set operator.enabled=false
 ```

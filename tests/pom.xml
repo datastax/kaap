@@ -18,7 +18,7 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>k8saap</artifactId>
+        <artifactId>kaap</artifactId>
         <groupId>com.datastax.oss</groupId>
         <version>0.0.6-SNAPSHOT</version>
     </parent>
@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>k8saap-operator</artifactId>
+            <artifactId>kaap-operator</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>k8saap-operator-common</artifactId>
+            <artifactId>kaap-operator-common</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -144,8 +144,8 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <k8saap.tests.env.existing>true</k8saap.tests.env.existing>
-                                <k8saap.tests.existingenv.kubeconfig.context>current</k8saap.tests.existingenv.kubeconfig.context>
+                                <kaap.tests.env.existing>true</kaap.tests.env.existing>
+                                <kaap.tests.existingenv.kubeconfig.context>current</kaap.tests.existingenv.kubeconfig.context>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -161,10 +161,10 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <k8saap.tests.env.existing>true</k8saap.tests.env.existing>
-                                <k8saap.tests.existingenv.kubeconfig.context>current</k8saap.tests.existingenv.kubeconfig.context>
-                                <k8saap.tests.existingenv.helmcontainer.network>k8saap-local-k3s-network</k8saap.tests.existingenv.helmcontainer.network>
-                                <k8saap.tests.existingenv.kubeconfig.overrideserver>https://k8saap-local-k3s:6443</k8saap.tests.existingenv.kubeconfig.overrideserver>
+                                <kaap.tests.env.existing>true</kaap.tests.env.existing>
+                                <kaap.tests.existingenv.kubeconfig.context>current</kaap.tests.existingenv.kubeconfig.context>
+                                <kaap.tests.existingenv.helmcontainer.network>kaap-local-k3s-network</kaap.tests.existingenv.helmcontainer.network>
+                                <kaap.tests.existingenv.kubeconfig.overrideserver>https://kaap-local-k3s:6443</kaap.tests.existingenv.kubeconfig.overrideserver>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

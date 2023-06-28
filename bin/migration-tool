@@ -2,4 +2,4 @@
 
 this_dir=$( dirname -- "${BASH_SOURCE[0]}" )
 CP=$(cat $this_dir/../migration-tool/target/classpath.txt)
-exec java -cp "$CP:$this_dir/../migration-tool/target/*" com.datastax.oss.k8saap.migrationtool.Main "$@"
+exec java -cp "$CP:$this_dir/../migration-tool/target/*" com.datastax.oss.kaap.migrationtool.Main "$@"

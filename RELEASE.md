@@ -25,7 +25,7 @@ This will create a new tag `operator-<version>`, bump the pom versions and push 
 Run the following command:
 
 ```bash
-./release/release.sh k8saap-stack <version>
+./release/release.sh kaap-stack <version>
 ```
 
 This will create a new tag `stack-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.
@@ -36,7 +36,7 @@ This will create a new tag `stack-<version>`, bump the chart version, creates a 
 Run the following command:
 
 ```bash
-./release/release.sh k8saap <version>
+./release/release.sh kaap <version>
 ```
 
-This will create a new tag `k8saap-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.
+This will create a new tag `kaap-<version>`, bump the chart version, creates a new Github release with the chart tarball and update the docs.

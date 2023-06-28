@@ -16,7 +16,7 @@
 #
 
 operator:
-  image: datastax/k8saap:latest
+  image: datastax/kaap:latest
 cluster:
   create: true
   spec:

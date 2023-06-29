@@ -38,12 +38,15 @@ Full documentation is available in the [DataStax Streaming Documentation](https:
 
 ## Install KAAP Operator
 
+This example installs only the KAAP operator.
+See the KAAP Stack below to install KAAP with an operator, a Pulsar cluster, and the Prometheus monitoring stack.
+
 1. Install the DataStax KAAP Helm repository:
 ```
 helm repo add kaap https://datastax.github.io/kaap
 helm repo update
 ```
-2. Install the Pulsar operator Helm chart:
+2. Install the KAAP operator Helm chart:
 ```
 helm install kaap kaap/kaap
 ```
@@ -66,7 +69,7 @@ NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
 kaap                  1/1     1            1           52m
 ```
 
-4. You've now installed KAAP.
+4. You've now installed the KAAP operator.
 By default, when KAAP is installed, the PulsarCluster CRDs are also created.
 This setting is defined in the KAAP values.yaml file as `crd: {create: true}`.
 

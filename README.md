@@ -28,21 +28,20 @@ We also offer the KAAP Stack if you're looking for more Kubernetes-native toolin
 * Cert Manager
 * Keycloak
 
+The KAAP Stack is also included in this repository.
+
 Whether you are a developer looking to leverage the power of Apache Pulsar in your Kubernetes environment or an operator seeking to streamline the management of Pulsar clusters, the KAAP Operator provides a robust and user-friendly solution.
 
 ## Documentation
 
 Full documentation is available in the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or at [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
-## Install KAAP Operator with a Pulsar Cluster
+## Install KAAP Operator
 
-1. Install the DataStax Helm repository:
+1. Install the DataStax KAAP Helm repository:
 ```
 helm repo add kaap https://datastax.github.io/kaap
 helm repo update
-curl -LOs https://raw.githubusercontent.com/datastax/kaap/main/helm/examples/dev-cluster/values.yaml
-helm install pulsar -f values.yaml 
-kubectl wait pulsar pulsar --for condition=Ready=True --timeout=240s
 ```
 2. Install the Pulsar operator Helm chart:
 ```
@@ -63,11 +62,71 @@ kubectl get deployment
 ```
 Result:
 ```
-NAME              READY   UP-TO-DATE   AVAILABLE   AGE
-kaap   1/1     1            1           13m
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+kaap                  1/1     1            1           52m
 ```
 
 4. You've now installed KAAP.
+By default, when KAAP is installed, the PulsarCluster CRDs are also created.
+This setting is defined in the KAAP values.yaml file as `crd: {create: true}`.
+
+5. To see available CRDs:
+```
+kubectl get crds | grep kaap
+```
+Result:
+```
+autorecoveries.kaap.oss.datastax.com             2023-06-28T15:37:39Z
+bastions.kaap.oss.datastax.com                   2023-06-28T15:37:39Z
+bookkeepers.kaap.oss.datastax.com                2023-06-28T15:37:39Z
+brokers.kaap.oss.datastax.com                    2023-06-28T15:37:40Z
+functionsworkers.kaap.oss.datastax.com           2023-06-28T15:37:40Z
+proxies.kaap.oss.datastax.com                    2023-06-28T15:37:40Z
+pulsarclusters.kaap.oss.datastax.com             2023-06-28T15:37:41Z
+zookeepers.kaap.oss.datastax.com                 2023-06-28T15:37:41Z
+```
+
+For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+
+## Install KAAP Stack Operator with a Pulsar cluster
+
+This example deploys a KAAP stack operator, and also deploys a minimally-sized Pulsar cluster for development testing.
+
+1. Install the DataStax KAAP Helm repository:
+```
+helm repo add kaap https://datastax.github.io/kaap
+helm repo update
+```
+2. Install the KAAP Stack operator Helm chart with the custom `dev-cluster` values file:
+```
+helm install pulsar kaap/kaap-stack --values helm/examples/dev-cluster/values.yaml
+```
+Result:
+```
+NAME: pulsar
+LAST DEPLOYED: Thu Jun 29 14:30:20 2023
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+3. Ensure the operator is up and running:
+```
+kubectl get deployment
+```
+Result:
+```
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+kaap                                  1/1     1            1           5m19s
+pulsar-autorecovery                   1/1     1            1           3m19s
+pulsar-bastion                        1/1     1            1           3m19s
+pulsar-grafana                        1/1     1            1           5m19s
+pulsar-kube-prometheus-sta-operator   1/1     1            1           5m19s
+pulsar-kube-state-metrics             1/1     1            1           5m19s
+pulsar-proxy                          1/1     1            1           3m19s
+```
+
+4. You've now installed KAAP Stack operator with a Pulsar cluster.
 By default, when KAAP is installed, the PulsarCluster CRDs are also created.
 This setting is defined in the KAAP values.yaml file as `crd: {create: true}`.
 
@@ -100,18 +159,6 @@ Result:
 release "kaap" uninstalled
 ```
 
-## Install KAAP-Stack Operator
-
-## Uninstall KAAP-Stack Operator
-
-To uninstall KAAP:
-```
-helm delete kaap
-```
-Result:
-```
-release "kaap" uninstalled
-```
 For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
 ## Resources

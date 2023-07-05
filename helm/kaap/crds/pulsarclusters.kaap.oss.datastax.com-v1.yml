@@ -15904,9 +15904,10 @@ spec:
                               minimum: 1000.0
                               type: integer
                             diskUsageToleranceLwm:
-                              description: The threshold to trigger a scale up. The
-                                autoscaler will scale up if all the bookies' disk
-                                usage is higher than this threshold. Default is '0.75'
+                              description: The threshold to trigger a scale down.
+                                The autoscaler will scale down if all the bookies'
+                                disk usage is lower than this threshold. Default is
+                                '0.75'
                               maximum: 1.0
                               minimum: 0.0
                               type: number
@@ -15917,10 +15918,10 @@ spec:
                               minimum: 1.0
                               type: integer
                             diskUsageToleranceHwm:
-                              description: The threshold to trigger a scale down.
-                                The autoscaler will scale down if all the bookies'
-                                disk usage is lower than this threshold. Default is
-                                '0.92'
+                              description: The threshold to trigger a scale up. The
+                                autoscaler will scale up if any of thebookie's disk
+                                usage is higher than or equal to this threshold. Default
+                                is '0.92'
                               maximum: 1.0
                               minimum: 0.0
                               type: number
@@ -18083,9 +18084,9 @@ spec:
                         minimum: 1000.0
                         type: integer
                       diskUsageToleranceLwm:
-                        description: The threshold to trigger a scale up. The autoscaler
-                          will scale up if all the bookies' disk usage is higher than
-                          this threshold. Default is '0.75'
+                        description: The threshold to trigger a scale down. The autoscaler
+                          will scale down if all the bookies' disk usage is lower
+                          than this threshold. Default is '0.75'
                         maximum: 1.0
                         minimum: 0.0
                         type: number
@@ -18096,9 +18097,9 @@ spec:
                         minimum: 1.0
                         type: integer
                       diskUsageToleranceHwm:
-                        description: The threshold to trigger a scale down. The autoscaler
-                          will scale down if all the bookies' disk usage is lower
-                          than this threshold. Default is '0.92'
+                        description: The threshold to trigger a scale up. The autoscaler
+                          will scale up if any of thebookie's disk usage is higher
+                          than or equal to this threshold. Default is '0.92'
                         maximum: 1.0
                         minimum: 0.0
                         type: number

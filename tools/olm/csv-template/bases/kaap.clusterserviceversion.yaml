@@ -41,8 +41,8 @@ metadata:
           "description": "Example of a Pulsar cluster"
         }
       }
-    capabilities: Real-time messaging, event streaming, and pub/sub system.
-    categories: Big Data, Streaming, Messaging
+    capabilities: Auto Pilot
+    categories: Big Data, Streaming & Messaging
     containerImage: docker.io/datastax/kaap:0.1.0
     createdAt: "2023-05-07T00:00:00Z"
     description: Kaap (Kubernetes Autoscaling for Apache Pulsar) manages the complete lifecycle

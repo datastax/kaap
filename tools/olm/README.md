@@ -97,7 +97,7 @@ git clone https://github.com/k8s-operatorhub/community-operators.git
 ```
 The bundle folder is all we need to commit into the community-operators repo. Copy the new bundle into the forked community-operators repo
 ```sh
-cp -r tools/olm/target/0.1.0 community-operators/operators/kaap-pulsar-operator/
+cp -r tools/olm/target/0.1.0 community-operators/operators/kaap/
 ```
 
 Run test suites

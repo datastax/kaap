@@ -28,7 +28,7 @@ BUNDLE_VERSION=0.1.0
 # NOTE: If you specify a public registry such as docker.io, you need to login first.
 # i.e. docker login docker.io -u your_docker_org
 DOCKER_REGISTRY="docker.io"
-DOCKER_ORG=${DOCKER_ORG:"change-me-to-your-org"}
+DOCKER_ORG=${DOCKER_ORG:-"change-me-to-your-org"}
 IMAGE_TAG="olm-gen1"
 
 # Specify the operator image which is used in this bundle.

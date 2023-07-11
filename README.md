@@ -30,11 +30,13 @@ We also offer the KAAP Stack if you're looking for more Kubernetes-native toolin
 
 The KAAP Stack is also included in this repository.
 
-Whether you are a developer looking to leverage the power of Apache Pulsar in your Kubernetes environment or an operator seeking to streamline the management of Pulsar clusters, the KAAP Operator provides a robust and user-friendly solution.
+Whether you are a developer looking to leverage the power of Apache Pulsar in your Kubernetes environment, or an operator seeking to streamline the management of Pulsar clusters, the KAAP Operator provides a robust and user-friendly solution.
+
+If you're running [Luna Streaming](https://www.datastax.com/products/luna-streaming), the DataStax distribution of Apache Pulsar, KAAP is 100% compatible with your existing Pulsar cluster.
 
 ## Documentation
 
-Full documentation is available in the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or at [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+Full documentation is available in the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or at [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
 ## Install KAAP Operator
 
@@ -89,7 +91,7 @@ pulsarclusters.kaap.oss.datastax.com             2023-06-28T15:37:41Z
 zookeepers.kaap.oss.datastax.com                 2023-06-28T15:37:41Z
 ```
 
-For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
 ## Install KAAP Stack Operator with a Pulsar cluster
 
@@ -149,7 +151,7 @@ pulsarclusters.kaap.oss.datastax.com             2023-06-28T15:37:41Z
 zookeepers.kaap.oss.datastax.com                 2023-06-28T15:37:41Z
 ```
 
-For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
 ## Uninstall KAAP
 
@@ -162,7 +164,7 @@ Result:
 release "kaap" uninstalled
 ```
 
-For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
 ## Resources
-For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).

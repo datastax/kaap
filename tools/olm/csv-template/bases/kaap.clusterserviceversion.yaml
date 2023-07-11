@@ -98,15 +98,29 @@ spec:
         description: This custom resource is intended only for internal usage by the operator.
   description: |-
     Kubernetes Autoscaling for Apache Pulsar (KAAP) simplifies running Apache Pulsar on Kubernetes by applying the familiar Operator pattern to Pulsar components, and horizonally scaling resources up or down based on CPU and memory workloads.
-    
+
+    Full documentation is available in the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html).
+
+    ## Apache Pulsar
+
+    Apache Pulsar is an open-source distributed pub-sub messaging platform designed to handle real-time data streams and event-driven architectures. It offers a highly scalable and durable messaging system that allows seamless communication and processing of data among diverse applications and services. Pulsar provides advanced features like multi-tenancy, geo-replication, message replay, and schema enforcement, enabling organizations to build robust, reliable, and flexible data streaming pipelines. With its horizontally scalable architecture and extensive ecosystem integrations, Apache Pulsar empowers businesses to efficiently manage and process massive amounts of data while ensuring low-latency and high-throughput messaging capabilities.
+
+    ## KAAP Operator
+
+    Operating and maintaining Apache Pulsar clusters traditionally involves complex manual configurations, making it challenging for developers and operators to effectively manage the system's lifecycle. However, with the Apache Pulsar Kubernetes Operator, these complexities are abstracted away, enabling developers to focus on their applications rather than the underlying infrastructure.
+
+    This operator acts as an extension to the Kubernetes API, introducing custom resource definitions (CRDs) specific to Apache Pulsar. With these CRDs, users can define Pulsar clusters, topics, subscriptions, and other resources as native Kubernetes objects. The operator then reconciles the desired state defined by these objects with the actual state of the Pulsar cluster, ensuring that the cluster is always in the desired configuration.
+
+    After a new custom resource type is added to your cluster by installing a CRD, you can create instances of the resource based on its specification.
+    The Kubernetes API can be extended to support the new resource type, automating away the tedious aspects of managing a Pulsar cluster.
+
     ## Installation
     This operator can be installed from [OperatorHub.io](https://operatorhub.io/operator/kaap).
     After the operator is up, proceed deploying a Pulsar cluster using the the Custom Resource Definition below.
-    
+
     ```sh
     kubectl create -f https://raw.githubusercontent.com/datastax/kaap/main/olm/examples/dev-cluster/cluster.yaml
     ```
-    
 
   displayName: Kubernetes Autoscaling for Apache Pulsar
   icon:

@@ -41,9 +41,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus-sdk.version>5.0.1</quarkus-sdk.version>
-        <!-- kubernetes-client.version must matches the imported version by quarkus-sdk -->
-        <kubernetes-client.version>6.2.0</kubernetes-client.version>
+        <quarkus-sdk.version>6.2.1</quarkus-sdk.version>
+        <crd-generator-api.version>6.7.2</crd-generator-api.version>
         <testng.version>7.7.0</testng.version>
         <mockito-core.version>4.10.0</mockito-core.version>
         <lombok.version>1.18.24</lombok.version>
@@ -60,6 +59,7 @@
         <jsonassert.version>1.5.1</jsonassert.version>
         <awaitility.version>4.2.0</awaitility.version>
         <curator.version>5.4.0</curator.version>
+        <bouncy-castle.version>1.70</bouncy-castle.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -110,7 +110,7 @@
             <dependency>
                 <groupId>io.fabric8</groupId>
                 <artifactId>crd-generator-api</artifactId>
-                <version>${kubernetes-client.version}</version>
+                <version>${crd-generator-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
@@ -159,6 +159,16 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>${bouncy-castle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${bouncy-castle.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

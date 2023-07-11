@@ -28,8 +28,7 @@
 
     <properties>
         <quarkus.container-image.build>true</quarkus.container-image.build>
-
-
+        <quarkus.operator-sdk.crd.generate-in-parallel>true</quarkus.operator-sdk.crd.generate-in-parallel>
     </properties>
     <dependencies>
         <dependency>
@@ -40,13 +39,11 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>crd-generator-api</artifactId>
-            <version>${kubernetes-client.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>certmanager-model-v1</artifactId>
-            <version>${kubernetes-client.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.operatorsdk</groupId>
@@ -146,7 +143,6 @@
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
-                <version>2.15.1.Final</version>
                 <executions>
                     <execution>
                         <goals>

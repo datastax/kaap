@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.function.Supplier;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

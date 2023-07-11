@@ -34,7 +34,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;

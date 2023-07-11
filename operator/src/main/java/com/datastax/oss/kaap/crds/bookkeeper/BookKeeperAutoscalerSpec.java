@@ -33,7 +33,7 @@ public class BookKeeperAutoscalerSpec {
     Boolean enabled;
 
     @Min(1000)
-    @javax.validation.constraints.Min(1000)
+    @jakarta.validation.constraints.Min(1000)
     @JsonPropertyDescription("The interval in milliseconds between two consecutive autoscaling checks.")
     Long periodMs;
 
@@ -52,7 +52,7 @@ public class BookKeeperAutoscalerSpec {
     Double diskUsageToleranceLwm;
 
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription(
             "Min number of writable bookies. The autoscaler will scale up if not enough writable bookies are detected"
                     + ". For instance, if a bookie went to read-only mode, "
@@ -60,23 +60,23 @@ public class BookKeeperAutoscalerSpec {
     Integer minWritableBookies;
 
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("The number of bookies to add at each scale up. Default is '1'")
     Integer scaleUpBy;
 
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("Max number of bookies. If the number of bookies is equals to this value, the "
             + "autoscaler will never scale up.")
     Integer scaleUpMaxLimit;
 
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("The number of bookies to remove at each scale down. Default is '1'")
     Integer scaleDownBy;
 
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription(
             "The stabilization window is used to restrict the flapping of replica count when the metrics used for "
                     + "scaling keep fluctuating. "

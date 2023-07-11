@@ -31,7 +31,7 @@ public class BookKeeperAutoRackConfig {
     @JsonPropertyDescription("Enable rack configuration monitoring.")
     Boolean enabled;
     @Min(1000)
-    @javax.validation.constraints.Min(1000)
+    @jakarta.validation.constraints.Min(1000)
     @JsonPropertyDescription("Period for the schedule of the monitoring thread.")
     Long periodMs;
 }

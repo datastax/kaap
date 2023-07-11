@@ -216,7 +216,6 @@
                         <encoding>UTF-8</encoding>
                         <showDeprecation>true</showDeprecation>
                         <showWarnings>true</showWarnings>
-                        <optimize>true</optimize>
                         <compilerArgs>
                             <arg>-parameters</arg>
                             <arg>-Xlint:all</arg>

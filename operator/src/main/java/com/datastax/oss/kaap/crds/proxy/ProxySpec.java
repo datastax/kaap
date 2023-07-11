@@ -17,9 +17,9 @@ package com.datastax.oss.kaap.crds.proxy;
 
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import jakarta.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import jakarta.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

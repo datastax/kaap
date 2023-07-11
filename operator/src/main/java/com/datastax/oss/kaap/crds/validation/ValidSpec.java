@@ -16,9 +16,9 @@
 package com.datastax.oss.kaap.crds.validation;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Retention;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+import java.lang.annotation.Retention;
 
 @Retention(RUNTIME)
 @Constraint(validatedBy = {})

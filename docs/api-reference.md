@@ -14129,7 +14129,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>
-          The threshold to trigger a scale down. The autoscaler will scale down if all the bookies' disk usage is lower than this threshold. Default is '0.92'<br/>
+          The threshold to trigger a scale up. The autoscaler will scale up if any of thebookie's disk usage is higher than or equal to this threshold. Default is '0.92'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -14139,7 +14139,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceLwm</b></td>
         <td>number</td>
         <td>
-          The threshold to trigger a scale up. The autoscaler will scale up if all the bookies' disk usage is higher than this threshold. Default is '0.75'<br/>
+          The threshold to trigger a scale down. The autoscaler will scale down if all the bookies' disk usage is lower than this threshold. Default is '0.75'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -20706,7 +20706,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceHwm</b></td>
         <td>number</td>
         <td>
-          The threshold to trigger a scale down. The autoscaler will scale down if all the bookies' disk usage is lower than this threshold. Default is '0.92'<br/>
+          The threshold to trigger a scale up. The autoscaler will scale up if any of thebookie's disk usage is higher than or equal to this threshold. Default is '0.92'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>
@@ -20716,7 +20716,7 @@ Autoscaling config.
         <td><b>diskUsageToleranceLwm</b></td>
         <td>number</td>
         <td>
-          The threshold to trigger a scale up. The autoscaler will scale up if all the bookies' disk usage is higher than this threshold. Default is '0.75'<br/>
+          The threshold to trigger a scale down. The autoscaler will scale down if all the bookies' disk usage is lower than this threshold. Default is '0.75'<br/>
           <br/>
             <i>Minimum</i>: 0<br/>
             <i>Maximum</i>: 1<br/>

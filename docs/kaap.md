@@ -26,7 +26,7 @@ kubectl wait pulsar pulsar-cluster --for condition=Ready=True --timeout=240s
 
 Uninstall the operator and the PulsarCluster
 ```
-helm delete kaap
+helm uninstall kaap
 ```
 
 

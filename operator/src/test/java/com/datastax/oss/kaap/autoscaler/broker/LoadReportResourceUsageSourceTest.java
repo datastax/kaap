@@ -19,6 +19,7 @@ import com.datastax.oss.kaap.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.kaap.crds.broker.Broker;
 import com.datastax.oss.kaap.crds.broker.BrokerFullSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.kaap.mocks.MockKubeServer;
 import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -66,7 +67,7 @@ public class LoadReportResourceUsageSourceTest {
 
             final String clusterName = pulsarClusterSpec.getGlobal().getName();
 
-            server = new KubernetesServer(false);
+            server = new MockKubeServer();
             server.before();
 
             List<Pod> pods = new ArrayList<>();
@@ -93,6 +94,11 @@ public class LoadReportResourceUsageSourceTest {
                         .build();
                 podConsumer.accept(pod, this);
                 pods.add(pod);
+                server.expect()
+                        .get()
+                        .withPath("/api/v1/namespaces/ns/pods/%s".formatted(podName))
+                        .andReturn(HttpURLConnection.HTTP_OK, pod)
+                        .always();
             }
 
             final PodList podList = new PodListBuilder()
@@ -108,6 +114,8 @@ public class LoadReportResourceUsageSourceTest {
                     )
                     .andReturn(HttpURLConnection.HTTP_OK, podList)
                     .once();
+
+
 
         }
 

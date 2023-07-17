@@ -64,6 +64,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -527,7 +528,9 @@ public abstract class BaseK8sEnvTest {
 
     protected void deleteManifest(byte[] manifest) {
         final List<HasMetadata> resources =
-                client.load(new ByteArrayInputStream(manifest)).get();
+                client.load(new ByteArrayInputStream(manifest)).get()
+                        .stream().filter(Objects::nonNull).collect(Collectors.toList());
+        log.info("deleting {} resources", resources.size());
         client.resourceList(resources).inNamespace(namespace).delete();
     }
 

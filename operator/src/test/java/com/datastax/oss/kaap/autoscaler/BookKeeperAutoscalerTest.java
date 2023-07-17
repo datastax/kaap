@@ -23,6 +23,7 @@ import com.datastax.oss.kaap.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.kaap.mocks.MockKubeServer;
 import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -41,8 +42,6 @@ import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsBuilder;
 import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsList;
 import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.kubernetes.client.okhttp.OkHttpClientFactory;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.fabric8.kubernetes.client.server.mock.OutputStreamMessage;
 import io.fabric8.mockwebserver.utils.BodyProvider;
@@ -59,7 +58,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.Builder;
@@ -110,16 +108,8 @@ public class BookKeeperAutoscalerTest {
 
             final String clusterName = pulsarClusterSpec.getGlobal().getName();
 
-
-            AtomicReference<NamespacedKubernetesClient> client = new AtomicReference(null);
-            server = new KubernetesServer(false) {
-                @Override
-                public NamespacedKubernetesClient getClient() {
-                    return client.get();
-                }
-            };
+            server = new MockKubeServer();
             server.before();
-            client.set(server.getKubernetesMockServer().createClient(new OkHttpClientFactory()));
 
             final int replicas = pulsarClusterSpec.getBookkeeper().getReplicas();
 

@@ -60,6 +60,7 @@
         <awaitility.version>4.2.0</awaitility.version>
         <curator.version>5.4.0</curator.version>
         <bouncy-castle.version>1.70</bouncy-castle.version>
+        <logback-classic.version>1.3.8</logback-classic.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -169,6 +170,11 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk15on</artifactId>
                 <version>${bouncy-castle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback-classic.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

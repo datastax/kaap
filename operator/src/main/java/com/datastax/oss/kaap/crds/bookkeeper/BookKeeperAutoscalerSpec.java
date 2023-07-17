@@ -40,15 +40,15 @@ public class BookKeeperAutoscalerSpec {
     // should be around bookie's diskUsageWarnThreshold + diskUsageLwmThreshold / 2
     @Min(0.0d)
     @Max(1.0d)
-    @JsonPropertyDescription("The threshold to trigger a scale down. The autoscaler will scale down if all the "
-            + "bookies' disk usage is lower than this threshold. Default is '0.92'")
+    @JsonPropertyDescription("The threshold to trigger a scale up. The autoscaler will scale up if any of the"
+            + "bookie's disk usage is higher than or equal to this threshold. Default is '0.92'")
     Double diskUsageToleranceHwm;
 
     // should be around bookie's diskUsageLwmThreshold or below
     @Min(0.0d)
     @Max(1.0d)
-    @JsonPropertyDescription("The threshold to trigger a scale up. The autoscaler will scale up if all the "
-            + "bookies' disk usage is higher than this threshold. Default is '0.75'")
+    @JsonPropertyDescription("The threshold to trigger a scale down. The autoscaler will scale down if all the "
+            + "bookies' disk usage is lower than this threshold. Default is '0.75'")
     Double diskUsageToleranceLwm;
 
     @Min(1)

@@ -144,7 +144,8 @@ public class BookKeeperSetAutoscaler implements Runnable {
 
 
         // I assume after this point we don't have bookies down.
-        // Bookies are either writable or read-only, isBkReadyToScale confirms all pods are up and running.
+        // Bookies are either writable or read-only, isBkReadyToScale confirms all pods are up and running by checking
+        // the bookie sts.
         if (!AutoscalerUtils.isStsReadyToScale(client,
                 autoscalerSpec.getStabilizationWindowMs(),
                 namespace, statefulsetName, podSelector, currentExpectedReplicas)) {
@@ -163,11 +164,16 @@ public class BookKeeperSetAutoscaler implements Runnable {
 
         int desiredScaleChange = 0;
 
+        // 1. quickly add to targetWritableBookiesCount if there are not enough writable bookies.
+        //    I'd expect targetWritableBookiesCount to be > max ensemble size in the cluster
         if (clusterStats.writableBookiesTotal < targetWritableBookiesCount) {
             desiredScaleChange += targetWritableBookiesCount - clusterStats.writableBookiesTotal;
             log.infof("Not enough writable bookies, need to add %d", desiredScaleChange);
         }
 
+        // 2. add up to stepUp bookies (1 by default) if there is certain level of "at risk"
+        //    (close to switching to read only) bookies - scaling up takes time so we are trying to
+        //    be a little bit ahead and avoid cases when cluster is not writable
         if (clusterStats.atRiskWritableBookies > 0
                 && (clusterStats.writableBookiesTotal - clusterStats.atRiskWritableBookies) < (
                 targetWritableBookiesCount - desiredScaleChange)) {
@@ -176,6 +182,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                     bookieSafeStepUp);
         }
 
+        // 3. only after that check if it's safe to scale down
         if (desiredScaleChange == 0 && clusterStats.writableBookiesTotal > targetWritableBookiesCount) {
             boolean canScaleDown = checkIfCanScaleDown(diskUsageLwm, bookieInfos);
             if (canScaleDown) {

@@ -228,7 +228,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                         .filter(d -> {
                             boolean res = isDiskUsageAboveTolerance(d, diskUsageLwm);
                             log.infof("isDiskUsageAboveTolerance: %s for %s (%s)", res,
-                                    info.getLeft().getPodResource().get().getMetadata().getName(),
+                                    info.getLeft().getBookiePod().getMetadata().getName(),
                                     d);
                             return res;
                         })
@@ -238,7 +238,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                     // don't want to go back and forth if bookies disk usage may result in
                     // switch to read-only/scale up soon
                     log.infof("Not all disks are ready for %s",
-                            info.getLeft().getPodResource().get().getMetadata().getName());
+                            info.getLeft().getBookiePod().getMetadata().getName());
                     return false;
                 }
             }

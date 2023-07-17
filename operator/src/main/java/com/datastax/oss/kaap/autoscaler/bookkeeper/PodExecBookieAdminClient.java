@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.PodResource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -76,9 +75,10 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
 
     @Override
     public List<BookieInfo> collectBookieInfos() {
-        this.bookieInfos = client.pods().inNamespace(namespace).withLabels(podSelector).resources()
+        this.bookieInfos = client.pods().inNamespace(namespace).withLabels(podSelector).list().getItems()
+                .stream()
                 .map(pod -> getBookieInfo(pod))
-                .sorted(Comparator.comparing(b -> b.podResource.get().getMetadata().getName())).toList();
+                .sorted(Comparator.comparing(b -> b.bookiePod.getMetadata().getName())).toList();
         return bookieInfos;
     }
 
@@ -90,14 +90,14 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     }
 
     @SneakyThrows
-    protected BookieInfo getBookieInfo(PodResource pod) {
+    protected BookieInfo getBookieInfo(Pod pod) {
         if (log.isDebugEnabled()) {
-            log.debugf("getting BookieInfo for pod %s", pod.get().getMetadata().getName());
+            log.debugf("getting BookieInfo for pod %s", pod.getMetadata().getName());
         }
 
 
         return BookieInfo.builder()
-                .podResource(pod)
+                .bookiePod(pod)
                 .bookieId(getBookieId(pod))
                 .build();
     }
@@ -105,7 +105,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @Override
     @SneakyThrows
     public BookieStats collectBookieStats(BookieInfo bookieInfo) {
-        final Pod pod = bookieInfo.getPodResource().get();
+        final Pod pod = bookieInfo.getBookiePod();
 
         CompletableFuture<String> bkStateOut =
                 AutoscalerUtils.execInPod(client, namespace, pod.getMetadata().getName(),
@@ -178,8 +178,9 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @Override
     @SneakyThrows
     public void setReadOnly(BookieInfo bookieInfo, boolean readonly) {
+        final String podName = bookieInfo.getBookiePod().getMetadata().getName();
         CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
-                bookieInfo.getPodResource().get().getMetadata().getName(),
+                podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "curl -s -X PUT -H \"Content-Type: application/json\" "
                         + "-d '{\"readOnly\":" + readonly + "}' "
@@ -187,10 +188,10 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         curlOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error making bookie read-only %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                        podName);
             } else {
                 log.infof("Bookie %s is set to read-only=%b",
-                        bookieInfo.getPodResource().get().getMetadata().getName(),
+                        podName,
                         readonly);
             }
         });
@@ -200,7 +201,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @Override
     @SneakyThrows
     public void recoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
-        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
+        final String podName = bookieInfo.getBookiePod().getMetadata().getName();
         String res = internalRecoverAndDeleteCookieInZk(bookieInfo, deleteCookie);
         log.debugf("Recover output: %s", res);
         if (!deleteCookie) {
@@ -222,14 +223,14 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
 
     @SneakyThrows
     private String internalRecoverAndDeleteCookieInZk(BookieInfo bookieInfo, boolean deleteCookie) {
-        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
+        final String podName = bookieInfo.getBookiePod().getMetadata().getName();
         final long start = System.nanoTime();
         log.info("Starting bookie recovery for bookie " + podName);
         CompletableFuture<String> recoverOut = AutoscalerUtils.execInPod(client, namespace,
                 podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "bin/bookkeeper shell recover -f " + (deleteCookie ? "-d " : "")
-                        + getBookieId(bookieInfo.getPodResource()));
+                        + getBookieId(bookieInfo.getBookiePod()));
         recoverOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error recovering bookie %s",
@@ -245,12 +246,12 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @Override
     @SneakyThrows
     public boolean existsLedger(BookieInfo bookieInfo) {
-        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
+        final String podName = bookieInfo.getBookiePod().getMetadata().getName();
         CompletableFuture<String> out = AutoscalerUtils.execInPod(client, namespace,
                 podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "bin/bookkeeper shell listledgers -meta -bookieid "
-                        + getBookieId(bookieInfo.getPodResource()));
+                        + getBookieId(bookieInfo.getBookiePod()));
         out.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error running listledgers for bookie %s",
@@ -280,9 +281,9 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
         $ curl -s localhost:8000/api/v1/autorecovery/list_under_replicated_ledger/
         No under replicated ledgers found
         */
-        final PodResource pod = getBookieInfos().get(0).getPodResource();
+        final Pod pod = getBookieInfos().get(0).getBookiePod();
         CompletableFuture<String> urLedgersOut = AutoscalerUtils.execInPod(client, namespace,
-                pod.get().getMetadata().getName(),
+                pod.getMetadata().getName(),
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "curl -s " + bookieAdminUrl + "/api/v1/autorecovery/list_under_replicated_ledger/");
 
@@ -311,25 +312,25 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @SneakyThrows
     public void triggerAudit() {
         final BookieInfo bookieInfo = getBookieInfos().get(0);
+        final String podName = bookieInfo.getBookiePod().getMetadata().getName();
         CompletableFuture<String> curlOut = AutoscalerUtils.execInPod(client, namespace,
-                bookieInfo.getPodResource().get().getMetadata().getName(),
+                podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),
                 "curl -s -X PUT " + bookieAdminUrl + "/api/v1/autorecovery/trigger_audit");
         curlOut.whenComplete((s, e) -> {
             if (e != null) {
                 log.errorf(e, "Error triggering audit %s",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                        podName);
             } else {
                 log.infof("Triggered audit",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                        podName);
             }
         });
         curlOut.get(1, TimeUnit.MINUTES);
     }
 
 
-    protected String getBookieId(PodResource podResource) {
-        Pod pod = podResource.get();
+    protected String getBookieId(Pod pod) {
         return getBookieId(pod, bookkeeperSetName, currentBookKeeperSetSpec, globalSpec, namespace);
     }
 
@@ -366,7 +367,7 @@ public class PodExecBookieAdminClient implements BookieAdminClient {
     @SneakyThrows
     public void deleteCookieOnDisk(BookieInfo bookieInfo) {
         // moving rather than deleting, into a random name
-        final String podName = bookieInfo.getPodResource().get().getMetadata().getName();
+        final String podName = bookieInfo.getBookiePod().getMetadata().getName();
         CompletableFuture<String> cookieOut = AutoscalerUtils.execInPod(client, namespace,
                 podName,
                 BookKeeperResourcesFactory.getBookKeeperContainerName(globalSpec),

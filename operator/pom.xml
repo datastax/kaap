@@ -73,6 +73,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-httpclient-okhttp</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
         </dependency>
@@ -226,6 +231,7 @@
             <id>skip-crds</id>
             <properties>
                 <quarkus.operator-sdk.crd.generate>false</quarkus.operator-sdk.crd.generate>
+                <quarkus.operator-sdk.bundle.enabled>false</quarkus.operator-sdk.bundle.enabled>
             </properties>
         </profile>
     </profiles>

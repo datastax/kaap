@@ -207,8 +207,6 @@ spec:
           value: pulsar://pulsar-cluster-broker:6650
         - name: PulsarPublicKey
           value: /pulsar/token-public-key/pulsar-public.key
-        - name: PulsarPrivateKey
-          value: /pulsar/token-private-key/pulsar-private.key
         - name: CertFile
           value: /pulsar/certs/tls.crt
         - name: KeyFile

@@ -400,7 +400,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         }
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
-            addSecretTokenVolume(volumeMounts, volumes, "private-key");
             addSecretTokenVolume(volumeMounts, volumes, "proxy");
             addSecretTokenVolume(volumeMounts, volumes, "websocket");
             addSecretTokenVolume(volumeMounts, volumes, "superuser");

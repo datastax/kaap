@@ -74,7 +74,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
-        assertDiff(diff, 122);
+        assertDiff(diff, 123);
         Assert.assertEquals(pulsar.getSpec().getFunctionsWorker().getReplicas(), 0);
     }
 
@@ -91,7 +91,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
-        assertDiff(diff, 151);
+        assertDiff(diff, 152);
         Assert.assertEquals(pulsar.getSpec().getBastion().getReplicas(), 0);
     }
 
@@ -707,8 +707,6 @@ public class PulsarClusterResourceGeneratorTest {
                                 value: pulsar://pulsar-cluster-broker:6650
                               - name: PulsarPublicKey
                                 value: /pulsar/token-public-key/pulsar-public.key
-                              - name: PulsarPrivateKey
-                                value: /pulsar/token-private-key/pulsar-private.key
                               - name: CertFile
                                 value: /pulsar/certs/tls.crt
                               - name: KeyFile
@@ -749,9 +747,6 @@ public class PulsarClusterResourceGeneratorTest {
                               volumeMounts:
                               - mountPath: /pulsar/certs
                                 name: certs
-                                readOnly: true
-                              - mountPath: /pulsar/token-private-key
-                                name: token-private-key
                                 readOnly: true
                               - mountPath: /pulsar/token-public-key
                                 name: token-public-key

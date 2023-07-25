@@ -244,6 +244,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                             "org.apache.pulsar.broker.authentication.AuthenticationProviderTls"));
             data.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
             data.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+            data.put("proxyRoles", tokenConfig.getProxyRoles());
             data.put("superUserRoles", new TreeSet<>(tokenConfig.getSuperUserRoles()));
             data.put("properties", Map.of(
                     "tokenPublicKey", "file:///pulsar/token-public-key/%s".formatted(tokenConfig.getPublicKeyFile())

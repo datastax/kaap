@@ -299,7 +299,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                         "pulsarRootDir", "/pulsar",
                         "submittingInsidePod", true,
                         "pulsarServiceUrl", brokerServiceUrl,
-                        "pulsarAdminUrl", "https://%s.%s:6750/"
+                        "pulsarAdminUrl", "https://%s.%s:6751/"
                                 .formatted(resourceName, getServiceDnsSuffix()),
                         "percentMemoryPadding", 10)
                 );

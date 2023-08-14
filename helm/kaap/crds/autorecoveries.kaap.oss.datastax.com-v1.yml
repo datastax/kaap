@@ -1248,6 +1248,9 @@ spec:
                       type: string
                     description: Match labels selectors to add to each pod.
                     type: object
+                  serviceAccountName:
+                    description: Service account name for the resource.
+                    type: string
                 type: object
               global:
                 properties:

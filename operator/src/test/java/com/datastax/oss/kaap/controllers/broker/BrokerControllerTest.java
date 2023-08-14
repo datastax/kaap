@@ -1159,6 +1159,26 @@ public class BrokerControllerTest {
         );
     }
 
+
+    @Test
+    public void testServiceAccountName() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                broker:
+                    serviceAccountName: my-service-account
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(StatefulSet.class)
+                        .getResource().getSpec().getTemplate().getSpec().getServiceAccountName(),
+                "my-service-account"
+        );
+    }
+
     @Test
     public void testGracePeriod() throws Exception {
         String spec = """

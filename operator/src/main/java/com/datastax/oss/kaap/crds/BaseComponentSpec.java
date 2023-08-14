@@ -77,6 +77,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private List<Container> sidecars;
     @JsonPropertyDescription(CRDConstants.DOC_INIT_CONTAINERS)
     private List<Container> initContainers;
+    @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
+    private String serviceAccountName;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

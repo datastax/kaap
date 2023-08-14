@@ -478,6 +478,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         }
 
 
+        final String serviceAccountName = spec.getServiceAccountName() != null ? spec.getServiceAccountName() : resourceName;
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(resourceName)
@@ -502,7 +503,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
-                .withServiceAccountName(resourceName)
+                .withServiceAccountName(serviceAccountName)
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(
                         spec.getNodeAffinity(),

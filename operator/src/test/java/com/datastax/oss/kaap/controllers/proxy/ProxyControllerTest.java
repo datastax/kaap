@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import java.util.HashMap;
 import java.util.List;
@@ -1032,6 +1033,27 @@ public class ProxyControllerTest {
                 List.of(new LocalObjectReference("secret1"))
         );
     }
+
+
+    @Test
+    public void testServiceAccountName() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    serviceAccountName: my-service-account
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getServiceAccountName(),
+                "my-service-account"
+        );
+    }
+
 
     @Test
     public void testGracePeriod() throws Exception {

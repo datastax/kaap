@@ -191,8 +191,7 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
     private ResourceRequirements resources;
     @JsonPropertyDescription("Service configuration.")
     private BrokerSpec.ServiceConfig service;
-    @JsonPropertyDescription("Service account name for the Broker StatefulSet.")
-    private String serviceAccountName;
+
     @JsonPropertyDescription("Autoscaling config.")
     @Valid
     private BrokerAutoscalerSpec autoscaler;

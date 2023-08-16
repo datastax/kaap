@@ -116,8 +116,8 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
         final Map<String, String> matchLabels = getMatchLabels(deploymentSpec.getSelector());
         generatedSpec = ProxySetSpec.builder()
                 .overrideResourceName(proxyInputSpecs.getOverrideName())
-                .annotations(deployment.getMetadata().getAnnotations())
-                .podAnnotations(deploymentSpec.getTemplate().getMetadata().getAnnotations())
+                .annotations(cleanupAnnotations(deployment.getMetadata().getAnnotations()))
+                .podAnnotations(cleanupAnnotations(deploymentSpec.getTemplate().getMetadata().getAnnotations()))
                 .image(mainContainer.getImage())
                 .imagePullPolicy(mainContainer.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
@@ -218,7 +218,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
         boolean hasPlainTextPort = service.getSpec().getPorts().stream()
                 .filter(p -> p.getPort() == ProxyResourcesFactory.DEFAULT_HTTP_PORT).findFirst().isPresent();
         return ProxySetSpec.ServiceConfig.builder()
-                .annotations(annotations)
+                .annotations(cleanupAnnotations(annotations))
                 .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
                         ProxyResourcesFactory.DEFAULT_HTTP_PORT,
                         ProxyResourcesFactory.DEFAULT_HTTPS_PORT,

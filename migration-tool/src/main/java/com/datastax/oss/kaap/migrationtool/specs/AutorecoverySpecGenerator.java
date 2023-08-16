@@ -90,8 +90,8 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
         final Map<String, String> matchLabels = getMatchLabels(deploymentSpec.getSelector());
         generatedSpec = AutorecoverySpec.builder()
-                .annotations(deployment.getMetadata().getAnnotations())
-                .podAnnotations(deploymentSpec.getTemplate().getMetadata().getAnnotations())
+                .annotations(cleanupAnnotations(deployment.getMetadata().getAnnotations()))
+                .podAnnotations(cleanupAnnotations(deploymentSpec.getTemplate().getMetadata().getAnnotations()))
                 .image(container.getImage())
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())

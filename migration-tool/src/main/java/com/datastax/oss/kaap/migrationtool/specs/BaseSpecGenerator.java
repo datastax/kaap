@@ -54,11 +54,6 @@ import java.util.stream.Collectors;
 
 public abstract class BaseSpecGenerator<T> {
 
-    public static final List<String> HELM_ANNOTATIONS = List.of(
-            "meta.helm.sh/release-name",
-            "meta.helm.sh/release-namespace"
-    );
-
     public static final List<String> HELM_LABELS = List.of(
             "app.kubernetes.io/managed-by",
             "chart",
@@ -422,6 +417,34 @@ public abstract class BaseSpecGenerator<T> {
         }
         return initContainers.stream().filter(e -> !excludes.contains(e.getName()))
                 .collect(Collectors.toList());
+    }
+
+
+    public static Map<String, String> cleanupAnnotations(Map<String, ?> annotations) {
+        if (annotations == null) {
+            return Map.of();
+        }
+        return annotations.entrySet()
+                        .stream()
+                        .filter(e -> keepAnnotation(e))
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
+    }
+
+    private static boolean keepAnnotation(Map.Entry<String, ?> e) {
+        final String key = e.getKey();
+        if (key.equals("checksum/config")) {
+            return false;
+        }
+        if (key.startsWith("kubectl.")) {
+            return false;
+        }
+        if (key.startsWith("meta.helm.sh/")) {
+            return false;
+        }
+        if (key.startsWith("deployment.kubernetes.io")) {
+            return false;
+        }
+        return true;
     }
 
 }

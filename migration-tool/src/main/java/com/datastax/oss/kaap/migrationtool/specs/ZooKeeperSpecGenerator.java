@@ -108,8 +108,8 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
         final NodeAffinity nodeAffinity = spec.getAffinity() == null ? null : spec.getAffinity().getNodeAffinity();
         final Map<String, String> matchLabels = getMatchLabels(statefulSetSpec);
         generatedSpec = ZooKeeperSpec.builder()
-                .annotations(statefulSet.getMetadata().getAnnotations())
-                .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
+                .annotations(cleanupAnnotations(statefulSet.getMetadata().getAnnotations()))
+                .podAnnotations(cleanupAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations()))
                 .image(container.getImage())
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
@@ -204,7 +204,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
         }
         annotations.remove("service.alpha.kubernetes.io/tolerate-unready-endpoints");
         return ZooKeeperSpec.ServiceConfig.builder()
-                .annotations(annotations)
+                .annotations(cleanupAnnotations(annotations))
                 .additionalPorts(
                         removeServicePorts(mainService.getSpec().getPorts(),
                                 ZooKeeperResourcesFactory.DEFAULT_CLIENT_PORT,

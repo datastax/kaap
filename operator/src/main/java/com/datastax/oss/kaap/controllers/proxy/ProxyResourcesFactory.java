@@ -54,9 +54,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
     public static final String PROXY_DEFAULT_SET = "proxy";
 
     private static final Map<String, String> DEFAULT_CONFIG_MAP =
-            Map.of("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g",
-                    "PULSAR_GC", "-XX:+UseG1GC",
-                    "PULSAR_LOG_LEVEL", "info",
+            Map.of("PULSAR_LOG_LEVEL", "info",
                     "PULSAR_LOG_ROOT_LEVEL", "info",
                     "PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info",
                     "numHttpServerThreads", "10"

@@ -97,10 +97,9 @@ public class BrokerControllerTest {
                             name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError
+                          PULSAR_MEM: -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError
                           PULSAR_PREFIX_allowAutoTopicCreationType: non-partitioned
                           PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy: producer_exception
                           PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled: "true"
@@ -294,9 +293,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -338,9 +336,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -448,9 +445,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -487,9 +483,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -561,9 +556,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -753,9 +747,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -1847,9 +1840,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -1951,9 +1943,8 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_allowAutoTopicCreationType", "non-partitioned");
         expectedData.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

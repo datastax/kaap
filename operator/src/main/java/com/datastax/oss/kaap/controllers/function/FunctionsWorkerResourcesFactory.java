@@ -178,9 +178,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
     public void patchExtraConfigMap() {
 
         Map<String, String> data = new HashMap<>();
-        data.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
-        data.put("PULSAR_GC", "-XX:+UseG1GC");
+        data.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

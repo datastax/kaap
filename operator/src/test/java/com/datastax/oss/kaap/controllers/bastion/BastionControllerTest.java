@@ -85,7 +85,6 @@ public class BastionControllerTest {
                             name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_MEM: -XX:+ExitOnOutOfMemoryError
@@ -184,7 +183,6 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
         expectedData.put("PULSAR_PREFIX_webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -214,7 +212,6 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-proxy.ns.svc.cluster.local:6650/");
         expectedData.put("PULSAR_PREFIX_webServiceUrl", "http://pul-proxy.ns.svc.cluster.local:8080/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -247,7 +244,6 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar+ssl://pul-broker.ns.svc.cluster.local:6651/");
         expectedData.put("PULSAR_PREFIX_webServiceUrl", "https://pul-broker.ns.svc.cluster.local:8443/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -289,7 +285,6 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar+ssl://pul-proxy.ns.svc.cluster.local:6651/");
         expectedData.put("PULSAR_PREFIX_webServiceUrl", "https://pul-proxy.ns.svc.cluster.local:8443/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -1035,7 +1030,6 @@ public class BastionControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");
         expectedData.put("PULSAR_PREFIX_webServiceUrl", "http://pul-broker.ns.svc.cluster.local:8080/");
         expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

@@ -152,10 +152,9 @@ public class FunctionsWorkerControllerTest {
                             name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError
+                          PULSAR_MEM: -XX:+ExitOnOutOfMemoryError
                                                 """);
 
         Assert.assertEquals(client.getCreatedResources(Service.class).get(0).getResourceYaml(),
@@ -748,8 +747,7 @@ public class FunctionsWorkerControllerTest {
                 client.getCreatedResources(ConfigMap.class).get(1);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "debug");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -827,8 +825,7 @@ public class FunctionsWorkerControllerTest {
 
 
         Map<String, Object> expectedDataForExtra = new HashMap<>();
-        expectedDataForExtra.put("PULSAR_MEM", "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -XX:+ExitOnOutOfMemoryError");
-        expectedDataForExtra.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedDataForExtra.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
         expectedDataForExtra.put("PULSAR_LOG_LEVEL", "info");
         expectedDataForExtra.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedDataForExtra.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

@@ -97,10 +97,9 @@ public class ZooKeeperControllerTest {
                             name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760
+                          PULSAR_MEM: -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760
                         """);
 
 
@@ -442,8 +441,7 @@ public class ZooKeeperControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_MEM", "-Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS",
@@ -473,8 +471,7 @@ public class ZooKeeperControllerTest {
                 client.getCreatedResource(ConfigMap.class);
 
         Map<String, String> expectedData = new HashMap<>();
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
+        expectedData.put("PULSAR_MEM", "-Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS",

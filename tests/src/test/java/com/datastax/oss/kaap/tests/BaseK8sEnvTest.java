@@ -81,7 +81,7 @@ import org.testng.annotations.BeforeMethod;
 @Slf4j
 public abstract class BaseK8sEnvTest {
 
-    public static final Path PULSAR_OPERATOR_CHART_PATH = Paths.get("..", "helm", "kaap");
+    public static final Path OPERATOR_CHART_PATH = Paths.get("..", "helm", "kaap");
 
     public static final String OPERATOR_IMAGE = System.getProperty("kaap.tests.operator.image",
             "datastax/kaap:latest-dev");
@@ -116,7 +116,7 @@ public abstract class BaseK8sEnvTest {
     @SneakyThrows
     private static List<Path> getCRDsManifests() {
         return Files.list(
-                        Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "crds")
+                        Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "crds")
                 ).filter(p -> p.toFile().getName().endsWith(".yml"))
                 .collect(Collectors.toList());
     }
@@ -179,10 +179,10 @@ public abstract class BaseK8sEnvTest {
     private String getRbacManifest() throws IOException {
         List<String> allRbac = new ArrayList<>();
         allRbac.addAll(Files.readAllLines(
-                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac.yaml")));
+                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac.yaml")));
         allRbac.add("---");
         allRbac.addAll(Files.readAllLines(
-                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "serviceaccount.yaml")));
+                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "serviceaccount.yaml")));
 
         return simulateHelmRendering(allRbac);
     }
@@ -190,7 +190,7 @@ public abstract class BaseK8sEnvTest {
     private String getOperatorDeploymentManifest() throws IOException {
         List<String> manifests = new ArrayList<>();
         manifests.addAll(Files.readAllLines(
-                Paths.get(PULSAR_OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "operator.yaml")));
+                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "operator.yaml")));
         manifests.add("---");
         manifests.addAll(Arrays.stream("""
                 apiVersion: v1

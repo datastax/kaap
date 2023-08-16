@@ -42,8 +42,8 @@ public class BaseHelmTest extends BasePulsarClusterTest {
             "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml";
 
     private static final String HELM_RELEASE_PREFIX = "pothr-";
-    public static final String HELM_BIND_PULSAR_OPERATOR = "/helm-kaap";
-    public static final String HELM_BIND_PULSAR_STACK = "/helm-kaap-stack";
+    public static final String HELM_BIND_OPERATOR = "/helm-kaap";
+    public static final String HELM_BIND_STACK = "/helm-kaap-stack";
 
     protected String helmReleaseName;
 
@@ -58,10 +58,10 @@ public class BaseHelmTest extends BasePulsarClusterTest {
                 + namespace + "-r-" + RandomStringUtils.randomAlphabetic(8).toLowerCase();
         cleanupNonNamespaceableResources();
         env.withHelmContainer(helm -> {
-            final Path operatorPath = PULSAR_OPERATOR_CHART_PATH;
+            final Path operatorPath = OPERATOR_CHART_PATH;
             final Path stackPath = Paths.get("..", "helm", "kaap-stack");
-            helm.withFileSystemBind(operatorPath.toFile().getAbsolutePath(), HELM_BIND_PULSAR_OPERATOR);
-            helm.withFileSystemBind(stackPath.toFile().getAbsolutePath(), HELM_BIND_PULSAR_STACK);
+            helm.withFileSystemBind(operatorPath.toFile().getAbsolutePath(), HELM_BIND_OPERATOR);
+            helm.withFileSystemBind(stackPath.toFile().getAbsolutePath(), HELM_BIND_STACK);
             log.info("loaded helm charts from {} and {}", operatorPath, stackPath);
         });
     }
@@ -100,9 +100,9 @@ public class BaseHelmTest extends BasePulsarClusterTest {
 
     private static String getChartPath(Chart chart) {
         if (chart == Chart.OPERATOR) {
-            return HELM_BIND_PULSAR_OPERATOR;
+            return HELM_BIND_OPERATOR;
         } else {
-            return HELM_BIND_PULSAR_STACK;
+            return HELM_BIND_STACK;
         }
     }
 

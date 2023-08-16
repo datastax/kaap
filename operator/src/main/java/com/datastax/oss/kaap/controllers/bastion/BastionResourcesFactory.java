@@ -85,7 +85,6 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         data.put("brokerServiceUrl", brokerServiceUrl);
         data.put("webServiceUrl", webServiceUrl);
         data.put("PULSAR_MEM", "-XX:+ExitOnOutOfMemoryError");
-        data.put("PULSAR_GC", "-XX:+UseG1GC");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

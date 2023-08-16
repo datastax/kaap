@@ -91,10 +91,8 @@ public class ProxyControllerTest {
                             name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
                           PULSAR_PREFIX_brokerServiceURL: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
                           PULSAR_PREFIX_brokerServiceURLTLS: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
                           PULSAR_PREFIX_brokerWebServiceURL: http://pulsarname-broker.ns.svc.cluster.local:8080/
@@ -127,10 +125,8 @@ public class ProxyControllerTest {
                             name: pulsarname-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
-                          PULSAR_GC: -XX:+UseG1GC
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_MEM: -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
                           PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
                           PULSAR_PREFIX_brokerServiceUrlTls: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
                           PULSAR_PREFIX_clusterName: pulsarname
@@ -353,8 +349,6 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "debug");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -386,8 +380,6 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -418,8 +410,6 @@ public class ProxyControllerTest {
         expectedDataForWs.put("PULSAR_PREFIX_clusterName", "pul");
         expectedDataForWs.put("PULSAR_PREFIX_webServicePort", "8000");
 
-        expectedDataForWs.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedDataForWs.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedDataForWs.put("PULSAR_LOG_LEVEL", "info");
         expectedDataForWs.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedDataForWs.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -505,8 +495,6 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
         expectedData.put("PULSAR_PREFIX_webServicePort", "8000");
 
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "trace");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -550,8 +538,6 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -589,8 +575,6 @@ public class ProxyControllerTest {
         wsExpectedData.put("PULSAR_PREFIX_clusterName", "pul");
         wsExpectedData.put("PULSAR_PREFIX_webServicePort", "8000");
 
-        wsExpectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        wsExpectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         wsExpectedData.put("PULSAR_LOG_LEVEL", "info");
         wsExpectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         wsExpectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -1700,8 +1684,6 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");
@@ -1800,8 +1782,6 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_configurationStoreServers", "pul-zookeeper-ca.ns.svc.cluster.local:2181");
         expectedData.put("PULSAR_PREFIX_clusterName", "pul");
 
-        expectedData.put("PULSAR_MEM", "-Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g");
-        expectedData.put("PULSAR_GC", "-XX:+UseG1GC");
         expectedData.put("PULSAR_LOG_LEVEL", "info");
         expectedData.put("PULSAR_LOG_ROOT_LEVEL", "info");
         expectedData.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

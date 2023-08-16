@@ -187,8 +187,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
 
     public void patchConfigMap() {
         Map<String, String> data = new HashMap<>();
-        data.put("PULSAR_MEM", "-Xms1g -Xmx1g -Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
-        data.put("PULSAR_GC", "-XX:+UseG1GC");
+        data.put("PULSAR_MEM", "-Dcom.sun.management.jmxremote -Djute.maxbuffer=10485760");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS",

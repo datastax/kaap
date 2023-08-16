@@ -259,9 +259,8 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
 
         data.put("allowAutoTopicCreationType", "non-partitioned");
         data.put("PULSAR_MEM",
-                "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
+                "-Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler"
                         + ".linkCapacity=1024 -XX:+ExitOnOutOfMemoryError");
-        data.put("PULSAR_GC", "-XX:+UseG1GC");
         data.put("PULSAR_LOG_LEVEL", "info");
         data.put("PULSAR_LOG_ROOT_LEVEL", "info");
         data.put("PULSAR_EXTRA_OPTS", "-Dpulsar.log.root.level=info");

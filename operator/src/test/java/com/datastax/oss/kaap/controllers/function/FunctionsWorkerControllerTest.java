@@ -814,6 +814,7 @@ public class FunctionsWorkerControllerTest {
         expectedData.put("authorizationProvider", "org.apache.pulsar.broker.authorization.PulsarAuthorizationProvider");
         expectedData.put("clientAuthenticationPlugin", "org.apache.pulsar.client.impl.auth.AuthenticationToken");
         expectedData.put("clientAuthenticationParameters", "file:///pulsar/token-superuser/superuser.jwt");
+        expectedData.put("proxyRoles", List.of("proxy"));
         expectedData.put("superUserRoles", List.of("admin", "proxy", "superuser", "websocket"));
         expectedData.put("properties", Map.of(
                 "tokenPublicKey", "file:///pulsar/token-public-key/my-public.key")

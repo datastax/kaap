@@ -503,6 +503,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
+                .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withVolumes(volumes)

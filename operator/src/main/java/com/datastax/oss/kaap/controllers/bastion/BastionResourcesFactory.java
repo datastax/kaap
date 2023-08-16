@@ -184,6 +184,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
+                .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withAffinity(getAffinity(
                         spec.getNodeAffinity(),

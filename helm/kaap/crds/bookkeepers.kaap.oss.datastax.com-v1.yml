@@ -2767,6 +2767,9 @@ spec:
                             type: string
                           description: Match labels selectors to add to each pod.
                           type: object
+                        serviceAccountName:
+                          description: Service account name for the resource.
+                          type: string
                       type: object
                     description: Bookie sets.
                     type: object
@@ -4940,6 +4943,9 @@ spec:
                       type: string
                     description: Match labels selectors to add to each pod.
                     type: object
+                  serviceAccountName:
+                    description: Service account name for the resource.
+                    type: string
                 type: object
             type: object
           status:

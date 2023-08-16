@@ -357,6 +357,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(dnsConfig)
                 .withImagePullSecrets(spec.getImagePullSecrets())
+                .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(nodeSelectors)
                 .withAffinity(getAffinity(
                         spec.getNodeAffinity(),
@@ -443,6 +444,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 .withTolerations(spec.getTolerations())
                 .withDnsConfig(global.getDnsConfig())
                 .withImagePullSecrets(spec.getImagePullSecrets())
+                .withServiceAccountName(spec.getServiceAccountName())
                 .withNodeSelector(spec.getNodeSelectors())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withVolumes(volumes)

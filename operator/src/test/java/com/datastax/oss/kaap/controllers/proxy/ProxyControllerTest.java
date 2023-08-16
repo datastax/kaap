@@ -1033,6 +1033,27 @@ public class ProxyControllerTest {
         );
     }
 
+
+    @Test
+    public void testServiceAccountName() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    serviceAccountName: my-service-account
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        Assert.assertEquals(
+                client.getCreatedResource(Deployment.class)
+                        .getResource().getSpec().getTemplate().getSpec().getServiceAccountName(),
+                "my-service-account"
+        );
+    }
+
+
     @Test
     public void testGracePeriod() throws Exception {
         String spec = """

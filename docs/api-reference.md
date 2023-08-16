@@ -277,6 +277,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverysidecarsindex">sidecars</a></b></td>
         <td>[]object</td>
         <td>
@@ -5528,6 +5535,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -10859,6 +10873,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -17485,6 +17506,13 @@ Service configuration.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -29108,7 +29136,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b>serviceAccountName</b></td>
         <td>string</td>
         <td>
-          Service account name for the Broker StatefulSet.<br/>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -35765,7 +35793,7 @@ Service configuration.
         <td><b>serviceAccountName</b></td>
         <td>string</td>
         <td>
-          Service account name for the Broker StatefulSet.<br/>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -47166,6 +47194,13 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindex">sidecars</a></b></td>
         <td>[]object</td>
         <td>
@@ -57838,6 +57873,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskey">sets</a></b></td>
         <td>map[string]object</td>
         <td>
@@ -64366,6 +64408,13 @@ Service configuration.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -75958,6 +76007,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Service configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountName</b></td>
+        <td>string</td>
+        <td>
+          Service account name for the resource.<br/>
         </td>
         <td>false</td>
       </tr><tr>

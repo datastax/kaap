@@ -395,9 +395,6 @@ public class BrokerControllerTest {
                         spec:
                           template:
                             metadata:
-                              annotations:
-                                prometheus.io/port: 8080
-                                prometheus.io/scrape: "true"
                               labels:
                                 app: pulsar
                                 cluster: pul

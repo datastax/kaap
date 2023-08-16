@@ -124,7 +124,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
         Map<String, String> labels = getLabels(spec.getLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap, null);
         final Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
         List<VolumeMount> volumeMounts = new ArrayList<>();

@@ -58,7 +58,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         assertValue(outputDir);
-        assertDiff(diff, 161);
+        assertDiff(diff, 159);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
-        assertDiff(diff, 122);
+        assertDiff(diff, 120);
         Assert.assertEquals(pulsar.getSpec().getFunctionsWorker().getReplicas(), 0);
     }
 

@@ -334,7 +334,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("brokerClientAuthenticationParameters", "file:///pulsar/token-websocket/websocket.jwt");
         }
         if (isTlsEnabledOnProxySet(proxySet)) {
-            data.put("webServicePortTls", "8001");
+            data.put("webServicePortTls", DEFAULT_WSS_PORT + "");
             data.put("tlsEnabled", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
@@ -351,7 +351,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
 
         appendConfigData(data, webSocketConfig.getConfig());
         if (!data.containsKey("webServicePort")) {
-            data.put("webServicePort", "8000");
+            data.put("webServicePort", DEFAULT_WS_PORT + "");
         }
 
         final ConfigMap configMap = new ConfigMapBuilder()
@@ -385,7 +385,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         Map<String, String> labels = getLabels(spec.getLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
-        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap, DEFAULT_HTTP_PORT + "");
         if (spec.getWebSocket().getEnabled()) {
             Objects.requireNonNull(wsConfigMap, "WsConfigMap should have been created at this point");
             addConfigMapChecksumAnnotation(wsConfigMap, podAnnotations);
@@ -570,8 +570,8 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                 ? "-H \"Authorization: Bearer $(cat /pulsar/token-superuser/superuser.jwt | tr -d '\\r')\"" : "";
         return newProbeBuilder(specProbe)
                 .withNewExec()
-                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:8080/metrics/ > /dev/null"
-                        .formatted(specProbe.getTimeoutSeconds(), authHeader))
+                .withCommand("sh", "-c", "curl -s --max-time %d --fail %s http://localhost:%d/metrics/ > /dev/null"
+                        .formatted(specProbe.getTimeoutSeconds(), authHeader, DEFAULT_HTTP_PORT))
                 .endExec()
                 .build();
     }

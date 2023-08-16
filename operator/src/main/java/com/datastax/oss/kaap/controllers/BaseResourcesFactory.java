@@ -687,10 +687,13 @@ public abstract class BaseResourcesFactory<T> {
 
     protected Map<String, String> getPodAnnotations(
             Map<String, String> customPodAnnotations,
-            ConfigMap configMap) {
+            ConfigMap configMap,
+            String prometheusPort) {
         Map<String, String> annotations = new HashMap<>();
-        annotations.put("prometheus.io/scrape", "true");
-        annotations.put("prometheus.io/port", "8080");
+        if (prometheusPort != null) {
+            annotations.put("prometheus.io/scrape", "true");
+            annotations.put("prometheus.io/port", prometheusPort);
+        }
         if (customPodAnnotations != null) {
             annotations.putAll(customPodAnnotations);
         }

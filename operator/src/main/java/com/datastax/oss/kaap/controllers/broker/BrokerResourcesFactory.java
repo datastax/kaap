@@ -314,7 +314,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         Map<String, String> labels = getLabels(spec.getLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap, DEFAULT_HTTP_PORT + "");
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
@@ -496,7 +496,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                 .withNewSpec()
                 .withNewTemplate()
                 .withNewMetadata()
-                .withAnnotations(getPodAnnotations(spec.getPodAnnotations(), null))
+                .withAnnotations(getPodAnnotations(spec.getPodAnnotations(), null, null))
                 .withLabels(getPodLabels(spec.getPodLabels()))
                 .endMetadata()
                 .withNewSpec()

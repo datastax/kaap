@@ -28,6 +28,6 @@ data:
   {{ printf "QUARKUS_%s" ($key | replace "-" "." | replace "\"" "." | snakecase | upper | replace "." "_" ) }}: {{ $val | toString | replace "\"" "" | trim | quote }}
 {{- end }}
 {{- range $key, $val := $.Values.operator.config.operator }}
-  {{ printf "PULSAR_OPERATOR_%s" ($key | replace "-" "." | snakecase | upper | replace "." "_" | replace "\"" "_") }}: {{ $val | toString | replace "\"" "" | trim | quote }}
+  {{ printf "KAAP_%s" ($key | replace "-" "." | snakecase | upper | replace "." "_" | replace "\"" "_") }}: {{ $val | toString | replace "\"" "" | trim | quote }}
 {{- end }}
 {{- end }}

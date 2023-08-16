@@ -23,9 +23,9 @@ import javax.enterprise.context.ApplicationScoped;
 @Unremovable
 public class LeaderElectionConfig extends LeaderElectionConfiguration {
 
-    public static final String PULSAR_OPERATOR_LEASE_NAME = "kaap-lease";
+    public static final String LEASE_NAME = "kaap-lease";
 
     public LeaderElectionConfig() {
-        super(PULSAR_OPERATOR_LEASE_NAME);
+        super(LEASE_NAME);
     }
 }

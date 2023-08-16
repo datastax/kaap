@@ -65,7 +65,7 @@ public class HelmTest extends BaseHelmTest {
                     "debug");
             Assert.assertEquals(configMap.getData().get("QUARKUS_OPERATOR_SDK_CONTROLLERS__CONTROLLERS__RETRY_INTERVAL_INITIAL"),
                     "2500");
-            Assert.assertEquals(configMap.getData().get("PULSAR_OPERATOR_RECONCILIATION_RESCHEDULE_SECONDS"),
+            Assert.assertEquals(configMap.getData().get("KAAP_RECONCILIATION_RESCHEDULE_SECONDS"),
                     "3");
 
             final List<Pod> pods = getOperatorPods();
@@ -73,7 +73,7 @@ public class HelmTest extends BaseHelmTest {
             Awaitility.await().untilAsserted(() -> {
                 Assert.assertNotNull(client.leases()
                         .inNamespace(namespace)
-                        .withName(LeaderElectionConfig.PULSAR_OPERATOR_LEASE_NAME)
+                        .withName(LeaderElectionConfig.LEASE_NAME)
                         .get());
             });
 

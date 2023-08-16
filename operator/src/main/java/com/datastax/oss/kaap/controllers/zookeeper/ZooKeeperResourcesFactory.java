@@ -238,7 +238,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         Map<String, String> matchLabels = getMatchLabels(spec.getMatchLabels());
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap, 8000 + "");
 
         PodDNSConfig dnsConfig = global.getDnsConfig();
         Map<String, String> nodeSelectors = spec.getNodeSelectors();

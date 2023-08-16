@@ -358,7 +358,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
-        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap, 8080 + "");
         Objects.requireNonNull(extraConfigMap, "ConfigMap (extra) should have been created at this point");
         addConfigMapChecksumAnnotation(extraConfigMap, podAnnotations);
 

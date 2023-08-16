@@ -119,7 +119,7 @@ public class AutorecoveryControllerTest {
                   template:
                     metadata:
                       annotations:
-                        prometheus.io/port: 8080
+                        prometheus.io/port: 8000
                         prometheus.io/scrape: "true"
                       labels:
                         app: pulsar
@@ -340,7 +340,7 @@ public class AutorecoveryControllerTest {
                         .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
                 Map.of(
                         "prometheus.io/scrape", "true",
-                        "prometheus.io/port", "8080",
+                        "prometheus.io/port", "8000",
                         "annotation-2", "ann2-value"
                 )
         );

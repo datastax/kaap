@@ -121,9 +121,6 @@ public class BastionControllerTest {
                       component: bastion
                   template:
                     metadata:
-                      annotations:
-                        prometheus.io/port: 8080
-                        prometheus.io/scrape: "true"
                       labels:
                         app: pulsar
                         cluster: pulsarname
@@ -396,8 +393,6 @@ public class BastionControllerTest {
                 client.getCreatedResource(Deployment.class)
                         .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
                 Map.of(
-                        "prometheus.io/scrape", "true",
-                        "prometheus.io/port", "8080",
                         "annotation-2", "ann2-value"
                 )
         );

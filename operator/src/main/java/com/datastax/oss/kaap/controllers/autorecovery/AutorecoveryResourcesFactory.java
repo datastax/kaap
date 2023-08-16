@@ -16,6 +16,7 @@
 package com.datastax.oss.kaap.controllers.autorecovery;
 
 import com.datastax.oss.kaap.controllers.BaseResourcesFactory;
+import com.datastax.oss.kaap.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.autorecovery.AutorecoverySpec;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -127,7 +128,8 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         Map<String, String> labels = getLabels(spec.getLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
-        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap);
+        Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap,
+                BookKeeperResourcesFactory.DEFAULT_HTTP_PORT + "");
         final Map<String, String> annotations = getAnnotations(spec.getAnnotations());
 
         List<VolumeMount> volumeMounts = new ArrayList<>();

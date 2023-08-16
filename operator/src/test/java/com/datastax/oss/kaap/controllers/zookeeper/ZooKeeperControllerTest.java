@@ -137,7 +137,7 @@ public class ZooKeeperControllerTest {
                           template:
                             metadata:
                               annotations:
-                                prometheus.io/port: 8080
+                                prometheus.io/port: 8000
                                 prometheus.io/scrape: "true"
                               labels:
                                 app: pulsar
@@ -631,7 +631,7 @@ public class ZooKeeperControllerTest {
                         .getResource().getSpec().getTemplate().getMetadata().getAnnotations(),
                 Map.of(
                         "prometheus.io/scrape", "true",
-                        "prometheus.io/port", "8080",
+                        "prometheus.io/port", "8000",
                         "annotation-2", "ann2-value"
                 )
         );

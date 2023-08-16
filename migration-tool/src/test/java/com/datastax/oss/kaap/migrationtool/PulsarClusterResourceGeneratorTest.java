@@ -27,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
-import javax.ws.rs.HEAD;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.testng.Assert;

@@ -58,7 +58,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         assertValue(outputDir);
-        assertDiff(diff, 161);
+        assertDiff(diff, 159);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
-        assertDiff(diff, 122);
+        assertDiff(diff, 120);
         Assert.assertEquals(pulsar.getSpec().getFunctionsWorker().getReplicas(), 0);
     }
 
@@ -189,12 +189,8 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: true
                               zone:
                                 enabled: false
-                            annotations:
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
+                            annotations: {}
                             podAnnotations:
-                              checksum/config: 95e7a9a97053b9160bd894c5c1fcdcb2f6783e2c19228f6677443a006b51eb19
-                              kubectl.kubernetes.io/restartedAt: 2022-04-12T21:56:19-04:00
                               prometheus.io/port: 8000
                               prometheus.io/scrape: "true"
                             labels:
@@ -256,8 +252,6 @@ public class PulsarClusterResourceGeneratorTest {
                               existingStorageClassName: pulsar-cluster-zookeeper-data
                             service:
                               annotations:
-                                meta.helm.sh/release-name: pulsar-cluster
-                                meta.helm.sh/release-namespace: pulsar
                                 publishNotReadyAddresses: "true"
                               additionalPorts: []
                             metadataInitializationJob:
@@ -277,12 +271,8 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: false
                               zone:
                                 enabled: false
-                            annotations:
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
+                            annotations: {}
                             podAnnotations:
-                              checksum/config: e45a01b57a5257d67a86fe0350096152e0d173fc27bcd87f03b0ddab8b10e3a2
-                              kubectl.kubernetes.io/restartedAt: 2021-11-01T15:53:51-04:00
                               prometheus.io/port: 8000
                               prometheus.io/scrape: "true"
                             labels:
@@ -437,12 +427,8 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: false
                               zone:
                                 enabled: false
-                            annotations:
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
+                            annotations: {}
                             podAnnotations:
-                              checksum/config: b5ed0b35c448ff4bb2aa18d4b436516875c4b5fb75d535c8cffe212202ecb289
-                              kubectl.kubernetes.io/restartedAt: 2023-01-18T16:02:36-05:00
                               prometheus.io/path: /metrics/
                               prometheus.io/port: 8080
                               prometheus.io/scrape: "true"
@@ -603,9 +589,7 @@ public class PulsarClusterResourceGeneratorTest {
                                 cpu: 1
                                 memory: 4Gi
                             service:
-                              annotations:
-                                meta.helm.sh/release-name: pulsar-cluster
-                                meta.helm.sh/release-namespace: pulsar
+                              annotations: {}
                               additionalPorts:
                               - name: kafkaplaintext
                                 port: 9092
@@ -645,12 +629,8 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: false
                               zone:
                                 enabled: false
-                            annotations:
-                              deployment.kubernetes.io/revision: 138
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
+                            annotations: {}
                             podAnnotations:
-                              checksum/config: cbb34e869a79e09b1db23364ccc46bf773b11b8376182b444ef48bfe08ecb238
                               prometheus.io/path: /metrics/
                               prometheus.io/port: 8080
                               prometheus.io/scrape: "true"
@@ -832,8 +812,6 @@ public class PulsarClusterResourceGeneratorTest {
                             service:
                               annotations:
                                 external-dns.alpha.kubernetes.io/hostname: pulsar-gcp-useast4.dev.streaming.datastax.com
-                                meta.helm.sh/release-name: pulsar-cluster
-                                meta.helm.sh/release-namespace: pulsar
                                 projectcontour.io/upstream-protocol.tls: "https,8964"
                               additionalPorts:
                               - name: wsstoken
@@ -916,12 +894,8 @@ public class PulsarClusterResourceGeneratorTest {
                               ensemblePlacementPolicy: ""
                               zkServers: pulsar-cluster-zookeeper-ca:2181
                             replicas: 1
-                            annotations:
-                              deployment.kubernetes.io/revision: 40
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
+                            annotations: {}
                             podAnnotations:
-                              checksum/config: 91c2ed87c44f8d78c4ec549e7641f9e5082734f543ce9ace3b02b09607f9f56a
                               prometheus.io/port: 8000
                               prometheus.io/scrape: "true"
                             labels:
@@ -972,12 +946,8 @@ public class PulsarClusterResourceGeneratorTest {
                               authPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
                               tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
                             replicas: 1
-                            annotations:
-                              deployment.kubernetes.io/revision: 63
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
-                            podAnnotations:
-                              checksum/config: 53b418fa312fa81ac292dbca162ef0377bd7cedd4f0b730ac32a49ad8ff87e2a
+                            annotations: {}
+                            podAnnotations: {}
                             labels:
                               app: pulsar
                               app.kubernetes.io/managed-by: Helm
@@ -1030,12 +1000,8 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: true
                               zone:
                                 enabled: false
-                            annotations:
-                              meta.helm.sh/release-name: pulsar-cluster
-                              meta.helm.sh/release-namespace: pulsar
+                            annotations: {}
                             podAnnotations:
-                              checksum/config: 47ad923e414693581ea4870abc26b5fc43b332ace809516acd9734b5ba5c7240
-                              kubectl.kubernetes.io/restartedAt: 2022-10-14T09:59:02-04:00
                               prometheus.io/port: 6750
                               prometheus.io/scrape: "true"
                             labels:

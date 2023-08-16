@@ -115,8 +115,8 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
         }
 
         generatedSpec = FunctionsWorkerSpec.builder()
-                .annotations(statefulSet.getMetadata().getAnnotations())
-                .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
+                .annotations(cleanupAnnotations(statefulSet.getMetadata().getAnnotations()))
+                .podAnnotations(cleanupAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations()))
                 .image(mainContainer.getImage())
                 .imagePullPolicy(mainContainer.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())

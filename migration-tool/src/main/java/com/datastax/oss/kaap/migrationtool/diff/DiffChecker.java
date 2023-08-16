@@ -287,10 +287,11 @@ public class DiffChecker {
         metadata.remove("finalizers");
         final Map<String, Object> annotations = getPropAsMap(metadata, "annotations");
         if (annotations != null) {
-            BaseSpecGenerator.HELM_ANNOTATIONS.forEach(annotations::remove);
-            annotations.remove("deployment.kubernetes.io/revision");
-            if (annotations.isEmpty()) {
+            final Map<String, String> newAnnotations = BaseSpecGenerator.cleanupAnnotations(annotations);
+            if (newAnnotations.isEmpty()) {
                 metadata.remove("annotations");
+            } else {
+                metadata.put("annotations", newAnnotations);
             }
         }
     }

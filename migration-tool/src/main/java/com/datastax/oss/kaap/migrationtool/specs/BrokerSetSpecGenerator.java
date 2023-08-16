@@ -114,8 +114,8 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
 
 
         generatedSpec = BrokerSetSpec.builder()
-                .annotations(statefulSet.getMetadata().getAnnotations())
-                .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
+                .annotations(cleanupAnnotations(statefulSet.getMetadata().getAnnotations()))
+                .podAnnotations(cleanupAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations()))
                 .image(container.getImage())
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
@@ -212,7 +212,7 @@ public class BrokerSetSpecGenerator extends BaseSpecGenerator<BrokerSetSpec> {
             annotations = new HashMap<>();
         }
         return BrokerSetSpec.ServiceConfig.builder()
-                .annotations(annotations)
+                .annotations(cleanupAnnotations(annotations))
                 .additionalPorts(removeServicePorts(service.getSpec().getPorts(),
                         BrokerResourcesFactory.DEFAULT_HTTP_PORT,
                         BrokerResourcesFactory.DEFAULT_HTTPS_PORT,

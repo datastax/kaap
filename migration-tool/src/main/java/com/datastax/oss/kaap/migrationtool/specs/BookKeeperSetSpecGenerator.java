@@ -111,8 +111,8 @@ public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSetS
         final PersistentVolumeClaim journalPvc = requirePvc("%s-journal".formatted(resourceName), volumeClaimTemplates);
         final PersistentVolumeClaim ledgersPvc = requirePvc("%s-ledgers".formatted(resourceName), volumeClaimTemplates);
         generatedSpec = BookKeeperSetSpec.builder()
-                .annotations(statefulSet.getMetadata().getAnnotations())
-                .podAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations())
+                .annotations(cleanupAnnotations(statefulSet.getMetadata().getAnnotations()))
+                .podAnnotations(cleanupAnnotations(statefulSetSpec.getTemplate().getMetadata().getAnnotations()))
                 .image(container.getImage())
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())

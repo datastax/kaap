@@ -30,7 +30,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 public class TlsConfig {
-    @JsonPropertyDescription("Global switch to turn on or off the TLS configurations. Additionally, you have configure each component section.")
+    @JsonPropertyDescription("Global override which turns TLS on or off for all sub-components."
+            +"Resource specific configurations such as secretName should be specified in each component section.")
     Boolean enabled;
     @JsonPropertyDescription("Secret name used by each component to load TLS certificates. "
             + "Each component can load a different secret by setting the 'secretName' entry in the tls component spec.")

@@ -394,7 +394,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         final boolean tlsEnabledOnProxy = isTlsEnabledOnProxySet(proxySet);
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
         if (tlsEnabledOnProxy || tlsEnabledOnBroker) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForProxySet(proxySet));
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForProxySet(proxySet));
         }
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");

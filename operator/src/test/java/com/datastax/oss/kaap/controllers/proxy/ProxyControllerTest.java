@@ -515,7 +515,6 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                         proxy:
@@ -1760,7 +1759,6 @@ public class ProxyControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         proxy:
                             enabled: true
                             enabledWithBroker: true

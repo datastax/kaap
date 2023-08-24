@@ -519,7 +519,6 @@ public class FunctionsWorkerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                         proxy:
@@ -589,7 +588,6 @@ public class FunctionsWorkerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                         bookkeeper:
@@ -651,6 +649,66 @@ public class FunctionsWorkerControllerTest {
                 .readYaml(createdResource.getResource().getData().get("functions_worker.yml"), Map.class);
         Assert.assertEquals(data, expectedData);
     }
+
+    @Test
+    public void testCerts() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        broker:
+                            enabled: true
+                        functionsWorker:
+                            enabled: false
+                            enabledWithBroker: true
+                functionsWorker:
+                    replicas: 1
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        KubeTestUtil.assertTlsVolumesMounted(
+                client.getCreatedResource(StatefulSet.class).getResource(), "pulsar-tls");
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        broker:
+                            enabled: false
+                        functionsWorker:
+                            enabled: true
+                functionsWorker:
+                    replicas: 1
+                """;
+        client = invokeController(spec);
+        KubeTestUtil.assertTlsVolumesMounted(
+                client.getCreatedResource(StatefulSet.class).getResource(), "pulsar-tls");
+
+
+        spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        broker:
+                            enabled: false
+                        functionsWorker:
+                            enabled: false
+                functionsWorker:
+                    replicas: 1
+                """;
+        client = invokeController(spec);
+        Assert.assertNull(KubeTestUtil.getVolumeByName(client
+                .getCreatedResource(StatefulSet.class).getResource().getSpec().getTemplate().getSpec()
+                        .getVolumes(), "pulsar-tls"));
+
+    }
+
+
 
 
     @Test

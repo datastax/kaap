@@ -371,7 +371,6 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         bookkeeper:
                             enabled: true
                 """;
@@ -428,7 +427,6 @@ public class BookKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         zookeeper:
                             enabled: true
                         bookkeeper:

@@ -256,17 +256,17 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("tlsTrustCertsFilePath", fullCaPath);
             data.put("brokerClientTrustCertsFilePath", fullCaPath);
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
-            final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
-            if (enabledWithBroker != null && enabledWithBroker) {
-                data.put("useTls", "true");
-                data.put("tlsEnabledWithKeyStore", "true");
-                data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
-                data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
-                data.put("tlsEnableHostnameVerification", "true");
-            }
-            if (isTlsEnabledOnBookKeeper()) {
-                data.put("bookkeeperTLSClientAuthentication", "true");
-            }
+        }
+        final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
+        if (enabledWithBroker != null && enabledWithBroker) {
+            data.put("useTls", "true");
+            data.put("tlsEnabledWithKeyStore", "true");
+            data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
+            data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
+            data.put("tlsEnableHostnameVerification", "true");
+        }
+        if (isTlsEnabledOnBookKeeper()) {
+            data.put("bookkeeperTLSClientAuthentication", "true");
         }
         final String brokerServiceUrl = getBrokerServiceUrl();
         final String brokerWebServiceUrl = getBrokerWebServiceUrl();
@@ -360,11 +360,18 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         Objects.requireNonNull(extraConfigMap, "ConfigMap (extra) should have been created at this point");
         addConfigMapChecksumAnnotation(extraConfigMap, podAnnotations);
 
+
+        final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
+        final boolean tlsEnabledOnFunctionsWorker = isTlsEnabledOnFunctionsWorker();
+        final boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker() == null
+                ? false : global.getTls().getFunctionsWorker().getEnabledWithBroker();
+
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
         addAdditionalVolumes(spec.getAdditionalVolumes(), volumeMounts, volumes);
-        if (isTlsEnabledOnFunctionsWorker()) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForFunctionsWorker());
+
+        if (tlsEnabledOnFunctionsWorker || (tlsEnabledOnBroker && enabledWithBroker)) {
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForFunctionsWorker());
         }
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "superuser");
@@ -398,7 +405,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             mainArg += "cat /pulsar/token-superuser/superuser.jwt | tr -d '\\n' > /pulsar/token-superuser-stripped"
                     + ".jwt && ";
         }
-        if (isTlsEnabledGlobally()) {
+
+        if (tlsEnabledOnBroker && enabledWithBroker) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && "
                     + generateCertConverterScript() + " && ";

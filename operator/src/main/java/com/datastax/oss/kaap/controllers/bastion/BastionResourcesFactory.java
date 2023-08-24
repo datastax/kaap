@@ -128,7 +128,9 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSsCaSecretName());
+        if (isTlsEnabledOnProxy() || isTlsEnabledOnBroker()) {
+            addTlsVolumes(volumeMounts, volumes, getTlsSsCaSecretName());
+        }
         String mainArg = "";
 
         if (isAuthTokenEnabled()) {

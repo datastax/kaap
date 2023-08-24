@@ -177,7 +177,6 @@ public class PulsarClusterResourceGenerator {
                 && tlsEntryConfigForProxyResourceSets == null
                 && functionTlsEntryConfig == null) {
             return TlsConfig.builder()
-                    .enabled(false)
                     .build();
         }
 

@@ -461,7 +461,6 @@ public class ZooKeeperControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         zookeeper:
                             enabled: true
                 """;

@@ -64,7 +64,7 @@ public class LoadReportResourceUsageSourceTest {
                     .broker(pulsarClusterSpec.getBroker())
                     .build());
 
-            final String clusterName = pulsarClusterSpec.getGlobal().getName();
+            final String clusterSpecName = pulsarClusterSpec.getGlobal().getName();
 
             server = new KubernetesServer(false);
             server.before();
@@ -84,7 +84,7 @@ public class LoadReportResourceUsageSourceTest {
             final Integer replicas = pulsarClusterSpec.getBroker().getReplicas();
 
             for (int i = 0; i < replicas; i++) {
-                final String podName = "%s-broker-%d".formatted(clusterName, i);
+                final String podName = "%s-broker-%d".formatted(clusterSpecName, i);
                 final Pod pod = new PodBuilder()
                         .withNewMetadata()
                         .withName(podName)
@@ -102,7 +102,7 @@ public class LoadReportResourceUsageSourceTest {
                     .get()
                     .withPath("/api/v1/namespaces/ns/pods?labelSelector=%s".formatted(
                                     URLEncoder.encode("app=pulsar"
-                                                    .formatted(clusterName),
+                                                    .formatted(clusterSpecName),
                                             StandardCharsets.UTF_8)
                             )
                     )

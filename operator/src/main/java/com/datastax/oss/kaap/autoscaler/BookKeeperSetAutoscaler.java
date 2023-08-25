@@ -95,10 +95,10 @@ public class BookKeeperSetAutoscaler implements Runnable {
         final BookKeeperAutoscalerSpec autoscalerSpec = desiredBookKeeperSetSpec.getAutoscaler();
         Objects.requireNonNull(autoscalerSpec);
 
-        final String clusterName = clusterSpec.getGlobal().getName();
+        final String clusterSpecName = clusterSpec.getGlobal().getName();
         final String bkBaseName = clusterSpec.getGlobal()
                 .getComponents().getBookkeeperBaseName();
-        final String bkName = "%s-%s".formatted(clusterName, bkBaseName);
+        final String bkName = "%s-%s".formatted(clusterSpecName, bkBaseName);
         @Valid BookKeeperAutoscalerSpec bkScalerSpec = clusterSpec.getBookkeeper().getAutoscaler();
         final double diskUsageHwm = bkScalerSpec.getDiskUsageToleranceHwm();
         final double diskUsageLwm = bkScalerSpec.getDiskUsageToleranceLwm();
@@ -132,13 +132,13 @@ public class BookKeeperSetAutoscaler implements Runnable {
 
         final int currentExpectedReplicas = currentBkSetSpec.getReplicas();
 
-        final String statefulsetName = BookKeeperResourcesFactory.getResourceName(clusterName,
+        final String statefulsetName = BookKeeperResourcesFactory.getResourceName(clusterSpecName,
                 currentGlobalSpec.getComponents().getBookkeeperBaseName(), bookkeeperSetName,
                 currentBkSetSpec.getOverrideResourceName());
         final String componentLabelValue = BookKeeperResourcesFactory.getComponentBaseName(currentGlobalSpec);
 
         final Map<String, String> podSelector = new TreeMap<>(Map.of(
-                CRDConstants.LABEL_CLUSTER, clusterName,
+                CRDConstants.LABEL_CLUSTER, clusterSpecName,
                 CRDConstants.LABEL_COMPONENT, componentLabelValue,
                 CRDConstants.LABEL_RESOURCESET, bookkeeperSetName));
 
@@ -150,7 +150,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                 autoscalerSpec.getStabilizationWindowMs(),
                 namespace, statefulsetName, podSelector, currentExpectedReplicas)) {
             log.infof("BookKeeper cluster %s %s is not ready to scale, expect replicas: %d",
-                    clusterName, bkName, currentExpectedReplicas);
+                    clusterSpecName, bkName, currentExpectedReplicas);
             return;
         }
 

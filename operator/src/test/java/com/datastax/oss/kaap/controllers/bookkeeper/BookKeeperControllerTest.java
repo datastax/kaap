@@ -64,13 +64,13 @@ import org.testng.annotations.Test;
 public class BookKeeperControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
 
     @Test
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 """;
 
@@ -86,17 +86,17 @@ public class BookKeeperControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: bookkeeper
                             resource-set: bookkeeper
-                          name: pulsarname-bookkeeper
+                          name: pulsar-spec-1-bookkeeper
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: BookKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           BOOKIE_GC: -XX:+UseG1GC
                           BOOKIE_MEM: -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ExitOnOutOfMemoryError
@@ -108,7 +108,7 @@ public class BookKeeperControllerTest {
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
                           PULSAR_PREFIX_statsProviderClass: org.apache.bookkeeper.stats.prometheus.PrometheusMetricsProvider
                           PULSAR_PREFIX_useHostNameAsBookieID: "true"
-                          PULSAR_PREFIX_zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_zkServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String service = client
@@ -122,17 +122,17 @@ public class BookKeeperControllerTest {
                     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: bookkeeper
                     resource-set: bookkeeper
-                  name: pulsarname-bookkeeper
+                  name: pulsar-spec-1-bookkeeper
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: BookKeeper
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   clusterIP: None
                   ports:
@@ -141,7 +141,7 @@ public class BookKeeperControllerTest {
                   publishNotReadyAddresses: true
                   selector:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: bookkeeper
                 """);
 
@@ -154,26 +154,26 @@ public class BookKeeperControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: bookkeeper
                     resource-set: bookkeeper
-                  name: pulsarname-bookkeeper
+                  name: pulsar-spec-1-bookkeeper
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: BookKeeper
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   podManagementPolicy: Parallel
                   replicas: 3
                   selector:
                     matchLabels:
                       app: pulsar
-                      cluster: pulsarname
+                      cluster: pulsar-spec-1
                       component: bookkeeper
-                  serviceName: pulsarname-bookkeeper
+                  serviceName: pulsar-spec-1-bookkeeper
                   template:
                     metadata:
                       annotations:
@@ -181,7 +181,7 @@ public class BookKeeperControllerTest {
                         prometheus.io/scrape: "true"
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: bookkeeper
                         resource-set: bookkeeper
                     spec:
@@ -191,7 +191,7 @@ public class BookKeeperControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: bookkeeper
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -202,7 +202,7 @@ public class BookKeeperControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-bookkeeper
+                            name: pulsar-spec-1-bookkeeper
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
                         livenessProbe:
@@ -212,7 +212,7 @@ public class BookKeeperControllerTest {
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
-                        name: pulsarname-bookkeeper
+                        name: pulsar-spec-1-bookkeeper
                         ports:
                         - containerPort: 3181
                           name: client
@@ -231,9 +231,9 @@ public class BookKeeperControllerTest {
                             memory: 2Gi
                         volumeMounts:
                         - mountPath: /pulsar/data/bookkeeper/journal
-                          name: pulsarname-bookkeeper-journal
+                          name: pulsar-spec-1-bookkeeper-journal
                         - mountPath: /pulsar/data/bookkeeper/ledgers
-                          name: pulsarname-bookkeeper-ledgers
+                          name: pulsar-spec-1-bookkeeper-ledgers
                       dnsConfig:
                         options:
                         - name: ndots
@@ -246,10 +246,10 @@ public class BookKeeperControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-bookkeeper
+                            name: pulsar-spec-1-bookkeeper
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
-                        name: pulsarname-bookkeeper-metadata-format
+                        name: pulsar-spec-1-bookkeeper-metadata-format
                       securityContext:
                         fsGroup: 0
                       terminationGracePeriodSeconds: 60
@@ -261,10 +261,10 @@ public class BookKeeperControllerTest {
                     metadata:
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: bookkeeper
                         resource-set: bookkeeper
-                      name: pulsarname-bookkeeper-journal
+                      name: pulsar-spec-1-bookkeeper-journal
                     spec:
                       accessModes:
                       - ReadWriteOnce
@@ -276,10 +276,10 @@ public class BookKeeperControllerTest {
                     metadata:
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: bookkeeper
                         resource-set: bookkeeper
-                      name: pulsarname-bookkeeper-ledgers
+                      name: pulsar-spec-1-bookkeeper-ledgers
                     spec:
                       accessModes:
                       - ReadWriteOnce
@@ -299,23 +299,23 @@ public class BookKeeperControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: bookkeeper
                             resource-set: bookkeeper
-                          name: pulsarname-bookkeeper
+                          name: pulsar-spec-1-bookkeeper
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: BookKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: bookkeeper
                             """);
 
@@ -588,7 +588,7 @@ public class BookKeeperControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -610,7 +610,7 @@ public class BookKeeperControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent

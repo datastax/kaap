@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 public class BrokerSetsControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
     private final ControllerTestUtil<BrokerFullSpec, Broker> controllerTestUtil =
             new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME);
 
@@ -47,7 +47,7 @@ public class BrokerSetsControllerTest {
     public void testBrokerSetsDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     setsUpdateStrategy: Parallel
@@ -59,30 +59,30 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
 
         assertStsEqualsDefault("set1",
-                client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set1").getResource());
+                client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set1").getResource());
 
         assertStsEqualsDefault("set2",
-                client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set2").getResource());
+                client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 2);
         assertConfigMapEqualsDefault("set1",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-broker-set1").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-broker-set1").getResource());
         assertConfigMapEqualsDefault("set2",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-broker-set2").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-broker-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(PodDisruptionBudget.class).size(), 2);
 
         assertPdbEqualsDefault("set1",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-broker-set1").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-broker-set1").getResource());
         assertPdbEqualsDefault("set2",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-broker-set2").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-broker-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 3);
 
         assertServiceEqualsDefault("set1",
-                client.getCreatedResource(Service.class, "pulsarname-broker-set1").getResource());
+                client.getCreatedResource(Service.class, "pulsar-spec-1-broker-set1").getResource());
         assertServiceEqualsDefault("set2",
-                client.getCreatedResource(Service.class, "pulsarname-broker-set2").getResource());
+                client.getCreatedResource(Service.class, "pulsar-spec-1-broker-set2").getResource());
     }
 
 
@@ -90,7 +90,7 @@ public class BrokerSetsControllerTest {
     public void testOverride() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     setsUpdateStrategy: Parallel
@@ -117,64 +117,64 @@ public class BrokerSetsControllerTest {
         MockKubernetesClient client = invokeController(spec);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set1")
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set1")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 3);
 
-        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set2")
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set2")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 6);
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-broker-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-broker-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "commonvalue");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-broker-set2")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-broker-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "override");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-broker-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-broker-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"), "set1");
 
-        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsarname-broker-set2")
+        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-broker-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"));
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-broker-set1")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-broker-set1")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-broker-set2")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-broker-set2")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 1);
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-broker-set1")
                 .getResource()
                 .getMetadata()
                 .getAnnotations().get("externaldns"), "myset1");
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-broker-set1")
                 .getResource()
                 .getSpec()
                 .getPorts().size(), 3);
 
-        Assert.assertNull(client.getCreatedResource(Service.class, "pulsarname-broker-set2")
+        Assert.assertNull(client.getCreatedResource(Service.class, "pulsar-spec-1-broker-set2")
                 .getResource()
                 .getMetadata()
                 .getAnnotations());
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-broker-set2")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-broker-set2")
                 .getResource()
                 .getSpec()
                 .getPorts().size(), 2);
@@ -183,7 +183,7 @@ public class BrokerSetsControllerTest {
     private void assertStsEqualsDefault(String setName, StatefulSet sts) {
         final StatefulSet defaultSts = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(StatefulSet.class).getResource();
         final String resourceName = CLUSTER_NAME + "-broker-" + setName;
@@ -225,7 +225,7 @@ public class BrokerSetsControllerTest {
     private void assertConfigMapEqualsDefault(String setName, ConfigMap cmap) {
         final ConfigMap defaultCmap = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(ConfigMap.class).getResource();
         final String resourceName = CLUSTER_NAME + "-broker-" + setName;
@@ -244,7 +244,7 @@ public class BrokerSetsControllerTest {
     private void assertPdbEqualsDefault(String setName, PodDisruptionBudget pdb) {
         final PodDisruptionBudget defaultPdb = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(PodDisruptionBudget.class).getResource();
         final String resourceName = CLUSTER_NAME + "-broker-" + setName;
@@ -265,7 +265,7 @@ public class BrokerSetsControllerTest {
     private void assertServiceEqualsDefault(String setName, Service service) {
         final Service defaultService = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(Service.class).getResource();
         final String resourceName = CLUSTER_NAME + "-broker-" + setName;
@@ -324,7 +324,7 @@ public class BrokerSetsControllerTest {
     public void testGetBrokerSetSpecs() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     replicas: 6
@@ -367,7 +367,7 @@ public class BrokerSetsControllerTest {
     public void testRacks() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                     resourceSets:
                         set1norack: {}
@@ -424,7 +424,7 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 6);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set1norack")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set1norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -436,14 +436,14 @@ public class BrokerSetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: broker
                                 resource-set: set1norack
                             topologyKey: kubernetes.io/hostname
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set2norack")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set2norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -456,7 +456,7 @@ public class BrokerSetsControllerTest {
                               labelSelector:
                                 matchLabels:
                                   app: pulsar
-                                  cluster: pulsarname
+                                  cluster: pulsar-spec-1
                                   component: broker
                                   resource-set: set2norack
                               topologyKey: kubernetes.io/hostname
@@ -465,21 +465,21 @@ public class BrokerSetsControllerTest {
                               labelSelector:
                                 matchLabels:
                                   app: pulsar
-                                  cluster: pulsarname
+                                  cluster: pulsar-spec-1
                                   component: broker
                                   resource-set: set2norack
                               topologyKey: failure-domain.beta.kubernetes.io/zone
                             weight: 100
                         """);
 
-        Assert.assertNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setdefault")
+        Assert.assertNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-setdefault")
                 .getResource()
                 .getSpec()
                 .getTemplate().getSpec().getAffinity()
         );
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set1")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set1")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -512,7 +512,7 @@ public class BrokerSetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: broker
                                 rack: rack1
                                 resource-set: set1
@@ -520,7 +520,7 @@ public class BrokerSetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set2")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set2")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -552,7 +552,7 @@ public class BrokerSetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-broker-set3")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-set3")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -604,7 +604,7 @@ public class BrokerSetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: broker
                                 rack: rack3
                                 resource-set: set3
@@ -617,7 +617,7 @@ public class BrokerSetsControllerTest {
     public void testRollingUpdate() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     sets:
@@ -634,7 +634,7 @@ public class BrokerSetsControllerTest {
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-setz"));
 
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
@@ -642,8 +642,8 @@ public class BrokerSetsControllerTest {
         KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
 
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -655,8 +655,8 @@ public class BrokerSetsControllerTest {
                         BrokerController.BrokerSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("seta"));
 
-        resolver.putResource("pulsarname-broker-seta",
-                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+        resolver.putResource("pulsar-spec-1-broker-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -666,14 +666,14 @@ public class BrokerSetsControllerTest {
 
         // now update
 
-        resolver.putResource("pulsarname-broker-seta",
-                resolver.newStatefulSetBuilder("pulsarname-broker-seta", false).build());
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", false).build());
+        resolver.putResource("pulsar-spec-1-broker-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-seta", false).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", false).build());
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     config:
@@ -686,21 +686,21 @@ public class BrokerSetsControllerTest {
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-setz"));
 
 
 
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-seta"));
 
-        resolver.putResource("pulsarname-broker-seta",
-                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+        resolver.putResource("pulsar-spec-1-broker-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -713,7 +713,7 @@ public class BrokerSetsControllerTest {
     public void testParallelUpdate() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     setsUpdateStrategy: Parallel
@@ -726,8 +726,8 @@ public class BrokerSetsControllerTest {
         UpdateControl<Broker> brokerUpdateControl = invokeController(spec, new Broker(), client);
         KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-seta"));
         Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
 
 
@@ -737,8 +737,8 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -746,8 +746,8 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putResource("pulsarname-broker-seta",
-                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+        resolver.putResource("pulsar-spec-1-broker-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -757,14 +757,14 @@ public class BrokerSetsControllerTest {
 
         // now update
 
-        resolver.putResource("pulsarname-broker-seta",
-                resolver.newStatefulSetBuilder("pulsarname-broker-seta", false).build());
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", false).build());
+        resolver.putResource("pulsar-spec-1-broker-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-seta", false).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", false).build());
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     setsUpdateStrategy: Parallel
@@ -778,13 +778,13 @@ public class BrokerSetsControllerTest {
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(brokerUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-seta"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-seta"));
         Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
 
 
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -792,8 +792,8 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertNotNull(brokerUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putResource("pulsarname-broker-seta",
-                resolver.newStatefulSetBuilder("pulsarname-broker-seta", true).build());
+        resolver.putResource("pulsar-spec-1-broker-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -806,7 +806,7 @@ public class BrokerSetsControllerTest {
     public void testDefineBrokerSetWithDefaultName() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     sets:
@@ -823,11 +823,11 @@ public class BrokerSetsControllerTest {
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-broker-setz"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putResource("pulsarname-broker-setz",
-                resolver.newStatefulSetBuilder("pulsarname-broker-setz", true).build());
+        resolver.putResource("pulsar-spec-1-broker-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -839,8 +839,8 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putResource("pulsarname-broker",
-                resolver.newStatefulSetBuilder("pulsarname-broker", true).build());
+        resolver.putResource("pulsar-spec-1-broker",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-broker", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         brokerUpdateControl = invokeController(spec, brokerUpdateControl.getResource(), client);
@@ -851,7 +851,7 @@ public class BrokerSetsControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     sets:
@@ -866,15 +866,15 @@ public class BrokerSetsControllerTest {
         Assert.assertNull(setsLastApplied.getSets().get("broker"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsarname-broker"));
+        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsar-spec-1-broker"));
         Assert.assertEquals(client.getDeletedResources().size(), 3);
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-broker"));
-        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-broker"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-broker"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsar-spec-1-broker"));
+        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsar-spec-1-broker"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-broker"));
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 broker:
                     replicas: 0
@@ -890,9 +890,9 @@ public class BrokerSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
 
         Assert.assertEquals(client.getDeletedResources().size(), 5);
-        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsarname-broker-setz"));
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-broker-setz"));
-        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-broker-setz"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-broker-setz"));
+        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsar-spec-1-broker-setz"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsar-spec-1-broker-setz"));
+        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsar-spec-1-broker-setz"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-broker-setz"));
     }
 }

@@ -61,13 +61,13 @@ import org.testng.annotations.Test;
 public class ZooKeeperControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
 
     @Test
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 """;
 
@@ -85,16 +85,16 @@ public class ZooKeeperControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
-                          name: pulsarname-zookeeper
+                          name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dzookeeper.tcpKeepAlive=true -Dzookeeper.clientTcpKeepAlive=true -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
@@ -114,25 +114,25 @@ public class ZooKeeperControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
-                          name: pulsarname-zookeeper
+                          name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           podManagementPolicy: Parallel
                           replicas: 3
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: zookeeper
-                          serviceName: pulsarname-zookeeper
+                          serviceName: pulsar-spec-1-zookeeper
                           template:
                             metadata:
                               annotations:
@@ -140,7 +140,7 @@ public class ZooKeeperControllerTest {
                                 prometheus.io/scrape: "true"
                               labels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: zookeeper
                             spec:
                               affinity:
@@ -149,7 +149,7 @@ public class ZooKeeperControllerTest {
                                   - labelSelector:
                                       matchLabels:
                                         app: pulsar
-                                        cluster: pulsarname
+                                        cluster: pulsar-spec-1
                                         component: zookeeper
                                     topologyKey: kubernetes.io/hostname
                               containers:
@@ -160,10 +160,10 @@ public class ZooKeeperControllerTest {
                                 - -c
                                 env:
                                 - name: ZOOKEEPER_SERVERS
-                                  value: "pulsarname-zookeeper-0,pulsarname-zookeeper-1,pulsarname-zookeeper-2"
+                                  value: "pulsar-spec-1-zookeeper-0,pulsar-spec-1-zookeeper-1,pulsar-spec-1-zookeeper-2"
                                 envFrom:
                                 - configMapRef:
-                                    name: pulsarname-zookeeper
+                                    name: pulsar-spec-1-zookeeper
                                 image: apachepulsar/pulsar:2.10.2
                                 imagePullPolicy: IfNotPresent
                                 livenessProbe:
@@ -175,7 +175,7 @@ public class ZooKeeperControllerTest {
                                   initialDelaySeconds: 20
                                   periodSeconds: 30
                                   timeoutSeconds: 30
-                                name: pulsarname-zookeeper
+                                name: pulsar-spec-1-zookeeper
                                 ports:
                                 - containerPort: 2181
                                   name: client
@@ -198,7 +198,7 @@ public class ZooKeeperControllerTest {
                                     memory: 1Gi
                                 volumeMounts:
                                 - mountPath: /pulsar/data
-                                  name: pulsarname-zookeeper-data
+                                  name: pulsar-spec-1-zookeeper-data
                               dnsConfig:
                                 options:
                                 - name: ndots
@@ -214,9 +214,9 @@ public class ZooKeeperControllerTest {
                             metadata:
                               labels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: zookeeper
-                              name: pulsarname-zookeeper-data
+                              name: pulsar-spec-1-zookeeper-data
                             spec:
                               accessModes:
                               - ReadWriteOnce
@@ -238,16 +238,16 @@ public class ZooKeeperControllerTest {
                             service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
-                          name: pulsarname-zookeeper
+                          name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           clusterIP: None
                           ports:
@@ -260,7 +260,7 @@ public class ZooKeeperControllerTest {
                           publishNotReadyAddresses: true
                           selector:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
                         """);
 
@@ -275,16 +275,16 @@ public class ZooKeeperControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
-                          name: pulsarname-zookeeper-ca
+                          name: pulsar-spec-1-zookeeper-ca
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           ports:
                           - name: server
@@ -295,7 +295,7 @@ public class ZooKeeperControllerTest {
                             port: 2181
                           selector:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
                             """);
 
@@ -310,22 +310,22 @@ public class ZooKeeperControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: zookeeper
-                          name: pulsarname-zookeeper
+                          name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: zookeeper
                             """);
     }
@@ -334,7 +334,7 @@ public class ZooKeeperControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -359,7 +359,7 @@ public class ZooKeeperControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent

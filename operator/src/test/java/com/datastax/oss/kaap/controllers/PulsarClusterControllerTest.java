@@ -51,7 +51,8 @@ public class PulsarClusterControllerTest {
 
     public static final String GLOBAL_SPEC_YAML_PART = """
             global:
-                name: pulsarname
+                name: pulsar-spec-1
+                clusterName: public-ap-southeast-2
                 components:
                   zookeeperBaseName: zookeeper
                   bookkeeperBaseName: bookkeeper
@@ -121,7 +122,8 @@ public class PulsarClusterControllerTest {
     public void testInstallCluster() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
+                    clusterName: public-ap-southeast-2
                     image: apachepulsar/pulsar:2.10.2
                 """;
         // first installation, install zk from scratch
@@ -291,7 +293,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: FunctionsWorker
                 metadata:
-                  name: pulsarname-functionsworker
+                  name: pulsar-spec-1-functionsworker
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -348,7 +350,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: Bastion
                 metadata:
-                  name: pulsarname-bastion
+                  name: pulsar-spec-1-bastion
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -379,7 +381,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: Autorecovery
                 metadata:
-                  name: pulsarname-autorecovery
+                  name: pulsar-spec-1-autorecovery
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -409,7 +411,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: Proxy
                 metadata:
-                  name: pulsarname-proxy
+                  name: pulsar-spec-1-proxy
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -472,7 +474,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: Broker
                 metadata:
-                  name: pulsarname-broker
+                  name: pulsar-spec-1-broker
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -538,7 +540,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: BookKeeper
                 metadata:
-                  name: pulsarname-bookkeeper
+                  name: pulsar-spec-1-bookkeeper
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -609,7 +611,7 @@ public class PulsarClusterControllerTest {
                 apiVersion: kaap.oss.datastax.com/v1alpha1
                 kind: ZooKeeper
                 metadata:
-                  name: pulsarname-zookeeper
+                  name: pulsar-spec-1-zookeeper
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
@@ -719,7 +721,7 @@ public class PulsarClusterControllerTest {
     public void testAuthTokenProvisioner() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -735,7 +737,7 @@ public class PulsarClusterControllerTest {
     public void testResourceSets() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -762,7 +764,7 @@ public class PulsarClusterControllerTest {
     public void testBookKeeperResourceSetsNotDefined() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -786,7 +788,7 @@ public class PulsarClusterControllerTest {
     public void testBrokerResourceSetsNotDefined() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -810,7 +812,7 @@ public class PulsarClusterControllerTest {
     public void testProxyResourceSetsNotDefined() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -835,7 +837,7 @@ public class PulsarClusterControllerTest {
     public void testRacksOk() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -860,7 +862,7 @@ public class PulsarClusterControllerTest {
     public void testRacks() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                     auth:
                         enabled: true
@@ -887,7 +889,8 @@ public class PulsarClusterControllerTest {
     public void testAdjustBookKeeperReplicas() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
+                    clusterName: public-ap-southeast-2
                     image: apachepulsar/pulsar:2.10.2
                 bookkeeper:
                     replicas: 1
@@ -960,7 +963,8 @@ public class PulsarClusterControllerTest {
     public void testAdjustBrokerReplicas() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
+                    clusterName: public-ap-southeast-2
                     image: apachepulsar/pulsar:2.10.2
                 broker:
                     replicas: 1

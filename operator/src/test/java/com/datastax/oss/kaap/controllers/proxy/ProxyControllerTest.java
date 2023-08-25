@@ -57,13 +57,13 @@ import org.testng.annotations.Test;
 public class ProxyControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
 
     @Test
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 """;
 
@@ -78,29 +78,29 @@ public class ProxyControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: proxy
                             resource-set: proxy
-                          name: pulsarname-proxy
+                          name: pulsar-spec-1-proxy
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_PREFIX_brokerServiceURL: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                          PULSAR_PREFIX_brokerServiceURLTLS: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
-                          PULSAR_PREFIX_brokerWebServiceURL: http://pulsarname-broker.ns.svc.cluster.local:8080/
-                          PULSAR_PREFIX_brokerWebServiceURLTLS: https://pulsarname-broker.ns.svc.cluster.local:8443/
-                          PULSAR_PREFIX_clusterName: pulsarname
-                          PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_brokerServiceURL: pulsar://pulsar-spec-1-broker.ns.svc.cluster.local:6650/
+                          PULSAR_PREFIX_brokerServiceURLTLS: pulsar+ssl://pulsar-spec-1-broker.ns.svc.cluster.local:6651/
+                          PULSAR_PREFIX_brokerWebServiceURL: http://pulsar-spec-1-broker.ns.svc.cluster.local:8080/
+                          PULSAR_PREFIX_brokerWebServiceURLTLS: https://pulsar-spec-1-broker.ns.svc.cluster.local:8443/
+                          PULSAR_PREFIX_clusterName: pulsar-spec-1
+                          PULSAR_PREFIX_configurationStoreServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                           PULSAR_PREFIX_numHttpServerThreads: 10
-                          PULSAR_PREFIX_zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_zookeeperServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         Assert.assertEquals(client
@@ -112,30 +112,30 @@ public class ProxyControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: proxy
                             resource-set: proxy
-                          name: pulsarname-proxy-ws
+                          name: pulsar-spec-1-proxy-ws
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
-                          PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                          PULSAR_PREFIX_brokerServiceUrlTls: pulsar+ssl://pulsarname-broker.ns.svc.cluster.local:6651/
-                          PULSAR_PREFIX_clusterName: pulsarname
-                          PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsar-spec-1-broker.ns.svc.cluster.local:6650/
+                          PULSAR_PREFIX_brokerServiceUrlTls: pulsar+ssl://pulsar-spec-1-broker.ns.svc.cluster.local:6651/
+                          PULSAR_PREFIX_clusterName: pulsar-spec-1
+                          PULSAR_PREFIX_configurationStoreServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                           PULSAR_PREFIX_numHttpServerThreads: 10
-                          PULSAR_PREFIX_serviceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
-                          PULSAR_PREFIX_serviceUrlTls: https://pulsarname-broker.ns.svc.cluster.local:8443/
+                          PULSAR_PREFIX_serviceUrl: http://pulsar-spec-1-broker.ns.svc.cluster.local:8080/
+                          PULSAR_PREFIX_serviceUrlTls: https://pulsar-spec-1-broker.ns.svc.cluster.local:8443/
                           PULSAR_PREFIX_webServicePort: 8000
-                          PULSAR_PREFIX_zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_zookeeperServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String service = client
@@ -147,17 +147,17 @@ public class ProxyControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: proxy
                     resource-set: proxy
-                  name: pulsarname-proxy
+                  name: pulsar-spec-1-proxy
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   ports:
                   - name: http
@@ -168,7 +168,7 @@ public class ProxyControllerTest {
                     port: 8000
                   selector:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: proxy
                   type: LoadBalancer
                 """);
@@ -182,23 +182,23 @@ public class ProxyControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: proxy
                     resource-set: proxy
-                  name: pulsarname-proxy
+                  name: pulsar-spec-1-proxy
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   replicas: 3
                   selector:
                     matchLabels:
                       app: pulsar
-                      cluster: pulsarname
+                      cluster: pulsar-spec-1
                       component: proxy
                   strategy:
                     rollingUpdate:
@@ -212,7 +212,7 @@ public class ProxyControllerTest {
                         prometheus.io/scrape: "true"
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: proxy
                         resource-set: proxy
                     spec:
@@ -222,7 +222,7 @@ public class ProxyControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: proxy
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -233,7 +233,7 @@ public class ProxyControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-proxy
+                            name: pulsar-spec-1-proxy
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
                         livenessProbe:
@@ -245,7 +245,7 @@ public class ProxyControllerTest {
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
-                        name: pulsarname-proxy
+                        name: pulsar-spec-1-proxy
                         ports:
                         - containerPort: 8080
                           name: http
@@ -271,10 +271,10 @@ public class ProxyControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-proxy-ws
+                            name: pulsar-spec-1-proxy-ws
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
-                        name: pulsarname-proxy-ws
+                        name: pulsar-spec-1-proxy-ws
                         ports:
                         - containerPort: 8000
                           name: ws
@@ -300,23 +300,23 @@ public class ProxyControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: proxy
                             resource-set: proxy
-                          name: pulsarname-proxy
+                          name: pulsar-spec-1-proxy
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: proxy
                             """);
 
@@ -687,7 +687,7 @@ public class ProxyControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -709,7 +709,7 @@ public class ProxyControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent

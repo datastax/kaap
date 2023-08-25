@@ -184,7 +184,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         final String zkServers = getZkServers();
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
-        data.put("clusterName", global.getName());
+        data.put("clusterName", global.getClusterName());
 
         if (isAuthTokenEnabled()) {
             data.put("authParams", "file:///pulsar/token-superuser-stripped.jwt");
@@ -225,7 +225,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         }
         if (spec.getFunctionsWorkerEnabled()) {
             data.put("functionsWorkerEnabled", "true");
-            data.put("pulsarFunctionsCluster", global.getName());
+            data.put("pulsarFunctionsCluster", global.getClusterName());
 
             // Since function worker connects on localhost, we can always non-TLS ports
             // when running with the broker
@@ -465,14 +465,13 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
             mainArgs += generateCertConverterScript() + " && ";
         }
 
-        final String clusterName = global.getName();
         final String zkServers = getZkServers();
 
         mainArgs += """
                 bin/pulsar initialize-transaction-coordinator-metadata --cluster %s \\
                     --configuration-store %s \\
                     --initial-num-transaction-coordinators %d
-                """.formatted(clusterName, zkServers, transactions.getPartitions());
+                """.formatted(global.getClusterName(), zkServers, transactions.getPartitions());
 
         final Container container = new ContainerBuilder()
                 .withName(resourceName)

@@ -91,6 +91,7 @@ public class PulsarClusterResourceGenerator {
 
         final GlobalSpec global = GlobalSpec.builder()
                 .name(inputSpecs.getClusterName())
+                .clusterName(inputSpecs.getClusterName())
                 .components(getComponentsConfig())
                 .dnsConfig(getPodDNSConfig())
                 .dnsName(getDnsName())

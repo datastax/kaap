@@ -76,7 +76,7 @@ public class BrokerSetAutoscaler implements Runnable {
         final BrokerAutoscalerSpec autoscalerSpec = desiredBrokerSetSpec.getAutoscaler();
         Objects.requireNonNull(autoscalerSpec);
 
-        final String clusterName = clusterSpec.getGlobal().getName();
+        final String clusterSpecName = clusterSpec.getGlobal().getName();
         final String brokerCustomResourceName = PulsarClusterController.computeCustomResourceName(clusterSpec,
                 PulsarClusterController.CUSTOM_RESOURCE_BROKER);
         final Broker brokerCr = client.resources(Broker.class)
@@ -96,13 +96,13 @@ public class BrokerSetAutoscaler implements Runnable {
         final int currentExpectedReplicas = currentBrokerSetSpec.getReplicas().intValue();
 
 
-        final String statefulsetName = BrokerResourcesFactory.getResourceName(clusterName,
+        final String statefulsetName = BrokerResourcesFactory.getResourceName(clusterSpecName,
                 currentGlobalSpec.getComponents().getBrokerBaseName(), brokerSetName,
                 currentBrokerSetSpec.getOverrideResourceName());
         final String componentLabelValue = BrokerResourcesFactory.getComponentBaseName(currentGlobalSpec);
 
         final Map<String, String> podSelector = new TreeMap<>(Map.of(
-                CRDConstants.LABEL_CLUSTER, clusterName,
+                CRDConstants.LABEL_CLUSTER, clusterSpecName,
                 CRDConstants.LABEL_COMPONENT, componentLabelValue,
                 CRDConstants.LABEL_RESOURCESET, brokerSetName));
 

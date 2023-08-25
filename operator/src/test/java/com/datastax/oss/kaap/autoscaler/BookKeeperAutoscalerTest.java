@@ -108,7 +108,7 @@ public class BookKeeperAutoscalerTest {
                     .bookkeeper(pulsarClusterSpec.getBookkeeper())
                     .build());
 
-            final String clusterName = pulsarClusterSpec.getGlobal().getName();
+            final String clusterSpecName = pulsarClusterSpec.getGlobal().getName();
 
             server = new KubernetesServer(false);
             server.before();
@@ -136,7 +136,7 @@ public class BookKeeperAutoscalerTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/apps/v1/namespaces/ns/statefulsets/%s-bookkeeper".formatted(clusterName))
+                    .withPath("/apis/apps/v1/namespaces/ns/statefulsets/%s-bookkeeper".formatted(clusterSpecName))
                     .andReturn(HttpURLConnection.HTTP_OK, sts)
                     .once();
 
@@ -144,7 +144,7 @@ public class BookKeeperAutoscalerTest {
                     .get()
                     .withPath(
                             "/apis/kaap.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(
-                                    clusterName))
+                                    clusterSpecName))
                     .andReturn(HttpURLConnection.HTTP_OK, bkCr)
                     .times(2);
 
@@ -153,7 +153,7 @@ public class BookKeeperAutoscalerTest {
             List<PodMetrics> podsMetrics = new ArrayList<>();
 
             for (int i = 0; i < replicas; i++) {
-                final String podName = "%s-bookkeeper-%d".formatted(clusterName, i);
+                final String podName = "%s-bookkeeper-%d".formatted(clusterSpecName, i);
                 final Pod pod = new PodBuilder()
                         .withNewMetadata()
                         .withName(podName)
@@ -200,7 +200,7 @@ public class BookKeeperAutoscalerTest {
                     .get()
                     .withPath("/api/v1/namespaces/ns/pods?labelSelector=%s".formatted(
                                     URLEncoder.encode(
-                                            "cluster=%s,component=bookkeeper,resource-set=bookkeeper".formatted(clusterName),
+                                            "cluster=%s,component=bookkeeper,resource-set=bookkeeper".formatted(clusterSpecName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -215,7 +215,7 @@ public class BookKeeperAutoscalerTest {
                     .get()
                     .withPath("/apis/metrics.k8s.io/v1beta1/namespaces/ns/pods?labelSelector=%s".formatted(
                                     URLEncoder.encode(
-                                            "cluster=%s,component=bookkeeper,resource-set=bookkeeper".formatted(clusterName),
+                                            "cluster=%s,component=bookkeeper,resource-set=bookkeeper".formatted(clusterSpecName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -226,7 +226,7 @@ public class BookKeeperAutoscalerTest {
                     .patch()
                     .withPath(
                             "/apis/kaap.oss.datastax.com/v1alpha1/namespaces/ns/bookkeepers/%s-bookkeeper".formatted(
-                                    clusterName))
+                                    clusterSpecName))
                     .andReply(HttpURLConnection.HTTP_OK, new BodyProvider<Object>() {
                         @Override
                         @SneakyThrows

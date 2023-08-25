@@ -1254,6 +1254,103 @@ spec:
                 type: object
               global:
                 properties:
+                  components:
+                    description: Pulsar cluster components names.
+                    properties:
+                      brokerBaseName:
+                        description: Broker base name. Default value is 'broker'.
+                        type: string
+                      zookeeperBaseName:
+                        description: Zookeeper base name. Default value is 'zookeeper'.
+                        type: string
+                      functionsWorkerBaseName:
+                        description: Functions Worker base name. Default value is
+                          'function'.
+                        type: string
+                      autorecoveryBaseName:
+                        description: Autorecovery base name. Default value is 'autorecovery'.
+                        type: string
+                      bookkeeperBaseName:
+                        description: BookKeeper base name. Default value is 'bookkeeper'.
+                        type: string
+                      bastionBaseName:
+                        description: Bastion base name. Default value is 'bastion'.
+                        type: string
+                      proxyBaseName:
+                        description: Proxy base name. Default value is 'proxy'.
+                        type: string
+                    type: object
+                  dnsConfig:
+                    description: DNS config for each pod.
+                    properties:
+                      nameservers:
+                        items:
+                          type: string
+                        type: array
+                      searches:
+                        items:
+                          type: string
+                        type: array
+                      options:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                  dnsName:
+                    description: Public dns name for the cluster's load balancer.
+                    type: string
+                  kubernetesClusterDomain:
+                    description: |
+                      The domain name for your kubernetes cluster.
+                      This domain is documented here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#a-aaaa-records-1 .
+                      It's used to fully qualify service names when configuring Pulsar.
+                      The default value is 'cluster.local'.
+                    type: string
+                  priorityClassName:
+                    description: Priority class name to attach to each pod.
+                    type: string
+                  name:
+                    description: Name of the Pulsar cluster spec.  This is used as
+                      a prefix for managed Kubernetes resources.
+                    type: string
+                  storage:
+                    description: Storage configuration.
+                    properties:
+                      storageClass:
+                        description: Indicates if a StorageClass is used. The operator
+                          will create the StorageClass if needed.
+                        properties:
+                          extraParams:
+                            additionalProperties:
+                              type: string
+                            description: Adds extra parameters for the StorageClass.
+                            type: object
+                          provisioner:
+                            description: Indicates the provisioner property for the
+                              StorageClass.
+                            type: string
+                          type:
+                            description: Indicates the 'type' parameter for the StorageClass.
+                            type: string
+                          fsType:
+                            description: Indicates the 'fsType' parameter for the
+                              StorageClass.
+                            type: string
+                          reclaimPolicy:
+                            description: Indicates the reclaimPolicy property for
+                              the StorageClass.
+                            type: string
+                        type: object
+                      existingStorageClassName:
+                        description: Indicates if an already existing storage class
+                          should be used.
+                        type: string
+                    type: object
                   tls:
                     description: TLS configuration for the cluster.
                     properties:
@@ -1555,53 +1652,10 @@ spec:
                             type: boolean
                         type: object
                     type: object
-                  components:
-                    description: Pulsar cluster components names.
-                    properties:
-                      brokerBaseName:
-                        description: Broker base name. Default value is 'broker'.
-                        type: string
-                      zookeeperBaseName:
-                        description: Zookeeper base name. Default value is 'zookeeper'.
-                        type: string
-                      functionsWorkerBaseName:
-                        description: Functions Worker base name. Default value is
-                          'function'.
-                        type: string
-                      autorecoveryBaseName:
-                        description: Autorecovery base name. Default value is 'autorecovery'.
-                        type: string
-                      bookkeeperBaseName:
-                        description: BookKeeper base name. Default value is 'bookkeeper'.
-                        type: string
-                      bastionBaseName:
-                        description: Bastion base name. Default value is 'bastion'.
-                        type: string
-                      proxyBaseName:
-                        description: Proxy base name. Default value is 'proxy'.
-                        type: string
-                    type: object
-                  dnsConfig:
-                    description: DNS config for each pod.
-                    properties:
-                      nameservers:
-                        items:
-                          type: string
-                        type: array
-                      searches:
-                        items:
-                          type: string
-                        type: array
-                      options:
-                        items:
-                          properties:
-                            value:
-                              type: string
-                            name:
-                              type: string
-                          type: object
-                        type: array
-                    type: object
+                  clusterName:
+                    description: Corresponds to the 'clusterName' field in the broker.conf.  Defaults
+                      to the value of the 'name' field
+                    type: string
                   restartOnConfigMapChange:
                     description: |
                       By default, Kubernetes will not restart pods when only their configmap is changed. This setting will restart pods when their configmap is changed using an annotation that calculates the checksum of the configmap.
@@ -1650,16 +1704,6 @@ spec:
                     description: |
                       If persistence is enabled, components that has state will be deployed with PersistentVolumeClaims, otherwise, for test purposes, they will be deployed with emptyDir
                     type: boolean
-                  dnsName:
-                    description: Public dns name for the cluster's load balancer.
-                    type: string
-                  kubernetesClusterDomain:
-                    description: |
-                      The domain name for your kubernetes cluster.
-                      This domain is documented here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#a-aaaa-records-1 .
-                      It's used to fully qualify service names when configuring Pulsar.
-                      The default value is 'cluster.local'.
-                    type: string
                   racks:
                     additionalProperties:
                       properties:
@@ -1713,9 +1757,6 @@ spec:
                       type: object
                     description: Racks configuration.
                     type: object
-                  priorityClassName:
-                    description: Priority class name to attach to each pod.
-                    type: string
                   resourceSets:
                     additionalProperties:
                       properties:
@@ -1726,9 +1767,6 @@ spec:
                       type: object
                     description: Resource sets.
                     type: object
-                  name:
-                    description: Pulsar cluster name.
-                    type: string
                   nodeSelectors:
                     additionalProperties:
                       type: string
@@ -1763,39 +1801,6 @@ spec:
                               the StorageClass.
                             type: boolean
                         type: object
-                    type: object
-                  storage:
-                    description: Storage configuration.
-                    properties:
-                      storageClass:
-                        description: Indicates if a StorageClass is used. The operator
-                          will create the StorageClass if needed.
-                        properties:
-                          extraParams:
-                            additionalProperties:
-                              type: string
-                            description: Adds extra parameters for the StorageClass.
-                            type: object
-                          provisioner:
-                            description: Indicates the provisioner property for the
-                              StorageClass.
-                            type: string
-                          type:
-                            description: Indicates the 'type' parameter for the StorageClass.
-                            type: string
-                          fsType:
-                            description: Indicates the 'fsType' parameter for the
-                              StorageClass.
-                            type: string
-                          reclaimPolicy:
-                            description: Indicates the reclaimPolicy property for
-                              the StorageClass.
-                            type: string
-                        type: object
-                      existingStorageClassName:
-                        description: Indicates if an already existing storage class
-                          should be used.
-                        type: string
                     type: object
                   zookeeperPlainSslStorePassword:
                     description: "Use plain password in zookeeper server and client\

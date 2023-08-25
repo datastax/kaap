@@ -65,7 +65,7 @@ public class ZooKeeperJobTest {
             pulsarClusterSpec.getZookeeper().applyDefaults(pulsarClusterSpec.getGlobalSpec());
 
 
-            final String clusterName = pulsarClusterSpec.getGlobal().getName();
+            final String clusterSpecName = pulsarClusterSpec.getGlobal().getName();
 
             server = new KubernetesServer(false);
             server.before();
@@ -81,7 +81,7 @@ public class ZooKeeperJobTest {
 
             server.expect()
                     .delete()
-                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper-metadata".formatted(clusterName))
+                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper-metadata".formatted(clusterSpecName))
                     .andReply(HttpURLConnection.HTTP_OK, recordedRequest -> {
                         MockServer.this.ops.add(new Op("DELETE"));
                         return null;
@@ -96,7 +96,7 @@ public class ZooKeeperJobTest {
             } else {
                 currentJob = new JobBuilder()
                         .withNewMetadata()
-                        .withName("%s-zookeeper-metadata".formatted(clusterName))
+                        .withName("%s-zookeeper-metadata".formatted(clusterSpecName))
                         .endMetadata()
                         .withNewStatus()
                         .withSucceeded(currentJobState == CurrentJobState.Running ? 0 : 1)
@@ -106,7 +106,7 @@ public class ZooKeeperJobTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper-metadata".formatted(clusterName))
+                    .withPath("/apis/batch/v1/namespaces/ns/jobs/%s-zookeeper-metadata".formatted(clusterSpecName))
                     .andReturn(HttpURLConnection.HTTP_OK, currentJob)
                     .always();
         }

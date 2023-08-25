@@ -40,6 +40,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @NoArgsConstructor
@@ -155,8 +156,10 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     @NotNull
     @Required
-    @JsonPropertyDescription("Pulsar cluster name.")
+    @JsonPropertyDescription("Name of the Pulsar cluster spec.  This is used as a prefix for managed Kubernetes resources.")
     private String name;
+    @JsonPropertyDescription("Corresponds to the 'clusterName' field in the broker.conf.  Defaults to the value of the 'name' field")
+    private String clusterName;
     @JsonPropertyDescription("Pulsar cluster components names.")
     private Components components;
     @JsonPropertyDescription("DNS config for each pod.")
@@ -212,6 +215,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
+        clusterName = StringUtils.firstNonBlank(clusterName, name);
         applyComponentsDefaults();
 
         if (kubernetesClusterDomain == null) {

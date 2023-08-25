@@ -51,13 +51,13 @@ import org.testng.annotations.Test;
 public class BastionControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
 
     @Test
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 """;
 
@@ -73,23 +73,23 @@ public class BastionControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: bastion
-                          name: pulsarname-bastion
+                          name: pulsar-spec-1-bastion
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Bastion
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_MEM: -XX:+ExitOnOutOfMemoryError
-                          PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                          PULSAR_PREFIX_webServiceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                          PULSAR_PREFIX_brokerServiceUrl: pulsar://pulsar-spec-1-broker.ns.svc.cluster.local:6650/
+                          PULSAR_PREFIX_webServiceUrl: http://pulsar-spec-1-broker.ns.svc.cluster.local:8080/
                         """);
 
         final String depl = client
@@ -101,28 +101,28 @@ public class BastionControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: bastion
-                  name: pulsarname-bastion
+                  name: pulsar-spec-1-bastion
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: Bastion
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   replicas: 1
                   selector:
                     matchLabels:
                       app: pulsar
-                      cluster: pulsarname
+                      cluster: pulsar-spec-1
                       component: bastion
                   template:
                     metadata:
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: bastion
                     spec:
                       affinity:
@@ -131,7 +131,7 @@ public class BastionControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: bastion
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -142,10 +142,10 @@ public class BastionControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-bastion
+                            name: pulsar-spec-1-bastion
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
-                        name: pulsarname-bastion
+                        name: pulsar-spec-1-bastion
                         resources:
                           requests:
                             cpu: 0.25
@@ -323,7 +323,7 @@ public class BastionControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -345,7 +345,7 @@ public class BastionControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent

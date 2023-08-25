@@ -46,7 +46,7 @@ public class CertManagerCertificatesProvisioner {
     private final PulsarClusterSpec pulsarClusterSpec;
     private final GlobalSpec globalSpec;
     private final TlsConfig.SelfSignedCertProvisionerConfig selfSigned;
-    private final String clusterName;
+    private final String clusterSpecName;
     private final String ssCaSecretName;
     private final String caIssuerName;
     private final String serviceDnsSuffix;
@@ -62,14 +62,14 @@ public class CertManagerCertificatesProvisioner {
                 || globalSpec.getTls().getCertProvisioner() == null
                 || globalSpec.getTls().getCertProvisioner().getSelfSigned() == null) {
             this.selfSigned = null;
-            this.clusterName = null;
+            this.clusterSpecName = null;
             this.caIssuerName = null;
             this.ssCaSecretName = null;
             this.serviceDnsSuffix = null;
         } else {
             this.selfSigned = globalSpec.getTls().getCertProvisioner().getSelfSigned();
-            this.clusterName = globalSpec.getName();
-            this.caIssuerName = "%s-ca-issuer".formatted(clusterName);
+            this.clusterSpecName = globalSpec.getName();
+            this.caIssuerName = "%s-ca-issuer".formatted(clusterSpecName);
             this.ssCaSecretName = BaseResourcesFactory.getTlsSsCaSecretName(globalSpec);
             this.serviceDnsSuffix = "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
         }
@@ -104,7 +104,7 @@ public class CertManagerCertificatesProvisioner {
                     && selfSigned.getIncludeDns()) {
                 dnsNames.add(globalSpec.getDnsName());
             }
-            final String certName = "%s-server-tls".formatted(clusterName);
+            final String certName = "%s-server-tls".formatted(clusterSpecName);
             createCertificate(
                     certName,
                     globalSpec.getTls().getDefaultSecretName(),
@@ -160,7 +160,7 @@ public class CertManagerCertificatesProvisioner {
         final Certificate caCertificate = new CertificateBuilder()
                 .withNewMetadata()
                 .withName("%s-%s-tls"
-                        .formatted(clusterName, globalSpec.getComponents().getAutorecoveryBaseName()))
+                        .formatted(clusterSpecName, globalSpec.getComponents().getAutorecoveryBaseName()))
                 .withNamespace(namespace)
                 .endMetadata()
                 .withNewSpec()
@@ -188,7 +188,7 @@ public class CertManagerCertificatesProvisioner {
         }
 
         createCertificate(
-                "%s-%s-tls".formatted(clusterName, baseName),
+                "%s-%s-tls".formatted(clusterSpecName, baseName),
                 secretName,
                 ObjectUtils.firstNonNull(componentConfig.getPrivateKey(), selfSigned.getPrivateKey()),
                 dnsNames
@@ -198,14 +198,14 @@ public class CertManagerCertificatesProvisioner {
     private List<String> getBookKeeperDNSNames() {
         final String componentBaseName = BookKeeperResourcesFactory.getComponentBaseName(globalSpec);
         return BookKeeperController
-                .enumerateBookKeeperSets(clusterName, componentBaseName, pulsarClusterSpec.getBookkeeper()).stream()
+                .enumerateBookKeeperSets(clusterSpecName, componentBaseName, pulsarClusterSpec.getBookkeeper()).stream()
                 .flatMap(set -> enumerateDnsNames(set, true).stream())
                 .collect(Collectors.toList());
     }
 
     private List<String> getFunctionsWorkerDNSNames() {
         final String functionsWorkerBase =
-                FunctionsWorkerResourcesFactory.getResourceName(clusterName,
+                FunctionsWorkerResourcesFactory.getResourceName(clusterSpecName,
                         FunctionsWorkerResourcesFactory.getComponentBaseName(globalSpec));
         List<String> dnsNames = new ArrayList<>();
         // The DNS names ending in "-ca" are meant for client access. The wildcard names are used for zookeeper to
@@ -217,7 +217,7 @@ public class CertManagerCertificatesProvisioner {
 
     private List<String> getZookeeperDNSNames() {
         final String zookeeperDNSNames =
-                ZooKeeperResourcesFactory.getResourceName(clusterName,
+                ZooKeeperResourcesFactory.getResourceName(clusterSpecName,
                         ZooKeeperResourcesFactory.getComponentBaseName(globalSpec));
         List<String> dnsNames = new ArrayList<>();
         // The DNS names ending in "-ca" are meant for client access. The wildcard names are used for zookeeper to
@@ -230,7 +230,7 @@ public class CertManagerCertificatesProvisioner {
     private List<String> getProxyDNSNames() {
         final String componentBaseName = ProxyResourcesFactory.getComponentBaseName(globalSpec);
         return ProxyController
-                .enumerateProxySets(clusterName, componentBaseName, pulsarClusterSpec.getProxy()).stream()
+                .enumerateProxySets(clusterSpecName, componentBaseName, pulsarClusterSpec.getProxy()).stream()
                 .flatMap(set -> enumerateDnsNames(set, false).stream())
                 .collect(Collectors.toList());
     }
@@ -238,7 +238,7 @@ public class CertManagerCertificatesProvisioner {
     private List<String> getBrokerDNSNames() {
         final String componentBaseName = BrokerResourcesFactory.getComponentBaseName(globalSpec);
         return BrokerController
-                .enumerateBrokerSets(clusterName, componentBaseName, pulsarClusterSpec.getBroker()).stream()
+                .enumerateBrokerSets(clusterSpecName, componentBaseName, pulsarClusterSpec.getBroker()).stream()
                 .flatMap(set -> enumerateDnsNames(set, true).stream())
                 .collect(Collectors.toList());
     }
@@ -282,7 +282,7 @@ public class CertManagerCertificatesProvisioner {
     }
 
     private void createRootCACertificate() {
-        final String ssIssuerName = "%s-self-signed-issuer".formatted(clusterName);
+        final String ssIssuerName = "%s-self-signed-issuer".formatted(clusterSpecName);
 
         final Issuer ssIssuer = new IssuerBuilder()
                 .withNewMetadata()
@@ -301,7 +301,7 @@ public class CertManagerCertificatesProvisioner {
 
         final Certificate caCertificate = new CertificateBuilder()
                 .withNewMetadata()
-                .withName("%s-ca-certificate".formatted(clusterName))
+                .withName("%s-ca-certificate".formatted(clusterSpecName))
                 .withNamespace(namespace)
                 .endMetadata()
                 .withNewSpec()

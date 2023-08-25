@@ -225,7 +225,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         data.put("configurationStoreServers", zkServers);
         data.put("zookeeperServers", zkServers);
         data.put("zooKeeperSessionTimeoutMillis", "30000");
-        data.put("pulsarFunctionsCluster", global.getName());
+        data.put("pulsarFunctionsCluster", global.getClusterName());
         data.put("workerId", resourceName);
         data.put(ENV_WORKER_HOSTNAME, resourceName);
         data.put("workerPort", "6750");

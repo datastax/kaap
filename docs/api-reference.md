@@ -55916,7 +55916,7 @@ Update strategy for the StatefulSet.
         <td><b>name</b></td>
         <td>string</td>
         <td>
-          Pulsar cluster name.<br/>
+          Name of the Pulsar cluster spec.  This is used as a prefix for managed Kubernetes resources.<br/>
         </td>
         <td>true</td>
       </tr><tr>
@@ -55932,6 +55932,13 @@ Update strategy for the StatefulSet.
         <td>
           Authentication and authorization configuration.
 <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>clusterName</b></td>
+        <td>string</td>
+        <td>
+          Corresponds to the 'clusterName' field in the broker.conf.  Defaults to the value of the 'name' field<br/>
         </td>
         <td>false</td>
       </tr><tr>

@@ -47,7 +47,6 @@ public class LoadReportResourceUsageSourceTest {
     @Builder(setterPrefix = "with")
     public static class MockServer implements AutoCloseable {
 
-
         private PulsarClusterSpec pulsarClusterSpec;
         private BiConsumer<Pod, MockServer> podConsumer;
 
@@ -93,6 +92,11 @@ public class LoadReportResourceUsageSourceTest {
                         .build();
                 podConsumer.accept(pod, this);
                 pods.add(pod);
+                server.expect()
+                        .get()
+                        .withPath("/api/v1/namespaces/ns/pods/%s".formatted(podName))
+                        .andReturn(HttpURLConnection.HTTP_OK, pod)
+                        .once();
             }
 
             final PodList podList = new PodListBuilder()

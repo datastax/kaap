@@ -33,15 +33,15 @@ import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import com.datastax.oss.kaap.mocks.MockResourcesResolver;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
-import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -1169,15 +1169,11 @@ public class BookKeeperSetsControllerTest {
     }
 
     private BookieAdminClient.BookieInfo genBookieInfo(String bookieId) {
-        final PodResource pod = Mockito.mock(PodResource.class);
-        when(pod.get()).thenReturn(new PodBuilder()
-                .withNewMetadata()
-                .withName(bookieId)
-                .endMetadata()
-                .build());
+        final Pod pod = Mockito.mock(Pod.class);
+        when(pod.getMetadata()).thenReturn(new ObjectMetaBuilder().withName(bookieId).build());
         return BookieAdminClient.BookieInfo.builder()
                 .bookieId(bookieId)
-                .podResource(pod)
+                .bookiePod(pod)
                 .build();
     }
 }

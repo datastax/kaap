@@ -18,7 +18,7 @@ package com.datastax.oss.kaap.crds.bastion;
 import com.datastax.oss.kaap.crds.FullSpecWithDefaults;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.validation.ValidSpec;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

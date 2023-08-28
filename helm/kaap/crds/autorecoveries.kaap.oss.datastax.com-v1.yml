@@ -521,6 +521,13 @@ spec:
                                 - type: string
                                 x-kubernetes-int-or-string: true
                               type: object
+                            claims:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
                             requests:
                               additionalProperties:
                                 anyOf:
@@ -1068,6 +1075,13 @@ spec:
                                 - type: string
                                 x-kubernetes-int-or-string: true
                               type: object
+                            claims:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
                             requests:
                               additionalProperties:
                                 anyOf:
@@ -1197,6 +1211,13 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
+                      claims:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                          type: object
+                        type: array
                       requests:
                         additionalProperties:
                           anyOf:

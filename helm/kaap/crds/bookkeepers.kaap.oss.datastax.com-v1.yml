@@ -787,6 +787,13 @@ spec:
                                 - type: string
                                 x-kubernetes-int-or-string: true
                               type: object
+                            claims:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
                             requests:
                               additionalProperties:
                                 anyOf:
@@ -1383,6 +1390,13 @@ spec:
                                       - type: string
                                       x-kubernetes-int-or-string: true
                                     type: object
+                                  claims:
+                                    items:
+                                      properties:
+                                        name:
+                                          type: string
+                                      type: object
+                                    type: array
                                   requests:
                                     additionalProperties:
                                       anyOf:
@@ -1556,6 +1570,17 @@ spec:
                                                   apiGroup:
                                                     type: string
                                                 type: object
+                                              dataSourceRef:
+                                                properties:
+                                                  name:
+                                                    type: string
+                                                  kind:
+                                                    type: string
+                                                  namespace:
+                                                    type: string
+                                                  apiGroup:
+                                                    type: string
+                                                type: object
                                               resources:
                                                 properties:
                                                   limits:
@@ -1565,6 +1590,13 @@ spec:
                                                       - type: string
                                                       x-kubernetes-int-or-string: true
                                                     type: object
+                                                  claims:
+                                                    items:
+                                                      properties:
+                                                        name:
+                                                          type: string
+                                                      type: object
+                                                    type: array
                                                   requests:
                                                     additionalProperties:
                                                       anyOf:
@@ -1572,15 +1604,6 @@ spec:
                                                       - type: string
                                                       x-kubernetes-int-or-string: true
                                                     type: object
-                                                type: object
-                                              dataSourceRef:
-                                                properties:
-                                                  name:
-                                                    type: string
-                                                  kind:
-                                                    type: string
-                                                  apiGroup:
-                                                    type: string
                                                 type: object
                                               accessModes:
                                                 items:
@@ -2594,6 +2617,13 @@ spec:
                                       - type: string
                                       x-kubernetes-int-or-string: true
                                     type: object
+                                  claims:
+                                    items:
+                                      properties:
+                                        name:
+                                          type: string
+                                      type: object
+                                    type: array
                                   requests:
                                     additionalProperties:
                                       anyOf:
@@ -2967,6 +2997,13 @@ spec:
                           - type: string
                           x-kubernetes-int-or-string: true
                         type: object
+                      claims:
+                        items:
+                          properties:
+                            name:
+                              type: string
+                          type: object
+                        type: array
                       requests:
                         additionalProperties:
                           anyOf:
@@ -3561,6 +3598,13 @@ spec:
                                 - type: string
                                 x-kubernetes-int-or-string: true
                               type: object
+                            claims:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
                             requests:
                               additionalProperties:
                                 anyOf:
@@ -3733,6 +3777,17 @@ spec:
                                             apiGroup:
                                               type: string
                                           type: object
+                                        dataSourceRef:
+                                          properties:
+                                            name:
+                                              type: string
+                                            kind:
+                                              type: string
+                                            namespace:
+                                              type: string
+                                            apiGroup:
+                                              type: string
+                                          type: object
                                         resources:
                                           properties:
                                             limits:
@@ -3742,6 +3797,13 @@ spec:
                                                 - type: string
                                                 x-kubernetes-int-or-string: true
                                               type: object
+                                            claims:
+                                              items:
+                                                properties:
+                                                  name:
+                                                    type: string
+                                                type: object
+                                              type: array
                                             requests:
                                               additionalProperties:
                                                 anyOf:
@@ -3749,15 +3811,6 @@ spec:
                                                 - type: string
                                                 x-kubernetes-int-or-string: true
                                               type: object
-                                          type: object
-                                        dataSourceRef:
-                                          properties:
-                                            name:
-                                              type: string
-                                            kind:
-                                              type: string
-                                            apiGroup:
-                                              type: string
                                           type: object
                                         accessModes:
                                           items:
@@ -4771,6 +4824,13 @@ spec:
                                 - type: string
                                 x-kubernetes-int-or-string: true
                               type: object
+                            claims:
+                              items:
+                                properties:
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
                             requests:
                               additionalProperties:
                                 anyOf:

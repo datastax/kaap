@@ -28,13 +28,13 @@ import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
-import javax.validation.Valid;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
@@ -235,7 +235,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                         .filter(d -> {
                             boolean res = isDiskUsageAboveTolerance(d, diskUsageLwm);
                             log.infof("isDiskUsageAboveTolerance: %s for %s (%s)", res,
-                                    info.getLeft().getPodResource().get().getMetadata().getName(),
+                                    info.getLeft().getBookiePod().getMetadata().getName(),
                                     d);
                             return res;
                         })
@@ -245,7 +245,7 @@ public class BookKeeperSetAutoscaler implements Runnable {
                     // don't want to go back and forth if bookies disk usage may result in
                     // switch to read-only/scale up soon
                     log.infof("Not all disks are ready for %s",
-                            info.getLeft().getPodResource().get().getMetadata().getName());
+                            info.getLeft().getBookiePod().getMetadata().getName());
                     return false;
                 }
             }

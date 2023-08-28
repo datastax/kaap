@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.kaap.autoscaler.bookkeeper;
 
-import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.api.model.Pod;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +25,7 @@ public interface BookieAdminClient {
     @Data
     @Builder
     class BookieInfo {
-        PodResource podResource;
+        Pod bookiePod;
         String bookieId;
     }
 

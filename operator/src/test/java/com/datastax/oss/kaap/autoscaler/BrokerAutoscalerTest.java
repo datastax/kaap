@@ -19,6 +19,7 @@ import com.datastax.oss.kaap.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.kaap.crds.broker.Broker;
 import com.datastax.oss.kaap.crds.broker.BrokerFullSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
+import com.datastax.oss.kaap.mocks.MockKubeServer;
 import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -96,7 +97,7 @@ public class BrokerAutoscalerTest {
 
             final String clusterName = pulsarClusterSpec.getGlobal().getName();
 
-            server = new KubernetesServer(false);
+            server = new MockKubeServer();
             server.before();
 
             final int replicas = pulsarClusterSpec.getBroker().getReplicas();

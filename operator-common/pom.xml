@@ -40,6 +40,11 @@
       <groupId>org.skyscreamer</groupId>
       <artifactId>jsonassert</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-server-mock</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

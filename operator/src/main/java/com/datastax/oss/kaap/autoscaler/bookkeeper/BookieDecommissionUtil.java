@@ -60,7 +60,7 @@ public class BookieDecommissionUtil {
 
         boolean success = true;
         for (BookieAdminClient.BookieInfo bookieInfo : bookiesToDecommission) {
-            String bookieName = bookieInfo.getPodResource().get().getMetadata().getName();
+            String bookieName = bookieInfo.getBookiePod().getMetadata().getName();
             log.infof("Attempting decommission of bookie %s with bookieId = %s",
                     bookieName, bookieInfo.getBookieId());
 
@@ -89,7 +89,7 @@ public class BookieDecommissionUtil {
                 // and on restart the bookie will fail
                 if (!deleteCookie(bookieInfo, bookieAdminClient)) {
                     log.warnf("Can't scale down, failed to delete cookie for %s",
-                            bookieInfo.getPodResource().get().getMetadata().getName());
+                            bookieInfo.getBookiePod().getMetadata().getName());
                     break;
                 }
                 bookiesSetAsReadonly.remove(bookieInfo);
@@ -122,13 +122,13 @@ public class BookieDecommissionUtil {
             bookieAdminClient.recoverAndDeleteCookieInZk(bookieInfo, false);
             if (bookieAdminClient.existsLedger(bookieInfo)) {
                 log.warnf("Bookie %s still has ledgers assigned to it, will not delete cookie",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                        bookieInfo.getBookiePod().getMetadata().getName());
                 return false;
             }
             return true;
         } catch (Exception e) {
             log.errorf(e, "Error while recovering bookie %s",
-                    bookieInfo.getPodResource().get().getMetadata().getName());
+                    bookieInfo.getBookiePod().getMetadata().getName());
             return false;
         }
     }
@@ -137,7 +137,7 @@ public class BookieDecommissionUtil {
         try {
             if (bookieAdminClient.existsLedger(bookieInfo)) {
                 log.warnf("Bookie %s has ledgers assigned to it, will not delete cookie",
-                        bookieInfo.getPodResource().get().getMetadata().getName());
+                        bookieInfo.getBookiePod().getMetadata().getName());
                 return false;
             }
 
@@ -147,7 +147,7 @@ public class BookieDecommissionUtil {
             return true;
         } catch (Exception e) {
             log.errorf(e, "Error while deleting a cookie for bookie %s",
-                    bookieInfo.getPodResource().get().getMetadata().getName());
+                    bookieInfo.getBookiePod().getMetadata().getName());
             return false;
         }
     }

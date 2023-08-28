@@ -2196,6 +2196,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -2205,6 +2212,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -3165,6 +3198,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -3174,6 +3214,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -4712,6 +4778,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -4721,6 +4794,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -7464,6 +7563,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbastioninitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -7473,6 +7579,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -8433,6 +8565,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbastionresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -8442,6 +8581,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -9980,6 +10145,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbastionsidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -9989,6 +10161,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -12375,6 +12573,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -12395,6 +12600,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -12404,6 +12616,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -16027,6 +16265,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -16036,6 +16281,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -17198,6 +17469,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -17207,6 +17485,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -18994,6 +19298,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -19014,6 +19325,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -19023,6 +19341,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -22611,6 +22955,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -22620,6 +22971,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -23782,6 +24159,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -23791,6 +24175,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -25423,6 +25833,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -25432,6 +25849,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -27943,6 +28386,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -27952,6 +28402,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -30632,6 +31108,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -30652,6 +31135,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -30661,6 +31151,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -34254,6 +34770,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -34263,6 +34786,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -35472,6 +36021,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokerresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -35481,6 +36037,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -37275,6 +37857,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -37295,6 +37884,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -37304,6 +37900,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -40897,6 +41519,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -40906,6 +41535,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -42115,6 +42770,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -42124,6 +42786,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -43763,6 +44451,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -43772,6 +44467,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -44534,6 +45255,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeytransactionsinitjobresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -44543,6 +45271,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].transactions.initJob.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -46147,6 +46901,13 @@ Update strategy for the StatefulSet.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -46156,6 +46917,32 @@ Update strategy for the StatefulSet.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -46918,6 +47705,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokertransactionsinitjobresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -46927,6 +47721,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.transactions.initJob.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -48672,6 +49492,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -48692,6 +49519,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -48701,6 +49535,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -52189,6 +53049,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -52198,6 +53065,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -53494,6 +54387,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -53503,6 +54403,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -55142,6 +56068,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -55151,6 +56084,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -59379,6 +60338,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -59399,6 +60365,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -59408,6 +60381,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -62896,6 +63895,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -62905,6 +63911,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -64100,6 +65132,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -64109,6 +65148,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -65903,6 +66968,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -65923,6 +66995,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -65932,6 +67011,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -69420,6 +70525,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -69429,6 +70541,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -70624,6 +71762,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -70633,6 +71778,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -72286,6 +73457,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -72295,6 +73473,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -73273,6 +74477,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeywebsocketresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -73282,6 +74493,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].webSocket.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -74820,6 +76057,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -74829,6 +76073,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -75807,6 +77077,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxywebsocketresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -75816,6 +77093,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.webSocket.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -77488,6 +78791,13 @@ Mount additional volumes to the pod.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -77508,6 +78818,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -77517,6 +78834,32 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.additionalVolumes.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -81106,6 +82449,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -81115,6 +82465,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -81790,6 +83166,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeepermetadatainitializationjobresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -81799,6 +83182,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.metadataInitializationJob.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -82343,6 +83752,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -82352,6 +83768,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -83984,6 +85426,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -83993,6 +85442,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>

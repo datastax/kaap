@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.kaap.crds.validation;
 
-import javax.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidator;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 

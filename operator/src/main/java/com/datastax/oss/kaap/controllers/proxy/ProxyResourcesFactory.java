@@ -221,7 +221,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         data.put("brokerWebServiceURLTLS", getBrokerWebServiceUrlTls());
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
-        data.put("clusterName", global.getName());
+        data.put("clusterName", global.getClusterName());
         boolean isStandaloneFunctionsWorker = spec.getStandaloneFunctionsWorker() != null
                 && spec.getStandaloneFunctionsWorker();
         final String functionsWorkerServiceUrl = getFunctionsWorkerServiceUrl();
@@ -315,7 +315,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         data.put("serviceUrlTls", getBrokerWebServiceUrlTls());
         data.put("zookeeperServers", zkServers);
         data.put("configurationStoreServers", zkServers);
-        data.put("clusterName", global.getName());
+        data.put("clusterName", global.getClusterName());
 
         data.putAll(DEFAULT_CONFIG_MAP);
         if (isAuthTokenEnabled()) {

@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
 public class ProxySetsControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
     private final ControllerTestUtil<ProxyFullSpec, Proxy> controllerTestUtil =
             new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME);
 
@@ -45,7 +45,7 @@ public class ProxySetsControllerTest {
     public void testProxySetsDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     setsUpdateStrategy: Parallel
@@ -57,30 +57,30 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
 
         assertDeploymentEqualsDefault("set1",
-                client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set1").getResource());
 
         assertDeploymentEqualsDefault("set2",
-                client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 4);
         assertConfigMapEqualsDefault("set1",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-proxy-set1").getResource());
         assertConfigMapEqualsDefault("set2",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-proxy-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(PodDisruptionBudget.class).size(), 2);
 
         assertPdbEqualsDefault("set1",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-proxy-set1").getResource());
         assertPdbEqualsDefault("set2",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-proxy-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 3);
 
         assertServiceEqualsDefault("set1",
-                client.getCreatedResource(Service.class, "pulsarname-proxy-set1").getResource());
+                client.getCreatedResource(Service.class, "pulsar-spec-1-proxy-set1").getResource());
         assertServiceEqualsDefault("set2",
-                client.getCreatedResource(Service.class, "pulsarname-proxy-set2").getResource());
+                client.getCreatedResource(Service.class, "pulsar-spec-1-proxy-set2").getResource());
     }
 
 
@@ -88,7 +88,7 @@ public class ProxySetsControllerTest {
     public void testOverride() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     setsUpdateStrategy: Parallel
@@ -115,64 +115,64 @@ public class ProxySetsControllerTest {
         MockKubernetesClient client = invokeController(spec);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set1")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 3);
 
-        Assert.assertEquals(client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set2")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 6);
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-proxy-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "commonvalue");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-proxy-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "override");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-proxy-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"), "set1");
 
-        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsarname-proxy-set2")
+        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-proxy-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"));
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-proxy-set1")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-proxy-set2")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 1);
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-proxy-set1")
                 .getResource()
                 .getMetadata()
                 .getAnnotations().get("externaldns"), "myset1");
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-proxy-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-proxy-set1")
                 .getResource()
                 .getSpec()
                 .getPorts().size(), 4);
 
-        Assert.assertNull(client.getCreatedResource(Service.class, "pulsarname-proxy-set2")
+        Assert.assertNull(client.getCreatedResource(Service.class, "pulsar-spec-1-proxy-set2")
                 .getResource()
                 .getMetadata()
                 .getAnnotations());
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-proxy-set2")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-proxy-set2")
                 .getResource()
                 .getSpec()
                 .getPorts().size(), 3);
@@ -181,7 +181,7 @@ public class ProxySetsControllerTest {
     private void assertDeploymentEqualsDefault(String setName, Deployment deployment) {
         final Deployment defaultSts = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(Deployment.class).getResource();
         final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
@@ -226,7 +226,7 @@ public class ProxySetsControllerTest {
     private void assertConfigMapEqualsDefault(String setName, ConfigMap cmap) {
         final ConfigMap defaultCmap = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(ConfigMap.class).getResource();
         final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
@@ -245,7 +245,7 @@ public class ProxySetsControllerTest {
     private void assertPdbEqualsDefault(String setName, PodDisruptionBudget pdb) {
         final PodDisruptionBudget defaultPdb = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(PodDisruptionBudget.class).getResource();
         final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
@@ -266,7 +266,7 @@ public class ProxySetsControllerTest {
     private void assertServiceEqualsDefault(String setName, Service service) {
         final Service defaultService = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(Service.class).getResource();
         final String resourceName = CLUSTER_NAME + "-proxy-" + setName;
@@ -309,7 +309,7 @@ public class ProxySetsControllerTest {
     public void testRacks() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                     resourceSets:
                         set1norack: {}
@@ -366,7 +366,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 6);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1norack")
+                        client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set1norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -378,14 +378,14 @@ public class ProxySetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: proxy
                                 resource-set: set1norack
                             topologyKey: kubernetes.io/hostname
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2norack")
+                        client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set2norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -398,7 +398,7 @@ public class ProxySetsControllerTest {
                               labelSelector:
                                 matchLabels:
                                   app: pulsar
-                                  cluster: pulsarname
+                                  cluster: pulsar-spec-1
                                   component: proxy
                                   resource-set: set2norack
                               topologyKey: kubernetes.io/hostname
@@ -407,21 +407,21 @@ public class ProxySetsControllerTest {
                               labelSelector:
                                 matchLabels:
                                   app: pulsar
-                                  cluster: pulsarname
+                                  cluster: pulsar-spec-1
                                   component: proxy
                                   resource-set: set2norack
                               topologyKey: failure-domain.beta.kubernetes.io/zone
                             weight: 100
                         """);
 
-        Assert.assertNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setdefault")
+        Assert.assertNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-setdefault")
                 .getResource()
                 .getSpec()
                 .getTemplate().getSpec().getAffinity()
         );
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set1")
+                        client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set1")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -454,7 +454,7 @@ public class ProxySetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: proxy
                                 rack: rack1
                                 resource-set: set1
@@ -462,7 +462,7 @@ public class ProxySetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set2")
+                        client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set2")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -494,7 +494,7 @@ public class ProxySetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(Deployment.class, "pulsarname-proxy-set3")
+                        client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-set3")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -546,7 +546,7 @@ public class ProxySetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: proxy
                                 rack: rack3
                                 resource-set: set3
@@ -564,7 +564,7 @@ public class ProxySetsControllerTest {
     public void testRollingUpdate() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     sets:
@@ -580,7 +580,7 @@ public class ProxySetsControllerTest {
                         ProxyController.ProxySetsLastApplied.class);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-setz"));
         Assert.assertNotNull(proxySetsLastApplied.getCommon());
         Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
 
@@ -594,7 +594,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
         Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -605,7 +605,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
         Assert.assertNotNull(proxySetsLastApplied.getSets().get("seta"));
 
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-seta", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -615,12 +615,12 @@ public class ProxySetsControllerTest {
 
         // now update
 
-        resolver.putDeployment("pulsarname-proxy-setz", false);
-        resolver.putDeployment("pulsarname-proxy-seta", false);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", false);
+        resolver.putDeployment("pulsar-spec-1-proxy-seta", false);
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     config:
@@ -633,18 +633,18 @@ public class ProxySetsControllerTest {
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-setz"));
 
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-seta"));
 
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-seta", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -656,7 +656,7 @@ public class ProxySetsControllerTest {
     public void testParallelUpdate() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     setsUpdateStrategy: Parallel
@@ -669,8 +669,8 @@ public class ProxySetsControllerTest {
         UpdateControl<Proxy> proxyUpdateControl = invokeController(spec, new Proxy(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-seta"));
         Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
 
 
@@ -680,7 +680,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
         Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -688,7 +688,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
         Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-seta", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -698,12 +698,12 @@ public class ProxySetsControllerTest {
 
         // now update
 
-        resolver.putDeployment("pulsarname-proxy-seta", false);
-        resolver.putDeployment("pulsarname-proxy-setz", false);
+        resolver.putDeployment("pulsar-spec-1-proxy-seta", false);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", false);
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     setsUpdateStrategy: Parallel
@@ -717,12 +717,12 @@ public class ProxySetsControllerTest {
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-seta"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-seta"));
         Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
 
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -730,7 +730,7 @@ public class ProxySetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
         Assert.assertNotNull(proxyUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putDeployment("pulsarname-proxy-seta", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-seta", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -743,7 +743,7 @@ public class ProxySetsControllerTest {
     public void testDefineProxySetWithDefaultName() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     sets:
@@ -756,14 +756,14 @@ public class ProxySetsControllerTest {
         KubeTestUtil.assertUpdateControlInitializing(proxyUpdateControl);
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsarname-proxy-setz"));
+        Assert.assertNotNull(client.getCreatedResource(Deployment.class, "pulsar-spec-1-proxy-setz"));
         ProxyController.ProxySetsLastApplied proxySetsLastApplied =
                 SerializationUtil.readJson(proxyUpdateControl.getResource().getStatus().getLastApplied(),
                         ProxyController.ProxySetsLastApplied.class);
         Assert.assertNotNull(proxySetsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putDeployment("pulsarname-proxy-setz", true);
+        resolver.putDeployment("pulsar-spec-1-proxy-setz", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -775,7 +775,7 @@ public class ProxySetsControllerTest {
         Assert.assertNotNull(proxySetsLastApplied.getSets().get("proxy"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putDeployment("pulsarname-proxy", true);
+        resolver.putDeployment("pulsar-spec-1-proxy", true);
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         proxyUpdateControl = invokeController(spec, proxyUpdateControl.getResource(), client);
@@ -784,7 +784,7 @@ public class ProxySetsControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     sets:
@@ -799,16 +799,16 @@ public class ProxySetsControllerTest {
         Assert.assertNull(proxySetsLastApplied.getSets().get("proxy"));
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsarname-proxy"));
+        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsar-spec-1-proxy"));
         Assert.assertEquals(client.getDeletedResources().size(), 4);
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-proxy"));
-        Assert.assertNotNull(client.getDeletedResource(Deployment.class, "pulsarname-proxy"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy-ws"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsar-spec-1-proxy"));
+        Assert.assertNotNull(client.getDeletedResource(Deployment.class, "pulsar-spec-1-proxy"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-proxy"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-proxy-ws"));
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 proxy:
                     replicas: 0
@@ -823,11 +823,11 @@ public class ProxySetsControllerTest {
         Assert.assertNull(proxySetsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(Deployment.class).size(), 0);
         Assert.assertEquals(client.getDeletedResources().size(), 6);
-        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(Deployment.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy-setz"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-proxy-setz-ws"));
+        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsar-spec-1-proxy-setz"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsar-spec-1-proxy-setz"));
+        Assert.assertNotNull(client.getDeletedResource(Deployment.class, "pulsar-spec-1-proxy-setz"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-proxy-setz"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-proxy-setz-ws"));
     }
 
 

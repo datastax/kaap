@@ -59,7 +59,7 @@ import org.testng.annotations.Test;
 public class BookKeeperSetsControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
     private BookieAdminClient bookieAdminClient;
     private final ControllerTestUtil<BookKeeperFullSpec, BookKeeper> controllerTestUtil =
             new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME, this::controllerConstructor);
@@ -73,7 +73,7 @@ public class BookKeeperSetsControllerTest {
     public void testBookKeeperSetsDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     setsUpdateStrategy: Parallel
@@ -85,30 +85,30 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
 
         assertStsEqualsDefault("set1",
-                client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1").getResource());
+                client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set1").getResource());
 
         assertStsEqualsDefault("set2",
-                client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2").getResource());
+                client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 2);
         assertConfigMapEqualsDefault("set1",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set1").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-set1").getResource());
         assertConfigMapEqualsDefault("set2",
-                client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set2").getResource());
+                client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(PodDisruptionBudget.class).size(), 2);
 
         assertPdbEqualsDefault("set1",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set1").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-bookkeeper-set1").getResource());
         assertPdbEqualsDefault("set2",
-                client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set2").getResource());
+                client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-bookkeeper-set2").getResource());
 
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 3);
 
         assertServiceEqualsDefault("set1",
-                client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1").getResource());
+                client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper-set1").getResource());
         assertServiceEqualsDefault("set2",
-                client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2").getResource());
+                client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper-set2").getResource());
     }
 
 
@@ -116,7 +116,7 @@ public class BookKeeperSetsControllerTest {
     public void testBookKeeperSetsDefaultName() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     setsUpdateStrategy: Parallel
@@ -141,7 +141,7 @@ public class BookKeeperSetsControllerTest {
     public void testOverride() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     setsUpdateStrategy: Parallel
@@ -168,64 +168,64 @@ public class BookKeeperSetsControllerTest {
         MockKubernetesClient client = invokeController(spec);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1")
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set1")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 3);
 
-        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2")
+        Assert.assertEquals(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set2")
                 .getResource()
                 .getSpec()
                 .getReplicas(), 6);
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "commonvalue");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set2")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_common"), "override");
 
-        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set1")
+        Assert.assertEquals(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-set1")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"), "set1");
 
-        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsarname-bookkeeper-set2")
+        Assert.assertNull(client.getCreatedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-set2")
                 .getResource()
                 .getData()
                 .get("PULSAR_PREFIX_myname"));
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set1")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-bookkeeper-set1")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 2);
 
-        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-set2")
+        Assert.assertEquals(client.getCreatedResource(PodDisruptionBudget.class, "pulsar-spec-1-bookkeeper-set2")
                 .getResource()
                 .getSpec()
                 .getMaxUnavailable()
                 .getIntVal(), 1);
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper-set1")
                 .getResource()
                 .getMetadata()
                 .getAnnotations().get("externaldns"), "myset1");
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set1")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper-set1")
                 .getResource()
                 .getSpec()
                 .getPorts().size(), 2);
 
-        Assert.assertNull(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2")
+        Assert.assertNull(client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper-set2")
                 .getResource()
                 .getMetadata()
                 .getAnnotations().get("externaldns"));
 
-        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsarname-bookkeeper-set2")
+        Assert.assertEquals(client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper-set2")
                 .getResource()
                 .getSpec()
                 .getPorts().size(), 1);
@@ -234,7 +234,7 @@ public class BookKeeperSetsControllerTest {
     private void assertStsEqualsDefault(String setName, StatefulSet sts) {
         final StatefulSet defaultSts = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(StatefulSet.class).getResource();
         final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
@@ -309,7 +309,7 @@ public class BookKeeperSetsControllerTest {
     private void assertConfigMapEqualsDefault(String setName, ConfigMap cmap) {
         final ConfigMap defaultCmap = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(ConfigMap.class).getResource();
         final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
@@ -328,7 +328,7 @@ public class BookKeeperSetsControllerTest {
     private void assertPdbEqualsDefault(String setName, PodDisruptionBudget pdb) {
         final PodDisruptionBudget defaultPdb = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(PodDisruptionBudget.class).getResource();
         final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
@@ -349,7 +349,7 @@ public class BookKeeperSetsControllerTest {
     private void assertServiceEqualsDefault(String setName, Service service) {
         final Service defaultService = invokeController("""
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 """).getCreatedResource(Service.class).getResource();
         final String resourceName = CLUSTER_NAME + "-bookkeeper-" + setName;
@@ -416,7 +416,7 @@ public class BookKeeperSetsControllerTest {
     public void testGetBookKeeperSetSpecs() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     replicas: 6
@@ -460,7 +460,7 @@ public class BookKeeperSetsControllerTest {
     public void testRacks() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                     resourceSets:
                         set1norack: {}
@@ -517,7 +517,7 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 6);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1norack")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set1norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -529,14 +529,14 @@ public class BookKeeperSetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: bookkeeper
                                 resource-set: set1norack
                             topologyKey: kubernetes.io/hostname
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2norack")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set2norack")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -549,7 +549,7 @@ public class BookKeeperSetsControllerTest {
                               labelSelector:
                                 matchLabels:
                                   app: pulsar
-                                  cluster: pulsarname
+                                  cluster: pulsar-spec-1
                                   component: bookkeeper
                                   resource-set: set2norack
                               topologyKey: kubernetes.io/hostname
@@ -558,21 +558,21 @@ public class BookKeeperSetsControllerTest {
                               labelSelector:
                                 matchLabels:
                                   app: pulsar
-                                  cluster: pulsarname
+                                  cluster: pulsar-spec-1
                                   component: bookkeeper
                                   resource-set: set2norack
                               topologyKey: failure-domain.beta.kubernetes.io/zone
                             weight: 100
                         """);
 
-        Assert.assertNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setdefault")
+        Assert.assertNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setdefault")
                 .getResource()
                 .getSpec()
                 .getTemplate().getSpec().getAffinity()
         );
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set1")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set1")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -605,7 +605,7 @@ public class BookKeeperSetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: bookkeeper
                                 rack: rack1
                                 resource-set: set1
@@ -613,7 +613,7 @@ public class BookKeeperSetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set2")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set2")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -645,7 +645,7 @@ public class BookKeeperSetsControllerTest {
                         """);
 
         Assert.assertEquals(SerializationUtil.writeAsYaml(
-                        client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-set3")
+                        client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-set3")
                                 .getResource()
                                 .getSpec()
                                 .getTemplate().getSpec().getAffinity()
@@ -697,7 +697,7 @@ public class BookKeeperSetsControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: bookkeeper
                                 rack: rack3
                                 resource-set: set3
@@ -710,7 +710,7 @@ public class BookKeeperSetsControllerTest {
     public void testRollingUpdate() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     sets:
@@ -723,7 +723,7 @@ public class BookKeeperSetsControllerTest {
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
         BookKeeperController.BookKeeperSetsLastApplied setsLastApplied =
                 SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
@@ -740,8 +740,8 @@ public class BookKeeperSetsControllerTest {
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
 
 
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -752,8 +752,8 @@ public class BookKeeperSetsControllerTest {
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("seta"));
 
-        resolver.putResource("pulsarname-bookkeeper-seta",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -763,14 +763,14 @@ public class BookKeeperSetsControllerTest {
 
         // now update
 
-        resolver.putResource("pulsarname-bookkeeper-seta",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", false).build());
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", false).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", false).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", false).build());
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     config:
@@ -783,20 +783,20 @@ public class BookKeeperSetsControllerTest {
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
 
 
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-seta"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-seta"));
 
-        resolver.putResource("pulsarname-bookkeeper-seta",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -809,7 +809,7 @@ public class BookKeeperSetsControllerTest {
     public void testParallelUpdate() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     setsUpdateStrategy: Parallel
@@ -822,8 +822,8 @@ public class BookKeeperSetsControllerTest {
         UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-seta"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-seta"));
         Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
 
@@ -833,8 +833,8 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -842,8 +842,8 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putResource("pulsarname-bookkeeper-seta",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -853,14 +853,14 @@ public class BookKeeperSetsControllerTest {
 
         // now update
 
-        resolver.putResource("pulsarname-bookkeeper-seta",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", false).build());
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", false).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", false).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", false).build());
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     setsUpdateStrategy: Parallel
@@ -874,13 +874,13 @@ public class BookKeeperSetsControllerTest {
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-seta"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-seta"));
         Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
 
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -888,8 +888,8 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
 
-        resolver.putResource("pulsarname-bookkeeper-seta",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-seta", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-seta",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -902,7 +902,7 @@ public class BookKeeperSetsControllerTest {
     public void testDefineBookKeeperSetWithDefaultName() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     sets:
@@ -919,11 +919,11 @@ public class BookKeeperSetsControllerTest {
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         // verify order of sets follows the order declared in the spec
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putResource("pulsarname-bookkeeper-setz",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper-setz", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper-setz",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -935,8 +935,8 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putResource("pulsarname-bookkeeper",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
@@ -946,7 +946,7 @@ public class BookKeeperSetsControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     sets:
@@ -962,16 +962,16 @@ public class BookKeeperSetsControllerTest {
 
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertEquals(client.getCreatedResources(Service.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsarname-bookkeeper"));
+        Assert.assertNotNull(client.getCreatedResource(Service.class, "pulsar-spec-1-bookkeeper"));
         Assert.assertEquals(client.getDeletedResources().size(), 4);
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper"));
-        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-bookkeeper"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-bookkeeper"));
-        Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsarname-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsar-spec-1-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper"));
+        Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsar-spec-1-bookkeeper"));
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     replicas: 0
@@ -987,11 +987,11 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
 
         Assert.assertEquals(client.getDeletedResources().size(), 6);
-        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsarname-bookkeeper-setz"));
-        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsarname-bookkeeper-setz"));
-        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsarname-bookkeeper-setz"));
-        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsarname-bookkeeper-setz"));
-        Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsarname-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(Service.class, "pulsar-spec-1-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(PodDisruptionBudget.class, "pulsar-spec-1-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(ConfigMap.class, "pulsar-spec-1-bookkeeper-setz"));
+        Assert.assertNotNull(client.getDeletedResource(StorageClass.class, "pulsar-spec-1-bookkeeper-setz"));
     }
 
 
@@ -999,7 +999,7 @@ public class BookKeeperSetsControllerTest {
     public void testCleanupPvc() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     replicas: 4
@@ -1009,20 +1009,20 @@ public class BookKeeperSetsControllerTest {
         UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
-        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsarname-bookkeeper"));
+        Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper"));
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
-        resolver.putResource("pulsarname-bookkeeper",
-                resolver.newStatefulSetBuilder("pulsarname-bookkeeper", true).build());
+        resolver.putResource("pulsar-spec-1-bookkeeper",
+                resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper", true).build());
 
-        resolver.putResource("pulsarname-bookkeeper-journal-0", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-ledgers-0", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-journal-1", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-ledgers-1", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-journal-2", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-ledgers-2", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-journal-3", genPvc());
-        resolver.putResource("pulsarname-bookkeeper-ledgers-3", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-journal-0", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-ledgers-0", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-journal-1", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-ledgers-1", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-journal-2", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-ledgers-2", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-journal-3", genPvc());
+        resolver.putResource("pulsar-spec-1-bookkeeper-ledgers-3", genPvc());
         client = new MockKubernetesClient(NAMESPACE, resolver);
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
@@ -1031,7 +1031,7 @@ public class BookKeeperSetsControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     replicas: 2
@@ -1041,15 +1041,15 @@ public class BookKeeperSetsControllerTest {
         bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getDeletedResources().size(), 4);
-        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-ledgers-2"));
-        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-journal-2"));
-        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-ledgers-3"));
-        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsarname-bookkeeper-journal-3"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsar-spec-1-bookkeeper-ledgers-2"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsar-spec-1-bookkeeper-journal-2"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsar-spec-1-bookkeeper-ledgers-3"));
+        Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsar-spec-1-bookkeeper-journal-3"));
 
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:global
                 bookkeeper:
                     cleanUpPvcs: false
@@ -1067,7 +1067,7 @@ public class BookKeeperSetsControllerTest {
         return new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
                 .withLabels(Map.of(CRDConstants.LABEL_APP, "pulsar",
-                        CRDConstants.LABEL_CLUSTER, "pulsarname",
+                        CRDConstants.LABEL_CLUSTER, "pulsar-spec-1",
                         CRDConstants.LABEL_COMPONENT, "bookkeeper",
                         CRDConstants.LABEL_RESOURCESET, "bookkeeper"))
                 .endMetadata()

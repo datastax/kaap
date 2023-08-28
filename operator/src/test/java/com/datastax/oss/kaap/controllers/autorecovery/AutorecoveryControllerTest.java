@@ -48,13 +48,13 @@ import org.testng.annotations.Test;
 public class AutorecoveryControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
 
     @Test
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 """;
 
@@ -69,16 +69,16 @@ public class AutorecoveryControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: autorecovery
-                          name: pulsarname-autorecovery
+                          name: pulsar-spec-1-autorecovery
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Autorecovery
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           BOOKIE_GC: -XX:+UseG1GC
                           BOOKIE_MEM: -Xms512m -Xmx512m -XX:+ExitOnOutOfMemoryError
@@ -87,7 +87,7 @@ public class AutorecoveryControllerTest {
                           PULSAR_LOG_ROOT_LEVEL: info
                           PULSAR_PREFIX_ensemblePlacementPolicy: org.apache.bookkeeper.client.RegionAwareEnsemblePlacementPolicy 
                           PULSAR_PREFIX_reppDnsResolverClass: org.apache.pulsar.zookeeper.ZkBookieRackAffinityMapping
-                          PULSAR_PREFIX_zkServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_zkServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String depl = client
@@ -99,22 +99,22 @@ public class AutorecoveryControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: autorecovery
-                  name: pulsarname-autorecovery
+                  name: pulsar-spec-1-autorecovery
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: Autorecovery
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   replicas: 1
                   selector:
                     matchLabels:
                       app: pulsar
-                      cluster: pulsarname
+                      cluster: pulsar-spec-1
                       component: autorecovery
                   template:
                     metadata:
@@ -123,7 +123,7 @@ public class AutorecoveryControllerTest {
                         prometheus.io/scrape: "true"
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: autorecovery
                     spec:
                       affinity:
@@ -132,7 +132,7 @@ public class AutorecoveryControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: autorecovery
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -143,10 +143,10 @@ public class AutorecoveryControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-autorecovery
+                            name: pulsar-spec-1-autorecovery
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
-                        name: pulsarname-autorecovery
+                        name: pulsar-spec-1-autorecovery
                         ports:
                         - containerPort: 8000
                           name: http
@@ -273,7 +273,7 @@ public class AutorecoveryControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -295,7 +295,7 @@ public class AutorecoveryControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent

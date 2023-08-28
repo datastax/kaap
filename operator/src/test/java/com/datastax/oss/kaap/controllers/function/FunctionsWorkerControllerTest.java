@@ -68,13 +68,13 @@ import org.testng.annotations.Test;
 public class FunctionsWorkerControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
 
     @Test
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 functionsWorker:
                     replicas: 2
@@ -90,22 +90,22 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           functions_worker.yml: |
                             ---
                             assignmentWriteMaxRetries: 60
                             clusterCoordinationTopicName: coordinate
-                            configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                            configurationStoreServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                             connectorsDirectory: ./connectors
                             downloadDirectory: /tmp/pulsar_functions
                             failureCheckFreqMs: 30000
@@ -118,18 +118,18 @@ public class FunctionsWorkerControllerTest {
                             instanceLivenessCheckFreqMs: 30000
                             numFunctionPackageReplicas: 2
                             numHttpServerThreads: 16
-                            pulsarFunctionsCluster: pulsarname
+                            pulsarFunctionsCluster: pulsar-spec-1
                             pulsarFunctionsNamespace: public/functions
-                            pulsarServiceUrl: pulsar://pulsarname-broker.ns.svc.cluster.local:6650/
-                            pulsarWebServiceUrl: http://pulsarname-broker.ns.svc.cluster.local:8080/
+                            pulsarServiceUrl: pulsar://pulsar-spec-1-broker.ns.svc.cluster.local:6650/
+                            pulsarWebServiceUrl: http://pulsar-spec-1-broker.ns.svc.cluster.local:8080/
                             rescheduleTimeoutMs: 60000
                             schedulerClassName: org.apache.pulsar.functions.worker.scheduler.RoundRobinScheduler
                             topicCompactionFrequencySec: 1800
-                            workerHostname: pulsarname-function
-                            workerId: pulsarname-function
+                            workerHostname: pulsar-spec-1-function
+                            workerId: pulsar-spec-1-function
                             workerPort: 6750
                             zooKeeperSessionTimeoutMillis: 30000
-                            zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                            zookeeperServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                                                 """);
 
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).get(1).getResourceYaml(),
@@ -140,16 +140,16 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
-                          name: pulsarname-function-extra
+                          name: pulsar-spec-1-function-extra
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
@@ -165,16 +165,16 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
-                          name: pulsarname-function-ca
+                          name: pulsar-spec-1-function-ca
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           ports:
                           - name: http
@@ -183,7 +183,7 @@ public class FunctionsWorkerControllerTest {
                             port: 6751
                           selector:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
                         """);
 
@@ -195,16 +195,16 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           clusterIP: None
                           ports:
@@ -214,7 +214,7 @@ public class FunctionsWorkerControllerTest {
                             port: 6751
                           selector:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
                           type: ClusterIP
                         """);
@@ -227,25 +227,25 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           podManagementPolicy: Parallel
                           replicas: 2
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: function
-                          serviceName: pulsarname-function
+                          serviceName: pulsar-spec-1-function
                           template:
                             metadata:
                               annotations:
@@ -253,7 +253,7 @@ public class FunctionsWorkerControllerTest {
                                 prometheus.io/scrape: "true"
                               labels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: function
                             spec:
                               affinity:
@@ -262,12 +262,12 @@ public class FunctionsWorkerControllerTest {
                                   - labelSelector:
                                       matchLabels:
                                         app: pulsar
-                                        cluster: pulsarname
+                                        cluster: pulsar-spec-1
                                         component: function
                                     topologyKey: kubernetes.io/hostname
                               containers:
                               - args:
-                                - "bin/apply-config-from-env.py conf/broker.conf && cp -f funcconf/functions_worker.yml conf/functions_worker.yml && export PF_workerHostname=\\"${workerHostname}.pulsarname-function\\" && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar functions-worker"
+                                - "bin/apply-config-from-env.py conf/broker.conf && cp -f funcconf/functions_worker.yml conf/functions_worker.yml && export PF_workerHostname=\\"${workerHostname}.pulsar-spec-1-function\\" && bin/gen-yml-from-env.py conf/functions_worker.yml && OPTS=\\"${OPTS} -Dlog4j2.formatMsgNoLookups=true\\" exec bin/pulsar functions-worker"
                                 command:
                                 - sh
                                 - -c
@@ -282,7 +282,7 @@ public class FunctionsWorkerControllerTest {
                                       fieldPath: metadata.name
                                 envFrom:
                                 - configMapRef:
-                                    name: pulsarname-function-extra
+                                    name: pulsar-spec-1-function-extra
                                 image: apachepulsar/pulsar:2.10.2
                                 imagePullPolicy: IfNotPresent
                                 livenessProbe:
@@ -294,7 +294,7 @@ public class FunctionsWorkerControllerTest {
                                   initialDelaySeconds: 10
                                   periodSeconds: 30
                                   timeoutSeconds: 5
-                                name: pulsarname-function
+                                name: pulsar-spec-1-function
                                 ports:
                                 - containerPort: 6750
                                   name: http
@@ -315,18 +315,18 @@ public class FunctionsWorkerControllerTest {
                                   name: config-volume
                                   subPath: functions_worker.yml
                                 - mountPath: /pulsar/logs
-                                  name: pulsarname-function-logs
+                                  name: pulsar-spec-1-function-logs
                               dnsConfig:
                                 options:
                                 - name: ndots
                                   value: 4
                               securityContext:
                                 fsGroup: 0
-                              serviceAccountName: pulsarname-function
+                              serviceAccountName: pulsar-spec-1-function
                               terminationGracePeriodSeconds: 60
                               volumes:
                               - configMap:
-                                  name: pulsarname-function
+                                  name: pulsar-spec-1-function
                                 name: config-volume
                           updateStrategy:
                             type: RollingUpdate
@@ -336,9 +336,9 @@ public class FunctionsWorkerControllerTest {
                             metadata:
                               labels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: function
-                              name: pulsarname-function-logs
+                              name: pulsar-spec-1-function-logs
                             spec:
                               accessModes:
                               - ReadWriteOnce
@@ -355,22 +355,22 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: function
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: function
                         """);
 
@@ -380,14 +380,14 @@ public class FunctionsWorkerControllerTest {
                         apiVersion: v1
                         kind: ServiceAccount
                         metadata:
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         """);
         Assert.assertEquals(client.getCreatedResource(Role.class).getResourceYaml(),
                 """
@@ -395,14 +395,14 @@ public class FunctionsWorkerControllerTest {
                         apiVersion: rbac.authorization.k8s.io/v1
                         kind: Role
                         metadata:
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         rules:
                         - apiGroups:
                           - ""
@@ -439,20 +439,20 @@ public class FunctionsWorkerControllerTest {
                         apiVersion: rbac.authorization.k8s.io/v1
                         kind: RoleBinding
                         metadata:
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         roleRef:
                           kind: Role
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                         subjects:
                         - kind: ServiceAccount
-                          name: pulsarname-function
+                          name: pulsar-spec-1-function
                           namespace: ns
                         """);
     }
@@ -461,7 +461,7 @@ public class FunctionsWorkerControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -485,7 +485,7 @@ public class FunctionsWorkerControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -2143,7 +2143,7 @@ public class FunctionsWorkerControllerTest {
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         """);
         Assert.assertEquals(client.getCreatedResource(ClusterRole.class).getResourceYaml(),
                 """
@@ -2157,7 +2157,7 @@ public class FunctionsWorkerControllerTest {
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         rules:
                         - apiGroups:
                           - ""
@@ -2200,7 +2200,7 @@ public class FunctionsWorkerControllerTest {
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         roleRef:
                           kind: ClusterRole
                           name: pul-function

@@ -94,7 +94,7 @@ public class BrokerAutoscalerTest {
                     .broker(pulsarClusterSpec.getBroker())
                     .build());
 
-            final String clusterName = pulsarClusterSpec.getGlobal().getName();
+            final String clusterSpecName = pulsarClusterSpec.getGlobal().getName();
 
             server = new KubernetesServer(false);
             server.before();
@@ -122,14 +122,14 @@ public class BrokerAutoscalerTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/apps/v1/namespaces/ns/statefulsets/%s-broker".formatted(clusterName))
+                    .withPath("/apis/apps/v1/namespaces/ns/statefulsets/%s-broker".formatted(clusterSpecName))
                     .andReturn(HttpURLConnection.HTTP_OK, sts)
                     .once();
 
             server.expect()
                     .get()
                     .withPath("/apis/kaap.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(
-                            clusterName))
+                            clusterSpecName))
                     .andReturn(HttpURLConnection.HTTP_OK, brokerCr)
                     .times(2);
 
@@ -138,7 +138,7 @@ public class BrokerAutoscalerTest {
             List<PodMetrics> podsMetrics = new ArrayList<>();
 
             for (int i = 0; i < replicas; i++) {
-                final String podName = "%s-broker-%d".formatted(clusterName, i);
+                final String podName = "%s-broker-%d".formatted(clusterSpecName, i);
                 final Pod pod = new PodBuilder()
                         .withNewMetadata()
                         .withName(podName)
@@ -184,7 +184,7 @@ public class BrokerAutoscalerTest {
                     .get()
                     .withPath("/api/v1/namespaces/ns/pods?labelSelector=%s".formatted(
                                     URLEncoder.encode("cluster=%s,component=broker,resource-set=broker"
-                                                    .formatted(clusterName),
+                                                    .formatted(clusterSpecName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -198,7 +198,7 @@ public class BrokerAutoscalerTest {
             server.expect()
                     .get()
                     .withPath("/apis/metrics.k8s.io/v1beta1/namespaces/ns/pods?labelSelector=%s".formatted(
-                                    URLEncoder.encode("cluster=%s,component=broker,resource-set=broker".formatted(clusterName),
+                                    URLEncoder.encode("cluster=%s,component=broker,resource-set=broker".formatted(clusterSpecName),
                                             StandardCharsets.UTF_8)
                             )
                     )
@@ -208,7 +208,7 @@ public class BrokerAutoscalerTest {
             server.expect()
                     .patch()
                     .withPath("/apis/kaap.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(
-                            clusterName))
+                            clusterSpecName))
                     .andReply(HttpURLConnection.HTTP_OK, new BodyProvider<Object>() {
                         @Override
                         @SneakyThrows

@@ -115,6 +115,7 @@ public class PulsarClusterResourceGeneratorTest {
                         spec:
                           global:
                             name: pulsar-cluster
+                            clusterName: pulsar-cluster
                             components:
                               zookeeperBaseName: zookeeper
                               bookkeeperBaseName: bookkeeper

@@ -60,7 +60,7 @@ import org.testng.annotations.Test;
 public class BrokerControllerTest {
 
     static final String NAMESPACE = "ns";
-    static final String CLUSTER_NAME = "pulsarname";
+    static final String CLUSTER_NAME = "pulsar-spec-1";
     private final ControllerTestUtil<BrokerFullSpec, Broker> controllerTestUtil =
             new ControllerTestUtil<>(NAMESPACE, CLUSTER_NAME);
 
@@ -68,7 +68,7 @@ public class BrokerControllerTest {
     public void testDefaults() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     image: apachepulsar/pulsar:2.10.2
                 """;
 
@@ -84,17 +84,17 @@ public class BrokerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: broker
                             resource-set: broker
-                          name: pulsarname-broker
+                          name: pulsar-spec-1-broker
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Broker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         data:
                           PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                           PULSAR_LOG_LEVEL: info
@@ -104,11 +104,11 @@ public class BrokerControllerTest {
                           PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy: producer_exception
                           PULSAR_PREFIX_bookkeeperClientRegionawarePolicyEnabled: "true"
                           PULSAR_PREFIX_brokerDeduplicationEnabled: "false"
-                          PULSAR_PREFIX_clusterName: pulsarname
-                          PULSAR_PREFIX_configurationStoreServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_clusterName: pulsar-spec-1
+                          PULSAR_PREFIX_configurationStoreServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                           PULSAR_PREFIX_exposeConsumerLevelMetricsInPrometheus: "false"
                           PULSAR_PREFIX_exposeTopicLevelMetricsInPrometheus: "true"
-                          PULSAR_PREFIX_zookeeperServers: pulsarname-zookeeper-ca.ns.svc.cluster.local:2181
+                          PULSAR_PREFIX_zookeeperServers: pulsar-spec-1-zookeeper-ca.ns.svc.cluster.local:2181
                         """);
 
         final String service = client
@@ -120,17 +120,17 @@ public class BrokerControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: broker
                     resource-set: broker
-                  name: pulsarname-broker
+                  name: pulsar-spec-1-broker
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: Broker
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   clusterIP: None
                   ports:
@@ -140,7 +140,7 @@ public class BrokerControllerTest {
                     port: 6650
                   selector:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: broker
                   type: ClusterIP
                 """);
@@ -154,25 +154,25 @@ public class BrokerControllerTest {
                 metadata:
                   labels:
                     app: pulsar
-                    cluster: pulsarname
+                    cluster: pulsar-spec-1
                     component: broker
                     resource-set: broker
-                  name: pulsarname-broker
+                  name: pulsar-spec-1-broker
                   namespace: ns
                   ownerReferences:
                   - apiVersion: kaap.oss.datastax.com/v1alpha1
                     kind: Broker
                     blockOwnerDeletion: true
                     controller: true
-                    name: pulsarname-cr
+                    name: pulsar-spec-1-cr
                 spec:
                   replicas: 3
                   selector:
                     matchLabels:
                       app: pulsar
-                      cluster: pulsarname
+                      cluster: pulsar-spec-1
                       component: broker
-                  serviceName: pulsarname-broker
+                  serviceName: pulsar-spec-1-broker
                   template:
                     metadata:
                       annotations:
@@ -180,7 +180,7 @@ public class BrokerControllerTest {
                         prometheus.io/scrape: "true"
                       labels:
                         app: pulsar
-                        cluster: pulsarname
+                        cluster: pulsar-spec-1
                         component: broker
                         resource-set: broker
                     spec:
@@ -190,7 +190,7 @@ public class BrokerControllerTest {
                           - labelSelector:
                               matchLabels:
                                 app: pulsar
-                                cluster: pulsarname
+                                cluster: pulsar-spec-1
                                 component: broker
                             topologyKey: kubernetes.io/hostname
                       containers:
@@ -201,7 +201,7 @@ public class BrokerControllerTest {
                         - -c
                         envFrom:
                         - configMapRef:
-                            name: pulsarname-broker
+                            name: pulsar-spec-1-broker
                         image: apachepulsar/pulsar:2.10.2
                         imagePullPolicy: IfNotPresent
                         livenessProbe:
@@ -213,7 +213,7 @@ public class BrokerControllerTest {
                           initialDelaySeconds: 10
                           periodSeconds: 30
                           timeoutSeconds: 5
-                        name: pulsarname-broker
+                        name: pulsar-spec-1-broker
                         ports:
                         - containerPort: 8080
                           name: http
@@ -250,23 +250,23 @@ public class BrokerControllerTest {
                         metadata:
                           labels:
                             app: pulsar
-                            cluster: pulsarname
+                            cluster: pulsar-spec-1
                             component: broker
                             resource-set: broker
-                          name: pulsarname-broker
+                          name: pulsar-spec-1-broker
                           namespace: ns
                           ownerReferences:
                           - apiVersion: kaap.oss.datastax.com/v1alpha1
                             kind: Broker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
                           selector:
                             matchLabels:
                               app: pulsar
-                              cluster: pulsarname
+                              cluster: pulsar-spec-1
                               component: broker
                             """);
 
@@ -388,7 +388,7 @@ public class BrokerControllerTest {
                             kind: Broker
                             blockOwnerDeletion: true
                             controller: true
-                            name: pulsarname-cr
+                            name: pulsar-spec-1-cr
                         spec:
                           template:
                             metadata:
@@ -799,7 +799,7 @@ public class BrokerControllerTest {
     public void testImage() throws Exception {
         String spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent
@@ -821,7 +821,7 @@ public class BrokerControllerTest {
 
         spec = """
                 global:
-                    name: pulsarname
+                    name: pulsar-spec-1
                     persistence: false
                     image: apachepulsar/pulsar:global
                     imagePullPolicy: IfNotPresent

@@ -403,14 +403,12 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
             mainArgs += generateCertConverterScript() + " && ";
         }
 
-        final String clusterName = global.getName();
-
         final String zkServers = getZkServers();
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
 
         mainArgs +=
                 "bin/pulsar initialize-cluster-metadata --cluster %s --zookeeper %s --configuration-store %s"
-                        .formatted(clusterName, zkServers, zkServers);
+                        .formatted(global.getClusterName(), zkServers, zkServers);
 
         mainArgs += " --web-service-url %s --broker-service-url %s"
                 .formatted(getBrokerWebServiceUrlPlain(), getBrokerServiceUrlPlain());

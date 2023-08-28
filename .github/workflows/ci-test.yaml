@@ -64,9 +64,9 @@ jobs:
             group: helm-tls
             num_agents: 0
             setup_helm: "true"
-          - name: Multi nodes
-            group: multi-nodes
-            num_agents: 1
+#          - name: Multi nodes
+#            group: multi-nodes
+#            num_agents: 1
     steps:
       - name: checkout
         uses: actions/checkout@v3

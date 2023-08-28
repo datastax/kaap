@@ -52,6 +52,10 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
 
     public static final String DEFAULT_TLS_SECRET_NAME = "pulsar-tls";
 
+
+    /** See CRD docs for more info about this setting. */
+    public static final String DNS_NDOTS = "4";
+
     private static final Supplier<TlsConfig> DEFAULT_TLS_CONFIG = () -> TlsConfig.builder()
             .enabled(false)
             .caPath("/etc/ssl/certs/ca-certificates.crt")
@@ -91,7 +95,7 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private static final Supplier<PodDNSConfig> DEFAULT_DNS_CONFIG = () -> new PodDNSConfigBuilder()
             .withOptions(new PodDNSConfigOptionBuilder()
                     .withName("ndots")
-                    .withValue("4")
+                    .withValue(DNS_NDOTS)
                     .build())
             .build();
 
@@ -162,7 +166,14 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
     private String clusterName;
     @JsonPropertyDescription("Pulsar cluster components names.")
     private Components components;
-    @JsonPropertyDescription("DNS config for each pod.")
+    @JsonPropertyDescription("""
+            Override default DNS config for each pod.  Note that because we use fully qualified service names for intra
+            cluster networking with Pulsar components, we set the ndots value to 4 (the default is 5). This prevents
+            unnecessary DNS lookups for the fully qualified service names that would be guaranteed to result in NXDOMAIN.
+            For example, the name 'pulsar-broker.pulsar.svc.cluster.local' has 4 dots, so it would be resolved directly
+            instead of appending the configured search domains.
+             More info here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config.
+            """)
     private PodDNSConfig dnsConfig;
     @JsonPropertyDescription("""
             The domain name for your kubernetes cluster.

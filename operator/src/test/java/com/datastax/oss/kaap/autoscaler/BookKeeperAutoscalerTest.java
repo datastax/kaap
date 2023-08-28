@@ -190,7 +190,7 @@ public class BookKeeperAutoscalerTest {
                         .get()
                         .withPath("/api/v1/namespaces/ns/pods/%s".formatted(podName))
                         .andReturn(HttpURLConnection.HTTP_OK, pod)
-                        .once();
+                        .always();
             }
             final PodList podList = new PodListBuilder()
                     .withItems(pods)

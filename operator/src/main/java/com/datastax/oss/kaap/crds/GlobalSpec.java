@@ -37,6 +37,7 @@ import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -44,6 +45,7 @@ import org.apache.commons.lang3.ObjectUtils;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(callSuper = false)
 public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefaults {
 
 
@@ -150,7 +152,6 @@ public class GlobalSpec extends ValidableSpec<GlobalSpec> implements WithDefault
         @JsonPropertyDescription("Indicates if an already existing storage class should be used.")
         private String existingStorageClassName;
     }
-
 
     @NotNull
     @Required

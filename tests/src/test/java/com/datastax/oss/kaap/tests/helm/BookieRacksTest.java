@@ -32,7 +32,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "helm")
+@Test(groups = "helm-tls-bkracks")
 public class BookieRacksTest extends BaseHelmTest {
 
     @Test

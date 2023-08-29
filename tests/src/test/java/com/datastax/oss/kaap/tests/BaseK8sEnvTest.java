@@ -30,6 +30,9 @@ import com.datastax.oss.kaap.crds.zookeeper.ZooKeeper;
 import com.datastax.oss.kaap.tests.env.ExistingK8sEnv;
 import com.datastax.oss.kaap.tests.env.K3sEnv;
 import com.datastax.oss.kaap.tests.env.K8sEnv;
+import io.fabric8.certmanager.api.model.v1.Certificate;
+import io.fabric8.certmanager.api.model.v1.CertificateRequest;
+import io.fabric8.certmanager.api.model.v1.Issuer;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Node;
@@ -459,6 +462,9 @@ public abstract class BaseK8sEnvTest {
         dumpResources(filePrefix, FunctionsWorker.class);
         dumpResources(filePrefix, Bastion.class);
         dumpResources(filePrefix, Autorecovery.class);
+        dumpResources(filePrefix, CertificateRequest.class);
+        dumpResources(filePrefix, Certificate.class);
+        dumpResources(filePrefix, Issuer.class);
     }
 
     private void dumpResources(String filePrefix, Class<? extends HasMetadata> clazz) {

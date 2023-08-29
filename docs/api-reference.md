@@ -2,9 +2,9 @@
 
 Packages:
 
-- [kaap.oss.datastax.com/v1alpha1](#kaapossdatastaxcomv1alpha1)
+- [kaap.oss.datastax.com/v1alpha2](#kaapossdatastaxcomv1alpha2)
 
-# kaap.oss.datastax.com/v1alpha1
+# kaap.oss.datastax.com/v1alpha2
 
 Resource Types:
 
@@ -33,7 +33,7 @@ Resource Types:
     <tbody><tr>
       <td><b>apiVersion</b></td>
       <td>string</td>
-      <td>kaap.oss.datastax.com/v1alpha1</td>
+      <td>kaap.oss.datastax.com/v1alpha2</td>
       <td>true</td>
       </tr>
       <tr>
@@ -55952,7 +55952,13 @@ Update strategy for the StatefulSet.
         <td><b><a href="#pulsarclusterspecglobaldnsconfig">dnsConfig</a></b></td>
         <td>object</td>
         <td>
-          DNS config for each pod.<br/>
+          Override default DNS config for each pod.  Note that because we use fully qualified service names for intra
+cluster networking with Pulsar components, we set the ndots value to 4 (the default is 5). This prevents
+unnecessary DNS lookups for the fully qualified service names that would be guaranteed to result in NXDOMAIN.
+For example, the name 'pulsar-broker.pulsar.svc.cluster.local' has 4 dots, so it would be resolved directly
+instead of appending the configured search domains.
+ More info here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config.
+<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -56315,7 +56321,13 @@ Pulsar cluster components names.
 
 
 
-DNS config for each pod.
+Override default DNS config for each pod.  Note that because we use fully qualified service names for intra
+cluster networking with Pulsar components, we set the ndots value to 4 (the default is 5). This prevents
+unnecessary DNS lookups for the fully qualified service names that would be guaranteed to result in NXDOMAIN.
+For example, the name 'pulsar-broker.pulsar.svc.cluster.local' has 4 dots, so it would be resolved directly
+instead of appending the configured search domains.
+ More info here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config.
+
 
 <table>
     <thead>

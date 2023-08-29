@@ -334,8 +334,8 @@ spec:
                           by setting the 'secretName' entry in the tls component spec.
                         type: string
                       enabled:
-                        description: "Global switch to turn on or off the TLS configurations.\
-                          \ Additionally, you have configure each component section."
+                        description: Deprecated. Use the 'enabled' field in each component
+                          spec instead.
                         type: boolean
                       caPath:
                         description: Path in the container filesystem where the TLS

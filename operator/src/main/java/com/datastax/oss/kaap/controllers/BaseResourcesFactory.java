@@ -334,6 +334,11 @@ public abstract class BaseResourcesFactory<T> {
                 && global.getTls().getFunctionsWorker().getEnabled();
     }
 
+    protected boolean isTlsEnabledFromFunctionsWorkerToBroker() {
+        return global.getTls().getFunctionsWorker() != null
+                && global.getTls().getFunctionsWorker().getEnabledWithBroker();
+    }
+
     protected boolean isTlsEnabledOnAutorecovery() {
         return global.getTls().getFunctionsWorker() != null
                 && global.getTls().getFunctionsWorker().getEnabled();

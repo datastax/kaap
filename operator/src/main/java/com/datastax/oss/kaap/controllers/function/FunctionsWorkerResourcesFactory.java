@@ -257,8 +257,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             data.put("brokerClientTrustCertsFilePath", fullCaPath);
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
         }
-        final Boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker();
-        if (enabledWithBroker != null && enabledWithBroker) {
+        final boolean enabledWithBroker = isTlsEnabledFromFunctionsWorkerToBroker();
+        if (enabledWithBroker) {
             data.put("useTls", "true");
             data.put("tlsEnabledWithKeyStore", "true");
             data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
@@ -363,8 +363,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
 
         final boolean tlsEnabledOnBroker = isTlsEnabledOnBroker();
         final boolean tlsEnabledOnFunctionsWorker = isTlsEnabledOnFunctionsWorker();
-        final boolean enabledWithBroker = global.getTls().getFunctionsWorker().getEnabledWithBroker() == null
-                ? false : global.getTls().getFunctionsWorker().getEnabledWithBroker();
+        final boolean enabledWithBroker = isTlsEnabledFromFunctionsWorkerToBroker();
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();

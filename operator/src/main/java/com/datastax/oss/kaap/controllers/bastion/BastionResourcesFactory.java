@@ -128,8 +128,11 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
 
         List<VolumeMount> volumeMounts = new ArrayList<>();
         List<Volume> volumes = new ArrayList<>();
-        if (isTlsEnabledOnProxy() || isTlsEnabledOnBroker()) {
-            addTlsVolumes(volumeMounts, volumes, getTlsSsCaSecretName());
+        boolean targetProxy = spec.getTargetProxy() != null && spec.getTargetProxy();
+        boolean targetTlsEnabled = targetProxy ? isTlsEnabledOnProxy() : isTlsEnabledOnBroker();
+        if (targetTlsEnabled) {
+            final String secret = targetProxy ? getTlsSecretNameForProxy() : getTlsSecretNameForBroker();
+            addTlsVolumes(volumeMounts, volumes, secret);
         }
         String mainArg = "";
 

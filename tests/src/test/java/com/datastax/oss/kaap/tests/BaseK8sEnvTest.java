@@ -468,11 +468,15 @@ public abstract class BaseK8sEnvTest {
     }
 
     private void dumpResources(String filePrefix, Class<? extends HasMetadata> clazz) {
-        client.resources(clazz)
-                .inNamespace(namespace)
-                .list()
-                .getItems()
-                .forEach(resource -> dumpResource(filePrefix, resource));
+        try {
+            client.resources(clazz)
+                    .inNamespace(namespace)
+                    .list()
+                    .getItems()
+                    .forEach(resource -> dumpResource(filePrefix, resource));
+        } catch (Throwable t) {
+            log.error("failed to dump resources of type {}", clazz, t);
+        }
     }
 
     protected void dumpResource(String filePrefix, HasMetadata resource) {

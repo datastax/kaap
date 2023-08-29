@@ -48,7 +48,13 @@ spec:
                         type: string
                     type: object
                   dnsConfig:
-                    description: DNS config for each pod.
+                    description: |
+                      Override default DNS config for each pod.  Note that because we use fully qualified service names for intra
+                      cluster networking with Pulsar components, we set the ndots value to 4 (the default is 5). This prevents
+                      unnecessary DNS lookups for the fully qualified service names that would be guaranteed to result in NXDOMAIN.
+                      For example, the name 'pulsar-broker.pulsar.svc.cluster.local' has 4 dots, so it would be resolved directly
+                      instead of appending the configured search domains.
+                       More info here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-dns-config.
                     properties:
                       nameservers:
                         items:

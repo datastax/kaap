@@ -266,27 +266,17 @@ public abstract class BaseResourcesFactory<T> {
         return version;
     }
 
-    public static boolean isTlsEnabledGlobally(GlobalSpec global) {
-        return global.getTls() != null && global.getTls().getEnabled();
-    }
-
-    protected boolean isTlsEnabledGlobally() {
-        return isTlsEnabledGlobally(global);
-    }
-
     protected boolean isTlsEnabledOnZooKeeper() {
         return isTlsEnabledOnZooKeeper(global);
     }
 
     public static boolean isTlsEnabledOnZooKeeper(GlobalSpec global) {
-        return isTlsEnabledGlobally(global)
-                && global.getTls().getZookeeper() != null
+        return global.getTls().getZookeeper() != null
                 && global.getTls().getZookeeper().getEnabled();
     }
 
     public static boolean isTlsEnabledOnBookKeeper(GlobalSpec global) {
-        return isTlsEnabledGlobally(global)
-                && global.getTls().getBookkeeper() != null
+        return global.getTls().getBookkeeper() != null
                 && global.getTls().getBookkeeper().getEnabled();
     }
 
@@ -299,16 +289,11 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected static boolean isTlsEnabledOnBroker(GlobalSpec global) {
-        return isTlsEnabledGlobally(global)
-                && global.getTls().getBroker() != null
+        return global.getTls().getBroker() != null
                 && global.getTls().getBroker().getEnabled();
     }
 
     protected boolean isTlsEnabledOnBrokerSet(String brokerSet) {
-        final boolean tlsEnabledGlobally = isTlsEnabledGlobally();
-        if (!tlsEnabledGlobally) {
-            return false;
-        }
         final TlsConfig.TlsEntryConfig tlsConfigForBrokerSet = getTlsConfigForBrokerSet(brokerSet);
         return tlsConfigForBrokerSet != null && tlsConfigForBrokerSet.getEnabled();
     }
@@ -325,16 +310,11 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected boolean isTlsEnabledOnProxy() {
-        return isTlsEnabledGlobally()
-                && global.getTls().getProxy() != null
+        return global.getTls().getProxy() != null
                 && global.getTls().getProxy().getEnabled();
     }
 
     protected boolean isTlsEnabledOnProxySet(String proxySet) {
-        final boolean tlsEnabledGlobally = isTlsEnabledGlobally();
-        if (!tlsEnabledGlobally) {
-            return false;
-        }
         final TlsConfig.ProxyTlsEntryConfig tlsConfigForProxySet = getTlsConfigForProxySet(proxySet);
         return tlsConfigForProxySet != null && tlsConfigForProxySet.getEnabled();
     }
@@ -350,15 +330,14 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected boolean isTlsEnabledOnFunctionsWorker() {
-        return isTlsEnabledGlobally()
-                && global.getTls().getFunctionsWorker() != null
+        return global.getTls().getFunctionsWorker() != null
                 && global.getTls().getFunctionsWorker().getEnabled();
     }
 
-    protected boolean isTlsEnabledOnAutorecovery() {
-        return isTlsEnabledGlobally()
-                && global.getTls().getFunctionsWorker() != null
-                && global.getTls().getFunctionsWorker().getEnabled();
+    protected boolean isTlsEnabledFromFunctionsWorkerToBroker() {
+        return global.getTls().getFunctionsWorker() != null
+                && global.getTls().getFunctionsWorker().getEnabledWithBroker() != null
+                && global.getTls().getFunctionsWorker().getEnabledWithBroker();
     }
 
     protected boolean isTlsGenerateSelfSignedCertEnabled() {
@@ -402,11 +381,6 @@ public abstract class BaseResourcesFactory<T> {
                 tls ? "https" : "http",
                 brokerServiceName,
                 getServiceDnsSuffix(global, namespace), tls ? 8443 : 8080);
-    }
-
-    public static String getBrokerWebServiceUrl(GlobalSpec global, String namespace) {
-        final boolean tls = isTlsEnabledGlobally(global);
-        return getBrokerWebServiceUrl(tls, global, namespace);
     }
 
     protected String getBrokerWebServiceUrl() {
@@ -576,11 +550,8 @@ public abstract class BaseResourcesFactory<T> {
                 global.getTls().getDefaultSecretName());
     }
 
-    protected void addTlsVolumesIfEnabled(List<VolumeMount> volumeMounts, List<Volume> volumes,
-                                          String secretName) {
-        if (!isTlsEnabledGlobally()) {
-            return;
-        }
+    protected void addTlsVolumes(List<VolumeMount> volumeMounts, List<Volume> volumes,
+                                 String secretName) {
         Objects.requireNonNull("secretName cannot be null", secretName);
         volumeMounts.add(createTlsCertsVolumeMount());
         volumes.add(
@@ -1121,9 +1092,6 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     protected String getFullCaPath() {
-        if (!isTlsEnabledGlobally()) {
-            return null;
-        }
         if (isTlsGenerateSelfSignedCertEnabled()) {
             return "/pulsar/certs/ca.crt";
         } else {

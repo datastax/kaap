@@ -56692,7 +56692,7 @@ TLS configuration for the cluster.
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>
-          Global switch to turn on or off the TLS configurations. Additionally, you have configure each component section.<br/>
+          Deprecated. Use the 'enabled' field in each component spec instead.<br/>
         </td>
         <td>false</td>
       </tr><tr>

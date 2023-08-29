@@ -226,7 +226,6 @@ public class BastionControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                 bastion:
@@ -267,7 +266,6 @@ public class BastionControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         proxy:
                             enabled: true
                 bastion:

@@ -266,7 +266,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                         .build()
         );
         if (enableTls) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForZookeeper());
         }
 
         String command = "bin/apply-config-from-env.py conf/zookeeper.conf && ";
@@ -395,7 +395,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         List<Volume> volumes = new ArrayList<>();
         final boolean tlsEnabled = isTlsEnabledOnZooKeeper();
         if (tlsEnabled) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForZookeeper());
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForZookeeper());
         }
 
         String mainArgs = "";

@@ -206,7 +206,6 @@ public class AutorecoveryControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         bookkeeper:
                             enabled: true
                         autorecovery:

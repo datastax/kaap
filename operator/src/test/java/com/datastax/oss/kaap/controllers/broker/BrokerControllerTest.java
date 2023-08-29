@@ -535,7 +535,6 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                 broker:
@@ -727,7 +726,6 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                         bookkeeper:
@@ -1922,7 +1920,6 @@ public class BrokerControllerTest {
                     persistence: false
                     image: apachepulsar/pulsar:global
                     tls:
-                        enabled: true
                         broker:
                             enabled: true
                 broker:

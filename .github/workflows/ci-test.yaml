@@ -64,6 +64,14 @@ jobs:
             group: helm-tls
             num_agents: 0
             setup_helm: "true"
+          - name: Helm Kafka (TLS)
+            group: helm-tls-kafka
+            num_agents: 0
+            setup_helm: "true"
+          - name: Helm BK racks (TLS)
+            group: helm-tls-bkracks
+            num_agents: 0
+            setup_helm: "true"
 #          - name: Multi nodes
 #            group: multi-nodes
 #            num_agents: 1

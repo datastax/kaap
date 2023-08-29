@@ -137,7 +137,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
         final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
         final boolean tlsEnabledOnBookKeeper = isTlsEnabledOnBookKeeper();
         if (tlsEnabledOnZooKeeper || tlsEnabledOnBookKeeper) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForAutorecovery());
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForAutorecovery());
         }
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
         if (tlsEnabledOnBookKeeper) {

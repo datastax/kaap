@@ -324,7 +324,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         final boolean tlsEnabledOnZooKeeper = isTlsEnabledOnZooKeeper();
 
         if (tlsEnabledOnBroker || tlsEnabledOnZooKeeper) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForBroker());
         }
         if (isAuthTokenEnabled()) {
             addSecretTokenVolume(volumeMounts, volumes, "public-key");
@@ -457,7 +457,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         List<Volume> volumes = new ArrayList<>();
         final boolean tlsEnabled = isTlsEnabledOnBrokerSet(brokerSet);
         if (tlsEnabled) {
-            addTlsVolumesIfEnabled(volumeMounts, volumes, getTlsSecretNameForBroker());
+            addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForBroker());
         }
 
         String mainArgs = "";

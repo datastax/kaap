@@ -130,6 +130,7 @@ public class PulsarClusterResourceGeneratorTest {
                                 value: 4
                             kubernetesClusterDomain: cluster.local
                             tls:
+                              enabled: true
                               defaultSecretName: pulsar-tls
                               caPath: /etc/ssl/certs/ca-certificates.crt
                               zookeeper:

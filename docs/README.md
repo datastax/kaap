@@ -18,7 +18,7 @@ The CRDs specs are fully compatible, however it's required to change the existin
 This process ensures no downtime. One full cluster upgrade is required to complete the migration, and it's done automatically.
 
 
-1. Apply new CRD versions.
+### 1. Apply new CRD versions.
 
 This process will update the CRD adding a new version v1beta1.
 
@@ -33,7 +33,7 @@ kubectl apply -f https://github.com/datastax/kaap/releases/download/operator-0.2
 kubectl apply -f https://github.com/datastax/kaap/releases/download/operator-0.2.0/pulsarclusters.kaap.oss.datastax.com-v1-migration.yml --server-side --force-conflicts
 ```
 
-2. Copy the KAAP custom resources and move them to v1beta1
+### 2. Copy the KAAP custom resources and move them to v1beta1.
 
 ```
 namespace=kaap # change this according to your kaap namespace
@@ -61,7 +61,7 @@ kubectl get -n $namespace pulsarclusters.v1beta1.kaap.oss.datastax.com $name
 ```
 
 
-3. Now upgrade the chart to 0.2.0
+### 3. Now upgrade the chart to 0.2.0
 
 ```
 helm repo update
@@ -70,7 +70,7 @@ helm upgrade kaap --version 0.2.0 -n $namespace kaap/kaap-stack -f <your-values.
 ```
 
 
-4. Ensure everything is working fine.
+### 4. Ensure everything is working fine.
 
 Now the KAAP pod is watching the v1beta1 resources.
 

@@ -90,7 +90,7 @@ public class BrokerControllerTest {
                           name: pulsar-spec-1-broker
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: Broker
                             blockOwnerDeletion: true
                             controller: true
@@ -126,7 +126,7 @@ public class BrokerControllerTest {
                   name: pulsar-spec-1-broker
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: kaap.oss.datastax.com/v1alpha1
+                  - apiVersion: kaap.oss.datastax.com/v1beta1
                     kind: Broker
                     blockOwnerDeletion: true
                     controller: true
@@ -160,7 +160,7 @@ public class BrokerControllerTest {
                   name: pulsar-spec-1-broker
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: kaap.oss.datastax.com/v1alpha1
+                  - apiVersion: kaap.oss.datastax.com/v1beta1
                     kind: Broker
                     blockOwnerDeletion: true
                     controller: true
@@ -256,7 +256,7 @@ public class BrokerControllerTest {
                           name: pulsar-spec-1-broker
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: Broker
                             blockOwnerDeletion: true
                             controller: true
@@ -384,7 +384,7 @@ public class BrokerControllerTest {
                           name: pul-broker
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: Broker
                             blockOwnerDeletion: true
                             controller: true

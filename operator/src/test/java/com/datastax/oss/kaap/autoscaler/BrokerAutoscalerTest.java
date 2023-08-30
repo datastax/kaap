@@ -128,7 +128,7 @@ public class BrokerAutoscalerTest {
 
             server.expect()
                     .get()
-                    .withPath("/apis/kaap.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(
+                    .withPath("/apis/kaap.oss.datastax.com/v1beta1/namespaces/ns/brokers/%s-broker".formatted(
                             clusterSpecName))
                     .andReturn(HttpURLConnection.HTTP_OK, brokerCr)
                     .times(2);
@@ -207,7 +207,7 @@ public class BrokerAutoscalerTest {
 
             server.expect()
                     .patch()
-                    .withPath("/apis/kaap.oss.datastax.com/v1alpha1/namespaces/ns/brokers/%s-broker".formatted(
+                    .withPath("/apis/kaap.oss.datastax.com/v1beta1/namespaces/ns/brokers/%s-broker".formatted(
                             clusterSpecName))
                     .andReply(HttpURLConnection.HTTP_OK, new BodyProvider<Object>() {
                         @Override

@@ -84,7 +84,7 @@ public class ProxyControllerTest {
                           name: pulsar-spec-1-proxy
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
@@ -118,7 +118,7 @@ public class ProxyControllerTest {
                           name: pulsar-spec-1-proxy-ws
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true
@@ -153,7 +153,7 @@ public class ProxyControllerTest {
                   name: pulsar-spec-1-proxy
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: kaap.oss.datastax.com/v1alpha1
+                  - apiVersion: kaap.oss.datastax.com/v1beta1
                     kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
@@ -188,7 +188,7 @@ public class ProxyControllerTest {
                   name: pulsar-spec-1-proxy
                   namespace: ns
                   ownerReferences:
-                  - apiVersion: kaap.oss.datastax.com/v1alpha1
+                  - apiVersion: kaap.oss.datastax.com/v1beta1
                     kind: Proxy
                     blockOwnerDeletion: true
                     controller: true
@@ -306,7 +306,7 @@ public class ProxyControllerTest {
                           name: pulsar-spec-1-proxy
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: Proxy
                             blockOwnerDeletion: true
                             controller: true

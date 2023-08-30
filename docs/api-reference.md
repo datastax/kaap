@@ -2,9 +2,9 @@
 
 Packages:
 
-- [kaap.oss.datastax.com/v1alpha2](#kaapossdatastaxcomv1alpha2)
+- [kaap.oss.datastax.com/v1beta1](#kaapossdatastaxcomv1beta1)
 
-# kaap.oss.datastax.com/v1alpha2
+# kaap.oss.datastax.com/v1beta1
 
 Resource Types:
 
@@ -33,7 +33,7 @@ Resource Types:
     <tbody><tr>
       <td><b>apiVersion</b></td>
       <td>string</td>
-      <td>kaap.oss.datastax.com/v1alpha2</td>
+      <td>kaap.oss.datastax.com/v1beta1</td>
       <td>true</td>
       </tr>
       <tr>

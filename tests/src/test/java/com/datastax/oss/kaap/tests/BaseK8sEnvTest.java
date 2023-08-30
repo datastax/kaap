@@ -462,12 +462,26 @@ public abstract class BaseK8sEnvTest {
         dumpResources(filePrefix, FunctionsWorker.class);
         dumpResources(filePrefix, Bastion.class);
         dumpResources(filePrefix, Autorecovery.class);
-        dumpResources(filePrefix, CertificateRequest.class);
-        dumpResources(filePrefix, Certificate.class);
-        dumpResources(filePrefix, Issuer.class);
+        dumpResourcesAllNamespaces(filePrefix, CertificateRequest.class);
+        dumpResourcesAllNamespaces(filePrefix, Certificate.class);
+        dumpResourcesAllNamespaces(filePrefix, Issuer.class);
+    }
+
+    private void dumpResourcesAllNamespaces(String filePrefix, Class<? extends HasMetadata> clazz) {
+        try {
+            client.namespaces().list()
+                    .getItems()
+                    .forEach(ns -> dumpResources(filePrefix, clazz, ns.getMetadata().getName()));
+        } catch (Throwable t) {
+            log.error("failed to list namespaces for getting resource of class {}: {}", clazz, t.getMessage());
+        }
     }
 
     private void dumpResources(String filePrefix, Class<? extends HasMetadata> clazz) {
+        dumpResources(filePrefix, clazz, namespace);
+    }
+
+    private void dumpResources(String filePrefix, Class<? extends HasMetadata> clazz, String namespace) {
         try {
             client.resources(clazz)
                     .inNamespace(namespace)
@@ -475,7 +489,7 @@ public abstract class BaseK8sEnvTest {
                     .getItems()
                     .forEach(resource -> dumpResource(filePrefix, resource));
         } catch (Throwable t) {
-            log.error("failed to dump resources of type {}", clazz, t);
+            log.error("failed to dump resources of type {}: {}", clazz, t.getMessage());
         }
     }
 

@@ -535,11 +535,7 @@ public abstract class BaseResourcesFactory<T> {
                 ? null : global.getTls().getSsCa().getSecretName();
         return ObjectUtils.firstNonNull(
                 name,
-                global.getTls().getDefaultSecretName());
-    }
-
-    protected String getTlsSsCaSecretName() {
-        return getTlsSsCaSecretName(global);
+                "%s-ss-ca".formatted(global.getName()));
     }
 
     protected String getTlsSecretNameForAutorecovery() {

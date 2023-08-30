@@ -54,7 +54,7 @@ public class CertManagerCertificatesProvisionerTest {
                           isCA: true
                           issuerRef:
                             name: pul-self-signed-issuer
-                          secretName: pulsar-tls
+                          secretName: pul-ss-ca
                           usages:
                           - server auth
                           - client auth
@@ -99,7 +99,7 @@ public class CertManagerCertificatesProvisionerTest {
                           namespace: ns
                         spec:
                           ca:
-                            secretName: pulsar-tls
+                            secretName: pul-ss-ca
                         """);
 
     }
@@ -142,7 +142,7 @@ public class CertManagerCertificatesProvisionerTest {
                           isCA: true
                           issuerRef:
                             name: pul-self-signed-issuer
-                          secretName: pulsar-tls
+                          secretName: pul-ss-ca
                           usages:
                           - server auth
                           - client auth
@@ -221,7 +221,7 @@ public class CertManagerCertificatesProvisionerTest {
                           namespace: ns
                         spec:
                           ca:
-                            secretName: pulsar-tls
+                            secretName: pul-ss-ca
                         """);
 
     }
@@ -442,7 +442,7 @@ public class CertManagerCertificatesProvisionerTest {
                           isCA: true
                           issuerRef:
                             name: pul-self-signed-issuer
-                          secretName: pulsar-tls
+                          secretName: pul-ss-ca
                           usages:
                           - server auth
                           - client auth

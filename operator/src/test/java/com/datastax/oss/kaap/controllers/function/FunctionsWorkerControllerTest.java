@@ -95,7 +95,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -145,7 +145,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function-extra
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -170,7 +170,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function-ca
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -200,7 +200,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -232,7 +232,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -360,7 +360,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -383,7 +383,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -398,7 +398,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -442,7 +442,7 @@ public class FunctionsWorkerControllerTest {
                           name: pulsar-spec-1-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -2197,7 +2197,7 @@ public class FunctionsWorkerControllerTest {
                           name: pul-function
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -2211,7 +2211,7 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           name: pul-function
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true
@@ -2254,7 +2254,7 @@ public class FunctionsWorkerControllerTest {
                         metadata:
                           name: pul-function
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: FunctionsWorker
                             blockOwnerDeletion: true
                             controller: true

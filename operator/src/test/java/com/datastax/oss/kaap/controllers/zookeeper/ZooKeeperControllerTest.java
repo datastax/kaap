@@ -90,7 +90,7 @@ public class ZooKeeperControllerTest {
                           name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -119,7 +119,7 @@ public class ZooKeeperControllerTest {
                           name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -243,7 +243,7 @@ public class ZooKeeperControllerTest {
                           name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -280,7 +280,7 @@ public class ZooKeeperControllerTest {
                           name: pulsar-spec-1-zookeeper-ca
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true
@@ -315,7 +315,7 @@ public class ZooKeeperControllerTest {
                           name: pulsar-spec-1-zookeeper
                           namespace: ns
                           ownerReferences:
-                          - apiVersion: kaap.oss.datastax.com/v1alpha1
+                          - apiVersion: kaap.oss.datastax.com/v1beta1
                             kind: ZooKeeper
                             blockOwnerDeletion: true
                             controller: true

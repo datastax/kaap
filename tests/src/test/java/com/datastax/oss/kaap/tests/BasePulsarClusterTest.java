@@ -76,7 +76,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     protected String specsToYaml(PulsarClusterSpec spec) {
         final Map map = SerializationUtil.readYaml(
                 """
-                        apiVersion: kaap.oss.datastax.com/v1alpha1
+                        apiVersion: kaap.oss.datastax.com/v1beta1
                         kind: PulsarCluster
                         metadata:
                             name: pulsar-cluster

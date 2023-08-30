@@ -16,7 +16,7 @@
 package com.datastax.oss.kaap.crds;
 
 public final class CRDConstants {
-    public static final String VERSION = "v1alpha1";
+    public static final String VERSION = "v1beta1";
     public static final String GROUP = "kaap.oss.datastax.com";
 
     public static final String LABEL_APP = "app";

@@ -254,8 +254,29 @@ public class BastionControllerTest {
         final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
         KubeTestUtil.assertTlsVolumesMounted(
                 deployment,
-                "pul-ss-ca"
+                "pulsar-tls"
         );
+    }
+
+    @Test
+    public void testTlsEnabledOnBrokerWithPerComponentCert() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        broker:
+                            enabled: true
+                            secretName: broker-tls
+                bastion:
+                    targetProxy: false
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(deployment, "broker-tls");
     }
 
     @Test
@@ -294,8 +315,29 @@ public class BastionControllerTest {
         final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
         KubeTestUtil.assertTlsVolumesMounted(
                 deployment,
-                "pul-ss-ca"
+                "pulsar-tls"
         );
+    }
+
+    @Test
+    public void testTlsEnabledOnProxyWithPerComponentCert() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                    tls:
+                        enabled: true
+                        proxy:
+                            enabled: true
+                            secretName: proxy-tls
+                bastion:
+                    targetProxy: true
+                """;
+        MockKubernetesClient client = invokeController(spec);
+
+        final Deployment deployment = client.getCreatedResource(Deployment.class).getResource();
+        KubeTestUtil.assertTlsVolumesMounted(deployment, "proxy-tls");
     }
 
 

@@ -538,10 +538,6 @@ public abstract class BaseResourcesFactory<T> {
                 "%s-ss-ca".formatted(global.getName()));
     }
 
-    protected String getTlsSsCaSecretName() {
-        return getTlsSsCaSecretName(global);
-    }
-
     protected String getTlsSecretNameForAutorecovery() {
         final String name = global.getTls().getAutorecovery() == null
                 ? null : global.getTls().getAutorecovery().getSecretName();

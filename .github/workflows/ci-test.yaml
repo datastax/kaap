@@ -32,6 +32,7 @@ jobs:
           if [[ `git status --porcelain` ]]; then
             echo "Found files changed after building, please run ./src/generate-crds-docs.sh and commit the changes"
             git status
+            git diff
             exit 1
           fi
       

@@ -18,7 +18,7 @@
 
 set -e
 echo "Generating CRDs docs"
-mvn package -Pupdate-crds -pl operator
+mvn clean package -Pupdate-crds -pl operator
 docker run -u $(id -u):$(id -g) --rm -v ${PWD}:/workdir ghcr.io/fybrik/crdoc:latest \
   --resources /workdir/helm/kaap/crds/pulsarclusters.kaap.oss.datastax.com-v1.yml \
   --template /workdir/src/reference-markdown-template.tmpl \

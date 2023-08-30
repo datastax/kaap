@@ -19,7 +19,7 @@
 apiVersion: v2
 name: kaap-stack
 description: Kubernetes Autoscaling for Apache Pulsar Stack
-version: 0.1.0
+version: 0.2.0
 dependencies:
   - name: kaap
     version: 0.2.x

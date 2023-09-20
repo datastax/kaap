@@ -123,22 +123,30 @@ rules:
   - apiGroups:
       - kaap.oss.datastax.com
     resources:
-        - pulsarclusters
-        - pulsarclusters/status
-        - zookeepers
-        - zookeepers/status
-        - bookkeepers
-        - bookkeepers/status
-        - brokers
-        - brokers/status
-        - proxies
-        - proxies/status
-        - autorecoveries
-        - autorecoveries/status
-        - bastions
-        - bastions/status
-        - functionsworkers
-        - functionsworkers/status
+      - pulsarclusters
+      - pulsarclusters/status
+      - pulsarclusters/finalizers
+      - zookeepers
+      - zookeepers/status
+      - zookeepers/finalizers
+      - bookkeepers
+      - bookkeepers/status
+      - bookkeepers/finalizers
+      - brokers
+      - brokers/status
+      - brokers/finalizers
+      - proxies
+      - proxies/status
+      - proxies/finalizers
+      - autorecoveries
+      - autorecoveries/status
+      - autorecoveries/finalizers
+      - bastions
+      - bastions/status
+      - bastions/finalizers
+      - functionsworkers
+      - functionsworkers/status
+      - functionsworkers/finalizers
     verbs:
         - "*"
   - apiGroups:

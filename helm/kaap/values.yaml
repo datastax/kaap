@@ -39,7 +39,9 @@ operator:
   enabled: true
   image: datastax/kaap:0.2.0
   imagePullPolicy: IfNotPresent
+  resources: {}
   replicas: 1
+  
   livenessProbe:
     failureThreshold: 3
     periodSeconds: 30

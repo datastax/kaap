@@ -61,7 +61,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
     public static final int DEFAULT_SERVER_PORT = 2888;
     public static final int DEFAULT_LEADER_ELECTION_PORT = 3888;
     public static final int DEFAULT_CLIENT_PORT = 2181;
-    public static final int DEFAULT_CLIENT_TLS_PORT = 2281;
+    public static final int DEFAULT_CLIENT_TLS_PORT = 2282;
     public static final String ENV_ZOOKEEPER_SERVERS = "ZOOKEEPER_SERVERS";
     public static final List<String> DEFAULT_ENV = List.of("ZOOKEEPER_SERVERS");
 

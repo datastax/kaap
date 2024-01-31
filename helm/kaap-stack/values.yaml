@@ -140,7 +140,7 @@ pulsarGrafanaDashboards:
 kube-prometheus-stack:
   enabled: false
   # namespaceOverride: monitoring
-  prometheus-node-exporter:
+  prometheus-node-exporter: {}
   # namespaceOverride: monitoring
   defaultRules:
     create: false

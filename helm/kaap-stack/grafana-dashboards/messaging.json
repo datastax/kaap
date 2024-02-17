@@ -2088,7 +2088,7 @@
         "options": [],
         "query": "pulsar_rate_in{namespace=~\".+\", cluster=~\"$cluster\"}",
         "refresh": 2,
-        "regex": "/.*namespace=\\\"([^\\\"]+)\\\".*/",
+        "regex": "/[\\s,{]namespace=\\\"([^\\\"]+)\\\".*/",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
@@ -2133,3 +2133,4 @@
   "uid": "sWPi0L-mk",
   "version": 4
 }
+

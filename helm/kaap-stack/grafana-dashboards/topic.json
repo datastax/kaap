@@ -1411,7 +1411,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "pulsar_consumer_msg_rate_redeliver{cluster=~\"$cluster\", namespace=~\"$tenant.+\", namespace=~\"$namespace\", topic=~\"$topic\"}",
+          "expr": "pulsar_subscription_msg_rate_redeliver{cluster=~\"$cluster\", namespace=~\"$tenant.+\", namespace=~\"$namespace\", topic=~\"$topic\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,

@@ -1,6 +1,6 @@
 # kaap-stack
 
-![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square)
+![Version: 0.2.3](https://img.shields.io/badge/Version-0.2.3-informational?style=flat-square)
 
 Kubernetes Autoscaling for Apache Pulsar Stack
 

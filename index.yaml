@@ -27,6 +27,42 @@ entries:
     version: 0.1.0
   kaap-stack:
   - apiVersion: v2
+    created: "2024-02-20T14:21:45.752478239Z"
+    dependencies:
+    - name: kaap
+      repository: file://../kaap
+      version: 0.2.x
+    - condition: kube-prometheus-stack.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 41.x.x
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.x.x
+    - condition: cert-manager.enabled
+      name: cert-manager
+      repository: https://charts.jetstack.io
+      version: v1.11.x
+    - condition: external-dns.enabled
+      name: external-dns
+      repository: https://charts.bitnami.com/bitnami
+      version: v6.13.x
+    - condition: pulsar-admin-console.enabled
+      name: pulsar-admin-console
+      repository: https://datastax.github.io/charts
+      version: 0.1.x
+    - condition: bkvm.enabled
+      name: bkvm
+      repository: https://diennea.github.io/bookkeeper-visual-manager
+      version: 0.1.x
+    description: Kubernetes Autoscaling for Apache Pulsar Stack
+    digest: 92945a4f26226c27d02f9769ce7a6a6818e1bf721a2686cbf91ff3198392625f
+    name: kaap-stack
+    urls:
+    - https://github.com/datastax/kaap/releases/download/kaap-stack-0.2.3/kaap-stack-0.2.3.tgz
+    version: 0.2.3
+  - apiVersion: v2
     created: "2024-01-31T12:50:47.695704279Z"
     dependencies:
     - name: kaap
@@ -170,4 +206,4 @@ entries:
     urls:
     - https://github.com/datastax/kaap/releases/download/kaap-stack-0.1.0/kaap-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2024-01-31T12:50:47.695732773Z"
+generated: "2024-02-20T14:21:45.752497234Z"

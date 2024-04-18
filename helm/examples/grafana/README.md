@@ -8,6 +8,6 @@ helm install pstack -n pstack --create-namespace kaap/kaap-stack --values helm/e
 Login to grafana UI:
 ```
 kubectl port-forward deployment/pstack-grafana 3000:3000
-open localhost:8080
+open localhost:3000
 ```
 Login using the credentials configured in the values.yaml. (`admin` and `grafana1`).

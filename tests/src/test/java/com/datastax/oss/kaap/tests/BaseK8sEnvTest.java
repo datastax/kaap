@@ -90,7 +90,10 @@ public abstract class BaseK8sEnvTest {
             "datastax/kaap:latest-dev");
 
     public static final String PULSAR_IMAGE = System.getProperty("kaap.tests.pulsar.image",
-            "docker.io/datastax/lunastreaming-all:2.10_3.4");
+            "docker.io/datastax/lunastreaming-all:2.10_5.1");
+
+    public static final String PULSAR3_IMAGE = System.getProperty("kaap.tests.pulsar.image",
+            "docker.io/datastax/lunastreaming-all:3.1_4.0");
 
     public static final boolean USE_EXISTING_ENV = Boolean.getBoolean("kaap.tests.env.existing");
 

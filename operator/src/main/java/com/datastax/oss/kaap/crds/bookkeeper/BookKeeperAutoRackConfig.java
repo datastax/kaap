@@ -16,11 +16,15 @@
 package com.datastax.oss.kaap.crds.bookkeeper;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.fabric8.crd.generator.annotation.SchemaFrom;
 import io.fabric8.generator.annotation.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 @Builder
 @Data
@@ -34,4 +38,8 @@ public class BookKeeperAutoRackConfig {
     @javax.validation.constraints.Min(1000)
     @JsonPropertyDescription("Period for the schedule of the monitoring thread.")
     Long periodMs;
+    @JsonPropertyDescription("Additional configuration for the zookeeper client.")
+    @SchemaFrom(type = JsonNode.class)
+    Map<String, String> additionalZookeeperClientConfig;
+
 }

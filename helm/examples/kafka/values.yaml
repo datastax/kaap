@@ -17,7 +17,7 @@
 
 kaap:
   operator:
-    enabled: false
+    enabled: true
   cluster:
     create: true
     spec:

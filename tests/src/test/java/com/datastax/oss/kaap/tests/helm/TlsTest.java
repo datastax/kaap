@@ -27,16 +27,21 @@ public class TlsTest extends BaseHelmTest {
 
     @Test
     public void testPerComponents() throws Exception {
-        test(true);
+        test(true, false);
     }
 
     @Test
     public void testGlobal() throws Exception {
-        test(false);
+        test(false, false);
 
     }
 
-    private void test(boolean perComponentCerts) throws Exception {
+    @Test
+    public void testPulsar3x() throws Exception {
+        test(true, true);
+    }
+
+    private void test(boolean perComponentCerts, boolean pulsar3) throws Exception {
         try {
             applyCertManagerCRDs();
             helmInstall(Chart.STACK, """
@@ -52,7 +57,7 @@ public class TlsTest extends BaseHelmTest {
                     """.formatted(OPERATOR_IMAGE, namespace));
             awaitOperatorRunning();
 
-            final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+            final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs(pulsar3);
             if (perComponentCerts) {
                 specs.getGlobal()
                         .setTls(TlsConfig.builder()

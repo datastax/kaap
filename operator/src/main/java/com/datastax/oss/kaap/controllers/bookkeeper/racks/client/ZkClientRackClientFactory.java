@@ -22,14 +22,16 @@ import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.LaunchMode;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog
-public class ZkClientRackClientFactory implements BkRackClientFactory{
+public class ZkClientRackClientFactory implements BkRackClientFactory {
 
     private final Map<String, ZkClientRackClient> zkClients = new ConcurrentHashMap<>();
     private final KubernetesClient client;
@@ -40,7 +42,7 @@ public class ZkClientRackClientFactory implements BkRackClientFactory{
 
     @Override
     public BkRackClient newBkRackClient(String namespace, BookKeeperFullSpec newSpec,
-                                               BookKeeperAutoRackConfig autoRackConfig) {
+                                        BookKeeperAutoRackConfig autoRackConfig) {
         final String zkConnectString = getZkServers(namespace, newSpec);
 
         if (!autoRackConfig.getEnabled()) {
@@ -61,15 +63,15 @@ public class ZkClientRackClientFactory implements BkRackClientFactory{
 
         final ZkClientRackClient zkClient =
                 zkClients.computeIfAbsent(zkConnectString,
-                        (k) -> newZkRackClient(k, newSpec.getGlobalSpec(), namespace));
+                        (k) -> newZkRackClient(k, newSpec.getGlobalSpec(), namespace, autoRackConfig.getAdditionalZookeeperClientConfig()));
         return zkClient;
     }
 
 
-    private ZkClientRackClient newZkRackClient(String zkConnectString, GlobalSpec globalSpec, String namespace) {
+    private ZkClientRackClient newZkRackClient(String zkConnectString, GlobalSpec globalSpec, String namespace, Map<String, String> additionalZkClientConfig) {
         final boolean tlsEnabledOnZooKeeper = BaseResourcesFactory.isTlsEnabledOnZooKeeper(globalSpec);
         if (!tlsEnabledOnZooKeeper) {
-            return ZkClientRackClient.plainClient(zkConnectString);
+            return ZkClientRackClient.plainClient(zkConnectString, additionalZkClientConfig);
         }
         final String tlsSecretNameForZookeeper = BaseResourcesFactory.getTlsSecretNameForZookeeper(globalSpec);
         final Secret secret = client.secrets()
@@ -89,7 +91,7 @@ public class ZkClientRackClientFactory implements BkRackClientFactory{
         if (caCert != null) {
             caCert = new String(Base64.getDecoder().decode(caCert), StandardCharsets.UTF_8);
         }
-        return ZkClientRackClient.sslClient(zkConnectString, privateKey, serverCert, caCert);
+        return ZkClientRackClient.sslClient(zkConnectString, privateKey, serverCert, caCert, additionalZkClientConfig);
     }
 
     protected String getZkServers(String namespace, BookKeeperFullSpec newSpec) {

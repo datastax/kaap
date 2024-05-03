@@ -15795,6 +15795,9 @@ spec:
                         description: Period for the schedule of the monitoring thread.
                         minimum: 1000.0
                         type: integer
+                      additionalZookeeperClientConfig:
+                        description: Additional configuration for the zookeeper client.
+                        x-kubernetes-preserve-unknown-fields: true
                       enabled:
                         description: Enable rack configuration monitoring.
                         type: boolean

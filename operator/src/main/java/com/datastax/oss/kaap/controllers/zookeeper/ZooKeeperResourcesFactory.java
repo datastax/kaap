@@ -197,6 +197,9 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
             data.put("serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
             data.put("secureClientPort", "2281");
             data.put("sslQuorum", "true");
+            // TLSv1.2 is backward compatible with ZK < 3.9.2
+            data.put("ssl.protocol", "TLSv1.2");
+            data.put("ssl.quorum.protocol", "TLSv1.2");
         }
         appendConfigData(data, spec.getConfig());
 

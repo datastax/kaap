@@ -19,7 +19,6 @@ import com.datastax.oss.kaap.crds.cluster.PulsarCluster;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.testng.annotations.Test;
 
 @Slf4j
 public abstract class TlsTest extends BaseHelmTest {

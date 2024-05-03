@@ -22,12 +22,10 @@ import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.LaunchMode;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import lombok.extern.jbosslog.JBossLog;
 
 @JBossLog

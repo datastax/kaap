@@ -65,6 +65,10 @@ jobs:
             group: helm-tls
             num_agents: 0
             setup_helm: "true"
+          - name: Helm (TLS) Pulsar 3
+            group: helm-tls-pulsar3
+            num_agents: 0
+            setup_helm: "true"
           - name: Helm Kafka (TLS)
             group: helm-tls-kafka
             num_agents: 0

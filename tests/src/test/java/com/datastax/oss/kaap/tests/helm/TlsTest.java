@@ -22,26 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "helm-tls")
-public class TlsTest extends BaseHelmTest {
+public abstract class TlsTest extends BaseHelmTest {
 
-    @Test
-    public void testPerComponents() throws Exception {
-        test(true, false);
-    }
-
-    @Test
-    public void testGlobal() throws Exception {
-        test(false, false);
-
-    }
-
-    @Test
-    public void testPulsar3x() throws Exception {
-        test(true, true);
-    }
-
-    private void test(boolean perComponentCerts, boolean pulsar3) throws Exception {
+    protected void test(boolean perComponentCerts, boolean pulsar3) throws Exception {
         try {
             applyCertManagerCRDs();
             helmInstall(Chart.STACK, """

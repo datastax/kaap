@@ -46,7 +46,7 @@
         <kubernetes-client.version>6.3.1</kubernetes-client.version>
         <testng.version>7.7.0</testng.version>
         <mockito-core.version>4.10.0</mockito-core.version>
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.32</lombok.version>
         <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
         <spotbugs.version>4.7.2</spotbugs.version>
         <maven-checkstyle-plugin.version>3.2.1</maven-checkstyle-plugin.version>

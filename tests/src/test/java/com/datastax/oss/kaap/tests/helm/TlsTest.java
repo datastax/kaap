@@ -19,24 +19,11 @@ import com.datastax.oss.kaap.crds.cluster.PulsarCluster;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "helm-tls")
-public class TlsTest extends BaseHelmTest {
+public abstract class TlsTest extends BaseHelmTest {
 
-    @Test
-    public void testPerComponents() throws Exception {
-        test(true);
-    }
-
-    @Test
-    public void testGlobal() throws Exception {
-        test(false);
-
-    }
-
-    private void test(boolean perComponentCerts) throws Exception {
+    protected void test(boolean perComponentCerts, boolean pulsar3) throws Exception {
         try {
             applyCertManagerCRDs();
             helmInstall(Chart.STACK, """
@@ -52,7 +39,7 @@ public class TlsTest extends BaseHelmTest {
                     """.formatted(OPERATOR_IMAGE, namespace));
             awaitOperatorRunning();
 
-            final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs();
+            final PulsarClusterSpec specs = getDefaultPulsarClusterSpecs(pulsar3);
             if (perComponentCerts) {
                 specs.getGlobal()
                         .setTls(TlsConfig.builder()

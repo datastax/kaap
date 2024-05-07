@@ -479,6 +479,8 @@ public class ZooKeeperControllerTest {
         expectedData.put("PULSAR_PREFIX_serverCnxnFactory", "org.apache.zookeeper.server.NettyServerCnxnFactory");
         expectedData.put("PULSAR_PREFIX_secureClientPort", "2281");
         expectedData.put("PULSAR_PREFIX_sslQuorum", "true");
+        expectedData.put("PULSAR_PREFIX_ssl.protocol", "TLSv1.2");
+        expectedData.put("PULSAR_PREFIX_ssl.quorum.protocol", "TLSv1.2");
 
         final Map<String, String> data = createdResource.getResource().getData();
         Assert.assertEquals(data, expectedData);

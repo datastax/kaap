@@ -87,11 +87,15 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     }
 
     protected PulsarClusterSpec getDefaultPulsarClusterSpecs() {
+        return getDefaultPulsarClusterSpecs(false);
+    }
+
+    protected PulsarClusterSpec getDefaultPulsarClusterSpecs(boolean pulsar3) {
         final PulsarClusterSpec defaultSpecs = new PulsarClusterSpec();
         defaultSpecs.setGlobal(GlobalSpec.builder()
                 .name(DEFAULT_PULSAR_CLUSTER_NAME)
                 .persistence(true)
-                .image(PULSAR_IMAGE)
+                .image(pulsar3 ? PULSAR3_IMAGE : PULSAR_IMAGE)
                 .imagePullPolicy("IfNotPresent")
                 .storage(GlobalSpec.GlobalStorageConfig.builder()
                         .existingStorageClassName(env.getStorageClass())

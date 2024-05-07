@@ -14112,6 +14112,13 @@ Configuration for the rack auto configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>additionalZookeeperClientConfig</b></td>
+        <td>JSON</td>
+        <td>
+          Additional configuration for the zookeeper client.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>enabled</b></td>
         <td>boolean</td>
         <td>

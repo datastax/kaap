@@ -25,6 +25,7 @@ import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.security.auth.x500.X500Principal;
@@ -48,16 +49,17 @@ public class ZkClientRackClient implements BkRackClient {
     public static final String BOOKIES_PATH = "/bookies";
     private final CuratorFramework zkClient;
 
-    public static ZkClientRackClient plainClient(String zkConnectString) {
-        return new ZkClientRackClient(zkConnectString, null, null, null);
+    public static ZkClientRackClient plainClient(String zkConnectString, Map<String, String> additionalZkClientConfig) {
+        return new ZkClientRackClient(zkConnectString, null, null, null, additionalZkClientConfig);
     }
     public static ZkClientRackClient sslClient(String zkConnectString, String privateKey, String serverCertificate,
-                              String caCertificate) {
-        return new ZkClientRackClient(zkConnectString, privateKey, serverCertificate, caCertificate);
+                              String caCertificate, Map<String, String> additionalZkClientConfig) {
+        return new ZkClientRackClient(zkConnectString, privateKey, serverCertificate, caCertificate, additionalZkClientConfig);
     }
 
     public ZkClientRackClient(String zkConnectString, String privateKey, String serverCertificate,
-                              String caCertificate) {
+                              String caCertificate,
+                              Map<String, String> additionalZkClientConfig) {
         final ZKClientConfig zkClientConfig = new ZKClientConfig();
         if (privateKey != null) {
             log.infof("Creating new zookeeper client for %s (ssl)", zkConnectString);
@@ -73,8 +75,13 @@ public class ZkClientRackClient implements BkRackClient {
             zkClientConfig.setProperty("zookeeper.ssl.trustStore.location", trustStore.toFile().getAbsolutePath());
             zkClientConfig.setProperty("zookeeper.ssl.trustStore.password", truststorePass);
             zkClientConfig.setProperty("zookeeper.ssl.hostnameVerification", "true");
+            zkClientConfig.setProperty("zookeeper.ssl.protocol", "TLSv1.2");
+            zkClientConfig.setProperty("zookeeper.ssl.enabledProtocols", "TLSv1.3,TLSv1.2");
         } else {
             log.infof("Creating new zookeeper client for %s (plain)", zkConnectString);
+        }
+        if (additionalZkClientConfig != null) {
+            additionalZkClientConfig.forEach(zkClientConfig::setProperty);
         }
         this.zkClient = CuratorFrameworkFactory
                 .newClient(zkConnectString, 60_000, 15_000,

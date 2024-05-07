@@ -1,14 +1,14 @@
 # Release a new version
 
 The project contains 3 different and independents artifacts:
-1. K8s Autoscaling for Apache Pulsar docker image
-2. Pulsar Stack Helm Chart
-3. K8s Autoscaling for Apache Pulsar Helm Chart
+1. Operator image (datastax/kaap:latest)
+2. KAAP Chart
+3. KAAP Stack Chart
 
 The releases process are independent.
 
 
-## Operator image
+## Operator image (datastax/kaap:latest)
 
 Run the following command:
 

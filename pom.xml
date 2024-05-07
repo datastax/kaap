@@ -30,11 +30,11 @@
     </modules>
     <name>Kaap :: Kubernetes Autoscaling for Apache Pulsar</name>
     <scm>
-        <developerConnection>
-            scm:git:git@github.com:datastax/kaap.git
-        </developerConnection>
-      <tag>operator-0.3.0</tag>
-  </scm>
+        <connection>scm:git:git@github.com:datastax/kaap.git</connection>
+        <developerConnection>scm:git:git@github.com:datastax/kaap.git</developerConnection>
+        <url>https://github.com/datastax/kaap</url>
+        <tag>HEAD</tag>
+    </scm>
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>17</maven.compiler.source>

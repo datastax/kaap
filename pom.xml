@@ -30,8 +30,8 @@
     </modules>
     <name>Kaap :: Kubernetes Autoscaling for Apache Pulsar</name>
     <scm>
-        <connection>scm:git:git@github.com:datastax/kaap.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/kaap.git</developerConnection>
+        <connection>scm:git:https://github.com:datastax/kaap.git</connection>
+        <developerConnection>scm:git:https://github.com:datastax/kaap.git</developerConnection>
         <url>https://github.com/datastax/kaap</url>
         <tag>operator-0.3.0</tag>
     </scm>

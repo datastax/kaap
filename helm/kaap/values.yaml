@@ -37,7 +37,7 @@ fullnameOverride: ""
 
 operator:
   enabled: true
-  image: datastax/kaap:0.2.0
+  image: datastax/kaap:0.3.0
   imagePullPolicy: IfNotPresent
   replicas: 1
   livenessProbe:

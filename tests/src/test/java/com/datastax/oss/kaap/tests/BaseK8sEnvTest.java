@@ -223,6 +223,7 @@ public abstract class BaseK8sEnvTest {
         vars.put(".Values.operator.replicas", "1");
         vars.put(".Values.operator.image", OPERATOR_IMAGE);
         vars.put(".Values.operator.imagePullPolicy", "Never");
+        vars.put(".Values.operator.resources.requests", "{}");
         vars.put(".Values.operator.livenessProbe.failureThreshold", "3");
         vars.put(".Values.operator.livenessProbe.initialDelaySeconds", "0");
         vars.put(".Values.operator.livenessProbe.periodSeconds", "30");

@@ -683,7 +683,7 @@
           "hide": false,
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "Heap size",
+          "legendFormat": "Committed",
           "metric": "jvm_memory_bytes_committed",
           "refId": "A",
           "step": 20
@@ -1168,7 +1168,7 @@
           "hide": false,
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "Heap size",
+          "legendFormat": "Committed",
           "metric": "jvm_memory_bytes_committed",
           "refId": "A",
           "step": 20
@@ -1653,7 +1653,7 @@
           "hide": false,
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "Heap size",
+          "legendFormat": "Committed",
           "metric": "jvm_memory_bytes_committed",
           "refId": "A",
           "step": 20

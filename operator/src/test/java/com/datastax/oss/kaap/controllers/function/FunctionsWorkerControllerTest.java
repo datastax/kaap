@@ -975,7 +975,7 @@ public class FunctionsWorkerControllerTest {
         LinkedHashMap<String, Object> functionRuntimeFactoryConfigs = new LinkedHashMap<>();
         functionRuntimeFactoryConfigs.put("jobNamespace", "ns");
         functionRuntimeFactoryConfigs.put("percentMemoryPadding", 10);
-        functionRuntimeFactoryConfigs.put("pulsarAdminUrl", "https://pul-function.ns.svc.cluster.local:6750/");
+        functionRuntimeFactoryConfigs.put("pulsarAdminUrl", "http://pul-function-ca.ns.svc.cluster.local:6750");
         functionRuntimeFactoryConfigs.put("pulsarDockerImageName", "apachepulsar/pulsar:global");
         functionRuntimeFactoryConfigs.put("pulsarRootDir", "/pulsar");
         functionRuntimeFactoryConfigs.put("pulsarServiceUrl", "pulsar://pul-broker.ns.svc.cluster.local:6650/");

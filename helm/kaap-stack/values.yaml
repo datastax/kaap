@@ -397,3 +397,5 @@ bkvm:
         value: pulsar
       - name: BKVM_user.1.role
         value: Admin
+      - name: JAVA_OPTS
+        value: "-Xmx1g -Xms1g -XX:+UseContainerSupport -XX:InitialRAMPercentage=70.0 -XX:MaxRAMPercentage=70.0"

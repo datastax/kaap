@@ -397,3 +397,5 @@ bkvm:
         value: pulsar
       - name: BKVM_user.1.role
         value: Admin
+      - name: JAVA_OPTS
+        value: "-Xmx3g -Xms3g"

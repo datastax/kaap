@@ -25,7 +25,7 @@ dependencies:
     version: 0.3.x
     repository: file://../kaap
   - name: kube-prometheus-stack
-    version: 41.x.x
+    version: 62.3.0
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
   - name: keycloak

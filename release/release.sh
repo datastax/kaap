@@ -78,7 +78,7 @@ if [[ "$artifact" == "operator" ]]; then
   mvn release:prepare -DreleaseVersion=$new_version -Dresume=false -Pskip-crds
   echo "$new_version released."
 elif [[ "$artifact" == "kaap-chart" ]]; then
-  replace_version_in_chart helm/kaap/Chart.yaml $new_version
+  #replace_version_in_chart helm/kaap/Chart.yaml $new_version
   git commit -am "Release kaap chart $new_version"
   git tag kaap-$new_version
   git push

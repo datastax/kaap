@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpec> {
@@ -82,8 +83,9 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
         isRestartOnConfigMapChange = isPodDependantOnConfigMap(deploymentSpec.getTemplate());
         priorityClassName = spec.getPriorityClassName();
         config = convertConfigMapData(configMap);
-        if (!config.containsKey("ensemblePlacementPolicy")) {
-            config.put("ensemblePlacementPolicy", "");
+        Object ensemblePlacementPolicy = config.get("ensemblePlacementPolicy");
+        if (ensemblePlacementPolicy instanceof String policy && StringUtils.isBlank(policy)) {
+            config.remove("ensemblePlacementPolicy");
         }
         tlsEntryConfig = createTlsEntryConfig(deployment);
 

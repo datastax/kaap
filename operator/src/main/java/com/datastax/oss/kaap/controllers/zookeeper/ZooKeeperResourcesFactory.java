@@ -331,7 +331,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         } else {
             final VolumeConfig dataVolume = spec.getDataVolume();
             persistentVolumeClaims.add(
-                    createPersistentVolumeClaim(dataStorageVolumeName, dataVolume, labels)
+                    createPersistentVolumeClaim(dataStorageVolumeName, dataVolume, Map.of())
             );
         }
 

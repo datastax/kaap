@@ -44,6 +44,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
@@ -210,11 +211,11 @@ public class PulsarClusterResourceGenerator {
                         )
                         .contains(spec.getSpecName()) && spec.isEnabled();
 
-        final boolean authEnabled = getValueAssertSame(
+        final boolean authEnabled = BooleanUtils.isTrue(getValueAssertSame(
                 filterComponents,
                 spec -> parseConfigValueBool(spec.getConfig(), "authenticationEnabled"),
                 false,
-                "authenticationEnabled").booleanValue();
+                "authenticationEnabled"));
         if (!authEnabled) {
             log.info("Found authenticationEnabled=false, auth will be disabled in the CRD");
             return AuthConfig.builder()

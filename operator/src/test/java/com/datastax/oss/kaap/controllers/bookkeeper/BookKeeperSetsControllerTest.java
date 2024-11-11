@@ -376,6 +376,13 @@ public class BookKeeperSetsControllerTest {
                 .getRequiredDuringSchedulingIgnoredDuringExecution()
                 .get(0)
                 .getLabelSelector().getMatchLabels().get(CRDConstants.LABEL_RESOURCESET), value);
+        Assert.assertEquals(
+                sts.getSpec().getVolumeClaimTemplates().get(0).getMetadata().getLabels()
+                        .get(CRDConstants.LABEL_RESOURCESET), value);
+
+        Assert.assertEquals(
+                sts.getSpec().getVolumeClaimTemplates().get(1).getMetadata().getLabels()
+                        .get(CRDConstants.LABEL_RESOURCESET), value);
     }
 
 

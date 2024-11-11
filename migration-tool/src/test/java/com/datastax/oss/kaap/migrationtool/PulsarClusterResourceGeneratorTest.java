@@ -892,6 +892,7 @@ public class PulsarClusterResourceGeneratorTest {
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                               PULSAR_LOG_LEVEL: info
                               PULSAR_LOG_ROOT_LEVEL: info
+                              ensemblePlacementPolicy: ""
                               zkServers: pulsar-cluster-zookeeper-ca:2181
                             replicas: 1
                             annotations: {}

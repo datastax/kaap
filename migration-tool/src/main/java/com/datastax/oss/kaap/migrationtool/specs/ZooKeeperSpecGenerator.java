@@ -118,6 +118,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
+                .skipVolumeClaimLabels(true)
                 .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
                 .matchLabels(matchLabels)
                 .config(config)

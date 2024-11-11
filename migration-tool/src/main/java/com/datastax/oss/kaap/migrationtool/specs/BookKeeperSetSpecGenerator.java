@@ -121,6 +121,7 @@ public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSetS
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)
                 .labels(statefulSet.getMetadata().getLabels())
+                .skipVolumeClaimLabels(true)
                 .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
                 .matchLabels(matchLabels)
                 .config(config)

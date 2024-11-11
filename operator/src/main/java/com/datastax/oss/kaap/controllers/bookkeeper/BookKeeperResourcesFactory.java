@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.jbosslog.JBossLog;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
 @JBossLog
@@ -214,6 +215,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
 
     public StatefulSet generateStatefulSet() {
         Map<String, String> labels = getLabels(spec.getLabels());
+        boolean getSkipVolumeClaimLabels = BooleanUtils.isTrue(spec.getSkipVolumeClaimLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
         Map<String, String> podAnnotations = getPodAnnotations(spec.getPodAnnotations(), configMap, DEFAULT_HTTP_PORT + "");
@@ -295,9 +297,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
             );
         } else {
             persistentVolumeClaims.add(createPersistentVolumeClaim(journalVolumeName, spec.getVolumes().getJournal(),
-                    Map.of()));
+                    labels, getSkipVolumeClaimLabels));
             persistentVolumeClaims.add(createPersistentVolumeClaim(ledgersVolumeName, spec.getVolumes().getLedgers(),
-                    Map.of()));
+                    labels, getSkipVolumeClaimLabels));
         }
 
 

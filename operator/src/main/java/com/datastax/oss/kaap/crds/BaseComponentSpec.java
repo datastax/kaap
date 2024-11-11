@@ -65,6 +65,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private Map<String, String> podAnnotations;
     @JsonPropertyDescription(CRDConstants.DOC_LABELS)
     private Map<String, String> labels;
+    @JsonPropertyDescription(CRDConstants.DOC_SKIP_VOLUME_CLAIM_LABELS)
+    private Boolean skipVolumeClaimLabels;
     @JsonPropertyDescription(CRDConstants.DOC_POD_LABELS)
     private Map<String, String> podLabels;
     @JsonPropertyDescription(CRDConstants.DOC_POD_MATCH_LABELS)

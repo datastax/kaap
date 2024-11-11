@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 import lombok.extern.jbosslog.JBossLog;
+import org.apache.commons.lang3.BooleanUtils;
 
 @JBossLog
 public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<FunctionsWorkerSpec> {
@@ -352,6 +353,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         }
 
         Map<String, String> labels = getLabels(spec.getLabels());
+        boolean skipVolumeClaimLabels = BooleanUtils.isTrue(spec.getSkipVolumeClaimLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Objects.requireNonNull(configMap, "ConfigMap should have been created at this point");
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
@@ -473,7 +475,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();
         if (global.getPersistence()) {
             persistentVolumeClaims.add(
-                    createPersistentVolumeClaim(logsVolumeName, spec.getLogsVolume(), labels)
+                    createPersistentVolumeClaim(logsVolumeName, spec.getLogsVolume(),
+                        labels, skipVolumeClaimLabels)
             );
         } else {
             volumes.add(new VolumeBuilder()

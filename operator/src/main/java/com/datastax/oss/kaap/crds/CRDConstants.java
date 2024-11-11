@@ -42,6 +42,8 @@ public final class CRDConstants {
     public static final String DOC_ANNOTATIONS = "Annotations to add to each resource (except pods).";
     public static final String DOC_POD_ANNOTATIONS = "Annotations to add to pod.";
     public static final String DOC_LABELS = "Labels to add to each resource (except pods).";
+    public static final String DOC_SKIP_VOLUME_CLAIM_LABELS =
+        "Skip Applying Labels to Statefulset.VolumeClaimTemplate";
     public static final String DOC_POD_LABELS = "Labels to add to each pod.";
     public static final String DOC_POD_MATCH_LABELS = "Match labels selectors to add to each pod.";
     public static final String DOC_CONFIG = "Configuration.";

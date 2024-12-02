@@ -41,7 +41,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-proxy-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-proxy-controller")
 @JBossLog
 public class ProxyController
         extends AbstractResourceSetsController<Proxy, ProxyFullSpec, ProxySpec, ProxySetSpec, ProxyResourcesFactory,

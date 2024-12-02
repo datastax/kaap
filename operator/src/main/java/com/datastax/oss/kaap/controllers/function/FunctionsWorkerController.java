@@ -28,7 +28,7 @@ import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-fn-worker-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-fn-worker-controller")
 @JBossLog
 public class FunctionsWorkerController extends AbstractController<FunctionsWorker> {
 

@@ -41,7 +41,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-broker-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-broker-controller")
 @JBossLog
 public class BrokerController extends
         AbstractResourceSetsController<Broker, BrokerFullSpec, BrokerSpec, BrokerSetSpec,

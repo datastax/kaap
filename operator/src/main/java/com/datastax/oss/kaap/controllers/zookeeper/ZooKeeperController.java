@@ -30,7 +30,7 @@ import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-zk-controller")
 @JBossLog
 public class ZooKeeperController extends AbstractController<ZooKeeper> {
 

@@ -59,6 +59,10 @@ spec:
                 name: {{ include "kaap.name" . }}
           image: {{ .Values.operator.image }}
           imagePullPolicy: {{ .Values.operator.imagePullPolicy }}
+          {{- if .Values.operator.resources }}
+          resources:
+            {{- toYaml .Values.operator.resources | nindent 12 }}
+          {{- end }}          
           livenessProbe:
             failureThreshold: {{ .Values.operator.livenessProbe.failureThreshold }}
             httpGet:

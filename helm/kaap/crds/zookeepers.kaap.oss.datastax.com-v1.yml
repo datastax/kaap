@@ -226,6 +226,9 @@ spec:
                           should be used.
                         type: string
                     type: object
+                  skipVolumeClaimLabels:
+                    description: Skip Applying Labels to Statefulset.VolumeClaimTemplate
+                    type: boolean
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:

@@ -124,6 +124,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                 .nodeAffinity(nodeAffinity)
                 .probes(createProbeConfig(mainContainer))
                 .labels(statefulSet.getMetadata().getLabels())
+                .skipVolumeClaimLabels(true)
                 .podLabels(statefulSetSpec.getTemplate().getMetadata().getLabels())
                 .matchLabels(matchLabels)
                 .config(config)

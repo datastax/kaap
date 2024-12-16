@@ -904,6 +904,9 @@ spec:
                                   type: string
                               type: object
                           type: object
+                        skipVolumeClaimLabels:
+                          description: Skip Applying Labels to Statefulset.VolumeClaimTemplate
+                          type: boolean
                         imagePullSecrets:
                           description: Image pull secrets.
                           items:
@@ -3083,6 +3086,9 @@ spec:
                             type: string
                         type: object
                     type: object
+                  skipVolumeClaimLabels:
+                    description: Skip Applying Labels to Statefulset.VolumeClaimTemplate
+                    type: boolean
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:

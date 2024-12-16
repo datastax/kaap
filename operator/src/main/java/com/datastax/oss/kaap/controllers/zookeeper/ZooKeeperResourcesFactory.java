@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
+import org.apache.commons.lang3.BooleanUtils;
 
 @JBossLog
 public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpec> {
@@ -236,6 +237,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         }
 
         Map<String, String> labels = getLabels(spec.getLabels());
+        boolean skipVolumeClaimLabels = BooleanUtils.isTrue(spec.getSkipVolumeClaimLabels());
         Map<String, String> podLabels = getPodLabels(spec.getPodLabels());
         Map<String, String> matchLabels = getMatchLabels(spec.getMatchLabels());
         Map<String, String> annotations = getAnnotations(spec.getAnnotations());
@@ -331,7 +333,8 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
         } else {
             final VolumeConfig dataVolume = spec.getDataVolume();
             persistentVolumeClaims.add(
-                    createPersistentVolumeClaim(dataStorageVolumeName, dataVolume, labels)
+                createPersistentVolumeClaim(dataStorageVolumeName, dataVolume,
+                    labels, skipVolumeClaimLabels)
             );
         }
 

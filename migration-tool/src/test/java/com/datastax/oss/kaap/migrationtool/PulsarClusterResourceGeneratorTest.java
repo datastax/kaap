@@ -58,7 +58,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         assertValue(outputDir);
-        assertDiff(diff, 159);
+        assertDiff(diff, 155);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
-        assertDiff(diff, 120);
+        assertDiff(diff, 117);
         Assert.assertEquals(pulsar.getSpec().getFunctionsWorker().getReplicas(), 0);
     }
 
@@ -91,7 +91,7 @@ public class PulsarClusterResourceGeneratorTest {
         final DiffCollectorOutputWriter diff = generate(client, tmpDir);
         final File outputDir = new File(tmpDir.toFile(), CONTEXT);
         final PulsarCluster pulsar = getPulsarClusterFromOutputdir(outputDir);
-        assertDiff(diff, 152);
+        assertDiff(diff, 148);
         Assert.assertEquals(pulsar.getSpec().getBastion().getReplicas(), 0);
     }
 
@@ -202,6 +202,7 @@ public class PulsarClusterResourceGeneratorTest {
                               component: zookeeper
                               heritage: Helm
                               release: pulsar-cluster
+                            skipVolumeClaimLabels: true
                             podLabels:
                               app: pulsar
                               cluster: pulsar-cluster
@@ -284,6 +285,7 @@ public class PulsarClusterResourceGeneratorTest {
                               component: bookkeeper
                               heritage: Helm
                               release: pulsar-cluster
+                            skipVolumeClaimLabels: true
                             podLabels:
                               app: pulsar
                               cluster: pulsar-cluster
@@ -892,7 +894,6 @@ public class PulsarClusterResourceGeneratorTest {
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                               PULSAR_LOG_LEVEL: info
                               PULSAR_LOG_ROOT_LEVEL: info
-                              ensemblePlacementPolicy: ""
                               zkServers: pulsar-cluster-zookeeper-ca:2181
                             replicas: 1
                             annotations: {}
@@ -1013,6 +1014,7 @@ public class PulsarClusterResourceGeneratorTest {
                               component: function
                               heritage: Helm
                               release: pulsar-cluster
+                            skipVolumeClaimLabels: true
                             podLabels:
                               app: pulsar
                               cluster: pulsar-cluster

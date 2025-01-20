@@ -183,6 +183,8 @@ public class ZooKeeperControllerTest {
                                   name: server
                                 - containerPort: 3888
                                   name: leader-election
+                                - containerPort: 8000
+                                  name: metrics
                                 readinessProbe:
                                   exec:
                                     command:

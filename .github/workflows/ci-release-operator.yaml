@@ -39,12 +39,11 @@ jobs:
             docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
             REGISTRY=docker.io/datastax/kaap
 
-            podman manifest create --amend datastax/kaap:latest-dev
-            podman build operator -f operator/Dockerfile --platforms linux/arm64,linux/amd64 --manifest datastax/kaap:latest-dev
-            podman tag $REGISTRY:latest-dev $REGISTRY:$docker_tag
-            podman tag $REGISTRY:latest-dev $REGISTRY:latest
-            podman push $REGISTRY:$docker_tag
-            podman push $REGISTRY:latest
+            podman manifest create --amend kaapoperator
+            podman build operator -f operator/Dockerfile --platforms linux/arm64,linux/amd64 --manifest kaapoperator
+
+            podman manifest push kaapoperator $REGISTRY:$docker_tag
+            podman manifest push kaapoperator $REGISTRY:latest
 
       - uses: ncipollo/release-action@v1
         with:

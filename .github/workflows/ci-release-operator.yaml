@@ -33,14 +33,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
+      - uses: gacts/install-podman@v1
         run: |
-            mvn clean install -DskipTests -Pskip-crds
+            mvn clean install -DskipTests -Pskip-crds -Pskip-docker
             docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
-            
-            docker tag datastax/kaap:latest-dev datastax/kaap:$docker_tag
-            docker tag datastax/kaap:latest-dev datastax/kaap:latest
-            docker push datastax/kaap:$docker_tag
-            docker push datastax/kaap:latest
+            REGISTRY=docker.io/datastax/kaap
+
+            podman manifest create --amend datastax/kaap:latest-dev
+            podman build operator -f operator/Dockerfile --platforms linux/arm64,linux/amd64 --manifest datastax/kaap:latest-dev
+            podman tag $REGISTRY:latest-dev $REGISTRY:$docker_tag
+            podman tag $REGISTRY:latest-dev $REGISTRY:latest
+            podman push $REGISTRY:$docker_tag
+            podman push $REGISTRY:latest
 
       - uses: ncipollo/release-action@v1
         with:

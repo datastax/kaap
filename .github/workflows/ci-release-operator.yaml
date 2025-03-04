@@ -49,9 +49,9 @@ jobs:
           OP_TAG=${GITHUB_REF/refs\/tags\/operator-/}
           MANUAL_WORKFLOW_TAG=${{ inputs.docker_tag }}
           if [[ $MANUAL_WORKFLOW_TAG != "" ]]; then
-            TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }}
+            TAGS="docker.io/datastax/kaap:$MANUAL_WORKFLOW_TAG"
           else
-            TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }},docker.io/datastax/kaap:latest
+            TAGS="docker.io/datastax/kaap:$OP_TAG,docker.io/datastax/kaap:latest"
           fi
           echo "TAGS=${TAGS}" >> "$GITHUB_ENV"
           echo "Using tags $TAGS"
@@ -64,7 +64,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           context: operator
-          tags: docker.io/datastax/kaap:${{ env.TAGS }}
+          tags: ${{ env.TAGS }}
 
       - uses: ncipollo/release-action@v1
         if: ${{ inputs.docker_tag == '' }} # If not manual workflow

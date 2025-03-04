@@ -44,17 +44,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Get the tag
+      - name: Get the tag & Build Operator
         run: |
-          TAG=${GITHUB_REF/refs\/tags\/operator-/}
-          if [[ $TAG == "master" ]]; then
-            TAG=latest
-          fi
+          OP_TAG=${GITHUB_REF/refs\/tags\/operator-/}
           MANUAL_WORKFLOW_TAG=${{ inputs.docker_tag }}
           if [[ $MANUAL_WORKFLOW_TAG != "" ]]; then
-            TAG=${{ inputs.docker_tag }}
+            TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }}
+          else
+            TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }},docker.io/datastax/kaap:latest
           fi
-          echo "TAG=${TAG}" >> "$GITHUB_ENV"
+          echo "TAGS=${TAGS}" >> "$GITHUB_ENV"
           echo "Using tag $TAG"
 
           mvn clean install -DskipTests -Pskip-crds -Pskip-docker
@@ -63,15 +62,13 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: true
           context: operator
-          tags: docker.io/datastax/kaap:${{ env.TAG }},latest
+          tags: docker.io/datastax/kaap:${{ env.TAGS }}
 
-      # - uses: ncipollo/release-action@v1
-      - if: ${{ inputs.docker_tag == '' }} # If not manual workflow
-        # with:
-        #   artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
-        #   token: ${{ secrets.GITHUB_TOKEN }}
-        #   generateReleaseNotes: true
-        run: |
-          echo "Running this now"
+      - uses: ncipollo/release-action@v1
+        if: ${{ inputs.docker_tag == '' }} # If not manual workflow
+        with:
+          artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true

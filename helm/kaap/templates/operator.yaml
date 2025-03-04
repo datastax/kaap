@@ -48,13 +48,18 @@ spec:
         {{- include "kaap.selectorLabels" . | nindent 8 }}
       namespace: {{ .Release.Namespace }}
     spec:
+      {{- if and (.Values.nodeSelector) (not .Values.operator.nodeSelector) }}
       nodeSelector:
-        beta.kubernetes.io/arch: arm64
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.operator.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.operator.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.operator.tolerations }}
       tolerations:
-      - key: "kubernetes.io/arch"
-        operator: "Equal"
-        value: "arm64"
-        effect: "NoSchedule"
+{{ toYaml .Values.operator.tolerations | indent 8 }}
+      {{- end }}
       containers:
         - env:
             - name: KUBERNETES_NAMESPACE

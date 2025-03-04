@@ -54,7 +54,7 @@ jobs:
             TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }},docker.io/datastax/kaap:latest
           fi
           echo "TAGS=${TAGS}" >> "$GITHUB_ENV"
-          echo "Using tag $TAG"
+          echo "Using tags $TAGS"
 
           mvn clean install -DskipTests -Pskip-crds -Pskip-docker
 

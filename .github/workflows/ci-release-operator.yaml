@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'operator-*'
+  workflow_dispatch: # Manual Trigger
+    inputs:
+      docker_tag:
+        description: 'Docker tag to use'
+        required: true
+        default: 'dev'
 
 jobs:
   release-operator:
@@ -32,17 +38,36 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get the tag & Build Operator
         run: |
-            mvn clean install -DskipTests -Pskip-crds
-            docker_tag=${GITHUB_REF/refs\/tags\/operator-/}
-            
-            docker tag datastax/kaap:latest-dev datastax/kaap:$docker_tag
-            docker tag datastax/kaap:latest-dev datastax/kaap:latest
-            docker push datastax/kaap:$docker_tag
-            docker push datastax/kaap:latest
+          OP_TAG=${GITHUB_REF/refs\/tags\/operator-/}
+          MANUAL_WORKFLOW_TAG=${{ inputs.docker_tag }}
+          if [[ $MANUAL_WORKFLOW_TAG != "" ]]; then
+            TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }}
+          else
+            TAGS=docker.io/datastax/kaap:${{ inputs.docker_tag }},docker.io/datastax/kaap:latest
+          fi
+          echo "TAGS=${TAGS}" >> "$GITHUB_ENV"
+          echo "Using tag $TAG"
+
+          mvn clean install -DskipTests -Pskip-crds -Pskip-docker
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          context: operator
+          tags: docker.io/datastax/kaap:${{ env.TAGS }}
 
       - uses: ncipollo/release-action@v1
+        if: ${{ inputs.docker_tag == '' }} # If not manual workflow
         with:
           artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
           token: ${{ secrets.GITHUB_TOKEN }}

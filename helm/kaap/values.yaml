@@ -40,6 +40,8 @@ operator:
   image: datastax/kaap:0.3.0
   imagePullPolicy: IfNotPresent
   replicas: 1
+  nodeSelector: {}
+  tolerations: []
   livenessProbe:
     failureThreshold: 3
     periodSeconds: 30

@@ -48,6 +48,13 @@ spec:
         {{- include "kaap.selectorLabels" . | nindent 8 }}
       namespace: {{ .Release.Namespace }}
     spec:
+      nodeSelector:
+        beta.kubernetes.io/arch: arm64
+      tolerations:
+      - key: "kubernetes.io/arch"
+        operator: "Equal"
+        value: "arm64"
+        effect: "NoSchedule"
       containers:
         - env:
             - name: KUBERNETES_NAMESPACE

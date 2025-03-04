@@ -17,8 +17,6 @@
 
 kaap:
   enabled: true
-  image: us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/latest
-  imagePullPolicy: Always
 # create a new pulsar cluster coupled with this Helm release
 #  cluster:
 #    create: true

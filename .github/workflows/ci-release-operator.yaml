@@ -57,6 +57,8 @@ jobs:
           echo "TAG=${TAG}" >> "$GITHUB_ENV"
           echo "Using tag $TAG"
 
+          mvn clean install -DskipTests -Pskip-crds -Pskip-docker
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:

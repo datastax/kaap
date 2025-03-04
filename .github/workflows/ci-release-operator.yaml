@@ -31,12 +31,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # - name: Log in to the Container registry
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -65,10 +65,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           context: operator
-          tags: docker.io/datastax/kaap:${{ env.TAG }},docker.io/datastax/kaap:${{ env.TAG }}-2
+          tags: docker.io/datastax/kaap:${{ env.TAG }},latest
 
-      # - uses: ncipollo/release-action@v1
-      #   with:
-      #     artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     generateReleaseNotes: true
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true

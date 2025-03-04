@@ -63,13 +63,15 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           context: operator
           tags: docker.io/datastax/kaap:${{ env.TAG }},latest
 
       - uses: ncipollo/release-action@v1
         if: ${{ inputs.docker_tag == "" }} # If not manual workflow
-        with:
-          artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generateReleaseNotes: true
+        # with:
+        #   artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
+        #   token: ${{ secrets.GITHUB_TOKEN }}
+        #   generateReleaseNotes: true
+        run: |
+          echo "Running this now"

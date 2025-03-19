@@ -2586,6 +2586,9 @@ spec:
                             maxUnavailable:
                               description: Number of maxUnavailable pods.
                               type: integer
+                            minAvailable:
+                              description: Number of minAvailable pods.
+                              type: integer
                             enabled:
                               description: Enable Pdb policy.
                               type: boolean
@@ -4728,6 +4731,9 @@ spec:
                     properties:
                       maxUnavailable:
                         description: Number of maxUnavailable pods.
+                        type: integer
+                      minAvailable:
+                        description: Number of minAvailable pods.
                         type: integer
                       enabled:
                         description: Enable Pdb policy.

@@ -263,6 +263,7 @@ public class BrokerControllerTest {
                             name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
+                          minAvailable: null
                           selector:
                             matchLabels:
                               app: pulsar
@@ -1717,6 +1718,7 @@ public class BrokerControllerTest {
                 broker:
                     pdb:
                         maxUnavailable: 3
+                        minAvailable: null
                 """;
 
         MockKubernetesClient client = invokeController(spec);

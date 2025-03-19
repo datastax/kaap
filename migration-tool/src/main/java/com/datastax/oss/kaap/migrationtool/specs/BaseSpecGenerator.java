@@ -287,6 +287,7 @@ public abstract class BaseSpecGenerator<T> {
             podDisruptionBudgetConfig = PodDisruptionBudgetConfig.builder()
                     .enabled(true)
                     .maxUnavailable(podDisruptionBudget.getSpec().getMaxUnavailable().getIntVal())
+                    .minAvailable(podDisruptionBudget.getSpec().getMinAvailable().getIntVal())
                     .build();
         }
         return podDisruptionBudgetConfig;

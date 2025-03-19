@@ -634,6 +634,7 @@ public abstract class BaseResourcesFactory<T> {
                 .withMatchLabels(getMatchLabels(customMatchLabels))
                 .endSelector()
                 .withNewMaxUnavailable(pdb.getMaxUnavailable())
+                .withNewMinAvailable(pdb.getMinAvailable())
                 .endSpec()
                 .build();
 

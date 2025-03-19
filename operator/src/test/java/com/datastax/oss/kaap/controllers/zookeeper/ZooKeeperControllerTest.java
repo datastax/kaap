@@ -322,6 +322,7 @@ public class ZooKeeperControllerTest {
                             name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
+                          minAvailable: null
                           selector:
                             matchLabels:
                               app: pulsar
@@ -1714,6 +1715,7 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     pdb:
                         maxUnavailable: 3
+                        minAvailable: null
                 """;
 
         MockKubernetesClient client = invokeController(spec);

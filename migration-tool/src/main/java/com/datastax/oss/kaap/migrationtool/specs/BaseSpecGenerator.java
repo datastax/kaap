@@ -286,9 +286,15 @@ public abstract class BaseSpecGenerator<T> {
         if (podDisruptionBudget != null) {
             podDisruptionBudgetConfig = PodDisruptionBudgetConfig.builder()
                     .enabled(true)
-                    .maxUnavailable(podDisruptionBudget.getSpec().getMaxUnavailable().getIntVal())
-                    .minAvailable(podDisruptionBudget.getSpec().getMinAvailable().getIntVal())
                     .build();
+            if (podDisruptionBudget.getSpec().getMaxUnavailable() != null) {
+                podDisruptionBudgetConfig.setMaxUnavailable(podDisruptionBudget.getSpec()
+                        .getMaxUnavailable().getIntVal());
+            }
+            if (podDisruptionBudget.getSpec().getMinAvailable() != null) {
+                podDisruptionBudgetConfig.setMaxUnavailable(podDisruptionBudget.getSpec()
+                    .getMinAvailable().getIntVal());
+            }
         }
         return podDisruptionBudgetConfig;
     }

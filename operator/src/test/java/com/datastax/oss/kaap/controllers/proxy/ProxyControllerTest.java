@@ -313,7 +313,6 @@ public class ProxyControllerTest {
                             name: pulsar-spec-1-cr
                         spec:
                           maxUnavailable: 1
-                          minAvailable: null
                           selector:
                             matchLabels:
                               app: pulsar

@@ -2085,7 +2085,6 @@ public class FunctionsWorkerControllerTest {
                     replicas: 1
                     pdb:
                         maxUnavailable: 3
-                        minAvailable: null
                 """;
 
         MockKubernetesClient client = invokeController(spec);

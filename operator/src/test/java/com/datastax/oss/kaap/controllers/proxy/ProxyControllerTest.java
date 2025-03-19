@@ -1547,7 +1547,6 @@ public class ProxyControllerTest {
                 proxy:
                     pdb:
                         maxUnavailable: 3
-                        minAvailable: null
                 """;
 
         MockKubernetesClient client = invokeController(spec);

@@ -1717,7 +1717,6 @@ public class BrokerControllerTest {
                 broker:
                     pdb:
                         maxUnavailable: 3
-                        minAvailable: null
                 """;
 
         MockKubernetesClient client = invokeController(spec);

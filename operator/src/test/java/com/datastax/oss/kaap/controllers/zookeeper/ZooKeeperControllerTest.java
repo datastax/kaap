@@ -1714,7 +1714,6 @@ public class ZooKeeperControllerTest {
                 zookeeper:
                     pdb:
                         maxUnavailable: 3
-                        minAvailable: null
                 """;
 
         MockKubernetesClient client = invokeController(spec);

@@ -97,7 +97,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (pdb != null) {
             pdb.setEnabled(ObjectUtils.firstNonNull(pdb.getEnabled(), defaultPdb.getEnabled()));
             if (defaultPdb.getMinAvailable() != null) {
-                pdb.setMaxUnavailable(defaultPdb.getMinAvailable());
+                pdb.setMinAvailable(defaultPdb.getMinAvailable());
             }
             if (defaultPdb.getMaxUnavailable() != null) {
                 pdb.setMaxUnavailable(defaultPdb.getMaxUnavailable());

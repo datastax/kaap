@@ -292,7 +292,7 @@ public abstract class BaseSpecGenerator<T> {
                         .getMaxUnavailable().getIntVal());
             }
             if (podDisruptionBudget.getSpec().getMinAvailable() != null) {
-                podDisruptionBudgetConfig.setMaxUnavailable(podDisruptionBudget.getSpec()
+                podDisruptionBudgetConfig.setMinAvailable(podDisruptionBudget.getSpec()
                     .getMinAvailable().getIntVal());
             }
         }

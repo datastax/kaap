@@ -96,12 +96,11 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         PodDisruptionBudgetConfig defaultPdb = getDefaultPdb();
         if (pdb != null) {
             pdb.setEnabled(ObjectUtils.firstNonNull(pdb.getEnabled(), defaultPdb.getEnabled()));
-            if (defaultPdb.getMinAvailable() != null) {
+            if (defaultPdb.getMinAvailable() != null || pdb.getMinAvailable() != null) {
                 pdb.setMinAvailable(ObjectUtils.firstNonNull(pdb.getMinAvailable(),
                     defaultPdb.getMinAvailable()));
                 pdb.setMaxUnavailable(null);
-            }
-            if (defaultPdb.getMaxUnavailable() != null) {
+            } else if (defaultPdb.getMaxUnavailable() != null || pdb.getMaxUnavailable() != null) {
                 pdb.setMaxUnavailable(ObjectUtils.firstNonNull(pdb.getMaxUnavailable(),
                     defaultPdb.getMaxUnavailable()));
                 pdb.setMinAvailable(null);

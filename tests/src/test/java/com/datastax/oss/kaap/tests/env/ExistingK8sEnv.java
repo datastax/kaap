@@ -33,7 +33,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class ExistingK8sEnv implements K8sEnv {
 
-    public static final DockerImageName HELM_DOCKER_IMAGE = DockerImageName.parse("alpine/helm:3.7.2");
+    public static final DockerImageName HELM_DOCKER_IMAGE = DockerImageName.parse("alpine/helm:3.17.2");
     private static final String KUBECONFIG_CONTEXT =
             System.getProperty("kaap.tests.existingenv.kubeconfig.context");
     private static final String STORAGECLASS =

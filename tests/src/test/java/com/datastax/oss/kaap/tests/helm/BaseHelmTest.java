@@ -43,6 +43,7 @@ public class BaseHelmTest extends BasePulsarClusterTest {
 
     private static final String HELM_RELEASE_PREFIX = "pothr-";
     public static final String HELM_BIND_OPERATOR = "/helm-kaap";
+    public static final String HELM_BIND_DEPENDENCY = "/kaap";
     public static final String HELM_BIND_STACK = "/helm-kaap-stack";
 
     protected String helmReleaseName;
@@ -62,6 +63,7 @@ public class BaseHelmTest extends BasePulsarClusterTest {
             final Path stackPath = Paths.get("..", "helm", "kaap-stack");
             helm.withFileSystemBind(operatorPath.toFile().getAbsolutePath(), HELM_BIND_OPERATOR);
             helm.withFileSystemBind(stackPath.toFile().getAbsolutePath(), HELM_BIND_STACK);
+            helm.withFileSystemBind(operatorPath.toFile().getAbsolutePath(), HELM_BIND_DEPENDENCY);
             log.info("loaded helm charts from {} and {}", operatorPath, stackPath);
         });
     }
@@ -89,8 +91,18 @@ public class BaseHelmTest extends BasePulsarClusterTest {
         helm3Container.copyFileToContainer(Transferable.of(values), "/test-values.yaml");
 
         helm3Container.execInContainer("helm", "delete", helmReleaseName, "-n", namespace);
+
+        // Fix Permissions for kubeconfig issues, no need for check as it can fail or succeed.
+        helm3Container.execInContainer("chmod go-r /tmp/kindcontainer.kubeconfig".split(" "));
+
+        final String buildChart =
+            "helm dependency update %s".formatted(getChartPath(chart));
+        final Container.ExecResult setup = helm3Container.execInContainer(buildChart.split(" "));
+        if (setup.getExitCode() != 0) {
+            throw new RuntimeException("Helm Dependency build failed: " + setup.getStderr());
+        }
         final String cmd =
-                "helm install --debug --timeout 360s %s -n %s %s --values /test-values.yaml".formatted(
+                "helm install --debug --timeout 900s %s -n %s %s --values /test-values.yaml".formatted(
                         helmReleaseName, namespace, getChartPath(chart));
         final Container.ExecResult exec = helm3Container.execInContainer(cmd.split(" "));
         if (exec.getExitCode() != 0) {
@@ -110,7 +122,7 @@ public class BaseHelmTest extends BasePulsarClusterTest {
     protected void helmUpgrade(Chart chart, String values) {
         env.helmContainer().copyFileToContainer(Transferable.of(values), "/test-values.yaml");
         final String cmd =
-                "helm upgrade %s -n %s %s --values /test-values.yaml"
+                "helm upgrade --timeout 900s %s -n %s %s --values /test-values.yaml"
                         .formatted(helmReleaseName, namespace, getChartPath(chart));
         final Container.ExecResult exec = env.helmContainer().execInContainer(cmd.split(" "));
         if (exec.getExitCode() != 0) {

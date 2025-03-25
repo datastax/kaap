@@ -34,6 +34,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -633,9 +634,17 @@ public abstract class BaseResourcesFactory<T> {
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(customMatchLabels))
                 .endSelector()
-                .withNewMaxUnavailable(pdb.getMaxUnavailable())
                 .endSpec()
                 .build();
+
+        if (pdb.getMinAvailable() != null) {
+            pdbResource.getSpec()
+                    .setMinAvailable(new IntOrString(pdb.getMinAvailable()));
+        }
+        if (pdb.getMaxUnavailable() != null) {
+            pdbResource.getSpec()
+                .setMaxUnavailable(new IntOrString(pdb.getMaxUnavailable()));
+        }
 
         if (!pdbSupported) {
             pdbResource.setApiVersion("policy/v1beta1");

@@ -30,4 +30,6 @@ public class PodDisruptionBudgetConfig {
     private Boolean enabled;
     @JsonPropertyDescription("Number of maxUnavailable pods.")
     private Integer maxUnavailable;
+    @JsonPropertyDescription("Number of minAvailable pods.")
+    private Integer minAvailable;
 }

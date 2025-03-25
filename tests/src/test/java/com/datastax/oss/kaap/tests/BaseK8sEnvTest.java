@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -233,6 +234,9 @@ public abstract class BaseK8sEnvTest {
         vars.put(".Values.operator.readinessProbe.periodSeconds", "30");
         vars.put(".Values.operator.readinessProbe.successThreshold", "1");
         vars.put(".Values.operator.readinessProbe.timeoutSeconds", "10");
+        vars.put(".Values.nodeSelector", "        {}");
+        vars.put(".Values.operator.nodeSelector", "        {}");
+        vars.put(".Values.operator.tolerations", "        []");
         vars.put("include \"kaap.name\" .", "kaap");
         vars.put("include \"kaap.roleName\" .", "kaap");
         vars.put("include \"kaap.roleBindingName\" .", "kaap-role-binding");
@@ -252,6 +256,7 @@ public abstract class BaseK8sEnvTest {
             }
             for (Map.Entry<String, String> entry : vars.entrySet()) {
                 l = l.replace("{{ %s }}".formatted(entry.getKey()), entry.getValue());
+                l = l.replace("{{ toYaml %s | indent 8 }}".formatted(entry.getKey()), entry.getValue());
                 l = l.replace("{{- %s }}".formatted(entry.getKey()), entry.getValue());
             }
             result += l + System.lineSeparator();
@@ -568,7 +573,7 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected void awaitOperatorRunning() {
-        Awaitility.await().untilAsserted(() -> {
+        Awaitility.await().atMost(15, TimeUnit.MINUTES).untilAsserted(() -> {
             final List<Pod> pods = client.pods()
                     .inNamespace(namespace)
                     .withLabel("app.kubernetes.io/name", "kaap").list().getItems();

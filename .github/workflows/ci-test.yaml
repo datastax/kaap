@@ -7,7 +7,8 @@ on:
 jobs:
   build-and-unit-test:
     name: Build and test
-    runs-on: ubuntu-20.04
+    runs-on:
+      labels: kaap
     timeout-minutes: 60
     steps:
       - name: checkout
@@ -42,7 +43,8 @@ jobs:
 
   integration-tests:
     name: Integration tests - ${{ matrix.name }}
-    runs-on: ubuntu-20.04
+    runs-on:
+      labels: kaap
     timeout-minutes: 60
     strategy:
       fail-fast: false

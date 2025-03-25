@@ -22,6 +22,7 @@ import com.datastax.oss.kaap.crds.configs.ResourceSetConfig;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
@@ -74,7 +75,7 @@ public class BrokerAutoScalingTest extends BasePulsarClusterTest {
             execInBastionPod(cmd);
 
 
-            Awaitility.await().until(() -> {
+            Awaitility.await().atMost(15, TimeUnit.MINUTES).until(() -> {
                 final StatefulSetStatus status = client.apps().statefulSets()
                         .inNamespace(namespace)
                         .withName("pulsar-broker-dedicated")

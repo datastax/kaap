@@ -31,7 +31,7 @@ import org.testcontainers.containers.GenericContainer;
 public class LocalRegistryContainer<T extends LocalRegistryContainer<T>> extends GenericContainer<T> {
 
     public LocalRegistryContainer() {
-        super("registry:2.7");
+        super("registry:2");
         // workaround because withExposedPorts(5000) does not work
         addFixedExposedPort(nextFreePort(), 5000);
         withEnv("SETTINGS_FLAVOR", "local");

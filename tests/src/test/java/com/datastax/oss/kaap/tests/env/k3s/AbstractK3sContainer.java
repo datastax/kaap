@@ -31,8 +31,8 @@ import org.testcontainers.containers.GenericContainer;
 public abstract class AbstractK3sContainer implements AutoCloseable {
 
     public static final KubernetesImageSpec<K3sContainerVersion> K3S_IMAGE =
-            new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_25_0)
-                    .withImage("rancher/k3s:v1.25.3-k3s1");
+            new KubernetesImageSpec<>(K3sContainerVersion.VERSION_1_31_0)
+                    .withImage("rancher/k3s:v1.31.6-k3s1");
 
     public abstract CompletableFuture<Void> start();
 

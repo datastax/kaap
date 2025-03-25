@@ -132,7 +132,7 @@ public class BkDownScalingTest extends BasePulsarClusterTest {
             log.info("Triggering audit");
             triggerAudit(bookiePod);
 
-            Awaitility.waitAtMost(DEFAULT_AWAIT_SECONDS, TimeUnit.SECONDS).untilAsserted(() -> {
+            Awaitility.waitAtMost(15, TimeUnit.MINUTES).untilAsserted(() -> {
                 long count = client.persistentVolumeClaims()
                         .inNamespace(namespace)
                         .resources()

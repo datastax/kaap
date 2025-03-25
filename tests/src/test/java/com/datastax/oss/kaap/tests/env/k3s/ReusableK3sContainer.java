@@ -52,7 +52,7 @@ class ReusableK3sContainer<T extends ReusableK3sContainer<T>> extends K3sContain
     @Override
     public synchronized Helm3Container<?> helm3() {
         if (this.helm3 == null) {
-            this.helm3 = (Helm3Container) (new Helm3Container(DockerImageName.parse("alpine/helm:3.7.2"),
+            this.helm3 = (Helm3Container) (new Helm3Container(DockerImageName.parse("alpine/helm:3.17.2"),
                     this::getInternalKubeconfig))
                     .withNetworkMode("container:" + this.getContainerId());
             if (helm3ContainerConsumer != null) {

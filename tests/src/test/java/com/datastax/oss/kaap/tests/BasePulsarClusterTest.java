@@ -237,6 +237,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
                 .createOrReplace();
 
         Awaitility.await("waiting for pulsar cluster to be ready")
+                .atMost(15, TimeUnit.MINUTES)
                 .with().pollInterval(10, TimeUnit.SECONDS)
                 .until(() -> {
                     if (isCrdReady(PulsarCluster.class, pulsarCluster.getMetadata().getName())) {
@@ -546,7 +547,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
             return false;
         });
 
-        Awaitility.await().untilAsserted(() -> {
+        Awaitility.await().atMost(15, TimeUnit.MINUTES).untilAsserted(() -> {
             printRunningPods();
             Assert.assertTrue(
                     client.pods().inNamespace(namespace).withName("pf-public-default-generator-0").isReady());

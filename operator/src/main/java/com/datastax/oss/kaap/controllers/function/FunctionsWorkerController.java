@@ -21,14 +21,13 @@ import com.datastax.oss.kaap.crds.function.FunctionsWorker;
 import com.datastax.oss.kaap.crds.function.FunctionsWorkerFullSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-fn-worker-controller")
+@ControllerConfiguration(name = "pulsar-fn-worker-controller")
 @JBossLog
 public class FunctionsWorkerController extends AbstractController<FunctionsWorker> {
 

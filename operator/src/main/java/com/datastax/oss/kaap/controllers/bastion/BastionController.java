@@ -28,7 +28,7 @@ import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-bastion-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-bastion-controller")
 @JBossLog
 public class BastionController extends AbstractController<Bastion> {
 

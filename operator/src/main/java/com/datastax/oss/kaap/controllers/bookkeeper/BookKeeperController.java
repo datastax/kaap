@@ -49,7 +49,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-bk-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-bk-controller")
 @JBossLog
 public class BookKeeperController extends
         AbstractResourceSetsController<BookKeeper, BookKeeperFullSpec, BookKeeperSpec, BookKeeperSetSpec,

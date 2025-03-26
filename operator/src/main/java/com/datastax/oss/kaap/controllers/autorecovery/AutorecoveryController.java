@@ -28,7 +28,7 @@ import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-autorecovery-controller")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-autorecovery-controller")
 @JBossLog
 public class AutorecoveryController extends AbstractController<Autorecovery> {
 

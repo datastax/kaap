@@ -68,7 +68,7 @@ import javax.enterprise.event.Observes;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
+@ControllerConfiguration(namespaces = Constants.WATCH_ALL_NAMESPACES, name = "pulsar-cluster-app")
 @JBossLog
 @ApplicationScoped
 public class PulsarClusterController extends AbstractController<PulsarCluster> {

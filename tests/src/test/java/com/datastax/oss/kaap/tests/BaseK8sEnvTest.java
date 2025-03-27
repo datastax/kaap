@@ -675,8 +675,12 @@ public abstract class BaseK8sEnvTest {
     }
 
     protected String ensureNamespace(String namespaceName) {
-        Namespace ns = new Namespace();
-        ns.getMetadata().setName(namespaceName);
+        var ns = new Namespace();
+        var meta = new ObjectMeta();
+
+        meta.setName(namespaceName);
+        ns.setMetadata(meta);
+
         client.namespaces()
                 .resource(ns)
                 .createOrReplace();

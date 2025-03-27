@@ -20,13 +20,13 @@ import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.cluster.PulsarCluster;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Pod;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Test(groups = "helm-cluster-scoped")

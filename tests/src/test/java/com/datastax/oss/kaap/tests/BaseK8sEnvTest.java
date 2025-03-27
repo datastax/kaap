@@ -33,13 +33,7 @@ import com.datastax.oss.kaap.tests.env.K8sEnv;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateRequest;
 import io.fabric8.certmanager.api.model.v1.Issuer;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.Node;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.PersistentVolume;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -678,5 +672,14 @@ public abstract class BaseK8sEnvTest {
                 .stream()
                 .map(p -> p.getMetadata().getName())
                 .collect(Collectors.toList());
+    }
+
+    protected String ensureNamespace(String namespaceName) {
+        Namespace ns = new Namespace();
+        ns.getMetadata().setName(namespaceName);
+        client.namespaces()
+                .resource(ns)
+                .createOrReplace();
+        return namespaceName;
     }
 }

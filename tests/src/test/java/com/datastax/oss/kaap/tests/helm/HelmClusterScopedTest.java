@@ -33,13 +33,12 @@ import java.util.Map;
 @Test(groups = "helm-cluster-scoped")
 public class HelmClusterScopedTest extends BaseHelmTest {
 
-
     @Test
     public void testHelm() throws Exception {
-        String operatorNamespace = namespace;
-        String deploymentNamespace = "deployment-ns";
-
         try {
+            String operatorNamespace = ensureNamespace(namespace);
+            String deploymentNamespace = ensureNamespace("deployment-ns");
+
             final String spec = """
                     operator:
                         image: %s

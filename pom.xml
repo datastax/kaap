@@ -21,7 +21,7 @@
     <groupId>com.datastax.oss</groupId>
     <artifactId>kaap</artifactId>
     <packaging>pom</packaging>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.3.4-SNAPSHOT</version>
     <modules>
         <module>operator-common</module>
         <module>operator</module>

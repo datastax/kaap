@@ -20,17 +20,21 @@ import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.cluster.PulsarCluster;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Pod;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
-@Test(groups = "helm")
-public class HelmTest extends BaseHelmTest {
+@Test(groups = "helm-cluster-scoped")
+public class HelmClusterScopedTest extends BaseHelmTest {
+
+    String operatorNamespace = namespace;
+    String deploymentNamespace = namespace + "-deployment";
 
     @Test
     public void testHelm() throws Exception {
@@ -38,6 +42,7 @@ public class HelmTest extends BaseHelmTest {
             final String spec = """
                     operator:
                         image: %s
+                        watchAllNamespaces: true
                         imagePullPolicy: Never
                         replicas: 2
                         config:
@@ -67,8 +72,6 @@ public class HelmTest extends BaseHelmTest {
                     "2500");
             Assert.assertEquals(configMap.getData().get("KAAP_RECONCILIATION_RESCHEDULE_SECONDS"),
                     "3");
-            Assert.assertEquals(configMap.getData().get("QUARKUS_OPERATOR_SDK_NAMESPACES"),
-                    "JOSDK_WATCH_CURRENT");
 
             final List<Pod> pods = getOperatorPods();
             Assert.assertEquals(pods.size(), 2);
@@ -79,7 +82,9 @@ public class HelmTest extends BaseHelmTest {
                         .get());
             });
 
+            namespace = deploymentNamespace;
             awaitInstalled();
+            namespace = operatorNamespace;
 
             specs.get("operator").put("replicas", 3);
             helmUpgrade(Chart.OPERATOR, SerializationUtil.writeAsYaml(specs));
@@ -88,9 +93,8 @@ public class HelmTest extends BaseHelmTest {
                 Assert.assertTrue(getOperatorPods().size() >= 3);
             });
 
-
             client.resources(PulsarCluster.class)
-                    .inNamespace(namespace)
+                    .inNamespace(deploymentNamespace)
                     .withName(DEFAULT_PULSAR_CLUSTER_NAME)
                     .delete();
             awaitUninstalled();

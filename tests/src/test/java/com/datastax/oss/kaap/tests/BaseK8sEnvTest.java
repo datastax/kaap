@@ -186,7 +186,7 @@ public abstract class BaseK8sEnvTest {
     private String getRbacManifest() throws IOException {
         List<String> allRbac = new ArrayList<>();
         allRbac.addAll(Files.readAllLines(
-                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac.yaml")));
+                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac", "namespace-scoped.yaml")));
         allRbac.add("---");
         allRbac.addAll(Files.readAllLines(
                 Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "serviceaccount.yaml")));
@@ -208,6 +208,7 @@ public abstract class BaseK8sEnvTest {
                   labels:
                       {{- include "kaap.labels" . | nindent 4 }}
                 data:
+                  QUARKUS_OPERATOR_SDK_NAMESPACES: "JOSDK_WATCH_CURRENT"
                   QUARKUS_LOG_CATEGORY__COM_DATASTAX_OSS_KAAP__LEVEL: debug
                 """.split("\n")).toList());
         return simulateHelmRendering(manifests);

@@ -23,6 +23,9 @@ metadata:
   labels:
       {{- include "kaap.labels" . | nindent 4 }}
 data:
+{{- if (not .Values.operator.watchAllNamespaces) }}
+  QUARKUS_OPERATOR_SDK_NAMESPACES: "JOSDK_WATCH_CURRENT"
+{{- end}}
   QUARKUS_LOG_CATEGORY__COM_DATASTAX_OSS_KAAP__LEVEL: {{ .Values.operator.config.logLevel }}
 {{- range $key, $val := $.Values.operator.config.quarkus }}
   {{ printf "QUARKUS_%s" ($key | replace "-" "." | replace "\"" "." | snakecase | upper | replace "." "_" ) }}: {{ $val | toString | replace "\"" "" | trim | quote }}

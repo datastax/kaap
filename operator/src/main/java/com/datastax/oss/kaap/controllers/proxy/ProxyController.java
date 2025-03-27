@@ -28,7 +28,6 @@ import com.datastax.oss.kaap.crds.proxy.ProxySpec;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +40,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-proxy-controller")
+@ControllerConfiguration(name = "pulsar-proxy-controller")
 @JBossLog
 public class ProxyController
         extends AbstractResourceSetsController<Proxy, ProxyFullSpec, ProxySpec, ProxySetSpec, ProxyResourcesFactory,

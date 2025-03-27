@@ -55,7 +55,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.quarkus.runtime.ShutdownEvent;
@@ -68,7 +67,7 @@ import javax.enterprise.event.Observes;
 import lombok.SneakyThrows;
 import lombok.extern.jbosslog.JBossLog;
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-cluster-app")
+@ControllerConfiguration(name = "pulsar-cluster-app")
 @JBossLog
 @ApplicationScoped
 public class PulsarClusterController extends AbstractController<PulsarCluster> {

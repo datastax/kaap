@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+{{- if .Values.operator.watchAllNamespaces }}
 {{- if .Values.rbac.create }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -23,38 +24,11 @@ metadata:
   name: {{ include "kaap.roleName" . }}
 rules:
   - apiGroups:
-      - "apiextensions.k8s.io"
-    resources:
-      - customresourcedefinitions
-    verbs:
-      - '*'
-  - apiGroups:
       - "storage.k8s.io"
     resources:
       - storageclasses
     verbs:
       - "*"
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ include "kaap.roleBindingName" . }}
-  namespace: {{ .Release.Namespace }}
-roleRef:
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-  name: {{ include "kaap.roleName" . }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "kaap.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: {{ include "kaap.roleName" . }}
-  namespace: {{ .Release.Namespace }}
-rules:
   - apiGroups:
       - apps
     resources:
@@ -64,6 +38,13 @@ rules:
       - statefulsets
     verbs:
       - "*"
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - watch
   - apiGroups:
       - ""
     resources:
@@ -98,9 +79,9 @@ rules:
   - apiGroups:
       - "apiextensions.k8s.io"
     resources:
-        - customresourcedefinitions
+      - customresourcedefinitions
     verbs:
-        - '*'
+      - '*'
   - apiGroups:
       - "rbac.authorization.k8s.io"
     resources:
@@ -111,9 +92,9 @@ rules:
   - apiGroups:
       - "metrics.k8s.io"
     resources:
-        - pods
+      - pods
     verbs:
-        - "*"
+      - "*"
   - apiGroups:
       - coordination.k8s.io
     resources:
@@ -148,7 +129,7 @@ rules:
       - functionsworkers/status
       - functionsworkers/finalizers
     verbs:
-        - "*"
+      - "*"
   - apiGroups:
       - "cert-manager.io"
     resources:
@@ -161,16 +142,16 @@ rules:
       - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: {{ include "kaap.roleBindingName" . }}
-  namespace: {{ .Release.Namespace }}
 roleRef:
-  kind: Role
+  kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
   name: {{ include "kaap.roleName" . }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "kaap.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
+{{- end }}
 {{- end }}

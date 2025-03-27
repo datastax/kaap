@@ -34,7 +34,6 @@ import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.quarkus.runtime.ShutdownEvent;
 import java.util.ArrayList;
@@ -49,7 +48,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-bk-controller")
+@ControllerConfiguration(name = "pulsar-bk-controller")
 @JBossLog
 public class BookKeeperController extends
         AbstractResourceSetsController<BookKeeper, BookKeeperFullSpec, BookKeeperSpec, BookKeeperSetSpec,

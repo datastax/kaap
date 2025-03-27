@@ -63,6 +63,10 @@ jobs:
             group: helm
             num_agents: 0
             setup_helm: "true"
+          - name: Helm (Cluster Scoped)
+            group: helm-cluster-scoped
+            num_agents: 0
+            setup_helm: "true"
           - name: Helm (TLS)
             group: helm-tls
             num_agents: 0

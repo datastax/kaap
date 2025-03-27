@@ -21,6 +21,9 @@ apiVersion: kaap.oss.datastax.com/v1beta1
 kind: PulsarCluster
 metadata:
   name: {{ .Values.cluster.spec.global.name | quote }}
+{{- if .Values.cluster.namespace }}
+  namespace: {{ .Values.cluster.namespace | quote }}
+{{- end }}
 spec:
   {{- toYaml .Values.cluster.spec | nindent 2 }}
 {{- end }}

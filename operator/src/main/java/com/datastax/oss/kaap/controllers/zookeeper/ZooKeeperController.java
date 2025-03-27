@@ -23,14 +23,13 @@ import com.datastax.oss.kaap.crds.zookeeper.ZooKeeperFullSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-zk-controller")
+@ControllerConfiguration(name = "pulsar-zk-controller")
 @JBossLog
 public class ZooKeeperController extends AbstractController<ZooKeeper> {
 

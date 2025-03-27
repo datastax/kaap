@@ -33,11 +33,12 @@ import java.util.Map;
 @Test(groups = "helm-cluster-scoped")
 public class HelmClusterScopedTest extends BaseHelmTest {
 
-    String operatorNamespace = namespace;
-    String deploymentNamespace = namespace + "-deployment";
 
     @Test
     public void testHelm() throws Exception {
+        String operatorNamespace = namespace;
+        String deploymentNamespace = "deployment-ns";
+
         try {
             final String spec = """
                     operator:
@@ -56,7 +57,9 @@ public class HelmClusterScopedTest extends BaseHelmTest {
 
             Map<String, Map<String, Object>> specs = new HashMap<>();
             specs.put("operator", (Map<String, Object>) SerializationUtil.readYaml(spec, Map.class).get("operator"));
-            specs.put("cluster", Map.of("create", "true", "spec", getDefaultPulsarClusterSpecs()));
+            specs.put("cluster", Map.of("create", "true",
+                    "namespace", deploymentNamespace,
+                    "spec", getDefaultPulsarClusterSpecs()));
             final String yaml = SerializationUtil.writeAsYaml(specs);
             helmInstall(Chart.OPERATOR, yaml);
             awaitOperatorRunning();
@@ -84,8 +87,8 @@ public class HelmClusterScopedTest extends BaseHelmTest {
 
             namespace = deploymentNamespace;
             awaitInstalled();
-            namespace = operatorNamespace;
 
+            namespace = operatorNamespace;
             specs.get("operator").put("replicas", 3);
             helmUpgrade(Chart.OPERATOR, SerializationUtil.writeAsYaml(specs));
 

@@ -34,6 +34,7 @@ import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateRequest;
 import io.fabric8.certmanager.api.model.v1.Issuer;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -186,7 +187,7 @@ public abstract class BaseK8sEnvTest {
     private String getRbacManifest() throws IOException {
         List<String> allRbac = new ArrayList<>();
         allRbac.addAll(Files.readAllLines(
-                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac.yaml")));
+                Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "rbac", "namespace-scoped.yaml")));
         allRbac.add("---");
         allRbac.addAll(Files.readAllLines(
                 Paths.get(OPERATOR_CHART_PATH.toFile().getAbsolutePath(), "templates", "serviceaccount.yaml")));
@@ -208,6 +209,7 @@ public abstract class BaseK8sEnvTest {
                   labels:
                       {{- include "kaap.labels" . | nindent 4 }}
                 data:
+                  QUARKUS_OPERATOR_SDK_NAMESPACES: "JOSDK_WATCH_CURRENT"
                   QUARKUS_LOG_CATEGORY__COM_DATASTAX_OSS_KAAP__LEVEL: debug
                 """.split("\n")).toList());
         return simulateHelmRendering(manifests);
@@ -677,5 +679,18 @@ public abstract class BaseK8sEnvTest {
                 .stream()
                 .map(p -> p.getMetadata().getName())
                 .collect(Collectors.toList());
+    }
+
+    protected String ensureNamespace(String namespaceName) {
+        var ns = new Namespace();
+        var meta = new ObjectMeta();
+
+        meta.setName(namespaceName);
+        ns.setMetadata(meta);
+
+        client.namespaces()
+                .resource(ns)
+                .createOrReplace();
+        return namespaceName;
     }
 }

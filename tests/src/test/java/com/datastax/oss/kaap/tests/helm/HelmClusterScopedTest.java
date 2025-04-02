@@ -29,15 +29,19 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Slf4j
-@Test(groups = "helm")
-public class HelmTest extends BaseHelmTest {
+@Test(groups = "helm-cluster-scoped")
+public class HelmClusterScopedTest extends BaseHelmTest {
 
     @Test
     public void testHelm() throws Exception {
         try {
+            String operatorNamespace = ensureNamespace(namespace);
+            String deploymentNamespace = ensureNamespace("deployment-ns");
+
             final String spec = """
                     operator:
                         image: %s
+                        watchAllNamespaces: true
                         imagePullPolicy: Never
                         replicas: 2
                         config:
@@ -51,7 +55,9 @@ public class HelmTest extends BaseHelmTest {
 
             Map<String, Map<String, Object>> specs = new HashMap<>();
             specs.put("operator", (Map<String, Object>) SerializationUtil.readYaml(spec, Map.class).get("operator"));
-            specs.put("cluster", Map.of("create", "true", "spec", getDefaultPulsarClusterSpecs()));
+            specs.put("cluster", Map.of("create", "true",
+                    "namespace", deploymentNamespace,
+                    "spec", getDefaultPulsarClusterSpecs()));
             final String yaml = SerializationUtil.writeAsYaml(specs);
             helmInstall(Chart.OPERATOR, yaml);
             awaitOperatorRunning();
@@ -67,8 +73,6 @@ public class HelmTest extends BaseHelmTest {
                     "2500");
             Assert.assertEquals(configMap.getData().get("KAAP_RECONCILIATION_RESCHEDULE_SECONDS"),
                     "3");
-            Assert.assertEquals(configMap.getData().get("QUARKUS_OPERATOR_SDK_NAMESPACES"),
-                    "JOSDK_WATCH_CURRENT");
 
             final List<Pod> pods = getOperatorPods();
             Assert.assertEquals(pods.size(), 2);
@@ -79,8 +83,10 @@ public class HelmTest extends BaseHelmTest {
                         .get());
             });
 
+            namespace = deploymentNamespace;
             awaitInstalled();
 
+            namespace = operatorNamespace;
             specs.get("operator").put("replicas", 3);
             helmUpgrade(Chart.OPERATOR, SerializationUtil.writeAsYaml(specs));
 
@@ -88,9 +94,8 @@ public class HelmTest extends BaseHelmTest {
                 Assert.assertTrue(getOperatorPods().size() >= 3);
             });
 
-
             client.resources(PulsarCluster.class)
-                    .inNamespace(namespace)
+                    .inNamespace(deploymentNamespace)
                     .withName(DEFAULT_PULSAR_CLUSTER_NAME)
                     .delete();
             awaitUninstalled();

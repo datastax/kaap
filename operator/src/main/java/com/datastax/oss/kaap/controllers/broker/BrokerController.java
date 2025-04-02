@@ -28,7 +28,6 @@ import com.datastax.oss.kaap.crds.broker.BrokerSpec;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +40,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-broker-controller")
+@ControllerConfiguration(name = "pulsar-broker-controller")
 @JBossLog
 public class BrokerController extends
         AbstractResourceSetsController<Broker, BrokerFullSpec, BrokerSpec, BrokerSetSpec,

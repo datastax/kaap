@@ -21,14 +21,13 @@ import com.datastax.oss.kaap.crds.bastion.Bastion;
 import com.datastax.oss.kaap.crds.bastion.BastionFullSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.javaoperatorsdk.operator.api.reconciler.Constants;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import java.util.List;
 import lombok.extern.jbosslog.JBossLog;
 
 
-@ControllerConfiguration(namespaces = Constants.WATCH_CURRENT_NAMESPACE, name = "pulsar-bastion-controller")
+@ControllerConfiguration(name = "pulsar-bastion-controller")
 @JBossLog
 public class BastionController extends AbstractController<Bastion> {
 

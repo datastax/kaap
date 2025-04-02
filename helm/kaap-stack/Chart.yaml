@@ -22,7 +22,7 @@ description: Kubernetes Autoscaling for Apache Pulsar Stack
 version: 0.3.2
 dependencies:
   - name: kaap
-    version: 0.3.x
+    version: 0.4.x
     repository: file://../kaap
   - name: kube-prometheus-stack
     version: 62.3.0

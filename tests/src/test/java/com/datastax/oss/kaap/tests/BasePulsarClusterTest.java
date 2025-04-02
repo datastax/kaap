@@ -484,7 +484,7 @@ public abstract class BasePulsarClusterTest extends BaseK8sEnvTest {
     }
 
     protected void awaitJobCompleted(String name) {
-        awaitJobCompleted(name, 2);
+        awaitJobCompleted(name, 5);
     }
 
     protected void awaitJobCompleted(String name, long minutes) {

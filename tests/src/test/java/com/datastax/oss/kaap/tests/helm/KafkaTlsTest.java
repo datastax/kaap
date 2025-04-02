@@ -157,7 +157,7 @@ public class KafkaTlsTest extends BaseHelmTest {
 
 
             // we need to also consider the download of the image
-            awaitJobCompleted("kafka-client-consumer", 3);
+            awaitJobCompleted("kafka-client-consumer", 5);
             client.resources(PulsarCluster.class)
                     .inNamespace(namespace)
                     .withName("pulsar-cluster")

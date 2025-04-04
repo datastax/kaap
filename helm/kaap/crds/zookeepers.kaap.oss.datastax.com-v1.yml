@@ -1949,6 +1949,18 @@ spec:
                           type: array
                       type: object
                     type: array
+                  vectorMetrics:
+                    description: Add Metrics Exporters to Pulsar containers.
+                    properties:
+                      endpoint:
+                        type: string
+                      enabled:
+                        type: boolean
+                      name:
+                        type: string
+                      image:
+                        type: string
+                    type: object
                   pdb:
                     description: Pod disruption budget configuration.
                     properties:

@@ -1096,6 +1096,10 @@ spec:
                         type: string
                       enabled:
                         type: boolean
+                      name:
+                        type: string
+                      image:
+                        type: string
                     type: object
                   tolerations:
                     description: Pod tolerations.

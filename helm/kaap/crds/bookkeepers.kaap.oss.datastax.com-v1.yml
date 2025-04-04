@@ -2636,6 +2636,10 @@ spec:
                               type: string
                             enabled:
                               type: boolean
+                            name:
+                              type: string
+                            image:
+                              type: string
                           type: object
                         pdb:
                           description: Pod disruption budget configuration.
@@ -4824,6 +4828,10 @@ spec:
                         type: string
                       enabled:
                         type: boolean
+                      name:
+                        type: string
+                      image:
+                        type: string
                     type: object
                   pdb:
                     description: Pod disruption budget configuration.

@@ -1,12 +1,11 @@
 package com.datastax.oss.kaap.crds;
 
 import com.datastax.oss.kaap.crds.validation.ValidableSpec;
+import javax.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.validation.ConstraintValidatorContext;
 
 @Getter
 @Setter

@@ -1,0 +1,14 @@
+[sources.metrics]
+type = "prometheus_scrape"
+endpoints = [ "http://0.0.0.0:8000/metrics" ]
+
+[sinks.file_sink]
+type = "file"
+inputs = [ "metrics" ]
+path = "/tmp/vector-%Y-%m-%d.log"
+encoding = {codec = "json"}
+
+#[sinks.vector_agg_dest]
+#type = "vector"
+#inputs = [ "metrics" ]
+#address = "https://vectorAddrHere:Port"

@@ -328,6 +328,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .build();
         final List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(mainContainer);
+        containers.addAll(getMetricsSidecars(spec.getVectorMetrics()));
         final StatefulSet statefulSet = new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(resourceName)

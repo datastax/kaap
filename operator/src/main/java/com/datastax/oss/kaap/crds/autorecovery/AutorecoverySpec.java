@@ -18,6 +18,7 @@ package com.datastax.oss.kaap.crds.autorecovery;
 import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.ConfigUtil;
 import com.datastax.oss.kaap.crds.GlobalSpec;
+import com.datastax.oss.kaap.crds.VectorMetrics;
 import com.datastax.oss.kaap.crds.WithDefaults;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.kaap.crds.validation.ValidableSpec;
@@ -98,6 +99,8 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     private List<Container> initContainers;
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
+    @JsonPropertyDescription("Add Metrics Exporters to Pulsar containers.")
+    private VectorMetrics vectorMetrics;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

@@ -20,6 +20,7 @@ import com.datastax.oss.kaap.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.kaap.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.GlobalSpec;
+import com.datastax.oss.kaap.crds.VectorMetrics;
 import com.datastax.oss.kaap.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.kaap.crds.configs.AuthConfig;
@@ -31,6 +32,7 @@ import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -107,6 +109,17 @@ public abstract class BaseResourcesFactory<T> {
         this.global = SerializationUtil.deepCloneObject(global);
         this.resourceName = resourceName;
         this.ownerReference = ownerReference;
+    }
+
+    public static List<Container> getMetricsSidecars(VectorMetrics metrics) {
+        if (metrics == null || !metrics.getEnabled()) {
+            return List.of();
+        }
+        Container vectorExporter = new ContainerBuilder()
+                .withName("vector-exporter")
+                .withImage("us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/metrics")
+                .build();
+        return List.of(vectorExporter);
     }
 
 

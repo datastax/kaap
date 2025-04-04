@@ -79,6 +79,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private List<Container> initContainers;
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
+    @JsonPropertyDescription("Add Metrics Exporters to Pulsar containers.")
+    private VectorMetrics vectorMetrics;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

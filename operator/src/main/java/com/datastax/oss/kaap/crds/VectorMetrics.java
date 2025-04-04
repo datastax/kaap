@@ -14,6 +14,8 @@ import javax.validation.ConstraintValidatorContext;
 @AllArgsConstructor
 public class VectorMetrics extends ValidableSpec<VectorMetrics> {
     Boolean enabled;
+    String image;
+    String name;
     String endpoint;
 
     @Override

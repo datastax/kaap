@@ -116,8 +116,8 @@ public abstract class BaseResourcesFactory<T> {
             return List.of();
         }
         Container vectorExporter = new ContainerBuilder()
-                .withName("vector-exporter")
-                .withImage("us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/metrics")
+                .withName(ObjectUtils.firstNonNull(metrics.getName(), "vector-exporter"))
+                .withImage(metrics.getImage())
                 .build();
         return List.of(vectorExporter);
     }

@@ -1,6 +1,6 @@
 # kaap-stack
 
-![Version: 0.3.1](https://img.shields.io/badge/Version-0.3.1-informational?style=flat-square)
+![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square)
 
 Kubernetes Autoscaling for Apache Pulsar Stack
 
@@ -14,7 +14,7 @@ Kubernetes Autoscaling for Apache Pulsar Stack
 | https://charts.jetstack.io | cert-manager | v1.11.x |
 | https://datastax.github.io/charts | pulsar-admin-console | 0.1.x |
 | https://diennea.github.io/bookkeeper-visual-manager | bkvm | 0.1.x |
-| https://prometheus-community.github.io/helm-charts | kube-prometheus-stack | 41.x.x |
+| https://prometheus-community.github.io/helm-charts | kube-prometheus-stack | 62.3.0 |
 
 ## Values
 

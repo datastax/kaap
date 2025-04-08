@@ -124,22 +124,24 @@ public abstract class BaseResourcesFactory<T> {
         metrics.isValid(metrics, null);
         List<VolumeMount> volumeMounts = new ArrayList<>();
         if (metrics.configIsNotEmpty()) {
+            String configMapName = "%s-vector-config".formatted(resourceName);
+            String volumeName = "vector-config";
             var configmap = new ConfigMapBuilder()
                     .withNewMetadata()
-                    .withName("%s-vector-metrics-config".formatted(resourceName))
+                    .withName(configMapName)
                     .withNamespace(namespace)
                     .endMetadata()
                     .withData(Map.of("vector.toml", metrics.getConfig()))
                     .build();
             volumes.add(new VolumeBuilder()
-                    .withName("config")
+                    .withName(volumeName)
                     .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                            .withName("vector-metrics-config")
+                            .withName(configMapName)
                             .build())
                     .build());
             patchResource(configmap);
             volumeMounts.add(new VolumeMountBuilder()
-                    .withName("config")
+                    .withName(volumeName)
                     .withMountPath("/etc/vector")
                     .build());
         } else {

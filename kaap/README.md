@@ -1,6 +1,6 @@
 # kaap
 
-![Version: 0.3.1](https://img.shields.io/badge/Version-0.3.1-informational?style=flat-square)
+![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square)
 
 Kubernetes Autoscaling for Apache Pulsar Stack
 
@@ -20,19 +20,22 @@ Kubernetes Autoscaling for Apache Pulsar Stack
 | operator.config.quarkus | object | `{}` |  |
 | operator.config.restartOnChange | bool | `true` |  |
 | operator.enabled | bool | `true` |  |
-| operator.image | string | `"datastax/kaap:0.3.0"` |  |
+| operator.image | string | `"datastax/kaap:0.3.3"` |  |
 | operator.imagePullPolicy | string | `"IfNotPresent"` |  |
 | operator.livenessProbe.failureThreshold | int | `3` |  |
 | operator.livenessProbe.initialDelaySeconds | int | `0` |  |
 | operator.livenessProbe.periodSeconds | int | `30` |  |
 | operator.livenessProbe.successThreshold | int | `1` |  |
 | operator.livenessProbe.timeoutSeconds | int | `10` |  |
+| operator.nodeSelector | object | `{}` |  |
 | operator.readinessProbe.failureThreshold | int | `3` |  |
 | operator.readinessProbe.initialDelaySeconds | int | `0` |  |
 | operator.readinessProbe.periodSeconds | int | `30` |  |
 | operator.readinessProbe.successThreshold | int | `1` |  |
 | operator.readinessProbe.timeoutSeconds | int | `10` |  |
 | operator.replicas | int | `1` |  |
+| operator.tolerations | list | `[]` |  |
+| operator.watchAllNamespaces | bool | `false` |  |
 | rbac.create | bool | `true` |  |
 | rbac.operatorRole.name | string | `"kaap"` |  |
 | rbac.operatorRoleBinding.name | string | `"kaap-role-binding"` |  |

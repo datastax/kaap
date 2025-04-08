@@ -319,7 +319,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
-        containers.addAll(getMetricsSidecars(spec.getVectorMetrics()));
+        containers.addAll(getMetricsSidecars(spec.getVectorMetrics(), volumes, namespace, resourceName));
 
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();
         if (!global.getPersistence()) {

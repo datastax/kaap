@@ -20,7 +20,6 @@ import com.datastax.oss.kaap.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.kaap.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.GlobalSpec;
-import com.datastax.oss.kaap.crds.VectorMetrics;
 import com.datastax.oss.kaap.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.kaap.crds.configs.AuthConfig;
@@ -29,8 +28,12 @@ import com.datastax.oss.kaap.crds.configs.ProbesConfig;
 import com.datastax.oss.kaap.crds.configs.StorageClassConfig;
 import com.datastax.oss.kaap.crds.configs.VolumeConfig;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
+import com.datastax.oss.kaap.crds.metrics.VectorMetrics;
+import com.datastax.oss.kaap.crds.metrics.VectorMetricsConstants;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
@@ -111,13 +114,43 @@ public abstract class BaseResourcesFactory<T> {
         this.ownerReference = ownerReference;
     }
 
-    public static List<Container> getMetricsSidecars(VectorMetrics metrics) {
+    public List<Container> getMetricsSidecars(VectorMetrics metrics,
+                                              List<Volume> volumes,
+                                              String namespace,
+                                              String resourceName) {
         if (metrics == null || !metrics.getEnabled()) {
             return List.of();
+        }
+        metrics.isValid(metrics, null);
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        if (metrics.configIsNotEmpty()) {
+            var configmap = new ConfigMapBuilder()
+                    .withNewMetadata()
+                    .withName("%s-vector-metrics-config".formatted(resourceName))
+                    .withNamespace(namespace)
+                    .endMetadata()
+                    .withData(Map.of("vector.toml", metrics.getConfig()))
+                    .build();
+            volumes.add(new VolumeBuilder()
+                    .withName("config")
+                    .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                            .withName("vector-metrics-config")
+                            .build())
+                    .build());
+            patchResource(configmap);
+            volumeMounts.add(new VolumeMountBuilder()
+                    .withName("config")
+                    .withMountPath("/etc/vector")
+                    .build());
+        } else {
+            VectorMetricsConstants.getConfig(metrics.getScrapeEndpoint(),
+                    metrics.getSinkEndpoint());
         }
         Container vectorExporter = new ContainerBuilder()
                 .withName(ObjectUtils.firstNonNull(metrics.getName(), "vector-exporter"))
                 .withImage(metrics.getImage())
+                .withImagePullPolicy(metrics.getImagePullPolicy())
+                .withVolumeMounts(volumeMounts)
                 .build();
         return List.of(vectorExporter);
     }

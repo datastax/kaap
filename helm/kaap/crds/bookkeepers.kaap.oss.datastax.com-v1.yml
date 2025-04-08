@@ -2629,18 +2629,6 @@ spec:
                                 type: array
                             type: object
                           type: array
-                        vectorMetrics:
-                          description: Add Metrics Exporters to Pulsar containers.
-                          properties:
-                            endpoint:
-                              type: string
-                            enabled:
-                              type: boolean
-                            name:
-                              type: string
-                            image:
-                              type: string
-                          type: object
                         pdb:
                           description: Pod disruption budget configuration.
                           properties:
@@ -2673,6 +2661,34 @@ spec:
                         replicas:
                           description: Number of desired replicas.
                           type: integer
+                        vectorMetrics:
+                          description: Add Metrics Exporters to Pulsar containers.
+                          properties:
+                            scrapeEndpoint:
+                              description: "Endpoint for /metrics, eg. https://0.0.0.0:8000\
+                                \ (default).If config is provided, this will not be\
+                                \ used."
+                              type: string
+                            sinkEndpoint:
+                              description: "Endpoint for vector aggregator sink If\
+                                \ config is provided, this will not be used."
+                              type: string
+                            image:
+                              description: Vector image name
+                              type: string
+                            name:
+                              description: Container name of vector metrics exporter.
+                              type: string
+                            enabled:
+                              description: Enable vector metrics exporter.
+                              type: boolean
+                            imagePullPolicy:
+                              description: Override image pull policy.
+                              type: string
+                            config:
+                              description: Config for vector. Overrides existing config.
+                              type: string
+                          type: object
                         nodeAffinity:
                           description: Node affinity configuration.
                           properties:
@@ -4821,18 +4837,6 @@ spec:
                           type: array
                       type: object
                     type: array
-                  vectorMetrics:
-                    description: Add Metrics Exporters to Pulsar containers.
-                    properties:
-                      endpoint:
-                        type: string
-                      enabled:
-                        type: boolean
-                      name:
-                        type: string
-                      image:
-                        type: string
-                    type: object
                   pdb:
                     description: Pod disruption budget configuration.
                     properties:
@@ -4865,6 +4869,33 @@ spec:
                   replicas:
                     description: Number of desired replicas.
                     type: integer
+                  vectorMetrics:
+                    description: Add Metrics Exporters to Pulsar containers.
+                    properties:
+                      scrapeEndpoint:
+                        description: "Endpoint for /metrics, eg. https://0.0.0.0:8000\
+                          \ (default).If config is provided, this will not be used."
+                        type: string
+                      sinkEndpoint:
+                        description: "Endpoint for vector aggregator sink If config\
+                          \ is provided, this will not be used."
+                        type: string
+                      image:
+                        description: Vector image name
+                        type: string
+                      name:
+                        description: Container name of vector metrics exporter.
+                        type: string
+                      enabled:
+                        description: Enable vector metrics exporter.
+                        type: boolean
+                      imagePullPolicy:
+                        description: Override image pull policy.
+                        type: string
+                      config:
+                        description: Config for vector. Overrides existing config.
+                        type: string
+                    type: object
                   nodeAffinity:
                     description: Node affinity configuration.
                     properties:

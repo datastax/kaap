@@ -7,8 +7,3 @@ type = "file"
 inputs = [ "metrics" ]
 path = "/tmp/vector-%Y-%m-%d.log"
 encoding = {codec = "json"}
-
-#[sinks.vector_agg_dest]
-#type = "vector"
-#inputs = [ "metrics" ]
-#address = "https://vectorAddrHere:Port"

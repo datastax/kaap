@@ -20,5 +20,5 @@ COPY ./conf/vector_config.toml /etc/vector/vector.toml
 COPY --from=builder /usr/lib64/libstdc++.so.6 /usr/lib64/libstdc++.so.6
 COPY --from=builder /usr/bin/vector /usr/bin/vector
 
-USER kaap
+USER 185
 ENTRYPOINT ["/usr/bin/vector", "--config", "/etc/vector/vector.toml"]

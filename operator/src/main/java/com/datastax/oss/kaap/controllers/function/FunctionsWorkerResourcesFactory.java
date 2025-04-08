@@ -468,7 +468,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .build();
         final List<Container> containers = getSidecars(spec.getSidecars());
         containers.add(mainContainer);
-        containers.addAll(getMetricsSidecars(spec.getVectorMetrics()));
+        containers.addAll(getMetricsSidecars(spec.getVectorMetrics(), volumes, namespace, resourceName));
 
 
         List<PersistentVolumeClaim> persistentVolumeClaims = new ArrayList<>();

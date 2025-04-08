@@ -175,7 +175,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                         .withVolumeMounts(volumeMounts)
                         .build()
         );
-        containers.addAll(getMetricsSidecars(spec.getVectorMetrics()));
+        containers.addAll(getMetricsSidecars(spec.getVectorMetrics(), volumes, namespace, resourceName));
         Deployment deployment = new DeploymentBuilder()
                 .withNewMetadata()
                 .withName(resourceName)

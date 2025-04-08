@@ -22,7 +22,6 @@ import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.FullSpecWithDefaults;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.SpecDiffer;
-import com.datastax.oss.kaap.crds.VectorMetrics;
 import com.datastax.oss.kaap.crds.autorecovery.AutorecoverySpec;
 import com.datastax.oss.kaap.crds.bastion.BastionSpec;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperSpec;
@@ -92,8 +91,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 ProxySpec.class,
                 AutorecoverySpec.class,
                 BastionSpec.class,
-                FunctionsWorkerSpec.class,
-                VectorMetrics.class
+                FunctionsWorkerSpec.class
         ));
         return configuration.buildValidatorFactory().getValidator();
     }

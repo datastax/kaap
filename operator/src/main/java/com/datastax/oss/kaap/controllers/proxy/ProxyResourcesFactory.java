@@ -465,7 +465,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                         .withEnv(spec.getEnv())
                         .build()
         );
-        containers.addAll(getMetricsSidecars(spec.getVectorMetrics()));
+        containers.addAll(getMetricsSidecars(spec.getVectorMetrics(), volumes, namespace, resourceName));
         final ProxySetSpec.WebSocketConfig webSocket = spec.getWebSocket();
         if (webSocket.getEnabled()) {
 

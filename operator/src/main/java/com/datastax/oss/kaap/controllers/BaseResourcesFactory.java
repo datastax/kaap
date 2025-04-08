@@ -123,31 +123,29 @@ public abstract class BaseResourcesFactory<T> {
         }
         metrics.isValid(metrics, null);
         List<VolumeMount> volumeMounts = new ArrayList<>();
-        if (metrics.configIsNotEmpty()) {
-            String configMapName = "%s-vector-config".formatted(resourceName);
-            String volumeName = "vector-config";
-            var configmap = new ConfigMapBuilder()
-                    .withNewMetadata()
-                    .withName(configMapName)
-                    .withNamespace(namespace)
-                    .endMetadata()
-                    .withData(Map.of("vector.toml", metrics.getConfig()))
-                    .build();
-            volumes.add(new VolumeBuilder()
-                    .withName(volumeName)
-                    .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                            .withName(configMapName)
-                            .build())
-                    .build());
-            patchResource(configmap);
-            volumeMounts.add(new VolumeMountBuilder()
-                    .withName(volumeName)
-                    .withMountPath("/etc/vector")
-                    .build());
-        } else {
-            VectorMetricsConstants.getConfig(metrics.getScrapeEndpoint(),
-                    metrics.getSinkEndpoint());
-        }
+        String configMapName = "%s-vector-config".formatted(resourceName);
+        String volumeName = "vector-config";
+        String configMapValue = metrics.configIsNotEmpty() ? metrics.getConfig()
+                : VectorMetricsConstants.getConfig(
+                        metrics.getScrapeEndpoint(), metrics.getSinkEndpoint());
+        var configmap = new ConfigMapBuilder()
+                .withNewMetadata()
+                .withName(configMapName)
+                .withNamespace(namespace)
+                .endMetadata()
+                .withData(Map.of("vector.toml", configMapValue))
+                .build();
+        volumes.add(new VolumeBuilder()
+                .withName(volumeName)
+                .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                        .withName(configMapName)
+                        .build())
+                .build());
+        patchResource(configmap);
+        volumeMounts.add(new VolumeMountBuilder()
+                .withName(volumeName)
+                .withMountPath("/etc/vector")
+                .build());
         Container vectorExporter = new ContainerBuilder()
                 .withName(ObjectUtils.firstNonNull(metrics.getName(), "vector-exporter"))
                 .withImage(metrics.getImage())

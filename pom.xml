@@ -309,7 +309,7 @@
                             <header>src/license-header.txt</header>
                             <excludes>
                                 <exclude>helm/kaap/crds/**</exclude>
-                                <exclude>**/Dockerfile</exclude>
+                                <exclude>**/*Dockerfile</exclude>
                             </excludes>
                         </licenseSet>
                     </licenseSets>

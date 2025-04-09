@@ -297,6 +297,13 @@ Resource Types:
           Pod tolerations.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryvectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -5395,6 +5402,74 @@ Resources requirements.
         <td>string</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -10915,6 +10990,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Update strategy for the StatefulSet. Default value is rolling update.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepervectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -17548,6 +17630,13 @@ Service configuration.
         <td>object</td>
         <td>
           Update strategy for the StatefulSet. Default value is rolling update.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyvectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -26199,6 +26288,74 @@ Update strategy for the StatefulSet. Default value is rolling update.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].volumes
 
 
@@ -28719,6 +28876,74 @@ Update strategy for the StatefulSet. Default value is rolling update.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.volumes
 
 
@@ -29200,6 +29425,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>object</td>
         <td>
           Update strategy for the StatefulSet.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokervectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -35850,6 +36082,13 @@ Service configuration.
         <td>object</td>
         <td>
           Update strategy for the StatefulSet.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyvectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -44652,6 +44891,74 @@ Update strategy for the StatefulSet.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sidecars[index]
 
 
@@ -47036,6 +47343,74 @@ Update strategy for the StatefulSet.
 </table>
 
 
+### PulsarCluster.spec.broker.vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker
 
 
@@ -47254,6 +47629,13 @@ Update strategy for the StatefulSet.
         <td>object</td>
         <td>
           Update strategy for the StatefulSet.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkervectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -55939,6 +56321,74 @@ Update strategy for the StatefulSet.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.global
 
 
@@ -57980,6 +58430,13 @@ TLS configurations related to the ZooKeeper component.
         <td>object</td>
         <td>
           Strategy for the proxy deployment.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyvectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -64511,6 +64968,13 @@ Service configuration.
         <td>object</td>
         <td>
           Strategy for the proxy deployment.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyvectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -73116,6 +73580,74 @@ Strategy for the proxy deployment.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].webSocket
 
 
@@ -75650,6 +76182,74 @@ Strategy for the proxy deployment.
 </table>
 
 
+### PulsarCluster.spec.proxy.vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.webSocket
 
 
@@ -76110,6 +76710,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Update strategy for the StatefulSet. Default value is rolling update.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepervectormetrics">vectorMetrics</a></b></td>
+        <td>object</td>
+        <td>
+          Add Metrics Exporters to Pulsar containers.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -84815,6 +85422,74 @@ Update strategy for the StatefulSet. Default value is rolling update.
         <td>integer</td>
         <td>
           <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.vectorMetrics
+
+
+
+Add Metrics Exporters to Pulsar containers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>config</b></td>
+        <td>string</td>
+        <td>
+          Config for vector. Overrides existing config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Vector image name<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          Override image pull policy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Container name of vector metrics exporter.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>scrapeEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for /metrics, eg. https://0.0.0.0:8000 (default).If config is provided, this will not be used.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sinkEndpoint</b></td>
+        <td>string</td>
+        <td>
+          Endpoint for vector aggregator sink If config is provided, this will not be used.<br/>
         </td>
         <td>false</td>
       </tr></tbody>

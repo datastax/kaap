@@ -1,5 +1,4 @@
 FROM redhat/ubi9:latest AS builder
-ARG VERSION
 ARG TARGETPLATFORM
 
 # Install Vector
@@ -11,8 +10,6 @@ RUN case ${TARGETPLATFORM} in \
  && rpm -i https://packages.timber.io/vector/${VECTOR_VERSION}/vector-${VECTOR_VERSION}-1.${VECTOR_ARCH}.rpm
 
 FROM redhat/ubi9-micro:latest
-
-ARG VERSION
 ARG TARGETPLATFORM
 
 # Copy our configuration

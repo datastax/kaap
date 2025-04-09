@@ -66,6 +66,14 @@ jobs:
           context: operator
           tags: ${{ env.TAGS }}
 
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          file: metrics.Dockerfile
+          tags: "docker.io/datastax/kaap:vector-metrics"
+
       - uses: ncipollo/release-action@v1
         if: ${{ inputs.docker_tag == '' }} # If not manual workflow
         with:

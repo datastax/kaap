@@ -52,7 +52,7 @@ public class VectorMetricsTest extends BaseHelmTest {
                                 operator-sdk.controllers."controllers".retry.interval.initial: 2500
                             operator:
                                 reconciliationRescheduleSeconds: 3
-                    """.formatted(OPERATOR_IMAGE);
+                    """.formatted("us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/operator");
 
             Map<String, Map<String, Object>> specs = new HashMap<>();
             specs.put("operator", (Map<String, Object>) SerializationUtil.readYaml(spec, Map.class).get("operator"));

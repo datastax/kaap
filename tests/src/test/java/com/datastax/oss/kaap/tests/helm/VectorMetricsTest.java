@@ -127,6 +127,17 @@ public class VectorMetricsTest extends BaseHelmTest {
         metrics.setSinkEndpoint("0.0.0.0");
         metrics.setScrapeEndpoint("http://%s:8000/metrics"
                 .formatted(url == null ? "0.0.0.0" : url));
+        metrics.setConfig("""
+                [sources.metrics]
+                type = "prometheus_scrape"
+                endpoints = [ "http://0.0.0.0:8000/metrics" ]
+                
+                [sinks.file_sink]
+                type = "file"
+                inputs = [ "metrics" ]
+                path = "/tmp/vector-%Y-%m-%d.log"
+                encoding = {codec = "json"}
+                """);
         return metrics;
     }
 

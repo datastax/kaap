@@ -67,6 +67,10 @@ jobs:
             group: helm-cluster-scoped
             num_agents: 0
             setup_helm: "true"
+          - name: Helm (Vector Metrics)
+            group: kaap-vector-metrics
+            num_agents: 0
+            setup_helm: "true"
           - name: Helm (TLS)
             group: helm-tls
             num_agents: 0

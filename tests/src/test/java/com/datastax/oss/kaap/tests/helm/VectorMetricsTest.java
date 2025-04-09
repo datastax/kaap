@@ -17,21 +17,18 @@ package com.datastax.oss.kaap.tests.helm;
 
 import com.datastax.oss.kaap.LeaderElectionConfig;
 import com.datastax.oss.kaap.common.SerializationUtil;
-import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.cluster.PulsarCluster;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.crds.metrics.VectorMetrics;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Pod;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Test(groups = "kaap-vector-metrics")

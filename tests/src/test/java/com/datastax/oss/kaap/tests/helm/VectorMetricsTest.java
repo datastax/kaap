@@ -124,9 +124,6 @@ public class VectorMetricsTest extends BaseHelmTest {
         metrics.setImage("us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/metrics");
         metrics.setImagePullPolicy("Always");
         metrics.setName("vector-metrics");
-        metrics.setSinkEndpoint("0.0.0.0");
-        metrics.setScrapeEndpoint("http://%s:8000/metrics"
-                .formatted(url == null ? "0.0.0.0" : url));
         metrics.setConfig("""
                 [sources.metrics]
                 type = "prometheus_scrape"

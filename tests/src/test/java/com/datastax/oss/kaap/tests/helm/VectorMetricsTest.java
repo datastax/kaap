@@ -49,7 +49,7 @@ public class VectorMetricsTest extends BaseHelmTest {
                                 operator-sdk.controllers."controllers".retry.interval.initial: 2500
                             operator:
                                 reconciliationRescheduleSeconds: 3
-                    """.formatted("us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/operator");
+                    """.formatted(OPERATOR_IMAGE);
 
             Map<String, Map<String, Object>> specs = new HashMap<>();
             specs.put("operator", (Map<String, Object>) SerializationUtil.readYaml(spec, Map.class).get("operator"));
@@ -121,7 +121,7 @@ public class VectorMetricsTest extends BaseHelmTest {
     private VectorMetrics vectorMetrics(String url) {
         var metrics = new VectorMetrics();
         metrics.setEnabled(true);
-        metrics.setImage("us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/metrics");
+        metrics.setImage("datastax/kaap:vector-metrics");
         metrics.setImagePullPolicy("Always");
         metrics.setName("vector-metrics");
         metrics.setConfig("""

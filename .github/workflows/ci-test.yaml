@@ -129,6 +129,9 @@ jobs:
       - name: Build
         run: mvn -B -T 1C -ntp -nsu clean install -DskipTests -pl tests -am -Dcheckstyle.skip -Dspotbugs.skip -Pskip-crds
 
+      - name: Build Metrics Image
+        run: docker build -f metrics.Dockerfile . -t datastax/kaap:vector-metrics
+
       - name: Integration tests
         run: |
           #!/bin/bash

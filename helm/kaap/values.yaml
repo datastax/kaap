@@ -38,8 +38,8 @@ fullnameOverride: ""
 operator:
   enabled: true
   watchAllNamespaces: false
-  image: us-central1-docker.pkg.dev/datastax-gcp-pulsar/kaap/kaapoperator/operator
-  imagePullPolicy: Always
+  image: datastax/kaap:0.4.0
+  imagePullPolicy: IfNotPresent
   replicas: 1
   nodeSelector: {}
   tolerations: []

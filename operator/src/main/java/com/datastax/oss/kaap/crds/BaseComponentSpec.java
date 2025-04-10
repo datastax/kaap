@@ -18,6 +18,7 @@ package com.datastax.oss.kaap.crds;
 import com.datastax.oss.kaap.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.kaap.crds.configs.PodDisruptionBudgetConfig;
+import com.datastax.oss.kaap.crds.metrics.VectorMetrics;
 import com.datastax.oss.kaap.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.Container;
@@ -79,6 +80,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private List<Container> initContainers;
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
+    @JsonPropertyDescription("Add Metrics Exporters to Pulsar containers.")
+    private VectorMetrics vectorMetrics;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

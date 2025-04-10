@@ -1,9 +1,9 @@
-name: Release Operator
+name: Release Metrics
 
 on:
   push:
     tags:
-      - 'operator-*'
+      - 'vector-*'
   workflow_dispatch: # Manual Trigger
     inputs:
       docker_tag:
@@ -44,28 +44,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Get the tag & Build Operator
-        run: |
-          OP_TAG=${GITHUB_REF/refs\/tags\/operator-/}
-          MANUAL_WORKFLOW_TAG=${{ inputs.docker_tag }}
-          if [[ $MANUAL_WORKFLOW_TAG != "" ]]; then
-            TAGS="docker.io/datastax/kaap:$MANUAL_WORKFLOW_TAG"
-          else
-            TAGS="docker.io/datastax/kaap:$OP_TAG,docker.io/datastax/kaap:latest"
-          fi
-          echo "TAGS=${TAGS}" >> "$GITHUB_ENV"
-          echo "Using tags $TAGS"
-
-          mvn clean install -DskipTests -Pskip-crds -Pskip-docker
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          push: true
-          context: operator
-          tags: ${{ env.TAGS }}
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -73,10 +51,3 @@ jobs:
           push: true
           file: metrics.Dockerfile
           tags: "docker.io/datastax/kaap:vector-metrics"
-
-      - uses: ncipollo/release-action@v1
-        if: ${{ inputs.docker_tag == '' }} # If not manual workflow
-        with:
-          artifacts: "migration-tool/target/kaap-migration-tool-*.jar,helm/kaap/crds/*.yml"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generateReleaseNotes: true

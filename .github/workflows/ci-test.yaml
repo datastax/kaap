@@ -67,6 +67,10 @@ jobs:
             group: helm-cluster-scoped
             num_agents: 0
             setup_helm: "true"
+          - name: Helm (Vector Metrics)
+            group: kaap-vector-metrics
+            num_agents: 0
+            setup_helm: "true"
           - name: Helm (TLS)
             group: helm-tls
             num_agents: 0
@@ -124,6 +128,9 @@ jobs:
 
       - name: Build
         run: mvn -B -T 1C -ntp -nsu clean install -DskipTests -pl tests -am -Dcheckstyle.skip -Dspotbugs.skip -Pskip-crds
+
+      - name: Build Metrics Image
+        run: docker build -f metrics.Dockerfile . -t datastax/kaap:vector-metrics
 
       - name: Integration tests
         run: |

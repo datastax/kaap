@@ -28,9 +28,14 @@ import com.datastax.oss.kaap.crds.configs.ProbesConfig;
 import com.datastax.oss.kaap.crds.configs.StorageClassConfig;
 import com.datastax.oss.kaap.crds.configs.VolumeConfig;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
+import com.datastax.oss.kaap.crds.metrics.VectorMetrics;
+import com.datastax.oss.kaap.crds.metrics.VectorMetricsConstants;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -107,6 +112,47 @@ public abstract class BaseResourcesFactory<T> {
         this.global = SerializationUtil.deepCloneObject(global);
         this.resourceName = resourceName;
         this.ownerReference = ownerReference;
+    }
+
+    public List<Container> getMetricsSidecars(VectorMetrics metrics,
+                                              List<Volume> volumes,
+                                              String namespace,
+                                              String resourceName) {
+        if (metrics == null || !metrics.getEnabled()) {
+            return List.of();
+        }
+        metrics.isValid(metrics, null);
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        String configMapName = "%s-vector-config".formatted(resourceName);
+        String volumeName = "vector-config";
+        String configMapValue = metrics.configIsNotEmpty() ? metrics.getConfig()
+                : VectorMetricsConstants.getConfig(
+                        metrics.getScrapeEndpoint(), metrics.getSinkEndpoint());
+        var configmap = new ConfigMapBuilder()
+                .withNewMetadata()
+                .withName(configMapName)
+                .withNamespace(namespace)
+                .endMetadata()
+                .withData(Map.of("vector.toml", configMapValue))
+                .build();
+        volumes.add(new VolumeBuilder()
+                .withName(volumeName)
+                .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                        .withName(configMapName)
+                        .build())
+                .build());
+        patchResource(configmap);
+        volumeMounts.add(new VolumeMountBuilder()
+                .withName(volumeName)
+                .withMountPath("/etc/vector")
+                .build());
+        Container vectorExporter = new ContainerBuilder()
+                .withName(ObjectUtils.firstNonNull(metrics.getName(), "vector-exporter"))
+                .withImage(metrics.getImage())
+                .withImagePullPolicy(metrics.getImagePullPolicy())
+                .withVolumeMounts(volumeMounts)
+                .build();
+        return List.of(vectorExporter);
     }
 
 

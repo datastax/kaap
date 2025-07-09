@@ -93,16 +93,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
-        applySecurityContextDefault();
         applyPdbDefault();
-    }
-
-    private void applySecurityContextDefault() {
-        if (securityContext == null) {
-            securityContext = new PodSecurityContextBuilder()
-                    .withFsGroup(0L)
-                    .build();
-        }
     }
 
     public void applyPdbDefault() {
@@ -123,7 +114,16 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         }
     }
 
-
+    /**
+     * Default security context used by bookkeeper, zookeeper and functionsWorker
+     */
+    protected void applyFsGroup0IfSecurityContextMissing() {
+        if (securityContext == null) {
+            securityContext = new PodSecurityContextBuilder()
+                    .withFsGroup(0L)
+                    .build();
+        }
+    }
 
     protected abstract PodDisruptionBudgetConfig getDefaultPdb();
 }

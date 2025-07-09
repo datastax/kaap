@@ -368,7 +368,7 @@ public class ZooKeeperResourcesFactory extends BaseResourcesFactory<ZooKeeperSpe
                 ))
                 .withTerminationGracePeriodSeconds(gracePeriod)
                 .withPriorityClassName(global.getPriorityClassName())
-                .withNewSecurityContext().withFsGroup(0L).endSecurityContext()
+                .withSecurityContext(spec.getSecurityContext())
                 .withContainers(containers)
                 .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withVolumes(volumes)

@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Toleration;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +81,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private List<Container> initContainers;
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
+    @JsonPropertyDescription(CRDConstants.DOC_SECURITY_CONTEXT)
+    private PodSecurityContext securityContext;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -89,7 +93,16 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }
+        applySecurityContextDefault();
         applyPdbDefault();
+    }
+
+    private void applySecurityContextDefault() {
+        if (securityContext == null) {
+            securityContext = new PodSecurityContextBuilder()
+                    .withFsGroup(0L)
+                    .build();
+        }
     }
 
     public void applyPdbDefault() {

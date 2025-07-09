@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -98,6 +99,8 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     private List<Container> initContainers;
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
+    @JsonPropertyDescription(CRDConstants.DOC_SECURITY_CONTEXT)
+    private PodSecurityContext securityContext;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

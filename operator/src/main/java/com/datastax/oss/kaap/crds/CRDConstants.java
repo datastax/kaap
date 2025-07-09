@@ -59,6 +59,7 @@ public final class CRDConstants {
     public static final String DOC_CONTAINER_ENV = "Additional container env variables.";
     public static final String DOC_SIDECARS = "Sidecar containers";
     public static final String DOC_INIT_CONTAINERS = "Init containers";
+    public static final String DOC_SECURITY_CONTEXT = "Defines access control settings for the containers";
     public static final String DOC_SERVICE_ACCOUNT_NAME = "Service account name for the resource.";
 
     public static final String DOC_SERVICE_ANNOTATIONS = "Additional annotations to add to the Service.";

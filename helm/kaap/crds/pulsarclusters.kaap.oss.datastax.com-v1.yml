@@ -850,6 +850,62 @@ spec:
                                 Default is 'false'.
                               type: boolean
                           type: object
+                        securityContext:
+                          description: Defines access control settings for the containers
+                          properties:
+                            runAsGroup:
+                              type: integer
+                            runAsNonRoot:
+                              type: boolean
+                            windowsOptions:
+                              properties:
+                                gmsaCredentialSpecName:
+                                  type: string
+                                hostProcess:
+                                  type: boolean
+                                gmsaCredentialSpec:
+                                  type: string
+                                runAsUserName:
+                                  type: string
+                              type: object
+                            sysctls:
+                              items:
+                                properties:
+                                  value:
+                                    type: string
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
+                            fsGroupChangePolicy:
+                              type: string
+                            seLinuxOptions:
+                              properties:
+                                role:
+                                  type: string
+                                type:
+                                  type: string
+                                user:
+                                  type: string
+                                level:
+                                  type: string
+                              type: object
+                            fsGroup:
+                              type: integer
+                            supplementalGroups:
+                              items:
+                                type: integer
+                              type: array
+                            runAsUser:
+                              type: integer
+                            seccompProfile:
+                              properties:
+                                type:
+                                  type: string
+                                localhostProfile:
+                                  type: string
+                              type: object
+                          type: object
                         imagePullSecrets:
                           description: Image pull secrets.
                           items:
@@ -2995,6 +3051,62 @@ spec:
                           is 'false'.
                         type: boolean
                     type: object
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
+                            type: string
+                        type: object
+                    type: object
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:
@@ -5083,6 +5195,62 @@ spec:
                           should be used.
                         type: string
                     type: object
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
+                            type: string
+                        type: object
+                    type: object
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:
@@ -6973,6 +7141,62 @@ spec:
                     description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
+                            type: string
+                        type: object
+                    type: object
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:
@@ -8205,6 +8429,62 @@ spec:
                     description: Termination grace period in seconds.
                     minimum: 0.0
                     type: integer
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
+                            type: string
+                        type: object
+                    type: object
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:
@@ -9627,6 +9907,62 @@ spec:
                         description: Indicates if an already existing storage class
                           should be used.
                         type: string
+                    type: object
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
+                            type: string
+                        type: object
                     type: object
                   imagePullSecrets:
                     description: Image pull secrets.
@@ -11775,6 +12111,62 @@ spec:
                                 Default is 'false'.
                               type: boolean
                           type: object
+                        securityContext:
+                          description: Defines access control settings for the containers
+                          properties:
+                            runAsGroup:
+                              type: integer
+                            runAsNonRoot:
+                              type: boolean
+                            windowsOptions:
+                              properties:
+                                gmsaCredentialSpecName:
+                                  type: string
+                                hostProcess:
+                                  type: boolean
+                                gmsaCredentialSpec:
+                                  type: string
+                                runAsUserName:
+                                  type: string
+                              type: object
+                            sysctls:
+                              items:
+                                properties:
+                                  value:
+                                    type: string
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
+                            fsGroupChangePolicy:
+                              type: string
+                            seLinuxOptions:
+                              properties:
+                                role:
+                                  type: string
+                                type:
+                                  type: string
+                                user:
+                                  type: string
+                                level:
+                                  type: string
+                              type: object
+                            fsGroup:
+                              type: integer
+                            supplementalGroups:
+                              items:
+                                type: integer
+                              type: array
+                            runAsUser:
+                              type: integer
+                            seccompProfile:
+                              properties:
+                                type:
+                                  type: string
+                                localhostProfile:
+                                  type: string
+                              type: object
+                          type: object
                         imagePullSecrets:
                           description: Image pull secrets.
                           items:
@@ -13922,6 +14314,62 @@ spec:
                         description: Allow the cluster to accept Kafka protocol. Default
                           is 'false'.
                         type: boolean
+                    type: object
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
+                            type: string
+                        type: object
                     type: object
                   imagePullSecrets:
                     description: Image pull secrets.
@@ -16119,6 +16567,62 @@ spec:
                                   type: string
                               type: object
                           type: object
+                        securityContext:
+                          description: Defines access control settings for the containers
+                          properties:
+                            runAsGroup:
+                              type: integer
+                            runAsNonRoot:
+                              type: boolean
+                            windowsOptions:
+                              properties:
+                                gmsaCredentialSpecName:
+                                  type: string
+                                hostProcess:
+                                  type: boolean
+                                gmsaCredentialSpec:
+                                  type: string
+                                runAsUserName:
+                                  type: string
+                              type: object
+                            sysctls:
+                              items:
+                                properties:
+                                  value:
+                                    type: string
+                                  name:
+                                    type: string
+                                type: object
+                              type: array
+                            fsGroupChangePolicy:
+                              type: string
+                            seLinuxOptions:
+                              properties:
+                                role:
+                                  type: string
+                                type:
+                                  type: string
+                                user:
+                                  type: string
+                                level:
+                                  type: string
+                              type: object
+                            fsGroup:
+                              type: integer
+                            supplementalGroups:
+                              items:
+                                type: integer
+                              type: array
+                            runAsUser:
+                              type: integer
+                            seccompProfile:
+                              properties:
+                                type:
+                                  type: string
+                                localhostProfile:
+                                  type: string
+                              type: object
+                          type: object
                         imagePullSecrets:
                           description: Image pull secrets.
                           items:
@@ -18298,6 +18802,62 @@ spec:
                           existingStorageClassName:
                             description: Indicates if an already existing storage
                               class should be used.
+                            type: string
+                        type: object
+                    type: object
+                  securityContext:
+                    description: Defines access control settings for the containers
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      windowsOptions:
+                        properties:
+                          gmsaCredentialSpecName:
+                            type: string
+                          hostProcess:
+                            type: boolean
+                          gmsaCredentialSpec:
+                            type: string
+                          runAsUserName:
+                            type: string
+                        type: object
+                      sysctls:
+                        items:
+                          properties:
+                            value:
+                              type: string
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      fsGroupChangePolicy:
+                        type: string
+                      seLinuxOptions:
+                        properties:
+                          role:
+                            type: string
+                          type:
+                            type: string
+                          user:
+                            type: string
+                          level:
+                            type: string
+                        type: object
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
+                      seccompProfile:
+                        properties:
+                          type:
+                            type: string
+                          localhostProfile:
                             type: string
                         type: object
                     type: object

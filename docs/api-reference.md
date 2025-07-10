@@ -280,7 +280,7 @@ Resource Types:
         <td><b><a href="#pulsarclusterspecautorecoverysecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3193,7 +3193,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -3240,196 +3240,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecautorecoverysecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecautorecoverysecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecautorecoverysecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecautorecoverysecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.autorecovery.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.autorecovery.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.autorecovery.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.autorecovery.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -5797,7 +5609,7 @@ Defines access control settings for the containers
         <td><b><a href="#pulsarclusterspecbastionsecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -8717,7 +8529,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -8764,196 +8576,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecbastionsecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbastionsecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbastionsecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbastionsecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bastion.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bastion.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bastion.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bastion.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -11384,7 +11008,7 @@ Defines access control settings for the containers
         <td><b><a href="#pulsarclusterspecbookkeepersecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -17752,7 +17376,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -17799,196 +17423,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -18287,7 +17723,7 @@ Service configuration.
         <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -24599,7 +24035,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -24646,196 +24082,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.sets[key].securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.sets[key].securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.sets[key].securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.bookkeeper.sets[key].securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -30174,7 +29422,7 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td><b><a href="#pulsarclusterspecbrokersecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -36552,7 +35800,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -36599,196 +35847,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -37094,7 +36154,7 @@ Service configuration.
         <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -43458,7 +42518,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -43505,196 +42565,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.sets[key].securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.sets[key].securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.sets[key].securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.broker.sets[key].securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -48761,7 +47633,7 @@ Update strategy for the StatefulSet.
         <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -55100,7 +53972,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -55147,196 +54019,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.functionsWorker.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.functionsWorker.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.functionsWorker.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.functionsWorker.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -59722,7 +58406,7 @@ TLS configurations related to the ZooKeeper component.
         <td><b><a href="#pulsarclusterspecproxysecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -65988,7 +64672,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -66035,196 +64719,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -66523,7 +65019,7 @@ Service configuration.
         <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -72775,7 +71271,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -72822,196 +71318,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.sets[key].securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.sets[key].securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.sets[key].securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.proxy.sets[key].securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>
@@ -78385,7 +76693,7 @@ Resources requirements.
         <td><b><a href="#pulsarclusterspeczookeepersecuritycontext">securityContext</a></b></td>
         <td>object</td>
         <td>
-          Defines access control settings for the containers<br/>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -84757,7 +83065,7 @@ Resources requirements.
 
 
 
-Defines access control settings for the containers
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
 
 <table>
     <thead>
@@ -84804,196 +83112,8 @@ Defines access control settings for the containers
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pulsarclusterspeczookeepersecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspeczookeepersecuritycontextseccompprofile">seccompProfile</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>supplementalGroups</b></td>
         <td>[]integer</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspeczookeepersecuritycontextsysctlsindex">sysctls</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#pulsarclusterspeczookeepersecuritycontextwindowsoptions">windowsOptions</a></b></td>
-        <td>object</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.zookeeper.securityContext.seLinuxOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>level</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>role</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>user</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.zookeeper.securityContext.seccompProfile
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>localhostProfile</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>type</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.zookeeper.securityContext.sysctls[index]
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>value</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### PulsarCluster.spec.zookeeper.securityContext.windowsOptions
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>gmsaCredentialSpec</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>gmsaCredentialSpecName</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>hostProcess</b></td>
-        <td>boolean</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>runAsUserName</b></td>
-        <td>string</td>
         <td>
           <br/>
         </td>

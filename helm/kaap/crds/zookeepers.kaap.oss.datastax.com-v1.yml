@@ -226,62 +226,6 @@ spec:
                           should be used.
                         type: string
                     type: object
-                  securityContext:
-                    description: Defines access control settings for the containers
-                    properties:
-                      runAsGroup:
-                        type: integer
-                      runAsNonRoot:
-                        type: boolean
-                      windowsOptions:
-                        properties:
-                          gmsaCredentialSpecName:
-                            type: string
-                          hostProcess:
-                            type: boolean
-                          gmsaCredentialSpec:
-                            type: string
-                          runAsUserName:
-                            type: string
-                        type: object
-                      sysctls:
-                        items:
-                          properties:
-                            value:
-                              type: string
-                            name:
-                              type: string
-                          type: object
-                        type: array
-                      fsGroupChangePolicy:
-                        type: string
-                      seLinuxOptions:
-                        properties:
-                          role:
-                            type: string
-                          type:
-                            type: string
-                          user:
-                            type: string
-                          level:
-                            type: string
-                        type: object
-                      fsGroup:
-                        type: integer
-                      supplementalGroups:
-                        items:
-                          type: integer
-                        type: array
-                      runAsUser:
-                        type: integer
-                      seccompProfile:
-                        properties:
-                          type:
-                            type: string
-                          localhostProfile:
-                            type: string
-                        type: object
-                    type: object
                   imagePullSecrets:
                     description: Image pull secrets.
                     items:
@@ -2145,6 +2089,25 @@ spec:
                               the StorageClass.
                             type: boolean
                         type: object
+                    type: object
+                  securityContext:
+                    description: "Subset of PodSecurityContext for basic UID, GID,\
+                      \ and volume access control."
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      fsGroupChangePolicy:
+                        type: string
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
                     type: object
                   imagePullPolicy:
                     description: Override image pull policy.

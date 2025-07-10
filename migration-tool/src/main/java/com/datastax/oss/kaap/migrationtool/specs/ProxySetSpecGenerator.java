@@ -42,6 +42,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
     public static final String SPEC_NAME = "Proxy";
     private final InputClusterSpecs.ProxySpecs.ProxySetSpecs proxyInputSpecs;
     private final String resourceName;
+    private final String resourceNameSvc;
     private ProxySetSpec generatedSpec;
     private PodDNSConfig podDNSConfig;
     private boolean isRestartOnConfigMapChange;
@@ -50,12 +51,13 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
     private TlsConfig.TlsEntryConfig tlsEntryConfig;
 
     public ProxySetSpecGenerator(InputClusterSpecs inputSpecs, InputClusterSpecs.ProxySpecs.ProxySetSpecs proxyInputSpecs,
-                                 KubernetesClient client) {
+                                 KubernetesClient client, String resourceNameSvc) {
         super(inputSpecs, client);
         this.proxyInputSpecs = proxyInputSpecs;
         final String clusterName = inputSpecs.getClusterName();
         resourceName = ProxyResourcesFactory.getResourceName(clusterName,
                 inputSpecs.getProxy().getBaseName(), proxyInputSpecs.getName(), proxyInputSpecs.getOverrideName());
+        this.resourceNameSvc = resourceNameSvc.isEmpty() ? resourceName : resourceNameSvc;
         internalGenerateSpec();
     }
 
@@ -79,7 +81,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
         final ConfigMap configMapWs = getConfigMap(resourceName + "-ws");
         final Deployment deployment = requireDeployment(resourceName);
         final PodDisruptionBudget pdb = getPodDisruptionBudget(resourceName);
-        final Service service = requireService(resourceName);
+        final Service service = requireService(resourceNameSvc);
         if (configMapWs != null) {
             assertConfigMapsCompatible(configMap.getData(), configMapWs.getData());
         }

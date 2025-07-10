@@ -53,14 +53,15 @@ public class ProxySpecGenerator extends BaseSpecGenerator<ProxySpec> {
             final ProxySetSpecGenerator proxySetSpecGenerator = new ProxySetSpecGenerator(
                     inputSpecs,
                     new InputClusterSpecs.ProxySpecs.ProxySetSpecs(ProxyResourcesFactory.PROXY_DEFAULT_SET, null),
-                    client
-            );
+                    client,
+                    inputSpecs.getProxy().getServiceName());
             generators.put(ProxyResourcesFactory.PROXY_DEFAULT_SET, proxySetSpecGenerator);
             generatedSpec = SerializationUtil.convertValue(proxySetSpecGenerator.generateSpec(), ProxySpec.class);
         } else {
             LinkedHashMap<String, ProxySetSpec> sets = new LinkedHashMap<>();
             proxySets.stream().map(
-                    setConfig -> Pair.of(setConfig.getName(), new ProxySetSpecGenerator(inputSpecs, setConfig, client))
+                    setConfig -> Pair.of(setConfig.getName(), new ProxySetSpecGenerator(inputSpecs, setConfig, client,
+                            inputSpecs.getProxy().getServiceName()))
             ).forEach(pair -> {
                 generators.put(pair.getLeft(), pair.getRight());
                 sets.put(pair.getLeft(), pair.getRight().generateSpec());

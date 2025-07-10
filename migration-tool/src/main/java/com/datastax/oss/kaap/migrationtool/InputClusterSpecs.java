@@ -115,6 +115,7 @@ public class InputClusterSpecs {
             String overrideName;
         }
         String baseName = "proxy";
+        String serviceName = "";
         List<ProxySetSpecs> proxySets = List.of();
     }
 

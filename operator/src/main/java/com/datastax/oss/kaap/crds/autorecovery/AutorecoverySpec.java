@@ -20,6 +20,7 @@ import com.datastax.oss.kaap.crds.ConfigUtil;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.WithDefaults;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
+import com.datastax.oss.kaap.crds.configs.SecurityContextConfig;
 import com.datastax.oss.kaap.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,7 +29,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
-import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
@@ -100,7 +100,7 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
     @JsonPropertyDescription(CRDConstants.DOC_SECURITY_CONTEXT)
-    private PodSecurityContext securityContext;
+    private SecurityContextConfig securityContext;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

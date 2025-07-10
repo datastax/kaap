@@ -18,14 +18,13 @@ package com.datastax.oss.kaap.crds;
 import com.datastax.oss.kaap.crds.configs.AdditionalVolumesConfig;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
 import com.datastax.oss.kaap.crds.configs.PodDisruptionBudgetConfig;
+import com.datastax.oss.kaap.crds.configs.SecurityContextConfig;
 import com.datastax.oss.kaap.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
-import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Toleration;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +81,7 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
     @JsonPropertyDescription(CRDConstants.DOC_SECURITY_CONTEXT)
-    private PodSecurityContext securityContext;
+    private SecurityContextConfig securityContext;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
@@ -119,8 +118,9 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
      */
     protected void applyFsGroup0IfSecurityContextMissing() {
         if (securityContext == null) {
-            securityContext = new PodSecurityContextBuilder()
-                    .withFsGroup(0L)
+            securityContext = SecurityContextConfig
+                    .builder()
+                    .fsGroup(0L)
                     .build();
         }
     }

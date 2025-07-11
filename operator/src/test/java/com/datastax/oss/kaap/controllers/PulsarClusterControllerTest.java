@@ -310,6 +310,8 @@ public class PulsarClusterControllerTest {
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    securityContext:
+                      fsGroup: 0
                     probes:
                       readiness:
                         enabled: true
@@ -339,8 +341,6 @@ public class PulsarClusterControllerTest {
                     rbac:
                       create: true
                       namespaced: true
-                    securityContext:
-                      fsGroup: 0
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));
@@ -559,6 +559,8 @@ public class PulsarClusterControllerTest {
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    securityContext:
+                      fsGroup: 0
                     probes:
                       readiness:
                         enabled: true
@@ -602,8 +604,6 @@ public class PulsarClusterControllerTest {
                     autoRackConfig:
                       enabled: true
                       periodMs: 60000
-                    securityContext:
-                      fsGroup: 0
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));
@@ -632,6 +632,8 @@ public class PulsarClusterControllerTest {
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    securityContext:
+                      fsGroup: 0
                     probes:
                       readiness:
                         enabled: true
@@ -657,8 +659,6 @@ public class PulsarClusterControllerTest {
                       existingStorageClassName: default
                     metadataInitializationJob:
                       timeout: 60
-                    securityContext:
-                      fsGroup: 0
                 status:
                   conditions: []
                 """.formatted(GLOBAL_SPEC_YAML_PART));

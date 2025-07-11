@@ -518,8 +518,9 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
                 .withInitContainers(getInitContainers(spec.getInitContainers()))
-                .withSecurityContext(spec.getSecurityContext()
-                        .toPodSecurityContext())
+                .withSecurityContext(spec.getSecurityContext() == null
+                        ? null
+                        : spec.getSecurityContext().toPodSecurityContext())
                 .withContainers(containers)
                 .withVolumes(volumes)
                 .endSpec()

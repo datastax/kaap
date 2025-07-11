@@ -362,8 +362,9 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 ))
                 .withTerminationGracePeriodSeconds(spec.getGracePeriod().longValue())
                 .withPriorityClassName(global.getPriorityClassName())
-                .withSecurityContext(spec.getSecurityContext()
-                        .toPodSecurityContext())
+                .withSecurityContext(spec.getSecurityContext() == null
+                        ? null
+                        : spec.getSecurityContext().toPodSecurityContext())
                 .withInitContainers(initContainers)
                 .withContainers(containers)
                 .withVolumes(volumes)

@@ -99,7 +99,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                 secretName: pulsar-tls
                           containers:
                             - name: kclient
-                              image: confluentinc/cp-kafka
+                              image: confluentinc/cp-kafka:7.8.2
                               command: ["/bin/sh"]
                               args:
                                 - "-c"
@@ -136,7 +136,7 @@ public class KafkaTlsTest extends BaseHelmTest {
                                 secretName: pulsar-tls
                           containers:
                             - name: kclient
-                              image: confluentinc/cp-kafka
+                              image: confluentinc/cp-kafka:7.8.2
                               command: ["/bin/sh"]
                               args:
                                 - "-c"

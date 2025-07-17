@@ -2722,6 +2722,25 @@ spec:
                                   type: boolean
                               type: object
                           type: object
+                        securityContext:
+                          description: "Subset of PodSecurityContext for basic UID,\
+                            \ GID, and volume access control."
+                          properties:
+                            runAsGroup:
+                              type: integer
+                            runAsNonRoot:
+                              type: boolean
+                            fsGroupChangePolicy:
+                              type: string
+                            fsGroup:
+                              type: integer
+                            supplementalGroups:
+                              items:
+                                type: integer
+                              type: array
+                            runAsUser:
+                              type: integer
+                          type: object
                         imagePullPolicy:
                           description: Override image pull policy.
                           type: string
@@ -4866,6 +4885,25 @@ spec:
                               the StorageClass.
                             type: boolean
                         type: object
+                    type: object
+                  securityContext:
+                    description: "Subset of PodSecurityContext for basic UID, GID,\
+                      \ and volume access control."
+                    properties:
+                      runAsGroup:
+                        type: integer
+                      runAsNonRoot:
+                        type: boolean
+                      fsGroupChangePolicy:
+                        type: string
+                      fsGroup:
+                        type: integer
+                      supplementalGroups:
+                        items:
+                          type: integer
+                        type: array
+                      runAsUser:
+                        type: integer
                     type: object
                   imagePullPolicy:
                     description: Override image pull policy.

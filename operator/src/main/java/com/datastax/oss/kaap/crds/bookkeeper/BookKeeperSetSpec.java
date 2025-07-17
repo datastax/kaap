@@ -160,6 +160,7 @@ public class BookKeeperSetSpec extends BaseComponentSpec<BookKeeperSetSpec> {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        super.applyFsGroup0IfSecurityContextMissing();
         if (replicas == null) {
             replicas = 3;
         }

@@ -437,6 +437,9 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                 .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withContainers(containers)
                 .withVolumes(volumes)
+                .withSecurityContext(spec.getSecurityContext() == null
+                        ? null
+                        : spec.getSecurityContext().toPodSecurityContext())
                 .endSpec()
                 .endTemplate()
                 .endSpec()

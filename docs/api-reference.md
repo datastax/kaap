@@ -277,6 +277,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>serviceAccountName</b></td>
         <td>string</td>
         <td>
@@ -3182,6 +3189,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.autorecovery.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.autorecovery.sidecars[index]
 
 
@@ -5535,6 +5603,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionsecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -8450,6 +8525,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.bastion.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bastion.sidecars[index]
 
 
@@ -10866,6 +11002,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -17229,6 +17372,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.service
 
 
@@ -17513,6 +17717,13 @@ Service configuration.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -23820,6 +24031,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].service
 
 
@@ -29144,6 +29416,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -35517,6 +35796,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.broker.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.service
 
 
@@ -35808,6 +36148,13 @@ Service configuration.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -42167,6 +42514,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sets[key].service
 
 
@@ -47219,6 +47627,13 @@ Update strategy for the StatefulSet.
         <td>string</td>
         <td>
           Runtime mode for functions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -53553,6 +53968,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.service
 
 
@@ -57924,6 +58400,13 @@ TLS configurations related to the ZooKeeper component.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -64185,6 +64668,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.proxy.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.service
 
 
@@ -64469,6 +65013,13 @@ Service configuration.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -70716,6 +71267,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].service
 
 
@@ -76075,6 +76687,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -82434,6 +83053,67 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
         <td>
           <br/>
         </td>

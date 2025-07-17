@@ -553,6 +553,9 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                 .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withContainers(containers)
                 .withVolumes(volumes)
+                .withSecurityContext(spec.getSecurityContext() == null
+                        ? null
+                        : spec.getSecurityContext().toPodSecurityContext())
                 .endSpec()
                 .endTemplate()
                 .endSpec()

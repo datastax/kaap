@@ -144,6 +144,7 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        super.applyFsGroup0IfSecurityContextMissing();
 
         if (replicas == null) {
             // disabled by default

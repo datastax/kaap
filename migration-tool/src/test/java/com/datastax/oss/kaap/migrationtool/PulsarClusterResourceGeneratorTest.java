@@ -216,6 +216,8 @@ public class PulsarClusterResourceGeneratorTest {
                             env: []
                             sidecars: []
                             initContainers: []
+                            securityContext:
+                              fsGroup: 0
                             config:
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                               PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
@@ -327,6 +329,8 @@ public class PulsarClusterResourceGeneratorTest {
                               resources: {}
                               terminationMessagePath: /dev/termination-log
                               terminationMessagePolicy: File
+                            securityContext:
+                              fsGroup: 0
                             config:
                               BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
                               BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
@@ -1027,6 +1031,8 @@ public class PulsarClusterResourceGeneratorTest {
                             env: []
                             sidecars: []
                             initContainers: []
+                            securityContext:
+                              fsGroup: 0
                             config:
                               PF_authenticateMetricsEndpoint: "false"
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info

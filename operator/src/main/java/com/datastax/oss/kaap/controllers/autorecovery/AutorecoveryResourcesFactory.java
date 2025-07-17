@@ -208,6 +208,9 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .withContainers(containers)
                 .withInitContainers(getInitContainers(spec.getInitContainers()))
                 .withVolumes(volumes)
+                .withSecurityContext(spec.getSecurityContext() == null
+                        ? null
+                        : spec.getSecurityContext().toPodSecurityContext())
                 .endSpec()
                 .endTemplate()
                 .endSpec()

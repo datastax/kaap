@@ -20,6 +20,7 @@ import com.datastax.oss.kaap.crds.ConfigUtil;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.WithDefaults;
 import com.datastax.oss.kaap.crds.configs.AntiAffinityConfig;
+import com.datastax.oss.kaap.crds.configs.SecurityContextConfig;
 import com.datastax.oss.kaap.crds.validation.ValidableSpec;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -98,6 +99,8 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     private List<Container> initContainers;
     @JsonPropertyDescription(CRDConstants.DOC_SERVICE_ACCOUNT_NAME)
     private String serviceAccountName;
+    @JsonPropertyDescription(CRDConstants.DOC_SECURITY_CONTEXT)
+    private SecurityContextConfig securityContext;
 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {

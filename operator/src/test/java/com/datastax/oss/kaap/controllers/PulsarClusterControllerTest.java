@@ -310,6 +310,8 @@ public class PulsarClusterControllerTest {
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    securityContext:
+                      fsGroup: 0
                     probes:
                       readiness:
                         enabled: true
@@ -557,6 +559,8 @@ public class PulsarClusterControllerTest {
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    securityContext:
+                      fsGroup: 0
                     probes:
                       readiness:
                         enabled: true
@@ -628,6 +632,8 @@ public class PulsarClusterControllerTest {
                     pdb:
                       enabled: true
                       maxUnavailable: 1
+                    securityContext:
+                      fsGroup: 0
                     probes:
                       readiness:
                         enabled: true

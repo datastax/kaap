@@ -69,6 +69,6 @@ cluster:
   spec:
     global:
       name: pulsar
-      image: datastax/lunastreaming-all:2.10_3.1
+      image: datastax/lunastreaming-all:4.0_3.6
       storage:
         existingStorageClassName: default

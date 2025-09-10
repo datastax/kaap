@@ -35,11 +35,11 @@ public class BrokerAutoscalerSpec {
     @JsonPropertyDescription("Enable autoscaling for brokers.")
     Boolean enabled;
     @Min(1000)
-    @javax.validation.constraints.Min(1000)
+    @jakarta.validation.constraints.Min(1000)
     @JsonPropertyDescription("The interval in milliseconds between two consecutive autoscaling checks.")
     Long periodMs;
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("Min number of brokers. If the number of brokers is equals to this value, the autoscaler"
             + " will never scale down.")
     Integer min;
@@ -48,28 +48,28 @@ public class BrokerAutoscalerSpec {
     Integer max;
     @Min(0)
     @Max(1)
-    @javax.validation.constraints.Min(0)
-    @javax.validation.constraints.Max(1)
+    @jakarta.validation.constraints.Min(0)
+    @jakarta.validation.constraints.Max(1)
     @JsonPropertyDescription("The threshold to trigger a scale down. The autoscaler will scale down if all the "
             + "brokers cpu usage is lower than this threshold. Default is '0.4'")
     Double lowerCpuThreshold;
     @Min(0)
     @Max(1)
-    @javax.validation.constraints.Min(0)
-    @javax.validation.constraints.Max(1)
+    @jakarta.validation.constraints.Min(0)
+    @jakarta.validation.constraints.Max(1)
     @JsonPropertyDescription("The threshold to trigger a scale up. The autoscaler will scale up if all the "
             + "brokers cpu usage is higher than this threshold. Default is '0.8'")
     Double higherCpuThreshold;
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("The number of brokers to add at each scale up. Default is '1'")
     Integer scaleUpBy;
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("The number of brokers to remove at each scale down. Default is '1'")
     Integer scaleDownBy;
     @Min(1)
-    @javax.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Min(1)
     @JsonPropertyDescription("The stabilization window is used to restrict the flapping of replica count when the metrics used for scaling keep fluctuating. "
             + "The autoscaling algorithm uses this window to infer a previous desired state and avoid unwanted changes to workload scale."
             + "Default value is 5 minutes after the pod readiness.")

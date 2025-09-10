@@ -20,7 +20,7 @@
     <parent>
         <artifactId>kaap</artifactId>
         <groupId>com.datastax.oss</groupId>
-        <version>0.3.5-SNAPSHOT</version>
+        <version>0.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -28,9 +28,10 @@
 
     <properties>
         <quarkus.container-image.build>true</quarkus.container-image.build>
-
-
+        <quarkus.operator-sdk.crd.use-deprecated-v1-crd-generator>true</quarkus.operator-sdk.crd.use-deprecated-v1-crd-generator>
+        <quarkus.operator-sdk.crd.generate-in-parallel>true</quarkus.operator-sdk.crd.generate-in-parallel>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -40,13 +41,11 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>crd-generator-api</artifactId>
-            <version>${kubernetes-client.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>certmanager-model-v1</artifactId>
-            <version>${kubernetes-client.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.operatorsdk</groupId>
@@ -74,7 +73,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-httpclient-okhttp</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
@@ -139,14 +141,13 @@
             <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
-                <version>2.15.1.Final</version>
+                <version>3.28.4</version>
                 <executions>
                     <execution>
                         <goals>
@@ -230,6 +231,7 @@
             <id>skip-crds</id>
             <properties>
                 <quarkus.operator-sdk.crd.generate>false</quarkus.operator-sdk.crd.generate>
+                <quarkus.operator-sdk.bundle.enabled>false</quarkus.operator-sdk.bundle.enabled>
             </properties>
         </profile>
     </profiles>

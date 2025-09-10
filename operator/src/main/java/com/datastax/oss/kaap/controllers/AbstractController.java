@@ -40,17 +40,17 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
+import jakarta.inject.Inject;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -128,7 +128,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                             resource, CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC, validationErrorMessage
                     )), Instant.now());
             resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
-            return UpdateControl.updateStatus(resource);
+            return UpdateControl.patchStatus(resource);
         }
 
 
@@ -174,7 +174,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 time, reschedule + "", conditionsStr);
 
         resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
-        final UpdateControl<T> update = UpdateControl.updateStatus(resource);
+        final UpdateControl<T> update = UpdateControl.patchStatus(resource);
         if (reschedule) {
             update.rescheduleAfter(operatorRuntimeConfiguration.reconciliationRescheduleSeconds(), TimeUnit.SECONDS);
         }

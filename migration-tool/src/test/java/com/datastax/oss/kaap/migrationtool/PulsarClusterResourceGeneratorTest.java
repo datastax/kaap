@@ -1070,6 +1070,7 @@ public class PulsarClusterResourceGeneratorTest {
                               instanceLivenessCheckFreqMs: 30000
                               kubernetesContainerFactory:
                                 jobNamespace: pulsar
+                                k8Uri: ""
                                 percentMemoryPadding: 50
                                 pulsarAdminUrl: http://pulsar-cluster-function.pulsar:6750/
                                 pulsarDockerImageName: pulsar:latest
@@ -1091,6 +1092,7 @@ public class PulsarClusterResourceGeneratorTest {
                                   prometheus.io/path: /metrics
                                   prometheus.io/port: 9094
                                   prometheus.io/scrape: "true"
+                                extraLabels: ""
                                 jobNamespace: pulsar
                                 nodeSelectorLabels:
                                   astra-node: functionworker

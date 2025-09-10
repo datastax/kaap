@@ -20,7 +20,7 @@
   <parent>
     <artifactId>kaap</artifactId>
     <groupId>com.datastax.oss</groupId>
-    <version>0.3.5-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -35,6 +35,11 @@
           <artifactId>builder-annotations</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-server-mock</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.skyscreamer</groupId>

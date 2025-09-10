@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.datastax.oss.kaap.crds.validation;
+package com.datastax.oss.kaap;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
-import java.lang.annotation.Retention;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.okhttp.OkHttpClientFactory;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 
-@Retention(RUNTIME)
-@Constraint(validatedBy = {})
-public @interface ValidSpec {
-
-    String message() default "The spec is not valid";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+@Singleton
+public class KubernetesClientFactory {
+    @Produces
+    public KubernetesClient kubernetesClient() {
+        return new KubernetesClientBuilder()
+                .withHttpClientFactory(new OkHttpClientFactory())
+                .build();
+    }
 }

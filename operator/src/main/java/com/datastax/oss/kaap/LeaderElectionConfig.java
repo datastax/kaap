@@ -17,7 +17,7 @@ package com.datastax.oss.kaap;
 
 import io.javaoperatorsdk.operator.api.config.LeaderElectionConfiguration;
 import io.quarkus.arc.Unremovable;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 @Unremovable

@@ -16,10 +16,19 @@
 # limitations under the License.
 #
 
+if command -v docker >/dev/null 2>&1; then
+  DOCKER_COMMAND="docker"
+elif command -v podman >/dev/null 2>&1; then
+  DOCKER_COMMAND="podman"
+else
+  echo "Error: Neither 'docker' nor 'podman' command found in PATH." >&2
+  exit 1
+fi
+
 set -e
 echo "Generating CRDs docs"
 mvn clean package -Pupdate-crds -pl operator
-docker run -u $(id -u):$(id -g) --rm -v ${PWD}:/workdir ghcr.io/fybrik/crdoc:latest \
+${DOCKER_COMMAND} run -u $(id -u):$(id -g) --rm -v ${PWD}:/workdir ghcr.io/fybrik/crdoc:latest \
   --resources /workdir/helm/kaap/crds/pulsarclusters.kaap.oss.datastax.com-v1.yml \
   --template /workdir/src/reference-markdown-template.tmpl \
   --output /workdir/docs/api-reference.md

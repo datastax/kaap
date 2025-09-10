@@ -41,9 +41,9 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus-sdk.version>5.1.4</quarkus-sdk.version>
+        <quarkus-sdk.version>7.2.0</quarkus-sdk.version>
         <!-- kubernetes-client.version must matches the imported version by quarkus-sdk -->
-        <kubernetes-client.version>6.3.1</kubernetes-client.version>
+        <kubernetes-client.version>7.4.0</kubernetes-client.version>
         <testng.version>7.7.0</testng.version>
         <mockito-core.version>4.10.0</mockito-core.version>
         <lombok.version>1.18.32</lombok.version>

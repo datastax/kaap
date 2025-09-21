@@ -68,7 +68,7 @@ public class ProxyController
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class ProxySetsLastApplied implements SetsLastApplied<ProxyFullSpec> {
+    public static class ProxySetsLastApplied implements AbstractResourceSetsController.SetsLastApplied<ProxyFullSpec> {
         private ProxyFullSpec common;
         private Map<String, ProxyFullSpec> sets = new HashMap<>();
     }

@@ -114,6 +114,8 @@ public class ProxySetSpec extends BaseComponentSpec<ProxySetSpec> {
         private List<ServicePort> additionalPorts;
         @JsonPropertyDescription("Assign a load balancer IP.")
         private String loadBalancerIP;
+        @JsonPropertyDescription("Assign a load balancer class.")
+        private String loadBalancerClass;
         @JsonPropertyDescription("Service type. Default value is 'ClusterIP'")
         private String type;
         @JsonPropertyDescription("Enable plain text connections even if TLS is enabled.")

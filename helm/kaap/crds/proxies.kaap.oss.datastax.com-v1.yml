@@ -699,6 +699,9 @@ spec:
                         service:
                           description: Service configuration.
                           properties:
+                            loadBalancerClass:
+                              description: Assign a load balancer class.
+                              type: string
                             additionalPorts:
                               description: Additional ports to add to the Service.
                               items:
@@ -2864,6 +2867,9 @@ spec:
                   service:
                     description: Service configuration.
                     properties:
+                      loadBalancerClass:
+                        description: Assign a load balancer class.
+                        type: string
                       additionalPorts:
                         description: Additional ports to add to the Service.
                         items:

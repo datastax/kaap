@@ -46,7 +46,7 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>certmanager-model-v1</artifactId>
-            <version>${kubernetes-client.version}</version>
+            <version>${cert-manager.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.operatorsdk</groupId>

@@ -64766,6 +64766,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>loadBalancerClass</b></td>
+        <td>string</td>
+        <td>
+          Assign a load balancer class.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>loadBalancerIP</b></td>
         <td>string</td>
         <td>
@@ -71362,6 +71369,13 @@ Service configuration.
         <td>boolean</td>
         <td>
           Enable plain text connections even if TLS is enabled.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>loadBalancerClass</b></td>
+        <td>string</td>
+        <td>
+          Assign a load balancer class.<br/>
         </td>
         <td>false</td>
       </tr><tr>

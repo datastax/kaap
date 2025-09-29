@@ -1494,6 +1494,7 @@ public class ProxyControllerTest {
                             - name: myport1
                               port: 3333
                         loadBalancerIP: 10.11.11.11
+                        loadBalancerClass: custom-lb-class
                         type: ClusterIP
                         enablePlainTextWithTLS: true
                 """;
@@ -1535,6 +1536,26 @@ public class ProxyControllerTest {
         Assert.assertNull(service.getResource().getSpec().getClusterIP());
         Assert.assertEquals(service.getResource().getSpec().getType(), "ClusterIP");
         Assert.assertEquals(service.getResource().getSpec().getLoadBalancerIP(), "10.11.11.11");
+        Assert.assertEquals(service.getResource().getSpec().getLoadBalancerClass(), "custom-lb-class");
+    }
+
+    @Test
+    public void testServiceLoadBalancerClassNull() throws Exception {
+        String spec = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                proxy:
+                    service:
+                        type: LoadBalancer
+                """;
+        MockKubernetesClient client = invokeController(spec);
+        final MockKubernetesClient.ResourceInteraction<Service> service =
+                client.getCreatedResource(Service.class);
+
+        Assert.assertNull(service.getResource().getSpec().getLoadBalancerClass());
+        Assert.assertEquals(service.getResource().getSpec().getType(), "LoadBalancer");
     }
 
     @Test

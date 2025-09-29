@@ -208,6 +208,11 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                 .endSpec()
                 .build();
 
+
+        if (serviceSpec.getLoadBalancerClass() != null) {
+            service.getSpec().setLoadBalancerClass(serviceSpec.getLoadBalancerClass());
+        }
+
         patchResource(service);
     }
 

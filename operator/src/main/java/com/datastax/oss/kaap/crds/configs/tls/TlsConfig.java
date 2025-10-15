@@ -17,6 +17,7 @@ package com.datastax.oss.kaap.crds.configs.tls;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -149,6 +150,9 @@ public class TlsConfig {
         SelfSignedCertificatePerComponentConfig functionsWorker;
         @JsonPropertyDescription("Autorecovery self signed certificate config.")
         SelfSignedCertificatePerComponentConfig autorecovery;
+        @JsonPropertyDescription("External services self signed certificate config (e.g., admin console, grafana). "
+                + "The key is the service name, and the value contains generation config")
+        Map<String, SelfSignedCertificatePerComponentConfig> external;
     }
 
     @Data
@@ -160,5 +164,12 @@ public class TlsConfig {
         Boolean generate;
         @JsonPropertyDescription("Cert-manager options for generating the private key.")
         CertificatePrivateKey privateKey;
+        @JsonPropertyDescription("A list of DNS names (and IP addresses) to include in the certificate's Subject "
+                + "Alternative Names (SANs) extension along with the default K8s service DNS.")
+        List<String> dnsNames;
+        @JsonPropertyDescription("The name of the Kubernetes Secret where the generated certificate "
+                + "and key will be stored. Required for external services if there is no global default. "
+                + "Internal services pick up the secret name from the tls config")
+        String secretName;
     }
 }

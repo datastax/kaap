@@ -27,6 +27,7 @@ import com.datastax.oss.kaap.controllers.zookeeper.ZooKeeperResourcesFactory;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
+import com.datastax.oss.kaap.crds.configs.tls.TlsConfig.SelfSignedCertificatePerComponentConfig;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateBuilder;
 import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
@@ -35,6 +36,7 @@ import io.fabric8.certmanager.api.model.v1.IssuerBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
@@ -85,20 +87,21 @@ public class CertManagerCertificatesProvisioner {
         if (selfSigned.getPerComponent() == null || !selfSigned.getPerComponent()) {
             List<String> dnsNames = new ArrayList<>();
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBookkeeper())) {
-                dnsNames.addAll(getBookKeeperDNSNames());
+                dnsNames.addAll(getBookKeeperDNSNames(null));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getZookeeper())) {
-                dnsNames.addAll(getZookeeperDNSNames());
+                dnsNames.addAll(getZookeeperDNSNames(null));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
-                dnsNames.addAll(getBrokerDNSNames());
+                dnsNames.addAll(getBrokerDNSNames(null));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
-                dnsNames.addAll(getProxyDNSNames());
+                dnsNames.addAll(getProxyDNSNames(null));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
-                dnsNames.addAll(getFunctionsWorkerDNSNames());
+                dnsNames.addAll(getFunctionsWorkerDNSNames(null));
             }
+            dnsNames.addAll(getDnsNamesForExternalServicesForGlobalCert());
             if (globalSpec.getDnsName() != null
                     && selfSigned.getIncludeDns() != null
                     && selfSigned.getIncludeDns()) {
@@ -116,13 +119,13 @@ public class CertManagerCertificatesProvisioner {
                 createCertificatePerComponent(selfSigned.getBroker(),
                         globalSpec.getComponents().getBrokerBaseName(),
                         globalSpec.getTls().getBroker().getSecretName(),
-                        getBrokerDNSNames());
+                        getBrokerDNSNames(selfSigned.getBroker()));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBookkeeper())) {
                 createCertificatePerComponent(selfSigned.getBookkeeper(),
                         globalSpec.getComponents().getBookkeeperBaseName(),
                         globalSpec.getTls().getBookkeeper().getSecretName(),
-                        getBookKeeperDNSNames());
+                        getBookKeeperDNSNames(selfSigned.getBookkeeper()));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getAutorecovery())) {
                 createAutorecoveryCertificate();
@@ -131,20 +134,35 @@ public class CertManagerCertificatesProvisioner {
                 createCertificatePerComponent(selfSigned.getProxy(),
                         globalSpec.getComponents().getProxyBaseName(),
                         globalSpec.getTls().getProxy().getSecretName(),
-                        getProxyDNSNames());
+                        getProxyDNSNames(selfSigned.getProxy()));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getZookeeper())) {
                 createCertificatePerComponent(selfSigned.getZookeeper(),
                         globalSpec.getComponents().getZookeeperBaseName(),
                         globalSpec.getTls().getZookeeper().getSecretName(),
-                        getZookeeperDNSNames());
+                        getZookeeperDNSNames(selfSigned.getZookeeper()));
             }
 
             if (TlsConfig.FunctionsWorkerTlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
                 createCertificatePerComponent(selfSigned.getFunctionsWorker(),
                         globalSpec.getComponents().getFunctionsWorkerBaseName(),
                         globalSpec.getTls().getFunctionsWorker().getSecretName(),
-                        getFunctionsWorkerDNSNames());
+                        getFunctionsWorkerDNSNames(selfSigned.getFunctionsWorker()));
+            }
+            if (selfSigned.getExternal() != null) {
+                for (Map.Entry<String, SelfSignedCertificatePerComponentConfig> entry : selfSigned.getExternal().entrySet()) {
+                    final String serviceName = entry.getKey();
+                    final SelfSignedCertificatePerComponentConfig config = entry.getValue();
+
+                    if (config.getGenerate() != null && config.getGenerate()) {
+                        createCertificatePerComponent(
+                                config,
+                                serviceName,
+                                config.getSecretName(),
+                                getBaseK8sDnsNames(config, serviceName)
+                        );
+                    }
+                }
             }
         }
     }
@@ -195,52 +213,79 @@ public class CertManagerCertificatesProvisioner {
         );
     }
 
-    private List<String> getBookKeeperDNSNames() {
+    private List<String> mergeDnsNames(List<String> k8sDnsNames, SelfSignedCertificatePerComponentConfig config) {
+        final List<String> finalDnsNames = new ArrayList<>(ObjectUtils.firstNonNull(k8sDnsNames, new ArrayList<>()));
+        if (config != null && config.getDnsNames() != null) {
+            finalDnsNames.addAll(config.getDnsNames());
+        }
+        return finalDnsNames;
+    }
+
+    private List<String> getDnsNamesForExternalServicesForGlobalCert() {
+        final List<String> dnsNames = new ArrayList<>();
+        if (selfSigned.getExternal() != null) {
+            for (Map.Entry<String, SelfSignedCertificatePerComponentConfig> entry : selfSigned.getExternal().entrySet()) {
+                final SelfSignedCertificatePerComponentConfig config = entry.getValue();
+                dnsNames.addAll(getBaseK8sDnsNames(config, entry.getKey()));
+            }
+        }
+        return dnsNames;
+    }
+
+    private List<String> getBaseK8sDnsNames(SelfSignedCertificatePerComponentConfig config, String serviceName) {
+        List<String> k8sDnsNames = enumerateDnsNames(serviceName, true);
+        return mergeDnsNames(k8sDnsNames, config);
+    }
+
+    private List<String> getBookKeeperDNSNames(SelfSignedCertificatePerComponentConfig config) {
         final String componentBaseName = BookKeeperResourcesFactory.getComponentBaseName(globalSpec);
-        return BookKeeperController
+        List<String> k8sDnsNames = BookKeeperController
                 .enumerateBookKeeperSets(clusterSpecName, componentBaseName, pulsarClusterSpec.getBookkeeper()).stream()
                 .flatMap(set -> enumerateDnsNames(set, true).stream())
                 .collect(Collectors.toList());
+        return mergeDnsNames(k8sDnsNames, config);
     }
 
-    private List<String> getFunctionsWorkerDNSNames() {
+    private List<String> getFunctionsWorkerDNSNames(SelfSignedCertificatePerComponentConfig config) {
         final String functionsWorkerBase =
                 FunctionsWorkerResourcesFactory.getResourceName(clusterSpecName,
                         FunctionsWorkerResourcesFactory.getComponentBaseName(globalSpec));
-        List<String> dnsNames = new ArrayList<>();
+        List<String> k8sDnsNames = new ArrayList<>();
         // The DNS names ending in "-ca" are meant for client access. The wildcard names are used for zookeeper to
         // zookeeper networking.
-        dnsNames.addAll(enumerateDnsNames(functionsWorkerBase, true));
-        dnsNames.addAll(enumerateDnsNames(functionsWorkerBase + "-ca", false));
-        return dnsNames;
+        k8sDnsNames.addAll(enumerateDnsNames(functionsWorkerBase, true));
+        k8sDnsNames.addAll(enumerateDnsNames(functionsWorkerBase + "-ca", false));
+        return mergeDnsNames(k8sDnsNames, config);
     }
 
-    private List<String> getZookeeperDNSNames() {
+    private List<String> getZookeeperDNSNames(SelfSignedCertificatePerComponentConfig config) {
         final String zookeeperDNSNames =
                 ZooKeeperResourcesFactory.getResourceName(clusterSpecName,
                         ZooKeeperResourcesFactory.getComponentBaseName(globalSpec));
-        List<String> dnsNames = new ArrayList<>();
+        List<String> k8sDnsNames = new ArrayList<>();
         // The DNS names ending in "-ca" are meant for client access. The wildcard names are used for zookeeper to
         // zookeeper networking.
-        dnsNames.addAll(enumerateDnsNames(zookeeperDNSNames, true));
-        dnsNames.addAll(enumerateDnsNames(zookeeperDNSNames + "-ca", false));
-        return dnsNames;
+        k8sDnsNames.addAll(enumerateDnsNames(zookeeperDNSNames, true));
+        k8sDnsNames.addAll(enumerateDnsNames(zookeeperDNSNames + "-ca", false));
+        return mergeDnsNames(k8sDnsNames, config);
     }
 
-    private List<String> getProxyDNSNames() {
+    private List<String> getProxyDNSNames(SelfSignedCertificatePerComponentConfig config) {
         final String componentBaseName = ProxyResourcesFactory.getComponentBaseName(globalSpec);
-        return ProxyController
+        List<String> k8sDnsNames = ProxyController
                 .enumerateProxySets(clusterSpecName, componentBaseName, pulsarClusterSpec.getProxy()).stream()
                 .flatMap(set -> enumerateDnsNames(set, false).stream())
                 .collect(Collectors.toList());
+        return mergeDnsNames(k8sDnsNames, config);
     }
 
-    private List<String> getBrokerDNSNames() {
+    private List<String> getBrokerDNSNames(SelfSignedCertificatePerComponentConfig config) {
         final String componentBaseName = BrokerResourcesFactory.getComponentBaseName(globalSpec);
-        return BrokerController
+        List<String> k8sDnsNames = BrokerController
                 .enumerateBrokerSets(clusterSpecName, componentBaseName, pulsarClusterSpec.getBroker()).stream()
                 .flatMap(set -> enumerateDnsNames(set, true).stream())
                 .collect(Collectors.toList());
+        return mergeDnsNames(k8sDnsNames, config);
     }
 
     private List<String> enumerateDnsNames(final String serviceName, boolean wildcard) {

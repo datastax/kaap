@@ -168,8 +168,8 @@ public class TlsConfig {
                 + "Alternative Names (SANs) extension along with the default K8s service DNS.")
         List<String> dnsNames;
         @JsonPropertyDescription("The name of the Kubernetes Secret where the generated certificate "
-                + "and key will be stored. Required for external services if there is no global default. "
-                + "Internal services pick up the secret name from the tls config")
+                + "and key will be stored whe perComponent is enabled. Required for external services. "
+                + "Internal services pick up the secret name from the tls config if not specified")
         String secretName;
     }
 }

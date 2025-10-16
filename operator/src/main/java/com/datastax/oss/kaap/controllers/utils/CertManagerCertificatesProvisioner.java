@@ -118,13 +118,15 @@ public class CertManagerCertificatesProvisioner {
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
                 createCertificatePerComponent(selfSigned.getBroker(),
                         globalSpec.getComponents().getBrokerBaseName(),
-                        globalSpec.getTls().getBroker().getSecretName(),
+                        ObjectUtils.firstNonNull(selfSigned.getBroker().getSecretName(),
+                                globalSpec.getTls().getBroker().getSecretName()),
                         getBrokerDNSNames(selfSigned.getBroker()));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBookkeeper())) {
                 createCertificatePerComponent(selfSigned.getBookkeeper(),
                         globalSpec.getComponents().getBookkeeperBaseName(),
-                        globalSpec.getTls().getBookkeeper().getSecretName(),
+                        ObjectUtils.firstNonNull(selfSigned.getBookkeeper().getSecretName(),
+                                globalSpec.getTls().getBookkeeper().getSecretName()),
                         getBookKeeperDNSNames(selfSigned.getBookkeeper()));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getAutorecovery())) {
@@ -133,20 +135,23 @@ public class CertManagerCertificatesProvisioner {
             if (TlsConfig.ProxyTlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
                 createCertificatePerComponent(selfSigned.getProxy(),
                         globalSpec.getComponents().getProxyBaseName(),
-                        globalSpec.getTls().getProxy().getSecretName(),
+                        ObjectUtils.firstNonNull(selfSigned.getProxy().getSecretName(),
+                                globalSpec.getTls().getProxy().getSecretName()),
                         getProxyDNSNames(selfSigned.getProxy()));
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getZookeeper())) {
                 createCertificatePerComponent(selfSigned.getZookeeper(),
                         globalSpec.getComponents().getZookeeperBaseName(),
-                        globalSpec.getTls().getZookeeper().getSecretName(),
+                        ObjectUtils.firstNonNull(selfSigned.getZookeeper().getSecretName(),
+                                globalSpec.getTls().getZookeeper().getSecretName()),
                         getZookeeperDNSNames(selfSigned.getZookeeper()));
             }
 
             if (TlsConfig.FunctionsWorkerTlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
                 createCertificatePerComponent(selfSigned.getFunctionsWorker(),
                         globalSpec.getComponents().getFunctionsWorkerBaseName(),
-                        globalSpec.getTls().getFunctionsWorker().getSecretName(),
+                        ObjectUtils.firstNonNull(selfSigned.getFunctionsWorker().getSecretName(),
+                                globalSpec.getTls().getFunctionsWorker().getSecretName()),
                         getFunctionsWorkerDNSNames(selfSigned.getFunctionsWorker()));
             }
             if (selfSigned.getExternal() != null) {

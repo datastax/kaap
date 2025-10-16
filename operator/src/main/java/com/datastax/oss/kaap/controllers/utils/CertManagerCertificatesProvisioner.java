@@ -150,7 +150,8 @@ public class CertManagerCertificatesProvisioner {
                         getFunctionsWorkerDNSNames(selfSigned.getFunctionsWorker()));
             }
             if (selfSigned.getExternal() != null) {
-                for (Map.Entry<String, SelfSignedCertificatePerComponentConfig> entry : selfSigned.getExternal().entrySet()) {
+                for (Map.Entry<String, SelfSignedCertificatePerComponentConfig> entry
+                        : selfSigned.getExternal().entrySet()) {
                     final String serviceName = entry.getKey();
                     final SelfSignedCertificatePerComponentConfig config = entry.getValue();
 
@@ -224,7 +225,8 @@ public class CertManagerCertificatesProvisioner {
     private List<String> getDnsNamesForExternalServicesForGlobalCert() {
         final List<String> dnsNames = new ArrayList<>();
         if (selfSigned.getExternal() != null) {
-            for (Map.Entry<String, SelfSignedCertificatePerComponentConfig> entry : selfSigned.getExternal().entrySet()) {
+            for (Map.Entry<String, SelfSignedCertificatePerComponentConfig> entry
+                    : selfSigned.getExternal().entrySet()) {
                 final SelfSignedCertificatePerComponentConfig config = entry.getValue();
                 dnsNames.addAll(getBaseK8sDnsNames(config, entry.getKey()));
             }

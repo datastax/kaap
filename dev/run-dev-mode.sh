@@ -15,5 +15,5 @@
 # limitations under the License.
 #
 
-kubectl apply -f helm/operator/crds --server-side
+kubectl apply -f helm/kaap/crds --server-side
 mvn -pl operator quarkus:dev -Dquarkus.operator-sdk.crd.generate=false  -Dquarkus.operator-sdk.crd.apply=false

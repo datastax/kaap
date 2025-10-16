@@ -57473,6 +57473,13 @@ Self signed certificate provisioner configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedexternalkey">external</a></b></td>
+        <td>map[string]object</td>
+        <td>
+          External services self signed certificate config (e.g., admin console, grafana). The key is the service name, and the value contains generation config<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedfunctionsworker">functionsWorker</a></b></td>
         <td>object</td>
         <td>
@@ -57534,6 +57541,13 @@ Autorecovery self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57545,6 +57559,13 @@ Autorecovery self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57614,6 +57635,13 @@ Bookkeeper self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57625,6 +57653,13 @@ Bookkeeper self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57694,6 +57729,13 @@ Broker self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57707,11 +57749,112 @@ Broker self signed certificate config.
           Cert-manager options for generating the private key.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
 
 ### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.broker.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.external[key]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedexternalkeyprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.external[key].privateKey
 
 
 
@@ -57774,6 +57917,13 @@ Functions worker self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57785,6 +57935,13 @@ Functions worker self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57901,6 +58058,13 @@ Proxy self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57912,6 +58076,13 @@ Proxy self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57981,6 +58152,13 @@ Zookeeper self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57992,6 +58170,13 @@ Zookeeper self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>

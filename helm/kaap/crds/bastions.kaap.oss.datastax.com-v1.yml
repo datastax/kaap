@@ -1405,6 +1405,14 @@ spec:
                                 description: Functions worker self signed certificate
                                   config.
                                 properties:
+                                  dnsNames:
+                                    description: A list of DNS names (and IP addresses)
+                                      to include in the certificate's Subject Alternative
+                                      Names (SANs) extension along with the default
+                                      K8s service DNS.
+                                    items:
+                                      type: string
+                                    type: array
                                   privateKey:
                                     description: Cert-manager options for generating
                                       the private key.
@@ -1418,6 +1426,14 @@ spec:
                                       size:
                                         type: integer
                                     type: object
+                                  secretName:
+                                    description: The name of the Kubernetes Secret
+                                      where the generated certificate and key will
+                                      be stored whe perComponent is enabled. Required
+                                      for external services. Internal services pick
+                                      up the secret name from the tls config if not
+                                      specified
+                                    type: string
                                   generate:
                                     description: Generate self signed certificates
                                       for the component.
@@ -1444,6 +1460,14 @@ spec:
                                 description: Autorecovery self signed certificate
                                   config.
                                 properties:
+                                  dnsNames:
+                                    description: A list of DNS names (and IP addresses)
+                                      to include in the certificate's Subject Alternative
+                                      Names (SANs) extension along with the default
+                                      K8s service DNS.
+                                    items:
+                                      type: string
+                                    type: array
                                   privateKey:
                                     description: Cert-manager options for generating
                                       the private key.
@@ -1457,6 +1481,14 @@ spec:
                                       size:
                                         type: integer
                                     type: object
+                                  secretName:
+                                    description: The name of the Kubernetes Secret
+                                      where the generated certificate and key will
+                                      be stored whe perComponent is enabled. Required
+                                      for external services. Internal services pick
+                                      up the secret name from the tls config if not
+                                      specified
+                                    type: string
                                   generate:
                                     description: Generate self signed certificates
                                       for the component.
@@ -1465,6 +1497,14 @@ spec:
                               bookkeeper:
                                 description: Bookkeeper self signed certificate config.
                                 properties:
+                                  dnsNames:
+                                    description: A list of DNS names (and IP addresses)
+                                      to include in the certificate's Subject Alternative
+                                      Names (SANs) extension along with the default
+                                      K8s service DNS.
+                                    items:
+                                      type: string
+                                    type: array
                                   privateKey:
                                     description: Cert-manager options for generating
                                       the private key.
@@ -1478,6 +1518,14 @@ spec:
                                       size:
                                         type: integer
                                     type: object
+                                  secretName:
+                                    description: The name of the Kubernetes Secret
+                                      where the generated certificate and key will
+                                      be stored whe perComponent is enabled. Required
+                                      for external services. Internal services pick
+                                      up the secret name from the tls config if not
+                                      specified
+                                    type: string
                                   generate:
                                     description: Generate self signed certificates
                                       for the component.
@@ -1486,6 +1534,14 @@ spec:
                               proxy:
                                 description: Proxy self signed certificate config.
                                 properties:
+                                  dnsNames:
+                                    description: A list of DNS names (and IP addresses)
+                                      to include in the certificate's Subject Alternative
+                                      Names (SANs) extension along with the default
+                                      K8s service DNS.
+                                    items:
+                                      type: string
+                                    type: array
                                   privateKey:
                                     description: Cert-manager options for generating
                                       the private key.
@@ -1499,6 +1555,14 @@ spec:
                                       size:
                                         type: integer
                                     type: object
+                                  secretName:
+                                    description: The name of the Kubernetes Secret
+                                      where the generated certificate and key will
+                                      be stored whe perComponent is enabled. Required
+                                      for external services. Internal services pick
+                                      up the secret name from the tls config if not
+                                      specified
+                                    type: string
                                   generate:
                                     description: Generate self signed certificates
                                       for the component.
@@ -1507,6 +1571,14 @@ spec:
                               zookeeper:
                                 description: Zookeeper self signed certificate config.
                                 properties:
+                                  dnsNames:
+                                    description: A list of DNS names (and IP addresses)
+                                      to include in the certificate's Subject Alternative
+                                      Names (SANs) extension along with the default
+                                      K8s service DNS.
+                                    items:
+                                      type: string
+                                    type: array
                                   privateKey:
                                     description: Cert-manager options for generating
                                       the private key.
@@ -1520,6 +1592,14 @@ spec:
                                       size:
                                         type: integer
                                     type: object
+                                  secretName:
+                                    description: The name of the Kubernetes Secret
+                                      where the generated certificate and key will
+                                      be stored whe perComponent is enabled. Required
+                                      for external services. Internal services pick
+                                      up the secret name from the tls config if not
+                                      specified
+                                    type: string
                                   generate:
                                     description: Generate self signed certificates
                                       for the component.
@@ -1528,6 +1608,14 @@ spec:
                               broker:
                                 description: Broker self signed certificate config.
                                 properties:
+                                  dnsNames:
+                                    description: A list of DNS names (and IP addresses)
+                                      to include in the certificate's Subject Alternative
+                                      Names (SANs) extension along with the default
+                                      K8s service DNS.
+                                    items:
+                                      type: string
+                                    type: array
                                   privateKey:
                                     description: Cert-manager options for generating
                                       the private key.
@@ -1541,6 +1629,14 @@ spec:
                                       size:
                                         type: integer
                                     type: object
+                                  secretName:
+                                    description: The name of the Kubernetes Secret
+                                      where the generated certificate and key will
+                                      be stored whe perComponent is enabled. Required
+                                      for external services. Internal services pick
+                                      up the secret name from the tls config if not
+                                      specified
+                                    type: string
                                   generate:
                                     description: Generate self signed certificates
                                       for the component.
@@ -1557,6 +1653,48 @@ spec:
                               caSecretName:
                                 description: Secret where to store the root CA certificate.
                                 type: string
+                              external:
+                                additionalProperties:
+                                  properties:
+                                    dnsNames:
+                                      description: A list of DNS names (and IP addresses)
+                                        to include in the certificate's Subject Alternative
+                                        Names (SANs) extension along with the default
+                                        K8s service DNS.
+                                      items:
+                                        type: string
+                                      type: array
+                                    privateKey:
+                                      description: Cert-manager options for generating
+                                        the private key.
+                                      properties:
+                                        rotationPolicy:
+                                          type: string
+                                        encoding:
+                                          type: string
+                                        algorithm:
+                                          type: string
+                                        size:
+                                          type: integer
+                                      type: object
+                                    secretName:
+                                      description: The name of the Kubernetes Secret
+                                        where the generated certificate and key will
+                                        be stored whe perComponent is enabled. Required
+                                        for external services. Internal services pick
+                                        up the secret name from the tls config if
+                                        not specified
+                                      type: string
+                                    generate:
+                                      description: Generate self signed certificates
+                                        for the component.
+                                      type: boolean
+                                  type: object
+                                description: "External services self signed certificate\
+                                  \ config (e.g., admin console, grafana). The key\
+                                  \ is the service name, and the value contains generation\
+                                  \ config"
+                                type: object
                             type: object
                         type: object
                       autorecovery:

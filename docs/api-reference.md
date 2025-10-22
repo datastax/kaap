@@ -277,6 +277,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>serviceAccountName</b></td>
         <td>string</td>
         <td>
@@ -3182,6 +3189,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.autorecovery.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.autorecovery.sidecars[index]
 
 
@@ -5535,6 +5603,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionsecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -8450,6 +8525,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.bastion.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bastion.sidecars[index]
 
 
@@ -10866,6 +11002,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -17229,6 +17372,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.service
 
 
@@ -17513,6 +17717,13 @@ Service configuration.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -23820,6 +24031,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].service
 
 
@@ -29144,6 +29416,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -35517,6 +35796,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.broker.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.service
 
 
@@ -35808,6 +36148,13 @@ Service configuration.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -42167,6 +42514,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sets[key].service
 
 
@@ -47219,6 +47627,13 @@ Update strategy for the StatefulSet.
         <td>string</td>
         <td>
           Runtime mode for functions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -53553,6 +53968,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.service
 
 
@@ -56997,6 +57473,13 @@ Self signed certificate provisioner configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedexternalkey">external</a></b></td>
+        <td>map[string]object</td>
+        <td>
+          External services self signed certificate config (e.g., admin console, grafana). The key is the service name, and the value contains generation config<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedfunctionsworker">functionsWorker</a></b></td>
         <td>object</td>
         <td>
@@ -57058,6 +57541,13 @@ Autorecovery self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57069,6 +57559,13 @@ Autorecovery self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57138,6 +57635,13 @@ Bookkeeper self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57149,6 +57653,13 @@ Bookkeeper self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57218,6 +57729,13 @@ Broker self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57231,11 +57749,112 @@ Broker self signed certificate config.
           Cert-manager options for generating the private key.<br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
 
 ### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.broker.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.external[key]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsignedexternalkeyprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.selfSigned.external[key].privateKey
 
 
 
@@ -57298,6 +57917,13 @@ Functions worker self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57309,6 +57935,13 @@ Functions worker self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57425,6 +58058,13 @@ Proxy self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57436,6 +58076,13 @@ Proxy self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57505,6 +58152,13 @@ Zookeeper self signed certificate config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
@@ -57516,6 +58170,13 @@ Zookeeper self signed certificate config.
         <td>object</td>
         <td>
           Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -57924,6 +58585,13 @@ TLS configurations related to the ZooKeeper component.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -64185,6 +64853,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.proxy.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.service
 
 
@@ -64219,6 +64948,13 @@ Service configuration.
         <td>boolean</td>
         <td>
           Enable plain text connections even if TLS is enabled.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>loadBalancerClass</b></td>
+        <td>string</td>
+        <td>
+          Assign a load balancer class.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -64469,6 +65205,13 @@ Service configuration.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -70716,6 +71459,67 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].service
 
 
@@ -70750,6 +71554,13 @@ Service configuration.
         <td>boolean</td>
         <td>
           Enable plain text connections even if TLS is enabled.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>loadBalancerClass</b></td>
+        <td>string</td>
+        <td>
+          Assign a load balancer class.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -76075,6 +76886,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Resources requirements.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          Subset of PodSecurityContext for basic UID, GID, and volume access control.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -82434,6 +83252,67 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.securityContext
+
+
+
+Subset of PodSecurityContext for basic UID, GID, and volume access control.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
         <td>
           <br/>
         </td>

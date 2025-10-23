@@ -68,6 +68,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -250,6 +251,9 @@ public abstract class BaseK8sEnvTest {
         String result = "";
         // simulate go templating
         for (String l : allRbac) {
+            if (l.contains("nodeSelector") || l.contains(".nodeSelector")) { // nodeselector is empty anyway. This resolves duplicate nodeselectors
+                continue;
+            }
             if (l.contains("{{- if")) { // assume always true and no content other than the if
                 continue;
             }
@@ -561,7 +565,9 @@ public abstract class BaseK8sEnvTest {
 
     protected void deleteManifest(byte[] manifest) {
         final List<HasMetadata> resources =
-                client.load(new ByteArrayInputStream(manifest)).get();
+                client.load(new ByteArrayInputStream(manifest)).get().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         client.resourceList(resources).inNamespace(namespace).delete();
     }
 

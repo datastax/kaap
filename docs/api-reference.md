@@ -766,8 +766,22 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -1255,6 +1269,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -1378,6 +1399,32 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.autorecovery.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.autorecovery.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -1435,6 +1482,13 @@ Indicates the provisioner property for the StorageClass.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -1556,6 +1610,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -2187,6 +2267,39 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.autorecovery.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.autorecovery.initContainers[index].resources
 
 
@@ -2203,6 +2316,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -2212,6 +2332,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -2238,6 +2384,13 @@ Indicates the provisioner property for the StorageClass.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -2308,6 +2461,39 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoveryinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -2821,6 +3007,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -3172,6 +3365,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecautorecoveryresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -3181,6 +3381,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -3343,8 +3569,22 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -3832,6 +4072,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -3955,6 +4202,32 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
 </table>
 
 
+### PulsarCluster.spec.autorecovery.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.autorecovery.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -4012,6 +4285,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -4133,6 +4413,32 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -4764,6 +5070,39 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
 </table>
 
 
+### PulsarCluster.spec.autorecovery.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.autorecovery.sidecars[index].resources
 
 
@@ -4780,6 +5119,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -4789,6 +5135,32 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -4815,6 +5187,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -4885,6 +5264,39 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.autorecovery.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -5393,6 +5805,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -6102,8 +6521,22 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastioninitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbastioninitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -6591,6 +7024,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastioninitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbastioninitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -6714,6 +7154,32 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.bastion.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bastion.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -6771,6 +7237,13 @@ Indicates the provisioner property for the StorageClass.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbastioninitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastioninitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -6892,6 +7365,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -7523,6 +8022,39 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.bastion.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bastion.initContainers[index].resources
 
 
@@ -7539,6 +8071,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbastioninitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -7548,6 +8087,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -7574,6 +8139,13 @@ Indicates the provisioner property for the StorageClass.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastioninitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -7644,6 +8216,39 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbastioninitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -8157,6 +8762,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -8508,6 +9120,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbastionresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -8517,6 +9136,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -8679,8 +9324,22 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionsidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionsidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -9168,6 +9827,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionsidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionsidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -9291,6 +9957,32 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
 </table>
 
 
+### PulsarCluster.spec.bastion.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bastion.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -9348,6 +10040,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionsidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionsidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -9469,6 +10168,32 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -10100,6 +10825,39 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
 </table>
 
 
+### PulsarCluster.spec.bastion.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bastion.sidecars[index].resources
 
 
@@ -10116,6 +10874,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbastionsidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -10125,6 +10890,32 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -10151,6 +10942,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbastionsidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -10221,6 +11019,39 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionsidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bastion.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -10734,6 +11565,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -11143,6 +11981,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -12425,6 +13270,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -12513,6 +13365,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -13272,6 +14131,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -13295,6 +14161,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -14740,8 +15733,22 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -15229,6 +16236,13 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -15352,6 +16366,32 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -15409,6 +16449,13 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -15530,6 +16577,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -16161,6 +17234,39 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.initContainers[index].resources
 
 
@@ -16177,6 +17283,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -16186,6 +17299,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -16212,6 +17351,13 @@ Autoscaling config.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -16282,6 +17428,39 @@ Autoscaling config.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -16790,6 +17969,13 @@ Autoscaling config.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -17355,6 +18541,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -17364,6 +18557,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -17844,6 +19063,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -19126,6 +20352,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -19214,6 +20447,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -19973,6 +21213,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -19996,6 +21243,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -21399,8 +22773,22 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -21888,6 +23276,13 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -22011,6 +23406,32 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -22068,6 +23489,13 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -22189,6 +23617,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -22820,6 +24274,39 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].resources
 
 
@@ -22836,6 +24323,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -22845,6 +24339,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -22871,6 +24391,13 @@ Autoscaling config.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -22941,6 +24468,39 @@ Autoscaling config.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -23449,6 +25009,13 @@ Autoscaling config.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -24014,6 +25581,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -24023,6 +25597,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -24279,8 +25879,22 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -24768,6 +26382,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -24891,6 +26512,32 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -24948,6 +26595,13 @@ Service configuration.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -25069,6 +26723,32 @@ Service configuration.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -25700,6 +27380,39 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].resources
 
 
@@ -25716,6 +27429,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -25725,6 +27445,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -25751,6 +27497,13 @@ Service configuration.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -25821,6 +27574,39 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -26334,6 +28120,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -26799,8 +28592,22 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -27288,6 +29095,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -27411,6 +29225,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -27468,6 +29308,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -27589,6 +29436,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -28220,6 +30093,39 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 </table>
 
 
+### PulsarCluster.spec.bookkeeper.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.bookkeeper.sidecars[index].resources
 
 
@@ -28236,6 +30142,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -28245,6 +30158,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -28271,6 +30210,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -28341,6 +30287,39 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -28849,6 +30828,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -29557,6 +31543,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -30839,6 +32832,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -30927,6 +32927,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -31686,6 +33693,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -31709,6 +33723,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -33117,8 +35258,22 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -33606,6 +35761,13 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -33729,6 +35891,32 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.broker.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -33786,6 +35974,13 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -33907,6 +36102,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -34538,6 +36759,39 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.broker.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.initContainers[index].resources
 
 
@@ -34554,6 +36808,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -34563,6 +36824,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -34589,6 +36876,13 @@ Autoscaling config.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -34659,6 +36953,39 @@ Autoscaling config.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokerinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -35167,6 +37494,13 @@ Autoscaling config.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -35779,6 +38113,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokerresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -35788,6 +38129,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -36275,6 +38642,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -37557,6 +39931,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -37645,6 +40026,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -38404,6 +40792,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -38427,6 +40822,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -39835,8 +42357,22 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -40324,6 +42860,13 @@ Autoscaling config.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -40447,6 +42990,32 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sets[key].initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -40504,6 +43073,13 @@ Autoscaling config.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -40625,6 +43201,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -41256,6 +43858,39 @@ Autoscaling config.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sets[key].initContainers[index].resources
 
 
@@ -41272,6 +43907,13 @@ Autoscaling config.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -41281,6 +43923,32 @@ Autoscaling config.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -41307,6 +43975,13 @@ Autoscaling config.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -41377,6 +44052,39 @@ Autoscaling config.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -41885,6 +44593,13 @@ Autoscaling config.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -42497,6 +45212,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -42506,6 +45228,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -42769,8 +45517,22 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -43258,6 +46020,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -43381,6 +46150,32 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sets[key].sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -43438,6 +46233,13 @@ Service configuration.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -43559,6 +46361,32 @@ Service configuration.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -44190,6 +47018,39 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.broker.sets[key].sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sets[key].sidecars[index].resources
 
 
@@ -44206,6 +47067,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -44215,6 +47083,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -44241,6 +47135,13 @@ Service configuration.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -44311,6 +47212,39 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -44824,6 +47758,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -44977,6 +47918,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeytransactionsinitjobresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -44986,6 +47934,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].transactions.initJob.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -45153,8 +48127,22 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -45642,6 +48630,13 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -45765,6 +48760,32 @@ Update strategy for the StatefulSet.
 </table>
 
 
+### PulsarCluster.spec.broker.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -45822,6 +48843,13 @@ Update strategy for the StatefulSet.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -45943,6 +48971,32 @@ Update strategy for the StatefulSet.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -46574,6 +49628,39 @@ Update strategy for the StatefulSet.
 </table>
 
 
+### PulsarCluster.spec.broker.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.broker.sidecars[index].resources
 
 
@@ -46590,6 +49677,13 @@ Update strategy for the StatefulSet.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -46599,6 +49693,32 @@ Update strategy for the StatefulSet.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -46625,6 +49745,13 @@ Update strategy for the StatefulSet.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -46695,6 +49822,39 @@ Update strategy for the StatefulSet.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -47208,6 +50368,13 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -47361,6 +50528,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecbrokertransactionsinitjobresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -47370,6 +50544,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.transactions.initJob.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -47747,6 +50947,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -49029,6 +52236,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -49117,6 +52331,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -49876,6 +53097,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -49899,6 +53127,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -51202,8 +54557,22 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -51691,6 +55060,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -51814,6 +55190,32 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -51871,6 +55273,13 @@ Indicates the provisioner property for the StorageClass.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -51992,6 +55401,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -52623,6 +56058,39 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.initContainers[index].resources
 
 
@@ -52639,6 +56107,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -52648,6 +56123,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -52674,6 +56175,13 @@ Indicates the provisioner property for the StorageClass.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -52744,6 +56252,39 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkerinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -53252,6 +56793,13 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -53951,6 +57499,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkerresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -53960,6 +57515,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -54223,8 +57804,22 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -54712,6 +58307,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -54835,6 +58437,32 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -54892,6 +58520,13 @@ Service configuration.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -55013,6 +58648,32 @@ Service configuration.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -55644,6 +59305,39 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.functionsWorker.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.functionsWorker.sidecars[index].resources
 
 
@@ -55660,6 +59354,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -55669,6 +59370,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -55695,6 +59422,13 @@ Service configuration.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -55765,6 +59499,39 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -56273,6 +60040,13 @@ Service configuration.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -58738,6 +62512,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -60015,6 +63796,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -60103,6 +63891,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -60862,6 +64657,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -60885,6 +64687,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -62188,8 +66117,22 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -62677,6 +66620,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -62800,6 +66750,32 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.proxy.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -62857,6 +66833,13 @@ Indicates the provisioner property for the StorageClass.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -62978,6 +66961,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -63609,6 +67618,39 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.proxy.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.initContainers[index].resources
 
 
@@ -63625,6 +67667,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -63634,6 +67683,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -63660,6 +67735,13 @@ Indicates the provisioner property for the StorageClass.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -63730,6 +67812,39 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -64238,6 +68353,13 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -64836,6 +68958,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -64845,6 +68974,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -65339,6 +69494,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -66621,6 +70783,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -66709,6 +70878,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -67468,6 +71644,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -67491,6 +71674,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -68794,8 +73104,22 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -69283,6 +73607,13 @@ Indicates the provisioner property for the StorageClass.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -69406,6 +73737,32 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -69463,6 +73820,13 @@ Indicates the provisioner property for the StorageClass.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -69584,6 +73948,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -70215,6 +74605,39 @@ Indicates the provisioner property for the StorageClass.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].initContainers[index].resources
 
 
@@ -70231,6 +74654,13 @@ Indicates the provisioner property for the StorageClass.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -70240,6 +74670,32 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -70266,6 +74722,13 @@ Indicates the provisioner property for the StorageClass.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -70336,6 +74799,39 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -70844,6 +75340,13 @@ Indicates the provisioner property for the StorageClass.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -71442,6 +75945,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -71451,6 +75961,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -71735,8 +76271,22 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -72224,6 +76774,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -72347,6 +76904,32 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -72404,6 +76987,13 @@ Service configuration.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -72525,6 +77115,32 @@ Service configuration.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -73156,6 +77772,39 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.proxy.sets[key].sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sets[key].sidecars[index].resources
 
 
@@ -73172,6 +77821,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -73181,6 +77837,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -73207,6 +77889,13 @@ Service configuration.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -73277,6 +77966,39 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -73790,6 +78512,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -74159,6 +78888,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeywebsocketresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -74168,6 +78904,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].webSocket.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -74269,8 +79031,22 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -74758,6 +79534,13 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -74881,6 +79664,32 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.proxy.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -74938,6 +79747,13 @@ Resources requirements.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -75059,6 +79875,32 @@ Resources requirements.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -75690,6 +80532,39 @@ Resources requirements.
 </table>
 
 
+### PulsarCluster.spec.proxy.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.proxy.sidecars[index].resources
 
 
@@ -75706,6 +80581,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxysidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -75715,6 +80597,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -75741,6 +80649,13 @@ Resources requirements.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -75811,6 +80726,39 @@ Resources requirements.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -76324,6 +81272,13 @@ Resources requirements.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -76693,6 +81648,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecproxywebsocketresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -76702,6 +81664,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.webSocket.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -77006,6 +81994,13 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -78288,6 +83283,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -78376,6 +83378,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -79135,6 +84144,13 @@ Mount additional volumes to the pod.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -79158,6 +84174,133 @@ Mount additional volumes to the pod.
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.additionalVolumes.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
         <td>
           <br/>
         </td>
@@ -80562,8 +85705,22 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -81051,6 +86208,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -81174,6 +86338,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 </table>
 
 
+### PulsarCluster.spec.zookeeper.initContainers[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.zookeeper.initContainers[index].lifecycle.postStart.tcpSocket
 
 
@@ -81231,6 +86421,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -81352,6 +86549,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.initContainers[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -81983,6 +87206,39 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
 </table>
 
 
+### PulsarCluster.spec.zookeeper.initContainers[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.zookeeper.initContainers[index].resources
 
 
@@ -81999,6 +87255,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -82008,6 +87271,32 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.initContainers[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -82034,6 +87323,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -82104,6 +87400,39 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperinitcontainersindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.initContainers[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -82617,6 +87946,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>subPath</b></td>
         <td>string</td>
         <td>
@@ -82683,6 +88019,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeepermetadatainitializationjobresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -82692,6 +88035,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.metadataInitializationJob.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -83243,6 +88612,13 @@ Resources requirements.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -83252,6 +88628,32 @@ Resources requirements.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -83508,8 +88910,22 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersidecarsindexresizepolicyindex">resizePolicy</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeepersidecarsindexresources">resources</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -83997,6 +89413,13 @@ Service configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersidecarsindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeepersidecarsindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -84120,6 +89543,32 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.zookeeper.sidecars[index].lifecycle.postStart.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.zookeeper.sidecars[index].lifecycle.postStart.tcpSocket
 
 
@@ -84177,6 +89626,13 @@ Service configuration.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeepersidecarsindexlifecycleprestophttpget">httpGet</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersidecarsindexlifecycleprestopsleep">sleep</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -84298,6 +89754,32 @@ Service configuration.
       </tr><tr>
         <td><b>value</b></td>
         <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.sidecars[index].lifecycle.preStop.sleep
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
         <td>
           <br/>
         </td>
@@ -84929,6 +90411,39 @@ Service configuration.
 </table>
 
 
+### PulsarCluster.spec.zookeeper.sidecars[index].resizePolicy[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resourceName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>restartPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### PulsarCluster.spec.zookeeper.sidecars[index].resources
 
 
@@ -84945,6 +90460,13 @@ Service configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersidecarsindexresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -84954,6 +90476,32 @@ Service configuration.
       </tr><tr>
         <td><b>requests</b></td>
         <td>map[string]int or string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.sidecars[index].resources.claims[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -84980,6 +90528,13 @@ Service configuration.
     <tbody><tr>
         <td><b>allowPrivilegeEscalation</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeepersidecarsindexsecuritycontextapparmorprofile">appArmorProfile</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -85050,6 +90605,39 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeepersidecarsindexsecuritycontextwindowsoptions">windowsOptions</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.sidecars[index].securityContext.appArmorProfile
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -85558,6 +91146,13 @@ Service configuration.
       </tr><tr>
         <td><b>readOnly</b></td>
         <td>boolean</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>recursiveReadOnly</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>

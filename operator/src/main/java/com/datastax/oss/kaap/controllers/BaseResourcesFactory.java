@@ -975,14 +975,14 @@ public abstract class BaseResourcesFactory<T> {
                     p12File=/pulsar/tls.p12
                     keyStoreFile=/pulsar/tls.keystore.jks
                     trustStoreFile=/pulsar/tls.truststore.jks
-                                
+                
                     head /dev/urandom | base64 | head -c 24 > /pulsar/keystoreSecret.txt
                     export tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
                     export PF_tlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
                     export tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
                     export PF_tlsKeyStorePassword=$(cat /pulsar/keystoreSecret.txt)
                     export PULSAR_PREFIX_brokerClientTlsTrustStorePassword=$(cat /pulsar/keystoreSecret.txt)
-                                
+                
                     openssl pkcs12 \\
                         -export \\
                         -in ${crtFile} \\
@@ -990,14 +990,14 @@ public abstract class BaseResourcesFactory<T> {
                         -out ${p12File} \\
                         -name ${name} \\
                         -passout "file:/pulsar/keystoreSecret.txt"
-                                
+                
                     keytool -importkeystore \\
                         -srckeystore ${p12File} \\
                         -srcstoretype PKCS12 -srcstorepass:file "/pulsar/keystoreSecret.txt" \\
                         -alias ${name} \\
                         -destkeystore ${keyStoreFile} \\
                         -deststorepass:file "/pulsar/keystoreSecret.txt"
-                                
+                
                     keytool -import \\
                         -file ${caFile} \\
                         -storetype JKS \\
@@ -1053,12 +1053,12 @@ public abstract class BaseResourcesFactory<T> {
             script += """
                     (
                     cat >> conf/pulsar_env.sh << EOF
-                                        
+                    
                     PULSAR_EXTRA_OPTS="\\${PULSAR_EXTRA_OPTS} %s"
                     EOF
                     ) && (
                     cat >> conf/bkenv.sh << EOF
-                                        
+                    
                     BOOKIE_EXTRA_OPTS="\\${BOOKIE_EXTRA_OPTS} %s"
                     EOF
                     ) &&

@@ -237,8 +237,7 @@ public abstract class BaseK8sEnvTest {
         vars.put(".Values.operator.readinessProbe.periodSeconds", "30");
         vars.put(".Values.operator.readinessProbe.successThreshold", "1");
         vars.put(".Values.operator.readinessProbe.timeoutSeconds", "10");
-        vars.put(".Values.nodeSelector", "        {}");
-        vars.put(".Values.operator.nodeSelector", "        {}");
+        vars.put("$nodeSelector", "        {}");
         vars.put(".Values.operator.tolerations", "        []");
         vars.put("include \"kaap.name\" .", "kaap");
         vars.put("include \"kaap.roleName\" .", "kaap");
@@ -249,9 +248,9 @@ public abstract class BaseK8sEnvTest {
         vars.put("include \"kaap.selectorLabels\" . | nindent 8", "{app.kubernetes.io/name: kaap}");
         vars.put("include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum", "sha");
         String result = "";
-        // simulate go templating
+        // simulate Helm templating
         for (String l : allRbac) {
-            if (l.contains("nodeSelector") || l.contains(".nodeSelector")) { // nodeselector is empty anyway. This resolves duplicate nodeselectors
+            if (l.contains("{{- $")) { // ignore variable definitions
                 continue;
             }
             if (l.contains("{{- if")) { // assume always true and no content other than the if
@@ -268,7 +267,7 @@ public abstract class BaseK8sEnvTest {
             result += l + System.lineSeparator();
         }
         if (result.contains("{{")) {
-            throw new RuntimeException("Failed to replace all go templating vars, template: " + result);
+            throw new RuntimeException("Failed to replace all Helm templating vars, template: " + result);
         }
         return result;
     }

@@ -1235,6 +1235,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -2362,6 +2369,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -3411,6 +3425,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -4034,6 +4055,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverysidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -5160,6 +5188,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -6990,6 +7025,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -8117,6 +8159,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -9166,6 +9215,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -9789,6 +9845,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbastionsidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -10915,6 +10978,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -12139,6 +12209,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeeperadditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -13805,6 +13882,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -16202,6 +16312,13 @@ Autoscaling config.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -17324,6 +17441,13 @@ Autoscaling config.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -18587,6 +18711,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -19221,6 +19352,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbookkeepersetskeyadditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -20887,6 +21025,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.bookkeeper.sets[key].additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -23242,6 +23413,13 @@ Autoscaling config.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -24364,6 +24542,13 @@ Autoscaling config.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -25627,6 +25812,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -26344,6 +26536,13 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbookkeepersetskeysidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -27470,6 +27669,13 @@ Service configuration.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -29061,6 +29267,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -30183,6 +30396,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -31701,6 +31921,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokeradditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -33367,6 +33594,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -35727,6 +35987,13 @@ Autoscaling config.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -36849,6 +37116,13 @@ Autoscaling config.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -38159,6 +38433,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -38800,6 +39081,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecbrokersetskeyadditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -40466,6 +40754,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.broker.sets[key].additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -42826,6 +43147,13 @@ Autoscaling config.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -43948,6 +44276,13 @@ Autoscaling config.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -45258,6 +45593,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -45982,6 +46324,13 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersetskeysidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -47113,6 +47462,13 @@ Service configuration.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -47964,6 +48320,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -48592,6 +48955,13 @@ Update strategy for the StatefulSet.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokersidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -49723,6 +50093,13 @@ Update strategy for the StatefulSet.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -50574,6 +50951,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -51105,6 +51489,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecfunctionsworkeradditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -52771,6 +53162,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.functionsWorker.additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -55026,6 +55450,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -56148,6 +56579,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -57545,6 +57983,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -58269,6 +58714,13 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkersidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -59395,6 +59847,13 @@ Service configuration.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -62671,6 +63130,13 @@ Mount additional volumes to the pod.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindeximage">image</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxyadditionalvolumesvolumesindexiscsi">iscsi</a></b></td>
         <td>object</td>
         <td>
@@ -64331,6 +64797,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -66586,6 +67085,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -67708,6 +68214,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -69004,6 +69517,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -69652,6 +70172,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecproxysetskeyadditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -71318,6 +71845,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.proxy.sets[key].additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -73573,6 +74133,13 @@ Indicates the provisioner property for the StorageClass.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -74695,6 +75262,13 @@ Indicates the provisioner property for the StorageClass.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -75991,6 +76565,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -76736,6 +77317,13 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysetskeysidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -77867,6 +78455,13 @@ Service configuration.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -78934,6 +79529,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -79496,6 +80098,13 @@ Resources requirements.
       </tr><tr>
         <td><b><a href="#pulsarclusterspecproxysidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -80627,6 +81236,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -81694,6 +82310,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -82152,6 +82775,13 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspeczookeeperadditionalvolumesvolumesindeximage">image</a></b></td>
         <td>object</td>
         <td>
           <br/>
@@ -83818,6 +84448,39 @@ Mount additional volumes to the pod.
         <td>false</td>
       </tr><tr>
         <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.zookeeper.additionalVolumes.volumes[index].image
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pullPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>reference</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -86174,6 +86837,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -87301,6 +87971,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -88065,6 +88742,13 @@ Resources requirements.
           <br/>
         </td>
         <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -88653,6 +89337,13 @@ Resources requirements.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -89375,6 +90066,13 @@ Service configuration.
       </tr><tr>
         <td><b><a href="#pulsarclusterspeczookeepersidecarsindexlifecycleprestop">preStop</a></b></td>
         <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>stopSignal</b></td>
+        <td>string</td>
         <td>
           <br/>
         </td>
@@ -90501,6 +91199,13 @@ Service configuration.
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>request</b></td>
         <td>string</td>
         <td>
           <br/>

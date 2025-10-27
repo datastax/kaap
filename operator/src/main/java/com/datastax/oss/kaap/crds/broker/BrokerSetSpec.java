@@ -215,6 +215,7 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
 
         if (gracePeriod == null) {
             gracePeriod = 60;

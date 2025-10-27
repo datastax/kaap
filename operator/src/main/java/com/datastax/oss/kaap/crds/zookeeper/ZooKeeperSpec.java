@@ -149,6 +149,7 @@ public class ZooKeeperSpec extends BaseComponentSpec<ZooKeeperSpec> {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         super.applyFsGroup0IfSecurityContextMissing();
         if (podManagementPolicy == null) {
             podManagementPolicy = "Parallel";

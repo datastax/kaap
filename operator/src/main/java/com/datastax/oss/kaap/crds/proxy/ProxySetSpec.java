@@ -181,6 +181,7 @@ public class ProxySetSpec extends BaseComponentSpec<ProxySetSpec> {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         if (replicas == null) {
             replicas = 3;
         }

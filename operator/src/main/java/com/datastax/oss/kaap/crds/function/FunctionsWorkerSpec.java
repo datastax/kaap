@@ -156,6 +156,7 @@ public class FunctionsWorkerSpec extends BaseComponentSpec<FunctionsWorkerSpec> 
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         super.applyFsGroup0IfSecurityContextMissing();
 
         if (replicas == null) {

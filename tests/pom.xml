@@ -27,7 +27,7 @@
     <artifactId>tests</artifactId>
 
     <properties>
-        <kindcontainer.version>1.4.9</kindcontainer.version>
+        <kindcontainer.version>1.4.10</kindcontainer.version>
 
     </properties>
     <dependencies>

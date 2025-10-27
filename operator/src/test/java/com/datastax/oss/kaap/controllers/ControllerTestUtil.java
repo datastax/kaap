@@ -80,9 +80,9 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(namespace);
         final UpdateControl<R> result = invokeController(mockKubernetesClient, spec,
                 specClass, fullSpecClass, controllerClass);
-        Assert.assertTrue(result.isUpdateStatus());
+        Assert.assertTrue(result.isPatchStatus());
 
-        final Condition readyCondition = result.getResource().getStatus().getConditions().get(0);
+        final Condition readyCondition = result.getResource().get().getStatus().getConditions().get(0);
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getMessage(),
                 expectedErrorMessage);
@@ -96,9 +96,9 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(namespace);
         final UpdateControl<R>
                 result = invokeController(mockKubernetesClient, spec, specClass, fullSpecClass, controllerClass);
-        Assert.assertTrue(result.isUpdateStatus());
+        Assert.assertTrue(result.isPatchStatus());
 
-        final Condition readyCondition = result.getResource().getStatus().getConditions().get(0);
+        final Condition readyCondition = result.getResource().get().getStatus().getConditions().get(0);
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertNull(readyCondition.getMessage());
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);

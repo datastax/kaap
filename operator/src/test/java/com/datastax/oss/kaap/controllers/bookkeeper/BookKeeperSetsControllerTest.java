@@ -129,7 +129,7 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         Assert.assertEquals(client.getCreatedResources(ConfigMap.class).size(), 1);
         Assert.assertEquals(client.getCreatedResource(ConfigMap.class).getResource()
-                        .getData().get("PULSAR_PREFIX_myconfig"), "thevalue");
+                .getData().get("PULSAR_PREFIX_myconfig"), "thevalue");
         Assert.assertEquals(client.getCreatedResources(PodDisruptionBudget.class).size(), 1);
         System.out.println(client.getCreatedResources(Service.class).stream().map(d -> d.getResource().getMetadata().getName()).collect(
                 Collectors.toList()));
@@ -725,17 +725,17 @@ public class BookKeeperSetsControllerTest {
         // verify order of sets follows the order declared in the spec
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
         BookKeeperController.BookKeeperSetsLastApplied setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
 
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
 
@@ -744,11 +744,11 @@ public class BookKeeperSetsControllerTest {
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("seta"));
 
@@ -756,10 +756,10 @@ public class BookKeeperSetsControllerTest {
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
         // now update
 
@@ -780,7 +780,7 @@ public class BookKeeperSetsControllerTest {
                       seta: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
@@ -790,7 +790,7 @@ public class BookKeeperSetsControllerTest {
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-seta"));
@@ -799,7 +799,7 @@ public class BookKeeperSetsControllerTest {
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
 
@@ -824,32 +824,32 @@ public class BookKeeperSetsControllerTest {
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-seta"));
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
         resolver.putResource("pulsar-spec-1-bookkeeper-setz",
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
         resolver.putResource("pulsar-spec-1-bookkeeper-seta",
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
         // now update
 
@@ -871,31 +871,31 @@ public class BookKeeperSetsControllerTest {
                       seta: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 2);
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-setz"));
         Assert.assertNotNull(client.getCreatedResource(StatefulSet.class, "pulsar-spec-1-bookkeeper-seta"));
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
 
         resolver.putResource("pulsar-spec-1-bookkeeper-setz",
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
 
         resolver.putResource("pulsar-spec-1-bookkeeper-seta",
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-seta", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
-        Assert.assertNotNull(bookkeeperUpdateControl.getResource().getStatus().getLastApplied());
+        Assert.assertNotNull(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied());
     }
 
     @Test
@@ -914,7 +914,7 @@ public class BookKeeperSetsControllerTest {
         UpdateControl<BookKeeper> bookkeeperUpdateControl = invokeController(spec, new BookKeeper(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         BookKeeperController.BookKeeperSetsLastApplied setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
@@ -926,10 +926,10 @@ public class BookKeeperSetsControllerTest {
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper-setz", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNotNull(setsLastApplied.getSets().get("bookkeeper"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 1);
@@ -939,7 +939,7 @@ public class BookKeeperSetsControllerTest {
                 resolver.newStatefulSetBuilder("pulsar-spec-1-bookkeeper", true).build());
 
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertEquals(client.getDeletedResources().size(), 0);
@@ -953,10 +953,10 @@ public class BookKeeperSetsControllerTest {
                       setz: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNull(setsLastApplied.getSets().get("bookkeeper"));
 
@@ -978,10 +978,10 @@ public class BookKeeperSetsControllerTest {
                     sets: {}
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         setsLastApplied =
-                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().getStatus().getLastApplied(),
+                SerializationUtil.readJson(bookkeeperUpdateControl.getResource().get().getStatus().getLastApplied(),
                         BookKeeperController.BookKeeperSetsLastApplied.class);
         Assert.assertNull(setsLastApplied.getSets().get("setz"));
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
@@ -1024,7 +1024,7 @@ public class BookKeeperSetsControllerTest {
         resolver.putResource("pulsar-spec-1-bookkeeper-journal-3", genPvc());
         resolver.putResource("pulsar-spec-1-bookkeeper-ledgers-3", genPvc());
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getCreatedResources(StatefulSet.class).size(), 0);
         Assert.assertEquals(client.getDeletedResources().size(), 0);
@@ -1038,7 +1038,7 @@ public class BookKeeperSetsControllerTest {
                 """;
         mockBookieAdminClient(3);
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getDeletedResources().size(), 4);
         Assert.assertNotNull(client.getDeletedResource(PersistentVolumeClaim.class, "pulsar-spec-1-bookkeeper-ledgers-2"));
@@ -1057,7 +1057,7 @@ public class BookKeeperSetsControllerTest {
                 """;
         mockBookieAdminClient(2);
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
         Assert.assertEquals(client.getDeletedResources().size(), 0);
 
@@ -1152,7 +1152,7 @@ public class BookKeeperSetsControllerTest {
                     replicas: 3
                 """;
         client = new MockKubernetesClient(NAMESPACE, resolver);
-        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource(), client);
+        bookkeeperUpdateControl = invokeController(spec, bookkeeperUpdateControl.getResource().get(), client);
         KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
         Assert.assertEquals((int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(),
                 3);

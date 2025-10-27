@@ -128,7 +128,7 @@ public class KubeTestUtil {
     public static void assertUpdateControlInitializing(
             UpdateControl<? extends CustomResource<?, ? extends BaseComponentStatus>> updateControl) {
         Assert.assertEquals(updateControl.getScheduleDelay().get().longValue(), 5000L);
-        Condition readyCondition = getReadyCondition(updateControl.getResource().getStatus());
+        Condition readyCondition = getReadyCondition(updateControl.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
     }
@@ -136,7 +136,7 @@ public class KubeTestUtil {
     public static void assertUpdateControlReady(
             UpdateControl<? extends CustomResource<?, ? extends BaseComponentStatus>> updateControl) {
         Assert.assertFalse(updateControl.getScheduleDelay().isPresent());
-        Condition readyCondition = getReadyCondition(updateControl.getResource().getStatus());
+        Condition readyCondition = getReadyCondition(updateControl.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_TRUE);
     }
 }

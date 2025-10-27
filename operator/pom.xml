@@ -27,7 +27,7 @@
     <artifactId>kaap-operator</artifactId>
 
     <properties>
-        <quarkus-platform.version>3.28.5</quarkus-platform.version>
+        <quarkus-platform.version>3.27.0</quarkus-platform.version>
         <quarkus.container-image.build>true</quarkus.container-image.build>
         <quarkus.operator-sdk.crd.generate-in-parallel>true</quarkus.operator-sdk.crd.generate-in-parallel>
     </properties>

@@ -15,11 +15,11 @@
  */
 package com.datastax.oss.kaap.controllers.zookeeper;
 
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class ZooKeeperJobTest {
 
         private PulsarClusterSpec pulsarClusterSpec;
         private CurrentJobState currentJobState;
-        KubernetesServer server;
+        KubernetesMockServer server;
 
         @SneakyThrows
         void start() {
@@ -67,8 +67,7 @@ public class ZooKeeperJobTest {
 
             final String clusterSpecName = pulsarClusterSpec.getGlobal().getName();
 
-            server = new KubernetesServer(false);
-            server.before();
+            server = new KubernetesMockServer(false);
 
             server.expect()
                     .post()
@@ -113,7 +112,6 @@ public class ZooKeeperJobTest {
 
         @Override
         public void close() {
-            server.after();
         }
     }
 
@@ -163,7 +161,7 @@ public class ZooKeeperJobTest {
 
     private MockServer invokeJobCreate(String spec, MockServer.CurrentJobState state) {
 
-        final PulsarClusterSpec clusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec clusterSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
 
         try (final MockServer server = MockServer.builder()
                 .withPulsarClusterSpec(clusterSpec)

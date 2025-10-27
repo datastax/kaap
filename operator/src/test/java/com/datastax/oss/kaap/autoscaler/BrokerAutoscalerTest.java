@@ -15,11 +15,11 @@
  */
 package com.datastax.oss.kaap.autoscaler;
 
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.controllers.broker.BrokerResourcesFactory;
 import com.datastax.oss.kaap.crds.broker.Broker;
 import com.datastax.oss.kaap.crds.broker.BrokerFullSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
@@ -342,7 +342,7 @@ public class BrokerAutoscalerTest {
     }
 
     private MockServer runAutoscaler(String spec, MockServer.PodConsumer podConf, Consumer<StatefulSet> stsConf) {
-        final PulsarClusterSpec pulsarClusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec pulsarClusterSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
         try (final MockServer server = MockServer.builder()
                 .withPulsarClusterSpec(pulsarClusterSpec)
                 .withPodConsumer(podConf)

@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.client.okhttp.OkHttpClientFactory;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MockKubeServer extends KubernetesServer {
+public class MockKubeServer extends ExternalResource {
 
     private AtomicReference<NamespacedKubernetesClient> client = new AtomicReference(null);
 

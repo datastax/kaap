@@ -41,9 +41,9 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus-sdk.version>6.9.3</quarkus-sdk.version>
+        <quarkus-sdk.version>7.2.0</quarkus-sdk.version>
         <!-- fabric8 fabric8.crd-generator-api.version must match the imported version by quarkus-sdk -->
-        <fabric8.version>6.13.4</fabric8.version>
+        <fabric8.version>7.2.0</fabric8.version>
         <testng.version>7.7.0</testng.version>
         <mockito-core.version>4.10.0</mockito-core.version>
         <lombok.version>1.18.42</lombok.version>

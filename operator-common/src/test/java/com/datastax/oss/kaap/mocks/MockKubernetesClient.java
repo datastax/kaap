@@ -426,9 +426,4 @@ public class MockKubernetesClient {
                 .findFirst()
                 .orElse(null);
     }
-
-    @SneakyThrows
-    public static <T> T readYaml(String yaml, Class<T> toClass) {
-        return SerializationUtil.readYaml(yaml, toClass);
-    }
 }

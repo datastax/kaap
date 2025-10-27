@@ -207,7 +207,7 @@ public class LoadReportResourceUsageSourceTest {
     private List<BrokerResourceUsageSource.ResourceUsage> createLoadReportResourceUsageSource(String spec,
                                                                                               BiConsumer<Pod,
                                                                                                       MockServer> podConf) {
-        final PulsarClusterSpec pulsarClusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec pulsarClusterSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
         try (final MockServer server = MockServer.builder()
                 .withPulsarClusterSpec(pulsarClusterSpec)
                 .withPodConsumer(podConf)

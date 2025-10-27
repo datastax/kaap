@@ -17,6 +17,7 @@ package com.datastax.oss.kaap.controllers;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.kaap.OperatorRuntimeConfiguration;
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.BaseComponentStatus;
 import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.FullSpecWithDefaults;
@@ -143,7 +144,7 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
                 new ObjectMetaBuilder()
                         .withName(clusterName + "-cr").withNamespace(namespace)
                         .build());
-        cr.setSpec(MockKubernetesClient.readYaml(spec, fullSpecClass));
+        cr.setSpec(SerializationUtil.readYaml(spec, fullSpecClass));
         cr.getSpec().getGlobalSpec().applyDefaults(null);
         cr.getSpec().applyDefaults(cr.getSpec().getGlobalSpec());
         return cr;

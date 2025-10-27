@@ -17,13 +17,13 @@ package com.datastax.oss.kaap.autoscaler;
 
 import com.datastax.oss.kaap.autoscaler.bookkeeper.BookieAdminClient;
 import com.datastax.oss.kaap.autoscaler.bookkeeper.PodExecBookieAdminClient;
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.controllers.bookkeeper.BookKeeperResourcesFactory;
 import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeper;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperFullSpec;
 import com.datastax.oss.kaap.crds.bookkeeper.BookKeeperSetSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
-import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
@@ -916,7 +916,7 @@ public class BookKeeperAutoscalerTest {
                                      Function<PodResource, Pair<BookieAdminClient.BookieInfo,
                                              BookieAdminClient.BookieStats>> bookieInfofunc,
                                      Consumer<MockServer> serverAfter) {
-        final PulsarClusterSpec pulsarClusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec pulsarClusterSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
         try (final MockServer server = MockServer.builder()
                 .withPulsarClusterSpec(pulsarClusterSpec)
                 .withPodConsumer(podConf)

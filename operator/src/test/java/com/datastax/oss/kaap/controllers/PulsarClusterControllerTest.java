@@ -18,6 +18,7 @@ package com.datastax.oss.kaap.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.kaap.crds.BaseComponentStatus;
 import com.datastax.oss.kaap.crds.CRDConstants;
@@ -699,7 +700,7 @@ public class PulsarClusterControllerTest {
         meta.setNamespace(NAMESPACE);
         cr.setMetadata(meta);
 
-        final PulsarClusterSpec fSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec fSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
         cr.setSpec(fSpec);
 
         return controller.reconcile(cr, mock(Context.class));

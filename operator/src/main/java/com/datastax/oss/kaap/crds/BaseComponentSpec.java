@@ -27,7 +27,6 @@ import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.Toleration;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,8 +45,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     protected String image;
     @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_POLICY)
     private String imagePullPolicy;
-    @JsonPropertyDescription(CRDConstants.DOC_NODE_SELECTORS)
-    protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription(CRDConstants.DOC_REPLICAS)
     protected Integer replicas;
     @JsonPropertyDescription("Pod disruption budget configuration.")
@@ -60,16 +57,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private NodeAffinity nodeAffinity;
     @JsonPropertyDescription(CRDConstants.DOC_ANTIAFFINITY)
     private AntiAffinityConfig antiAffinity;
-    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
-    private Map<String, String> annotations;
-    @JsonPropertyDescription(CRDConstants.DOC_POD_ANNOTATIONS)
-    private Map<String, String> podAnnotations;
-    @JsonPropertyDescription(CRDConstants.DOC_LABELS)
-    private Map<String, String> labels;
-    @JsonPropertyDescription(CRDConstants.DOC_POD_LABELS)
-    private Map<String, String> podLabels;
-    @JsonPropertyDescription(CRDConstants.DOC_POD_MATCH_LABELS)
-    private Map<String, String> matchLabels;
     @JsonPropertyDescription(CRDConstants.DOC_IMAGE_PULL_SECRETS)
     private List<LocalObjectReference> imagePullSecrets;
     @JsonPropertyDescription(CRDConstants.DOC_CONTAINER_ENV)
@@ -88,7 +75,6 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
         if (image == null) {
             image = globalSpec.getImage();
         }
-        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
         if (imagePullPolicy == null) {
             imagePullPolicy = globalSpec.getImagePullPolicy();
         }

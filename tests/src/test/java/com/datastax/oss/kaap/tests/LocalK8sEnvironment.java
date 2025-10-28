@@ -168,7 +168,7 @@ public class LocalK8sEnvironment {
                     .build());
         }
         currentKubeConfig.setCurrentContext(clusterName);
-        KubeConfigUtils.persistKubeConfigIntoFile(currentKubeConfig, defaultKubeConfigPath.getAbsolutePath());
+        KubeConfigUtils.persistKubeConfigIntoFile(currentKubeConfig, defaultKubeConfigPath.getAbsoluteFile());
         log.info("Persisted new cluster {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());
         log.info("Persisted new context {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());
         log.info("Persisted new user {} to {}", clusterName, defaultKubeConfigPath.getAbsolutePath());

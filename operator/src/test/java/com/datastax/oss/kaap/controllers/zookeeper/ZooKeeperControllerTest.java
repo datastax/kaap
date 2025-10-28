@@ -752,7 +752,7 @@ public class ZooKeeperControllerTest {
         );
 
         final ZooKeeperFullSpec lastApplied = SerializationUtil.readJson(zooKeeperUpdateControl
-                .getResource().getStatus().getLastApplied(), ZooKeeperFullSpec.class);
+                .getResource().get().getStatus().getLastApplied(), ZooKeeperFullSpec.class);
         Assert.assertTrue(lastApplied.getZookeeper().getEnv().isEmpty());
     }
 
@@ -866,7 +866,7 @@ public class ZooKeeperControllerTest {
         );
 
         final ZooKeeperFullSpec lastApplied = SerializationUtil.readJson(zooKeeperUpdateControl
-                .getResource().getStatus().getLastApplied(), ZooKeeperFullSpec.class);
+                .getResource().get().getStatus().getLastApplied(), ZooKeeperFullSpec.class);
         Assert.assertTrue(lastApplied.getZookeeper().getSidecars().isEmpty());
     }
 

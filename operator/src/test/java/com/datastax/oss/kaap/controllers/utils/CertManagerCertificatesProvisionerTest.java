@@ -15,6 +15,7 @@
  */
 package com.datastax.oss.kaap.controllers.utils;
 
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.mocks.MockKubernetesClient;
 import io.fabric8.certmanager.api.model.v1.Certificate;
@@ -451,7 +452,7 @@ public class CertManagerCertificatesProvisionerTest {
     }
 
     private MockKubernetesClient generateCertificates(String spec) {
-        final PulsarClusterSpec pulsarClusterSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec pulsarClusterSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
 
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(NAMESPACE);
         pulsarClusterSpec.getGlobal().applyDefaults(null);

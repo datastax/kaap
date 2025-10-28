@@ -169,6 +169,18 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
         private ResourceRequirements resources;
     }
 
+    @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
+    private Map<String, String> annotations;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_ANNOTATIONS)
+    private Map<String, String> podAnnotations;
+    @JsonPropertyDescription(CRDConstants.DOC_LABELS)
+    private Map<String, String> labels;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_LABELS)
+    private Map<String, String> podLabels;
+    @JsonPropertyDescription(CRDConstants.DOC_POD_MATCH_LABELS)
+    private Map<String, String> matchLabels;
+    @JsonPropertyDescription(CRDConstants.DOC_NODE_SELECTORS)
+    protected Map<String, String> nodeSelectors;
     @JsonPropertyDescription(CRDConstants.DOC_CONFIG)
     // workaround to generate CRD spec that accepts any type as key
     @SchemaFrom(type = JsonNode.class)
@@ -203,6 +215,7 @@ public class BrokerSetSpec extends BaseComponentSpec<BrokerSetSpec> {
     @Override
     public void applyDefaults(GlobalSpec globalSpec) {
         super.applyDefaults(globalSpec);
+        nodeSelectors = ConfigUtil.mergeMaps(globalSpec.getNodeSelectors(), nodeSelectors);
 
         if (gracePeriod == null) {
             gracePeriod = 60;

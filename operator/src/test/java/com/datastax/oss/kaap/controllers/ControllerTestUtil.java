@@ -17,6 +17,7 @@ package com.datastax.oss.kaap.controllers;
 
 import static org.mockito.Mockito.mock;
 import com.datastax.oss.kaap.OperatorRuntimeConfiguration;
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.BaseComponentStatus;
 import com.datastax.oss.kaap.crds.CRDConstants;
 import com.datastax.oss.kaap.crds.FullSpecWithDefaults;
@@ -79,9 +80,9 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(namespace);
         final UpdateControl<R> result = invokeController(mockKubernetesClient, spec,
                 specClass, fullSpecClass, controllerClass);
-        Assert.assertTrue(result.isUpdateStatus());
+        Assert.assertTrue(result.isPatchStatus());
 
-        final Condition readyCondition = result.getResource().getStatus().getConditions().get(0);
+        final Condition readyCondition = result.getResource().get().getStatus().getConditions().get(0);
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getMessage(),
                 expectedErrorMessage);
@@ -95,9 +96,9 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
         final MockKubernetesClient mockKubernetesClient = new MockKubernetesClient(namespace);
         final UpdateControl<R>
                 result = invokeController(mockKubernetesClient, spec, specClass, fullSpecClass, controllerClass);
-        Assert.assertTrue(result.isUpdateStatus());
+        Assert.assertTrue(result.isPatchStatus());
 
-        final Condition readyCondition = result.getResource().getStatus().getConditions().get(0);
+        final Condition readyCondition = result.getResource().get().getStatus().getConditions().get(0);
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertNull(readyCondition.getMessage());
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
@@ -143,7 +144,7 @@ public class ControllerTestUtil<X extends FullSpecWithDefaults,
                 new ObjectMetaBuilder()
                         .withName(clusterName + "-cr").withNamespace(namespace)
                         .build());
-        cr.setSpec(MockKubernetesClient.readYaml(spec, fullSpecClass));
+        cr.setSpec(SerializationUtil.readYaml(spec, fullSpecClass));
         cr.getSpec().getGlobalSpec().applyDefaults(null);
         cr.getSpec().applyDefaults(cr.getSpec().getGlobalSpec());
         return cr;

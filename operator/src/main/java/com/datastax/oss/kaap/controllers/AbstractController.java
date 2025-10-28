@@ -128,7 +128,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                             resource, CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC, validationErrorMessage
                     )), Instant.now());
             resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
-            return UpdateControl.updateStatus(resource);
+            return UpdateControl.patchStatus(resource);
         }
 
 
@@ -174,7 +174,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
                 time, reschedule + "", conditionsStr);
 
         resource.setStatus(new BaseComponentStatus(conditions, lastApplied));
-        final UpdateControl<T> update = UpdateControl.updateStatus(resource);
+        final UpdateControl<T> update = UpdateControl.patchStatus(resource);
         if (reschedule) {
             update.rescheduleAfter(operatorRuntimeConfiguration.reconciliationRescheduleSeconds(), TimeUnit.SECONDS);
         }

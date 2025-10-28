@@ -311,6 +311,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -468,6 +470,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -766,6 +770,8 @@ spec:
                           properties:
                             name:
                               type: "string"
+                            request:
+                              type: "string"
                           type: "object"
                         type: "array"
                       limits:
@@ -989,6 +995,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -1146,6 +1154,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -1643,6 +1653,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -1800,6 +1812,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -2098,6 +2112,8 @@ spec:
                           properties:
                             name:
                               type: "string"
+                            request:
+                              type: "string"
                           type: "object"
                         type: "array"
                       limits:
@@ -2321,6 +2337,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -2478,6 +2496,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -3091,6 +3111,13 @@ spec:
                                 path:
                                   type: "string"
                                 type:
+                                  type: "string"
+                              type: "object"
+                            image:
+                              properties:
+                                pullPolicy:
+                                  type: "string"
+                                reference:
                                   type: "string"
                               type: "object"
                             iscsi:
@@ -3754,6 +3781,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -3911,6 +3940,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -4292,6 +4323,8 @@ spec:
                         items:
                           properties:
                             name:
+                              type: "string"
+                            request:
                               type: "string"
                           type: "object"
                         type: "array"
@@ -4768,6 +4801,13 @@ spec:
                                       path:
                                         type: "string"
                                       type:
+                                        type: "string"
+                                    type: "object"
+                                  image:
+                                    properties:
+                                      pullPolicy:
+                                        type: "string"
+                                      reference:
                                         type: "string"
                                     type: "object"
                                   iscsi:
@@ -5422,6 +5462,8 @@ spec:
                                             x-kubernetes-int-or-string: true
                                         type: "object"
                                     type: "object"
+                                  stopSignal:
+                                    type: "string"
                                 type: "object"
                               livenessProbe:
                                 properties:
@@ -5579,6 +5621,8 @@ spec:
                                     items:
                                       properties:
                                         name:
+                                          type: "string"
+                                        request:
                                           type: "string"
                                       type: "object"
                                     type: "array"
@@ -5962,6 +6006,8 @@ spec:
                                 properties:
                                   name:
                                     type: "string"
+                                  request:
+                                    type: "string"
                                 type: "object"
                               type: "array"
                             limits:
@@ -6215,6 +6261,8 @@ spec:
                                             x-kubernetes-int-or-string: true
                                         type: "object"
                                     type: "object"
+                                  stopSignal:
+                                    type: "string"
                                 type: "object"
                               livenessProbe:
                                 properties:
@@ -6372,6 +6420,8 @@ spec:
                                     items:
                                       properties:
                                         name:
+                                          type: "string"
+                                        request:
                                           type: "string"
                                       type: "object"
                                     type: "array"
@@ -6876,6 +6926,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -7033,6 +7085,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -7749,6 +7803,13 @@ spec:
                                 type:
                                   type: "string"
                               type: "object"
+                            image:
+                              properties:
+                                pullPolicy:
+                                  type: "string"
+                                reference:
+                                  type: "string"
+                              type: "object"
                             iscsi:
                               properties:
                                 chapAuthDiscovery:
@@ -8399,6 +8460,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -8556,6 +8619,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -8953,6 +9018,8 @@ spec:
                         items:
                           properties:
                             name:
+                              type: "string"
+                            request:
                               type: "string"
                           type: "object"
                         type: "array"
@@ -9432,6 +9499,13 @@ spec:
                                       path:
                                         type: "string"
                                       type:
+                                        type: "string"
+                                    type: "object"
+                                  image:
+                                    properties:
+                                      pullPolicy:
+                                        type: "string"
+                                      reference:
                                         type: "string"
                                     type: "object"
                                   iscsi:
@@ -10088,6 +10162,8 @@ spec:
                                             x-kubernetes-int-or-string: true
                                         type: "object"
                                     type: "object"
+                                  stopSignal:
+                                    type: "string"
                                 type: "object"
                               livenessProbe:
                                 properties:
@@ -10245,6 +10321,8 @@ spec:
                                     items:
                                       properties:
                                         name:
+                                          type: "string"
+                                        request:
                                           type: "string"
                                       type: "object"
                                     type: "array"
@@ -10644,6 +10722,8 @@ spec:
                                 properties:
                                   name:
                                     type: "string"
+                                  request:
+                                    type: "string"
                                 type: "object"
                               type: "array"
                             limits:
@@ -10900,6 +10980,8 @@ spec:
                                             x-kubernetes-int-or-string: true
                                         type: "object"
                                     type: "object"
+                                  stopSignal:
+                                    type: "string"
                                 type: "object"
                               livenessProbe:
                                 properties:
@@ -11057,6 +11139,8 @@ spec:
                                     items:
                                       properties:
                                         name:
+                                          type: "string"
+                                        request:
                                           type: "string"
                                       type: "object"
                                     type: "array"
@@ -11279,6 +11363,8 @@ spec:
                                       items:
                                         properties:
                                           name:
+                                            type: "string"
+                                          request:
                                             type: "string"
                                         type: "object"
                                       type: "array"
@@ -11509,6 +11595,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -11666,6 +11754,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -11887,6 +11977,8 @@ spec:
                                 items:
                                   properties:
                                     name:
+                                      type: "string"
+                                    request:
                                       type: "string"
                                   type: "object"
                                 type: "array"
@@ -12331,6 +12423,13 @@ spec:
                                 path:
                                   type: "string"
                                 type:
+                                  type: "string"
+                              type: "object"
+                            image:
+                              properties:
+                                pullPolicy:
+                                  type: "string"
+                                reference:
                                   type: "string"
                               type: "object"
                             iscsi:
@@ -12919,6 +13018,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -13076,6 +13177,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -13504,6 +13607,8 @@ spec:
                           properties:
                             name:
                               type: "string"
+                            request:
+                              type: "string"
                           type: "object"
                         type: "array"
                       limits:
@@ -13763,6 +13868,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -13920,6 +14027,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -15257,6 +15366,13 @@ spec:
                                 type:
                                   type: "string"
                               type: "object"
+                            image:
+                              properties:
+                                pullPolicy:
+                                  type: "string"
+                                reference:
+                                  type: "string"
+                              type: "object"
                             iscsi:
                               properties:
                                 chapAuthDiscovery:
@@ -15843,6 +15959,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -16000,6 +16118,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -16386,6 +16506,8 @@ spec:
                         items:
                           properties:
                             name:
+                              type: "string"
+                            request:
                               type: "string"
                           type: "object"
                         type: "array"
@@ -16875,6 +16997,13 @@ spec:
                                       path:
                                         type: "string"
                                       type:
+                                        type: "string"
+                                    type: "object"
+                                  image:
+                                    properties:
+                                      pullPolicy:
+                                        type: "string"
+                                      reference:
                                         type: "string"
                                     type: "object"
                                   iscsi:
@@ -17465,6 +17594,8 @@ spec:
                                             x-kubernetes-int-or-string: true
                                         type: "object"
                                     type: "object"
+                                  stopSignal:
+                                    type: "string"
                                 type: "object"
                               livenessProbe:
                                 properties:
@@ -17622,6 +17753,8 @@ spec:
                                     items:
                                       properties:
                                         name:
+                                          type: "string"
+                                        request:
                                           type: "string"
                                       type: "object"
                                     type: "array"
@@ -18010,6 +18143,8 @@ spec:
                                 properties:
                                   name:
                                     type: "string"
+                                  request:
+                                    type: "string"
                                 type: "object"
                               type: "array"
                             limits:
@@ -18276,6 +18411,8 @@ spec:
                                             x-kubernetes-int-or-string: true
                                         type: "object"
                                     type: "object"
+                                  stopSignal:
+                                    type: "string"
                                 type: "object"
                               livenessProbe:
                                 properties:
@@ -18433,6 +18570,8 @@ spec:
                                     items:
                                       properties:
                                         name:
+                                          type: "string"
+                                        request:
                                           type: "string"
                                       type: "object"
                                     type: "array"
@@ -18740,6 +18879,8 @@ spec:
                                     properties:
                                       name:
                                         type: "string"
+                                      request:
+                                        type: "string"
                                     type: "object"
                                   type: "array"
                                 limits:
@@ -18949,6 +19090,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -19106,6 +19249,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -19412,6 +19557,8 @@ spec:
                             items:
                               properties:
                                 name:
+                                  type: "string"
+                                request:
                                   type: "string"
                               type: "object"
                             type: "array"
@@ -19836,6 +19983,13 @@ spec:
                                 path:
                                   type: "string"
                                 type:
+                                  type: "string"
+                              type: "object"
+                            image:
+                              properties:
+                                pullPolicy:
+                                  type: "string"
+                                reference:
                                   type: "string"
                               type: "object"
                             iscsi:
@@ -20465,6 +20619,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -20622,6 +20778,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"
@@ -20832,6 +20990,8 @@ spec:
                               properties:
                                 name:
                                   type: "string"
+                                request:
+                                  type: "string"
                               type: "object"
                             type: "array"
                           limits:
@@ -21031,6 +21191,8 @@ spec:
                         items:
                           properties:
                             name:
+                              type: "string"
+                            request:
                               type: "string"
                           type: "object"
                         type: "array"
@@ -21285,6 +21447,8 @@ spec:
                                       x-kubernetes-int-or-string: true
                                   type: "object"
                               type: "object"
+                            stopSignal:
+                              type: "string"
                           type: "object"
                         livenessProbe:
                           properties:
@@ -21442,6 +21606,8 @@ spec:
                               items:
                                 properties:
                                   name:
+                                    type: "string"
+                                  request:
                                     type: "string"
                                 type: "object"
                               type: "array"

@@ -18,6 +18,7 @@ package com.datastax.oss.kaap.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.controllers.utils.TokenAuthProvisioner;
 import com.datastax.oss.kaap.crds.BaseComponentStatus;
 import com.datastax.oss.kaap.crds.CRDConstants;
@@ -283,7 +284,7 @@ public class PulsarClusterControllerTest {
         });
         Assert.assertEquals(client.countCreatedResources(), 0);
         Assert.assertNull(control.getScheduleDelay().orElse(null));
-        Condition readyCondition = KubeTestUtil.getReadyCondition(control.getResource().getStatus());
+        Condition readyCondition = KubeTestUtil.getReadyCondition(control.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_TRUE);
     }
 
@@ -699,7 +700,7 @@ public class PulsarClusterControllerTest {
         meta.setNamespace(NAMESPACE);
         cr.setMetadata(meta);
 
-        final PulsarClusterSpec fSpec = MockKubernetesClient.readYaml(spec, PulsarClusterSpec.class);
+        final PulsarClusterSpec fSpec = SerializationUtil.readYaml(spec, PulsarClusterSpec.class);
         cr.setSpec(fSpec);
 
         return controller.reconcile(cr, mock(Context.class));
@@ -761,7 +762,7 @@ public class PulsarClusterControllerTest {
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
-        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
     }
@@ -782,7 +783,7 @@ public class PulsarClusterControllerTest {
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
-        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
         Assert.assertTrue(readyCondition.getMessage().contains(
@@ -806,7 +807,7 @@ public class PulsarClusterControllerTest {
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
-        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
         Assert.assertTrue(readyCondition.getMessage().contains(
@@ -830,7 +831,7 @@ public class PulsarClusterControllerTest {
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
-        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
         Assert.assertTrue(readyCondition.getMessage().contains(
@@ -858,7 +859,7 @@ public class PulsarClusterControllerTest {
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
-        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INITIALIZING);
     }
@@ -881,11 +882,11 @@ public class PulsarClusterControllerTest {
                 """;
         MockKubernetesClient client = new MockKubernetesClient(NAMESPACE);
         final UpdateControl<PulsarCluster> status = invokeController(client, spec, r -> null);
-        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().getStatus());
+        final Condition readyCondition = KubeTestUtil.getReadyCondition(status.getResource().get().getStatus());
         Assert.assertEquals(readyCondition.getStatus(), CRDConstants.CONDITIONS_STATUS_FALSE);
         Assert.assertEquals(readyCondition.getReason(), CRDConstants.CONDITIONS_TYPE_READY_REASON_INVALID_SPEC);
         Assert.assertTrue(readyCondition.getMessage().contains(
-                "Resource set set2 references a rack rack1 that does not exist. You must define racks in .global.racks"),
+                        "Resource set set2 references a rack rack1 that does not exist. You must define racks in .global.racks"),
                 readyCondition.getMessage()
         );
     }

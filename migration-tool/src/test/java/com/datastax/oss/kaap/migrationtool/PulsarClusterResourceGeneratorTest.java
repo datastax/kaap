@@ -178,7 +178,6 @@ public class PulsarClusterResourceGeneratorTest {
                           zookeeper:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            nodeSelectors: {}
                             replicas: 3
                             pdb:
                               enabled: true
@@ -190,6 +189,12 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: true
                               zone:
                                 enabled: false
+                            imagePullSecrets: []
+                            env: []
+                            sidecars: []
+                            initContainers: []
+                            securityContext:
+                              fsGroup: 0
                             annotations: {}
                             podAnnotations:
                               prometheus.io/port: 8000
@@ -212,12 +217,7 @@ public class PulsarClusterResourceGeneratorTest {
                               cluster: ""
                               component: zookeeper
                               release: pulsar-cluster
-                            imagePullSecrets: []
-                            env: []
-                            sidecars: []
-                            initContainers: []
-                            securityContext:
-                              fsGroup: 0
+                            nodeSelectors: {}
                             config:
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
                               PULSAR_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
@@ -262,7 +262,6 @@ public class PulsarClusterResourceGeneratorTest {
                           bookkeeper:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            nodeSelectors: {}
                             replicas: 3
                             pdb:
                               enabled: true
@@ -274,28 +273,6 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: false
                               zone:
                                 enabled: false
-                            annotations: {}
-                            podAnnotations:
-                              prometheus.io/port: 8000
-                              prometheus.io/scrape: "true"
-                            labels:
-                              app: pulsar
-                              app.kubernetes.io/managed-by: Helm
-                              chart: pulsar-1.0.32
-                              cluster: pulsar-cluster
-                              component: bookkeeper
-                              heritage: Helm
-                              release: pulsar-cluster
-                            podLabels:
-                              app: pulsar
-                              cluster: pulsar-cluster
-                              component: bookkeeper
-                              release: pulsar-cluster
-                            matchLabels:
-                              app: pulsar
-                              cluster: ""
-                              component: bookkeeper
-                              release: pulsar-cluster
                             imagePullSecrets: []
                             env: []
                             sidecars: []
@@ -331,6 +308,29 @@ public class PulsarClusterResourceGeneratorTest {
                               terminationMessagePolicy: File
                             securityContext:
                               fsGroup: 0
+                            annotations: {}
+                            podAnnotations:
+                              prometheus.io/port: 8000
+                              prometheus.io/scrape: "true"
+                            labels:
+                              app: pulsar
+                              app.kubernetes.io/managed-by: Helm
+                              chart: pulsar-1.0.32
+                              cluster: pulsar-cluster
+                              component: bookkeeper
+                              heritage: Helm
+                              release: pulsar-cluster
+                            podLabels:
+                              app: pulsar
+                              cluster: pulsar-cluster
+                              component: bookkeeper
+                              release: pulsar-cluster
+                            matchLabels:
+                              app: pulsar
+                              cluster: ""
+                              component: bookkeeper
+                              release: pulsar-cluster
+                            nodeSelectors: {}
                             config:
                               BOOKIE_GC: -XX:+UseG1GC -XX:MaxGCPauseMillis=10
                               BOOKIE_MEM: -Xms4g -Xmx4g -XX:MaxDirectMemorySize=4g -Dio.netty.leakDetectionLevel=disabled -Dio.netty.recycler.linkCapacity=1024 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+AggressiveOpts -XX:+DoEscapeAnalysis -XX:ParallelGCThreads=32 -XX:ConcGCThreads=32 -XX:G1NewSizePercent=50 -XX:+DisableExplicitGC -XX:-ResizePLAB -XX:+ExitOnOutOfMemoryError -XX:+PerfDisableSharedMem
@@ -420,7 +420,6 @@ public class PulsarClusterResourceGeneratorTest {
                           broker:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            nodeSelectors: {}
                             replicas: 3
                             pdb:
                               enabled: true
@@ -432,29 +431,6 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: false
                               zone:
                                 enabled: false
-                            annotations: {}
-                            podAnnotations:
-                              prometheus.io/path: /metrics/
-                              prometheus.io/port: 8080
-                              prometheus.io/scrape: "true"
-                            labels:
-                              app: pulsar
-                              app.kubernetes.io/managed-by: Helm
-                              chart: pulsar-1.0.32
-                              cluster: pulsar-cluster
-                              component: broker
-                              heritage: Helm
-                              release: pulsar-cluster
-                            podLabels:
-                              app: pulsar
-                              cluster: pulsar-cluster
-                              component: broker
-                              release: pulsar-cluster
-                            matchLabels:
-                              app: pulsar
-                              cluster: ""
-                              component: broker
-                              release: pulsar-cluster
                             imagePullSecrets: []
                             env:
                             - name: PULSAR_PREFIX_kafkaAdvertisedListeners
@@ -487,6 +463,30 @@ public class PulsarClusterResourceGeneratorTest {
                               resources: {}
                               terminationMessagePath: /dev/termination-log
                               terminationMessagePolicy: File
+                            annotations: {}
+                            podAnnotations:
+                              prometheus.io/path: /metrics/
+                              prometheus.io/port: 8080
+                              prometheus.io/scrape: "true"
+                            labels:
+                              app: pulsar
+                              app.kubernetes.io/managed-by: Helm
+                              chart: pulsar-1.0.32
+                              cluster: pulsar-cluster
+                              component: broker
+                              heritage: Helm
+                              release: pulsar-cluster
+                            podLabels:
+                              app: pulsar
+                              cluster: pulsar-cluster
+                              component: broker
+                              release: pulsar-cluster
+                            matchLabels:
+                              app: pulsar
+                              cluster: ""
+                              component: broker
+                              release: pulsar-cluster
+                            nodeSelectors: {}
                             config:
                               PF_clientAuthenticationParameters: file:///pulsar/token-superuser/superuser.jwt
                               PF_clientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.AuthenticationToken
@@ -622,7 +622,6 @@ public class PulsarClusterResourceGeneratorTest {
                           proxy:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            nodeSelectors: {}
                             replicas: 1
                             pdb:
                               enabled: true
@@ -634,29 +633,6 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: false
                               zone:
                                 enabled: false
-                            annotations: {}
-                            podAnnotations:
-                              prometheus.io/path: /metrics/
-                              prometheus.io/port: 8080
-                              prometheus.io/scrape: "true"
-                            labels:
-                              app: pulsar
-                              app.kubernetes.io/managed-by: Helm
-                              chart: pulsar-1.0.32
-                              cluster: pulsar-cluster
-                              component: proxy
-                              heritage: Helm
-                              release: pulsar-cluster
-                            podLabels:
-                              app: pulsar
-                              cluster: pulsar-cluster
-                              component: proxy
-                              release: pulsar-cluster
-                            matchLabels:
-                              app: pulsar
-                              cluster: ""
-                              component: proxy
-                              release: pulsar-cluster
                             imagePullSecrets: []
                             env:
                             - name: PULSAR_PREFIX_brokerProxyAllowedHostNames
@@ -756,6 +732,30 @@ public class PulsarClusterResourceGeneratorTest {
                               resources: {}
                               terminationMessagePath: /dev/termination-log
                               terminationMessagePolicy: File
+                            annotations: {}
+                            podAnnotations:
+                              prometheus.io/path: /metrics/
+                              prometheus.io/port: 8080
+                              prometheus.io/scrape: "true"
+                            labels:
+                              app: pulsar
+                              app.kubernetes.io/managed-by: Helm
+                              chart: pulsar-1.0.32
+                              cluster: pulsar-cluster
+                              component: proxy
+                              heritage: Helm
+                              release: pulsar-cluster
+                            podLabels:
+                              app: pulsar
+                              cluster: pulsar-cluster
+                              component: proxy
+                              release: pulsar-cluster
+                            matchLabels:
+                              app: pulsar
+                              cluster: ""
+                              component: proxy
+                              release: pulsar-cluster
+                            nodeSelectors: {}
                             config:
                               PULSAR_EXTRA_CLASSPATH: /jars/pulsar-libs/*
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info
@@ -993,7 +993,6 @@ public class PulsarClusterResourceGeneratorTest {
                           functionsWorker:
                             image: pulsar:latest
                             imagePullPolicy: IfNotPresent
-                            nodeSelectors: {}
                             replicas: 1
                             pdb:
                               enabled: true
@@ -1005,6 +1004,12 @@ public class PulsarClusterResourceGeneratorTest {
                                 required: true
                               zone:
                                 enabled: false
+                            imagePullSecrets: []
+                            env: []
+                            sidecars: []
+                            initContainers: []
+                            securityContext:
+                              fsGroup: 0
                             annotations: {}
                             podAnnotations:
                               prometheus.io/port: 6750
@@ -1027,12 +1032,7 @@ public class PulsarClusterResourceGeneratorTest {
                               cluster: ""
                               component: function
                               release: pulsar-cluster
-                            imagePullSecrets: []
-                            env: []
-                            sidecars: []
-                            initContainers: []
-                            securityContext:
-                              fsGroup: 0
+                            nodeSelectors: {}
                             config:
                               PF_authenticateMetricsEndpoint: "false"
                               PULSAR_EXTRA_OPTS: -Dpulsar.log.root.level=info

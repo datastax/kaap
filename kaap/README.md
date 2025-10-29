@@ -1,6 +1,6 @@
 # kaap
 
-![Version: 0.3.4](https://img.shields.io/badge/Version-0.3.4-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square)
 
 Kubernetes Autoscaling for Apache Pulsar Stack
 
@@ -9,7 +9,7 @@ Kubernetes Autoscaling for Apache Pulsar Stack
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | cluster.create | bool | `false` |  |
-| cluster.spec.global.image | string | `"datastax/lunastreaming-all:2.10_3.1"` |  |
+| cluster.spec.global.image | string | `"datastax/lunastreaming-all:4.0_3.6"` |  |
 | cluster.spec.global.name | string | `"pulsar"` |  |
 | cluster.spec.global.storage.existingStorageClassName | string | `"default"` |  |
 | crd.create | bool | `true` |  |
@@ -20,7 +20,7 @@ Kubernetes Autoscaling for Apache Pulsar Stack
 | operator.config.quarkus | object | `{}` |  |
 | operator.config.restartOnChange | bool | `true` |  |
 | operator.enabled | bool | `true` |  |
-| operator.image | string | `"datastax/kaap:0.3.4"` |  |
+| operator.image | string | `"datastax/kaap:0.4.0"` |  |
 | operator.imagePullPolicy | string | `"IfNotPresent"` |  |
 | operator.livenessProbe.failureThreshold | int | `3` |  |
 | operator.livenessProbe.initialDelaySeconds | int | `0` |  |

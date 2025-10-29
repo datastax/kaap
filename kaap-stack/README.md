@@ -1,6 +1,6 @@
 # kaap-stack
 
-![Version: 0.3.4](https://img.shields.io/badge/Version-0.3.4-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square)
 
 Kubernetes Autoscaling for Apache Pulsar Stack
 
@@ -8,7 +8,7 @@ Kubernetes Autoscaling for Apache Pulsar Stack
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../kaap | kaap | 0.3.x |
+| file://../kaap | kaap | 0.4.x |
 | https://charts.bitnami.com/bitnami | external-dns | v6.13.x |
 | https://charts.bitnami.com/bitnami | keycloak | 9.x.x |
 | https://charts.jetstack.io | cert-manager | v1.11.x |

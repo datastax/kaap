@@ -140,7 +140,15 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
             addTlsVolumes(volumeMounts, volumes, getTlsSecretNameForAutorecovery());
         }
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
-        if (tlsEnabledOnBookKeeper) {
+
+        int pulsarMajorVersion = getPulsarMajorVersion(spec.getImage());
+        if (pulsarMajorVersion >= 4) {
+            mainArg += "bin/update-ini-from-env.py conf/entry_location_rocksdb.conf PULSAR_PREFIX_entry_location_rocksdb_ && ";
+        } else if (pulsarMajorVersion >= 3) {
+            mainArg += "bin/apply-config-from-env.py conf/entry_location_rocksdb.conf --prefix PULSAR_PREFIX_entry_location_rocksdb_TableOptions_ && ";
+        }
+
+      if (tlsEnabledOnBookKeeper) {
             mainArg += "openssl pkcs8 -topk8 -inform PEM -outform PEM -in /pulsar/certs/tls.key "
                     + "-out /pulsar/tls-pk8.key -nocrypt && ";
         }

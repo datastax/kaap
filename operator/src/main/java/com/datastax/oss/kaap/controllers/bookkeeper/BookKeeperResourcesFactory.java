@@ -59,6 +59,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
     public static final int DEFAULT_BK_PORT = 3181;
     public static final int DEFAULT_HTTP_PORT = 8000;
 
+
     public static List<String> getInitContainerNames(String clusterName, String baseName) {
         return List.of(getMainContainerName(clusterName, baseName));
     }
@@ -247,6 +248,14 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
         );
 
         String mainArg = "bin/apply-config-from-env.py conf/bookkeeper.conf && ";
+
+        int pulsarMajorVersion = getPulsarMajorVersion(spec.getImage());
+        if (pulsarMajorVersion >= 4) {
+            mainArg += "bin/update-ini-from-env.py conf/entry_location_rocksdb.conf PULSAR_PREFIX_entry_location_rocksdb_ && ";
+        } else if (pulsarMajorVersion >= 3) {
+            mainArg += "bin/apply-config-from-env.py conf/entry_location_rocksdb.conf --prefix PULSAR_PREFIX_entry_location_rocksdb_TableOptions_ && ";
+        }
+
         final boolean tlsEnabledOnBookKeeper = isTlsEnabledOnBookKeeper();
         if (tlsEnabledOnBookKeeper) {
             mainArg +=

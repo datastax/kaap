@@ -79,6 +79,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -87,6 +89,15 @@ import org.apache.commons.lang3.StringUtils;
 
 @JBossLog
 public abstract class BaseResourcesFactory<T> {
+
+    // Regex to capture the version string after a colon and optionally extract major version
+    // This pattern looks for a colon, then captures the entire version string
+    // The first group (\\d+) specifically captures the major version
+    public static final Pattern IMAGE_STRING_PATTERN = Pattern.compile(
+        ":(?<fullVersion>(\\d+)(?:\\.\\d+){0,2}(?:[\\-][a-zA-Z0-9\\.]+)?)");
+
+    public static final Pattern MAJOR_VERSION_PATTERN = Pattern.compile("^(\\d+)");
+
 
     public static final String CONFIG_PULSAR_PREFIX = "PULSAR_PREFIX_";
     public static final String DEPLOYMENT_REVISION_ANNOTATION = "deployment.kubernetes.io/revision";
@@ -1136,5 +1147,26 @@ public abstract class BaseResourcesFactory<T> {
             return new ArrayList<>();
         }
         return containers;
+    }
+
+    public int getPulsarMajorVersion(String imageString) {
+        int pulsarMajorVersion = 2;
+        if (imageString == null) {
+            return pulsarMajorVersion;
+        }
+        Matcher imageStringMatcher = IMAGE_STRING_PATTERN.matcher(imageString);
+
+        if (imageStringMatcher.find()) {
+            String fullVersion = imageStringMatcher.group("fullVersion");
+            System.out.println("Full Version: " + fullVersion);
+            // Extract the major version specifically from the fullVersion string
+            Matcher majorVersionMatcher = MAJOR_VERSION_PATTERN.matcher(fullVersion);
+            if (majorVersionMatcher.find()) {
+                String majorVersionStr = majorVersionMatcher.group(1);
+                System.out.println("Major Version: " + majorVersionStr);
+                pulsarMajorVersion = Integer.parseInt(majorVersionStr);
+            }
+        }
+        return pulsarMajorVersion;
     }
 }

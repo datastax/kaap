@@ -268,8 +268,8 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
         }
-        final String brokerServiceUrl = getBrokerServiceUrl();
-        final String brokerWebServiceUrl = getBrokerWebServiceUrl();
+        final String brokerServiceUrl = enabledWithBroker ? getBrokerServiceUrlTls() : getBrokerServiceUrlPlain();
+        final String brokerWebServiceUrl = enabledWithBroker ? getBrokerWebServiceUrlTls() : getBrokerWebServiceUrlPlain();
 
         data.put("pulsarServiceUrl", brokerServiceUrl);
         data.put("pulsarWebServiceUrl", brokerWebServiceUrl);

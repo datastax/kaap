@@ -249,7 +249,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         final boolean tlsEnabledOnProxySet = isTlsEnabledOnProxySet(proxySet);
         final boolean tlsEnabledWithBroker = getTlsConfigForProxySet(proxySet).getEnabledWithBroker();
         if (tlsEnabledOnProxySet) {
-            data.put("tlsEnabledWithKeyStore", "true");
             data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
             data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
             data.put("brokerClientTlsTrustStore", "/pulsar/tls.truststore.jks");
@@ -341,7 +340,6 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
             data.put("tlsEnabled", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
             data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
-            data.put("tlsEnabledWithKeyStore", "true");
             data.put("tlsKeyStore", "/pulsar/tls.keystore.jks");
             data.put("tlsTrustStore", "/pulsar/tls.truststore.jks");
             if (getTlsConfigForProxySet(proxySet).getEnabledWithBroker()) {

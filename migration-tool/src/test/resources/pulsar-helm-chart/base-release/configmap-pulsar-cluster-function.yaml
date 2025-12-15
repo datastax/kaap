@@ -21,7 +21,7 @@ data:
     \"false\"\npulsarFunctionsCluster: \"pulsar-cluster\"\nworkerId: \"pulsar-cluster-function\"\nworkerHostname:
     \"pulsar-cluster-function\"\nworkerPort: \"6750\"\nworkerPortTls: \"6751\"\ntlsCertificateFilePath:
     \"/pulsar/certs/tls.crt\"\ntlsTrustCertsFilePath: \"/etc/ssl/certs/ca-certificates.crt\"\nbrokerClientTrustCertsFilePath:
-    \"/etc/ssl/certs/ca-certificates.crt\"\ntlsKeyFilePath: \"/pulsar/tls-pk8.key\"\npulsarServiceUrl:
+    \"/etc/ssl/certs/ca-certificates.crt\"\ntlsKeyFilePath: \"/pulsar/certs/tls.key\"\npulsarServiceUrl:
     \"pulsar://pulsar-cluster-broker:6650\"\npulsarWebServiceUrl: \"http://pulsar-cluster-broker:8080\"\nnumFunctionPackageReplicas:
     \"2\"\ndownloadDirectory: \"/tmp/pulsar_functions\"\npulsarFunctionsNamespace:
     \"public/functions\"\nfunctionMetadataTopicName: \"metadata\"\ninstallUserCodeDependencies:

@@ -204,7 +204,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         if (tlsEnabledOnBrokerSet) {
             data.put("tlsEnabled", "true");
             data.put("tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-            data.put("tlsKeyFilePath", " /pulsar/tls-pk8.key");
+            data.put("tlsKeyFilePath", " /pulsar/certs/tls.key");
             final String fullCaPath = getFullCaPath();
             data.put("tlsTrustCertsFilePath", fullCaPath);
             data.put("brokerServicePortTls", DEFAULT_PULSARSSL_PORT + "");
@@ -216,7 +216,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
         if (isTlsEnabledOnBookKeeper()) {
             data.put("bookkeeperTLSClientAuthentication", "true");
             data.put("bookkeeperTLSKeyFileType", "PEM");
-            data.put("bookkeeperTLSKeyFilePath", "/pulsar/tls-pk8.key");
+            data.put("bookkeeperTLSKeyFilePath", "/pulsar/certs/tls.key");
             data.put("bookkeeperTLSCertificateFilePath", "/pulsar/certs/tls.crt");
             data.put("bookkeeperTLSTrustCertsFilePath", getFullCaPath());
             data.put("bookkeeperTLSTrustCertTypes", "PEM");

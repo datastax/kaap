@@ -563,7 +563,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
         expectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
         expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/certs/tls.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
         expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
@@ -753,7 +753,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
         expectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
         expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/certs/tls.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
         expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
@@ -762,7 +762,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerClient_tlsHostnameVerificationEnable", "true");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSClientAuthentication", "true");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSKeyFileType", "PEM");
-        expectedData.put("PULSAR_PREFIX_bookkeeperTLSKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_bookkeeperTLSKeyFilePath", "/pulsar/certs/tls.key");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSCertificateFilePath", "/pulsar/certs/tls.crt");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_bookkeeperTLSTrustCertTypes", "PEM");
@@ -1948,7 +1948,7 @@ public class BrokerControllerTest {
         expectedData.put("PULSAR_PREFIX_backlogQuotaDefaultRetentionPolicy", "producer_exception");
         expectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
         expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", " /pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/certs/.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
         expectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");

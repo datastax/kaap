@@ -230,7 +230,7 @@ public class AutorecoveryControllerTest {
         expectedData.put("PULSAR_PREFIX_tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
         expectedData.put("PULSAR_PREFIX_tlsCertificatePath", "/pulsar/certs/tls.crt");
         expectedData.put("PULSAR_PREFIX_tlsKeyStoreType", "PEM");
-        expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/certs/tls.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustStoreType", "PEM");
         expectedData.put("PULSAR_PREFIX_tlsClientAuthentication", "true");
         expectedData.put("PULSAR_PREFIX_tlsTrustStore", "/etc/ssl/certs/ca-certificates.crt");

@@ -21,7 +21,7 @@ kaap:
     spec:
       global:
         name: pulsar
-        image: datastax/lunastreaming-all:2.10_3.4
+        image: datastax/lunastreaming-all:3.1.4_21
         auth:
           enabled: true
         storage:

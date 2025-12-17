@@ -40,7 +40,7 @@ Full documentation is available in the [DataStax Streaming Documentation](https:
 
 ## Install KAAP Operator
 
-This example installs only the KAAP operator.
+This example installs only the KAAP operator without a managed Pulsar cluster.
 See the KAAP Stack below to install KAAP with an operator, a Pulsar cluster, and the Prometheus monitoring stack.
 
 1. Install the DataStax KAAP Helm repository:
@@ -55,10 +55,11 @@ helm install kaap kaap/kaap
 Result:
 ```
 NAME: kaap
-LAST DEPLOYED: Wed Jun 28 11:37:45 2023
-NAMESPACE: pulsar-cluster
+LAST DEPLOYED: Wed Dec 17 12:11:51 2025
+NAMESPACE: default
 STATUS: deployed
 REVISION: 1
+DESCRIPTION: Install complete
 TEST SUITE: None
 ```
 3. Ensure the operator is up and running:
@@ -91,11 +92,16 @@ pulsarclusters.kaap.oss.datastax.com             2023-06-28T15:37:41Z
 zookeepers.kaap.oss.datastax.com                 2023-06-28T15:37:41Z
 ```
 
-For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
+For more information, see the [DataStax Streaming Documentation](https://docs.datastax.com/en/streaming/kaap-operator/latest/index.html) or [this repo's GitHub Pages site](https://datastax.github.io/kaap/docs/).
 
-## Install KAAP Stack Operator with a Pulsar cluster
+## Install KAAP Stack with a Pulsar cluster
 
-This example deploys a KAAP stack operator, and also deploys a minimally-sized Pulsar cluster for development testing.
+This example deploys a KAAP operator, and also deploys a minimally-sized Pulsar cluster for development testing.
+
+> [!IMPORTANT]
+> If using a local Kubernetes environment like [kind](https://kind.sigs.k8s.io/) or [minikube](https://minikube.sigs.k8s.io/docs/) you will need to allocate at least 16 GB of memory to run the
+> example development cluster.
+
 
 1. Install the DataStax KAAP Helm repository:
 ```
@@ -104,15 +110,16 @@ helm repo update
 ```
 2. Install the KAAP Stack operator Helm chart with the custom `dev-cluster` values file:
 ```
-helm install pulsar kaap/kaap-stack --values helm/examples/dev-cluster/values.yaml
+helm install kaap-stack kaap/kaap-stack --values helm/examples/dev-cluster/values.yaml
 ```
 Result:
 ```
-NAME: pulsar
-LAST DEPLOYED: Thu Jun 29 14:30:20 2023
+NAME: kaap-stack
+LAST DEPLOYED: Wed Dec 17 12:25:16 2025
 NAMESPACE: default
 STATUS: deployed
 REVISION: 1
+DESCRIPTION: Install complete
 TEST SUITE: None
 ```
 3. Ensure the operator is up and running:
@@ -157,7 +164,7 @@ For more, see the [DataStax Streaming Documentation](https://docs.datastax.com/e
 
 To uninstall KAAP:
 ```
-helm delete kaap
+helm uninstall kaap
 ```
 Result:
 ```

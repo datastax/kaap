@@ -255,7 +255,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
             final String fullCaPath = getFullCaPath();
             data.put("tlsTrustCertsFilePath", fullCaPath);
             data.put("brokerClientTrustCertsFilePath", fullCaPath);
-            data.put("tlsKeyFilePath", "/pulsar/tls-pk8.key");
+            data.put("tlsKeyFilePath", "/pulsar/certs/tls.key");
         }
         final boolean enabledWithBroker = isTlsEnabledFromFunctionsWorkerToBroker();
         if (enabledWithBroker) {

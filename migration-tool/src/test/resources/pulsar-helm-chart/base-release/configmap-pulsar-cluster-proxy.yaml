@@ -42,7 +42,7 @@ data:
   tlsCertificateFilePath: /pulsar/certs/tls.crt
   tlsEnabledInProxy: "true"
   tlsEnabledWithBroker: "false"
-  tlsKeyFilePath: /pulsar/tls-pk8.key
+  tlsKeyFilePath: /pulsar/certs/tls.key
   tlsProtocols: TLSv1.3,TLSv1.2
   tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
   tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key

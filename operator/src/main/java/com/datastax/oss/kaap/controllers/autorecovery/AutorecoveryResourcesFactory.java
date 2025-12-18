@@ -98,7 +98,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
             data.put("tlsProviderFactoryClass", "org.apache.bookkeeper.tls.TLSContextFactory");
             data.put("tlsCertificatePath", "/pulsar/certs/tls.crt");
             data.put("tlsKeyStoreType", "PEM");
-            data.put("tlsKeyStore", "/pulsar/tls-pk8.key");
+            data.put("tlsKeyStore", "/pulsar/certs/tls.key");
             data.put("tlsTrustStoreType", "PEM");
             data.put("tlsClientAuthentication", "true");
             data.put("tlsTrustStore", getFullCaPath());

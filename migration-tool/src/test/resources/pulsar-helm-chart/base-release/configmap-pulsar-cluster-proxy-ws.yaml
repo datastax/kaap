@@ -39,7 +39,7 @@ data:
   superUserRoles: superuser-backup,create-tenant,admin
   tlsCertificateFilePath: /pulsar/certs/tls.crt
   tlsEnabled: "true"
-  tlsKeyFilePath: /pulsar/tls-pk8.key
+  tlsKeyFilePath: /pulsar/certs/tls.key
   tlsTrustCertsFilePath: /etc/ssl/certs/ca-certificates.crt
   tokenPublicKey: file:///pulsar/token-public-key/pulsar-public.key
   webServicePort: "8000"

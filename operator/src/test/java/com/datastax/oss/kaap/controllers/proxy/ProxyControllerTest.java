@@ -546,7 +546,7 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerClientTlsTrustStore", "/pulsar/tls.truststore.jks");
         expectedData.put("PULSAR_PREFIX_tlsEnabledInProxy", "true");
         expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/certs/tls.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");
@@ -582,7 +582,7 @@ public class ProxyControllerTest {
         wsExpectedData.put("PULSAR_PREFIX_webServicePortTls", "8001");
         wsExpectedData.put("PULSAR_PREFIX_tlsEnabled", "true");
         wsExpectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        wsExpectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        wsExpectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/certs/tls.key");
         wsExpectedData.put("PULSAR_PREFIX_tlsKeyStore", "/pulsar/tls.keystore.jks");
         wsExpectedData.put("PULSAR_PREFIX_tlsTrustStore", "/pulsar/tls.truststore.jks");
         wsExpectedData.put("PULSAR_PREFIX_brokerClientTlsEnabled", "true");
@@ -1808,7 +1808,7 @@ public class ProxyControllerTest {
         expectedData.put("PULSAR_PREFIX_brokerClientTlsTrustStore", "/pulsar/tls.truststore.jks");
         expectedData.put("PULSAR_PREFIX_tlsEnabledInProxy", "true");
         expectedData.put("PULSAR_PREFIX_tlsCertificateFilePath", "/pulsar/certs/tls.crt");
-        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/tls-pk8.key");
+        expectedData.put("PULSAR_PREFIX_tlsKeyFilePath", "/pulsar/certs/tls.key");
         expectedData.put("PULSAR_PREFIX_tlsTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerClientTrustCertsFilePath", "/etc/ssl/certs/ca-certificates.crt");
         expectedData.put("PULSAR_PREFIX_brokerServicePortTls", "6651");

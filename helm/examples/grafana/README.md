@@ -27,7 +27,7 @@ kube-prometheus-stack:
      # storageClassName: "storageClassName"
      accessModes:
        - ReadWriteOnce
-     size: 20Gi
+     size: 5Gi
      finalizers:
        - kubernetes.io/pvc-protection
 ```

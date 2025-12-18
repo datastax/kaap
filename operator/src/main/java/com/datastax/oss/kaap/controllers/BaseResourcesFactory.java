@@ -51,8 +51,6 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -803,38 +801,10 @@ public abstract class BaseResourcesFactory<T> {
     }
 
     public static boolean isDeploymentReady(Deployment deployment, KubernetesClient client) {
-        if (deployment == null) {
+        if ((deployment == null) || (deployment.getStatus() == null)) {
             return false;
         }
-        final String revision = deployment.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION);
-        if (revision == null) {
-            return false;
-        }
-
-        final List<ReplicaSet> replicaSets = client.apps().replicaSets()
-                .inNamespace(deployment.getMetadata().getNamespace())
-                .list()
-                .getItems()
-                .stream()
-                .filter(r -> r.getMetadata().getOwnerReferences().get(0).getUid()
-                        .equals(deployment.getMetadata().getUid()))
-                .filter(r -> revision.equals(r.getMetadata().getAnnotations().get(DEPLOYMENT_REVISION_ANNOTATION)))
-                .collect(Collectors.toList());
-        if (replicaSets.size() != 1) {
-            log.warnf("Found %d replica sets for deployment %s with revision %s", replicaSets.size(),
-                    deployment.getMetadata().getName(), revision);
-            return false;
-        }
-        final ReplicaSet currentReplicaSet = replicaSets.get(0);
-        final ReplicaSetStatus status = currentReplicaSet.getStatus();
-        if (status.getReplicas() == null || status.getReadyReplicas() == null
-                || status.getAvailableReplicas() == null) {
-            return false;
-        }
-        final int replicas = status.getReplicas().intValue();
-        final int ready = status.getReadyReplicas().intValue();
-        final int available = status.getAvailableReplicas().intValue();
-        return replicas == ready && available == ready;
+        return (deployment.getStatus().getAvailableReplicas().equals(deployment.getStatus().getReplicas()));
     }
 
     public static boolean isPodReady(Pod pod) {

@@ -12,7 +12,7 @@ Once the report is generated, is up to you to decide if you want to proceed with
 
 
 ### Usage
-Java 17+ it's required.
+Java 21+ is required.
 Download the jar from the [latest release](https://github.com/datastax/kaap/releases).
 
 Create the input file `input-cluster-specs.yaml` with the following content:

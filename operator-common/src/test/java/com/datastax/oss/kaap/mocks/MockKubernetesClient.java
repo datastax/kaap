@@ -199,7 +199,7 @@ public class MockKubernetesClient {
                 addCreatedResource(ic);
                 return null;
             });
-            when(interaction.createOrReplace()).thenAnswer(ic1 -> {
+            when(interaction.serverSideApply()).thenAnswer(ic1 -> {
                 addCreatedResource(ic);
                 return null;
             });
@@ -211,7 +211,7 @@ public class MockKubernetesClient {
         });
 
 
-        when(client.resources(any(HasMetadata.class.getClass()))).thenAnswer(ic -> {
+        when(client.resources(any(Class.class))).thenAnswer(ic -> {
             final MixedOperation interaction = Mockito.mock(MixedOperation.class);
 
             final Resource resourceMock = Mockito.mock(Resource.class);
@@ -222,7 +222,7 @@ public class MockKubernetesClient {
                     return null;
                 });
 
-                when(mockedResource.createOrReplace()).thenAnswer(ic3 -> {
+                when(mockedResource.serverSideApply()).thenAnswer(ic3 -> {
                     addCreatedResource(ic2);
                     return null;
                 });

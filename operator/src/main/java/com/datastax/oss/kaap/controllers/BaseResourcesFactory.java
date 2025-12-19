@@ -794,9 +794,9 @@ public abstract class BaseResourcesFactory<T> {
             return false;
         }
 
-        final int replicas = status.getReplicas().intValue();
-        final int ready = status.getReadyReplicas().intValue();
-        final int updated = status.getUpdatedReplicas().intValue();
+        final int replicas = status.getReplicas();
+        final int ready = status.getReadyReplicas();
+        final int updated = status.getUpdatedReplicas();
         return replicas == ready && updated == ready;
     }
 

@@ -37,8 +37,8 @@
     </scm>
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus-sdk.version>7.2.1</quarkus-sdk.version>
@@ -48,8 +48,8 @@
         <testng.version>7.7.0</testng.version>
         <mockito-core.version>4.10.0</mockito-core.version>
         <lombok.version>1.18.42</lombok.version>
-        <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
-        <spotbugs.version>4.7.2</spotbugs.version>
+        <spotbugs-maven-plugin.version>4.7.3.6</spotbugs-maven-plugin.version>
+        <spotbugs.version>4.7.3</spotbugs.version>
         <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
         <commons-codec.version>1.15</commons-codec.version>
         <commons-lang3.version>3.19.0</commons-lang3.version>
@@ -257,6 +257,13 @@
                             <arg>-Xlint:-processing</arg>
                             <arg>-Xpkginfo:always</arg>
                         </compilerArgs>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>

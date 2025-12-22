@@ -2,7 +2,7 @@
 
 The operator is built upon the [quarkus-operator-sdk](https://quarkiverse.github.io/quarkiverse-docs/quarkus-operator-sdk/dev/index.html) library.
 ## Requirements
-- JDK17+
+- JDK21+
 - Maven
 - Docker 
 

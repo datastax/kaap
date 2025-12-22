@@ -48,8 +48,8 @@
         <testng.version>7.7.0</testng.version>
         <mockito-core.version>4.10.0</mockito-core.version>
         <lombok.version>1.18.42</lombok.version>
-        <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
-        <spotbugs.version>4.7.2</spotbugs.version>
+        <spotbugs-maven-plugin.version>4.7.3.6</spotbugs-maven-plugin.version>
+        <spotbugs.version>4.7.3</spotbugs.version>
         <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
         <commons-codec.version>1.15</commons-codec.version>
         <commons-lang3.version>3.19.0</commons-lang3.version>

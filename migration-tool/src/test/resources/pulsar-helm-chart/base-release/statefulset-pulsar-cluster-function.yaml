@@ -157,20 +157,20 @@ spec:
       terminationGracePeriodSeconds: 60
       volumes:
       - configMap:
-          defaultMode: 420
+          defaultMode: 416
           name: pulsar-cluster-function
         name: config-volume
       - name: token-superuser
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-superuser
       - name: token-public-key
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-public-key
       - name: certs
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: pulsar-tls
   updateStrategy:
     type: RollingUpdate

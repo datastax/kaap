@@ -169,7 +169,7 @@ spec:
       volumes:
       - name: certs
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: pulsar-tls
   updateStrategy:
     type: RollingUpdate

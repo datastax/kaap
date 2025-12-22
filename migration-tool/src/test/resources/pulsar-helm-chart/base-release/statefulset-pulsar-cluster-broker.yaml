@@ -184,15 +184,15 @@ spec:
         name: health
       - name: certs
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: pulsar-tls
       - name: token-public-key
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-public-key
       - name: token-superuser
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-superuser
   updateStrategy:
     rollingUpdate:

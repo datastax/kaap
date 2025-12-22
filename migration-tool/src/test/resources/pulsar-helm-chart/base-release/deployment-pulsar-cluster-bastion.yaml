@@ -108,23 +108,23 @@ spec:
       volumes:
       - name: token-private-key
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-private-key
       - name: token-public-key
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-public-key
       - name: token-admin
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-admin
       - name: token-superuser
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: token-superuser
       - name: certs
         secret:
-          defaultMode: 420
+          defaultMode: 416
           secretName: pulsar-tls
 status:
   availableReplicas: 1

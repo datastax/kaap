@@ -383,7 +383,7 @@ public class DiffChecker {
         removeIfMatch(templateSpec, "serviceAccount", templateSpec.get("serviceAccountName"));
         sortAndReplaceList(templateSpec, "volumes", v -> {
             final Map<String, Object> secret = getPropAsMap(v, "secret");
-            removeIfMatch(secret, "defaultMode", 420);
+            removeIfMatch(secret, "defaultMode", 416);
             return v;
         });
         sortAndReplaceList(templateSpec, "containers", container -> {

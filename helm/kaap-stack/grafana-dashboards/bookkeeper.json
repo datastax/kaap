@@ -2309,14 +2309,18 @@
           "value": "bookkeeper"
         },
         "datasource": "Prometheus",
-        "definition": "bookkeeper_server_ADD_ENTRY{job=~\"$job\"}",
+        "definition": "bookkeeper_server_ADD_ENTRY{component=~\"bookkeeper\\\\d?\"}",
         "includeAll": true,
-        "label": "job",
+        "label": "Bookie Set",
         "name": "job",
         "options": [],
-        "query": "bookkeeper_server_ADD_ENTRY{job=~\"$job\"}",
+        "query": {
+          "qryType": 4,
+          "query": "bookkeeper_server_ADD_ENTRY{component=~\"bookkeeper\\\\d?\"}",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
         "refresh": 2,
-        "regex": "/.*[^_]job=\\\"(bookkeeper)\\\".*/",
+        "regex": "/.*component=\\\"(bookkeeper\\d?)\\\".*/",
         "sort": 1,
         "type": "query"
       },

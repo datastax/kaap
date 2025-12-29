@@ -21,7 +21,7 @@
     <groupId>com.datastax.oss</groupId>
     <artifactId>kaap</artifactId>
     <packaging>pom</packaging>
-    <version>0.4.2-SNAPSHOT</version>
+    <version>0.4.2</version>
     <modules>
         <module>operator-common</module>
         <module>operator</module>
@@ -33,7 +33,7 @@
         <connection>scm:git:git@github.com:datastax/kaap.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/kaap.git</developerConnection>
         <url>https://github.com/datastax/kaap</url>
-        <tag>HEAD</tag>
+        <tag>operator-0.4.2</tag>
     </scm>
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>

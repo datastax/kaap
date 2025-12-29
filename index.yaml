@@ -2,6 +2,14 @@ apiVersion: v1
 entries:
   kaap:
   - apiVersion: v2
+    created: "2025-12-29T18:57:05.65997808Z"
+    description: Kubernetes Autoscaling for Apache Pulsar Stack
+    digest: ad912ad5ae034342801bdac7d71ec0e4fa58f9706f8e0d9ae123c81a79c5d0b1
+    name: kaap
+    urls:
+    - https://github.com/datastax/kaap/releases/download/kaap-0.4.2/kaap-0.4.2.tgz
+    version: 0.4.2
+  - apiVersion: v2
     created: "2025-11-28T12:31:44.90769474Z"
     description: Kubernetes Autoscaling for Apache Pulsar Stack
     digest: e53f7ebe58f50bb4e3cdc40eacf6006e4d5d606e67c618e64ec9bcdb0aa23224
@@ -470,4 +478,4 @@ entries:
     urls:
     - https://github.com/datastax/kaap/releases/download/kaap-stack-0.1.0/kaap-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-28T13:59:18.626168469Z"
+generated: "2025-12-29T18:57:05.660039124Z"

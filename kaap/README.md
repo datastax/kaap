@@ -20,7 +20,7 @@ Kubernetes Autoscaling for Apache Pulsar Stack
 | operator.config.quarkus | object | `{}` |  |
 | operator.config.restartOnChange | bool | `true` |  |
 | operator.enabled | bool | `true` |  |
-| operator.image | string | `"datastax/kaap:0.4.1"` |  |
+| operator.image | string | `"datastax/kaap:0.4.2"` |  |
 | operator.imagePullPolicy | string | `"IfNotPresent"` |  |
 | operator.livenessProbe.failureThreshold | int | `3` |  |
 | operator.livenessProbe.initialDelaySeconds | int | `0` |  |

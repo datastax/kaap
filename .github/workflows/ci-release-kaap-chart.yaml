@@ -50,6 +50,5 @@ jobs:
           mkdir -p kaap
           mv /tmp/README.md kaap/README.md 
           git add kaap/README.md
-          git commit -m "kaap/README.md"
-          git pull --rebase origin gh-pages
-          git push origin gh-pages
+          # Commit only if changes exist; push only if commit succeeds
+          git commit -m "kaap/README.md" && git pull --rebase origin gh-pages && git push origin gh-pages || echo "Nothing to push"

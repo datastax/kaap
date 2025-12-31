@@ -90,6 +90,11 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>openshift-client</artifactId>
+                <version>${fabric8.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>

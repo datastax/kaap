@@ -105,6 +105,7 @@ public class ProxyController
         resourceFactory.patchConfigMap();
         resourceFactory.patchConfigMapWsConfig();
         resourceFactory.patchService();
+        resourceFactory.patchOpenShiftRoutes(openShiftClient);
         resourceFactory.patchDeployment();
     }
 
@@ -122,6 +123,7 @@ public class ProxyController
     @Override
     protected void patchCommonResources(SetInfo<ProxySetSpec, ProxyResourcesFactory> set) {
         set.getResourceFactory().patchService();
+        set.getResourceFactory().patchOpenShiftRoutes(openShiftClient);
     }
 
     @Override

@@ -37,6 +37,8 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.client.OpenShiftClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.Reconciler;
 import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
@@ -64,6 +66,7 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
         implements Reconciler<T> {
 
     protected final KubernetesClient client;
+    protected final OpenShiftClient openShiftClient;
     private final Validator validator;
     @Inject
     OperatorRuntimeConfiguration operatorRuntimeConfiguration;
@@ -76,7 +79,12 @@ public abstract class AbstractController<T extends CustomResource<? extends Full
     public AbstractController(KubernetesClient client) {
         this.client = client;
         this.validator = createValidator();
+        openShiftClient = isOpenShiftCluster(client) ? client.adapt(OpenShiftClient.class) : null;
 
+    }
+
+    protected boolean isOpenShiftCluster(KubernetesClient client) {
+        return client != null && client.supports(Route.class);
     }
 
     private Validator createValidator() {

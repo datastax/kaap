@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Service;
@@ -41,6 +42,10 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.api.model.RouteBuilder;
+import io.fabric8.openshift.api.model.RouteFluent;
+import io.fabric8.openshift.client.OpenShiftClient;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -628,4 +633,87 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
         }
         return null;
     }
+
+    public void patchOpenShiftRoutes(OpenShiftClient openShiftClient) {
+        if (openShiftClient == null) {
+            log.debug("OpenShift Routes not supported on this cluster, skipping Route reconciliation");
+            return;
+        }
+
+        Service svc = client.services()
+                .inNamespace(namespace)
+                .withName(resourceName)
+                .get();
+
+        if (svc == null || svc.getSpec() == null || svc.getSpec().getPorts() == null) {
+            log.warnf("Service {} not found or has no ports, skipping Route creation", resourceName);
+            return;
+        }
+
+        for (ServicePort port : svc.getSpec().getPorts()) {
+            patchSingleRoute(openShiftClient, svc, port);
+        }
+    }
+
+    private void patchSingleRoute(OpenShiftClient openShiftClient,
+                                  Service service,
+                                  ServicePort port) {
+
+        String routeName = resourceName + "-" + port.getName();
+
+        RouteFluent<RouteBuilder>.SpecNested<RouteBuilder> routeBuilderSpecNested = new RouteBuilder()
+                .withNewMetadata()
+                .withName(routeName)
+                .withNamespace(namespace)
+                .withLabels(getLabels(spec.getLabels()))
+                .endMetadata()
+                .withNewSpec()
+                .withNewTo()
+                .withKind("Service")
+                .withName(service.getMetadata().getName())
+                .endTo()
+                .withNewPort()
+                .withTargetPort(new IntOrString(port.getName()))
+                .endPort();
+
+        applyTlsConfig(routeBuilderSpecNested, port.getName());
+
+        Route desired = routeBuilderSpecNested.endSpec().build();
+
+        openShiftClient.routes()
+                .inNamespace(namespace)
+                .resource(desired).serverSideApply();
+
+        log.infof("Route '%s' reconciled for Service port '%s'",
+                routeName, port.getName());
+    }
+
+    private void applyTlsConfig(RouteFluent<RouteBuilder>.SpecNested<RouteBuilder> routeBuilderSpecNested,
+                                String portName) {
+
+        switch (portName) {
+            case "http":
+            case "ws":
+            case "pulsar":
+            case "kafkaplaintext":
+                routeBuilderSpecNested.withNewTls()
+                        .withTermination("edge")
+                        .withInsecureEdgeTerminationPolicy("Redirect")
+                        .endTls();
+                break;
+
+            case "https":
+            case "wss":
+            case "pulsarssl":
+            case "kafkassl":
+                routeBuilderSpecNested.withNewTls()
+                        .withTermination("passthrough")
+                        .endTls();
+                break;
+
+            default:
+                log.debugf("Port '%s' not exposed via Route (no TLS mapping)", portName);
+        }
+    }
+
 }

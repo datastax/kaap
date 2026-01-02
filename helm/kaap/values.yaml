@@ -38,7 +38,7 @@ fullnameOverride: ""
 operator:
   enabled: true
   watchAllNamespaces: false
-  image: datastax/kaap:0.4.1
+  image: datastax/kaap:0.4.2
   imagePullPolicy: IfNotPresent
   replicas: 1
   nodeSelector: {}

@@ -16,6 +16,7 @@
 #
 
 set -e
+VERSION_REGEX="[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+)?"
 
 check_clean() {
 	if [ ! -z "$(git status --porcelain)" ]; then
@@ -24,10 +25,12 @@ check_clean() {
 		exit 1
 	fi
 }
+
 validate_new_version() {
   local v=$1
-  [[ "${v}" =~ ^[0-9].[0-9].[0-9]$ ]] || (echo "new_version format is incorrect. The format must be in format MAJOR.MINOR.PATCH"; exit 1)
+  [[ "${v}" =~ ^$VERSION_REGEX$ ]] || (echo "new_version format is incorrect. The format must be in format MAJOR.MINOR.PATCH"; exit 1)
 }
+
 validate_artifact() {
   local v=$1
   [[ "$v" == "operator" || "$v" == "kaap-stack-chart" || "$v" == "kaap-chart" ]] || (echo "artifact must be one of kaap-chart,kaap-stack-chart,operator. got $v"; exit 1)
@@ -48,6 +51,13 @@ replace_version_in_chart() {
   local new_version=$2
   line_number=$(grep -n 'version:' $file | cut -d ':' -f1 | head -n 1)
   sed -i '' -- "${line_number}s/.*/version: $new_version/" $file
+}
+replace_version_in_helm_values() {
+  local file=$1
+  local new_version=$2
+  echo "replace in values $file $new_version"
+  set -x
+  sed -E -i '' -- "s|image: datastax/kaap:$VERSION_REGEX$|image: datastax/kaap:$new_version|g" "$file"
 }
 
 artifact=$1
@@ -79,6 +89,7 @@ if [[ "$artifact" == "operator" ]]; then
   echo "$new_version released."
 elif [[ "$artifact" == "kaap-chart" ]]; then
   replace_version_in_chart helm/kaap/Chart.yaml $new_version
+  replace_version_in_helm_values helm/kaap/values.yaml $new_version
   git commit -am "Release kaap chart $new_version"
   git tag kaap-$new_version
   git push

@@ -333,7 +333,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "count(count(up{job=\"bookkeeper\"}) by (instance))",
+          "expr": "count(count(up{job=~\"bookkeeper.*\"}) by (instance))",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "",
@@ -952,7 +952,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "100 * count(up{job=\"bookkeeper\"} == 1) / count(up{job=\"bookkeeper\"})",
+          "expr": "100 * count(up{job=~\"bookkeeper.*\"} == 1) / count(up{job=~\"bookkeeper.*\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "",

@@ -6,8 +6,22 @@ The project contains 3 different and independents artifacts:
 3. KAAP Stack Chart
 
 The releases process are independent. You can also do the release on a different branch and merge to main.
+(**PR based**).
 For reference, check [here.](https://github.com/datastax/kaap/pull/212)
 
+## Release Order Guidance
+This is not required to be followed if you are just releasing a new version for only one project.
+
+### operator -> kaap → kaap-stack
+To ensure `kaap-stack` is packaged with the latest `kaap` version and latest `operator` version.
+This applies **only when a new `kaap` or `operator` version is part of the release cycle**.
+
+This is also because `kaap-stack` uses a local dependency:
+```yaml
+repository: file://../kaap
+```
+
+A release is considered completed only when the PR is merged if we are doing a PR based approach.
 
 ## Operator image (datastax/kaap:latest)
 

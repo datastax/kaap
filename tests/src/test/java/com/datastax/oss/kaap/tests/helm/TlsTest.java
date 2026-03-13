@@ -48,27 +48,27 @@ public abstract class TlsTest extends BaseHelmTest {
                                         .selfSigned(TlsConfig.SelfSignedCertProvisionerConfig.builder()
                                                 .enabled(true)
                                                 .perComponent(true)
-                                                .zookeeper(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                .zookeeper(TlsConfig.ComponentCertificateConfig
                                                         .builder()
                                                         .generate(true)
                                                         .build())
-                                                .functionsWorker(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                .functionsWorker(TlsConfig.ComponentCertificateConfig
                                                         .builder()
                                                         .generate(true)
                                                         .build())
-                                                .proxy(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                .proxy(TlsConfig.ComponentCertificateConfig
                                                         .builder()
                                                         .generate(true)
                                                         .build())
-                                                .broker(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                .broker(TlsConfig.ComponentCertificateConfig
                                                         .builder()
                                                         .generate(true)
                                                         .build())
-                                                .bookkeeper(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                .bookkeeper(TlsConfig.ComponentCertificateConfig
                                                         .builder()
                                                         .generate(true)
                                                         .build())
-                                                .autorecovery(TlsConfig.SelfSignedCertificatePerComponentConfig
+                                                .autorecovery(TlsConfig.ComponentCertificateConfig
                                                         .builder()
                                                         .generate(true)
                                                         .build())

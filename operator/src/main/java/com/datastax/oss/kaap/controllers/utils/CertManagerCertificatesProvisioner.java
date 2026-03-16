@@ -48,6 +48,7 @@ public class CertManagerCertificatesProvisioner {
     private final PulsarClusterSpec pulsarClusterSpec;
     private final GlobalSpec globalSpec;
     private final TlsConfig.SelfSignedCertProvisionerConfig selfSigned;
+    private final TlsConfig.AcmeCertProvisionerConfig acme;
     private final String clusterSpecName;
     private final String ssCaSecretName;
     private final String caIssuerName;
@@ -59,30 +60,36 @@ public class CertManagerCertificatesProvisioner {
         this.namespace = namespace;
         this.pulsarClusterSpec = pulsarClusterSpec;
         this.globalSpec = pulsarClusterSpec.getGlobalSpec();
-        if (globalSpec.getTls() == null
-                || !globalSpec.getTls().getEnabled()
-                || globalSpec.getTls().getCertProvisioner() == null
-                || globalSpec.getTls().getCertProvisioner().getSelfSigned() == null) {
+        TlsConfig tls = globalSpec != null ? globalSpec.getTls() : null;
+        TlsConfig.CertProvisionerConfig provisioner = tls != null ? tls.getCertProvisioner() : null;
+        if (tls == null || !Boolean.TRUE.equals(tls.getEnabled()) || provisioner == null) {
             this.selfSigned = null;
+            this.acme = null;
             this.clusterSpecName = null;
             this.caIssuerName = null;
             this.ssCaSecretName = null;
             this.serviceDnsSuffix = null;
-        } else {
-            this.selfSigned = globalSpec.getTls().getCertProvisioner().getSelfSigned();
-            this.clusterSpecName = globalSpec.getName();
-            this.caIssuerName = "%s-ca-issuer".formatted(clusterSpecName);
-            this.ssCaSecretName = BaseResourcesFactory.getTlsSsCaSecretName(globalSpec);
-            this.serviceDnsSuffix = "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
+            return;
         }
-
+        this.selfSigned = provisioner.getSelfSigned();
+        this.acme = provisioner.getAcme();
+        this.clusterSpecName = globalSpec.getName();
+        this.caIssuerName = "%s-ca-issuer".formatted(clusterSpecName);
+        this.ssCaSecretName = BaseResourcesFactory.getTlsSsCaSecretName(globalSpec);
+        this.serviceDnsSuffix = "%s.svc.%s".formatted(namespace, globalSpec.getKubernetesClusterDomain());
     }
 
     public void generateCertificates() {
-        if (selfSigned == null) {
-            return;
+        validateProvisionersConfig();
+        if (selfSigned != null && Boolean.TRUE.equals(selfSigned.getEnabled())) {
+            generateSelfSignedCertificates();
         }
+        if (acme != null && Boolean.TRUE.equals(acme.getEnabled())) {
+            generateAcmeCertificates();
+        }
+    }
 
+    private void generateSelfSignedCertificates() {
         createRootCACertificate();
         if (selfSigned.getPerComponent() == null || !selfSigned.getPerComponent()) {
             List<String> dnsNames = new ArrayList<>();
@@ -112,7 +119,8 @@ public class CertManagerCertificatesProvisioner {
                     certName,
                     globalSpec.getTls().getDefaultSecretName(),
                     selfSigned.getPrivateKey(),
-                    dnsNames
+                    dnsNames,
+                    caIssuerName
             );
         } else {
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
@@ -120,14 +128,18 @@ public class CertManagerCertificatesProvisioner {
                         globalSpec.getComponents().getBrokerBaseName(),
                         ObjectUtils.firstNonNull(selfSigned.getBroker().getSecretName(),
                                 globalSpec.getTls().getBroker().getSecretName()),
-                        getBrokerDNSNames(selfSigned.getBroker()));
+                        getBrokerDNSNames(selfSigned.getBroker()),
+                        caIssuerName,
+                        selfSigned.getPrivateKey());
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBookkeeper())) {
                 createCertificatePerComponent(selfSigned.getBookkeeper(),
                         globalSpec.getComponents().getBookkeeperBaseName(),
                         ObjectUtils.firstNonNull(selfSigned.getBookkeeper().getSecretName(),
                                 globalSpec.getTls().getBookkeeper().getSecretName()),
-                        getBookKeeperDNSNames(selfSigned.getBookkeeper()));
+                        getBookKeeperDNSNames(selfSigned.getBookkeeper()),
+                        caIssuerName,
+                        selfSigned.getPrivateKey());
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getAutorecovery())) {
                 createAutorecoveryCertificate();
@@ -137,14 +149,18 @@ public class CertManagerCertificatesProvisioner {
                         globalSpec.getComponents().getProxyBaseName(),
                         ObjectUtils.firstNonNull(selfSigned.getProxy().getSecretName(),
                                 globalSpec.getTls().getProxy().getSecretName()),
-                        getProxyDNSNames(selfSigned.getProxy()));
+                        getProxyDNSNames(selfSigned.getProxy()),
+                        caIssuerName,
+                        selfSigned.getPrivateKey());
             }
             if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getZookeeper())) {
                 createCertificatePerComponent(selfSigned.getZookeeper(),
                         globalSpec.getComponents().getZookeeperBaseName(),
                         ObjectUtils.firstNonNull(selfSigned.getZookeeper().getSecretName(),
                                 globalSpec.getTls().getZookeeper().getSecretName()),
-                        getZookeeperDNSNames(selfSigned.getZookeeper()));
+                        getZookeeperDNSNames(selfSigned.getZookeeper()),
+                        caIssuerName,
+                        selfSigned.getPrivateKey());
             }
 
             if (TlsConfig.FunctionsWorkerTlsEntryConfig.isEnabled(globalSpec.getTls().getFunctionsWorker())) {
@@ -152,7 +168,9 @@ public class CertManagerCertificatesProvisioner {
                         globalSpec.getComponents().getFunctionsWorkerBaseName(),
                         ObjectUtils.firstNonNull(selfSigned.getFunctionsWorker().getSecretName(),
                                 globalSpec.getTls().getFunctionsWorker().getSecretName()),
-                        getFunctionsWorkerDNSNames(selfSigned.getFunctionsWorker()));
+                        getFunctionsWorkerDNSNames(selfSigned.getFunctionsWorker()),
+                        caIssuerName,
+                        selfSigned.getPrivateKey());
             }
             if (selfSigned.getExternal() != null) {
                 for (Map.Entry<String, ComponentCertificateConfig> entry
@@ -165,12 +183,68 @@ public class CertManagerCertificatesProvisioner {
                                 config,
                                 serviceName,
                                 config.getSecretName(),
-                                getBaseK8sDnsNames(config, serviceName)
+                                getBaseK8sDnsNames(config, serviceName),
+                                caIssuerName,
+                                selfSigned.getPrivateKey()
                         );
                     }
                 }
             }
         }
+    }
+
+    private void generateAcmeCertificates() {
+        createAcmeIssuer();
+        String issuerName = acme.getIssuer().getName();
+        if (TlsConfig.TlsEntryConfig.isEnabled(globalSpec.getTls().getBroker())) {
+            createCertificatePerComponent(
+                    acme.getBroker(),
+                    globalSpec.getComponents().getBrokerBaseName(),
+                    ObjectUtils.firstNonNull(acme.getBroker().getSecretName(),
+                            globalSpec.getTls().getBroker().getSecretName()),
+                    mergeDnsNames(null, acme.getBroker()),
+                    issuerName,
+                    acme.getPrivateKey()
+            );
+        }
+        if (TlsConfig.ProxyTlsEntryConfig.isEnabled(globalSpec.getTls().getProxy())) {
+            createCertificatePerComponent(
+                    acme.getProxy(),
+                    globalSpec.getComponents().getProxyBaseName(),
+                    ObjectUtils.firstNonNull(acme.getProxy().getSecretName(),
+                            globalSpec.getTls().getProxy().getSecretName()),
+                    mergeDnsNames(null, acme.getProxy()),
+                    issuerName,
+                    acme.getPrivateKey()
+            );
+        }
+    }
+
+    private void createAcmeIssuer() {
+        TlsConfig.AcmeIssuerConfig issuerConfig = acme.getIssuer();
+        final Issuer issuer = new IssuerBuilder()
+                .withNewMetadata()
+                .withName(issuerConfig.getName())
+                .withNamespace(namespace)
+                .endMetadata()
+                .withNewSpec()
+                .withNewAcme()
+                .withServer(issuerConfig.getServer())
+                .withEmail(issuerConfig.getEmail())
+                .withNewPrivateKeySecretRef()
+                .withName(issuerConfig.getPrivateKeySecretName())
+                .endPrivateKeySecretRef()
+                .addNewSolver()
+                .withNewHttp01()
+                .withNewIngress()
+                .withIngressClassName(issuerConfig.getIngressClass())
+                .endIngress()
+                .endHttp01()
+                .endSolver()
+                .endAcme()
+                .endSpec()
+                .build();
+        client.resource(issuer).inNamespace(namespace).createOrReplace();
     }
 
     private void createAutorecoveryCertificate() {
@@ -206,16 +280,19 @@ public class CertManagerCertificatesProvisioner {
     private void createCertificatePerComponent(final ComponentCertificateConfig componentConfig,
                                                final String baseName,
                                                final String secretName,
-                                               List<String> dnsNames) {
-        if (componentConfig == null || !componentConfig.getGenerate()) {
+                                               List<String> dnsNames,
+                                               String issuerName,
+                                               CertificatePrivateKey provisionerPrivateKey) {
+        if (componentConfig == null || !Boolean.TRUE.equals(componentConfig.getGenerate())) {
             return;
         }
 
         createCertificate(
                 "%s-%s-tls".formatted(clusterSpecName, baseName),
                 secretName,
-                ObjectUtils.firstNonNull(componentConfig.getPrivateKey(), selfSigned.getPrivateKey()),
-                dnsNames
+                ObjectUtils.firstNonNull(componentConfig.getPrivateKey(), provisionerPrivateKey),
+                dnsNames,
+                issuerName
         );
     }
 
@@ -311,8 +388,9 @@ public class CertManagerCertificatesProvisioner {
     private void createCertificate(String name,
                                    String secretName,
                                    CertificatePrivateKey privateKey,
-                                   List<String> dnsNames) {
-        final Certificate ssCertificate = new CertificateBuilder()
+                                   List<String> dnsNames,
+                                   String issuerName) {
+        final Certificate certificate = new CertificateBuilder()
                 .withNewMetadata()
                 .withName(name)
                 .withNamespace(namespace)
@@ -321,16 +399,15 @@ public class CertManagerCertificatesProvisioner {
                 .withPrivateKey(privateKey)
                 .withSecretName(secretName)
                 .withNewIssuerRef()
-                .withName(caIssuerName)
+                .withName(issuerName)
                 .endIssuerRef()
                 .withDnsNames(dnsNames)
                 .endSpec()
                 .build();
-
-        client.resource(ssCertificate)
+        client.resource(certificate)
                 .inNamespace(namespace)
                 .createOrReplace();
-        log.debugf("Created self-signed certificate %s mapped to secret %s", name, secretName);
+        log.debugf("Created certificate %s mapped to secret %s", name, secretName);
     }
 
     private void createRootCACertificate() {
@@ -390,5 +467,39 @@ public class CertManagerCertificatesProvisioner {
         log.debug("Created self-signed root CA certificate");
     }
 
-
+    private void validateProvisionersConfig() {
+        if (selfSigned == null || acme == null) {
+            return;
+        }
+        if (selfSigned.getBroker() != null && acme.getBroker() != null
+                && Boolean.TRUE.equals(selfSigned.getBroker().getGenerate())
+                && Boolean.TRUE.equals(acme.getBroker().getGenerate())) {
+            String ssSecret = ObjectUtils.firstNonNull(selfSigned.getBroker().getSecretName(),
+                    globalSpec.getTls().getBroker().getSecretName());
+            String acmeSecret = ObjectUtils.firstNonNull(acme.getBroker().getSecretName(),
+                    globalSpec.getTls().getBroker().getSecretName());
+            if (ObjectUtils.equals(ssSecret, acmeSecret)) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid TLS configuration: both selfSigned and ACME provisioners generate a "
+                                        + "broker certificate using the same secret '%s'. This would cause certificates"
+                                        + " to override each other.", ssSecret)
+                );
+            }
+        }
+        if (selfSigned.getProxy() != null && acme.getProxy() != null
+                && Boolean.TRUE.equals(selfSigned.getProxy().getGenerate())
+                && Boolean.TRUE.equals(acme.getProxy().getGenerate())) {
+            String ssSecret = ObjectUtils.firstNonNull(selfSigned.getProxy().getSecretName(),
+                    globalSpec.getTls().getProxy().getSecretName());
+            String acmeSecret = ObjectUtils.firstNonNull(acme.getProxy().getSecretName(),
+                    globalSpec.getTls().getProxy().getSecretName());
+            if (ObjectUtils.equals(ssSecret, acmeSecret)) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid TLS configuration: both selfSigned and ACME provisioners generate a "
+                                + "proxy certificate using the same secret '%s'. This would cause certificates"
+                                + " to override each other.", ssSecret)
+                );
+            }
+        }
+    }
 }

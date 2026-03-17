@@ -224,6 +224,7 @@ public class CertManagerCertificatesProvisioner {
                     acme.getPrivateKey()
             );
         }
+        // TODO external certificate support
     }
 
     public static void validateAcmeIssuerConfig(TlsConfig.AcmeIssuerConfig config) {
@@ -544,38 +545,52 @@ public class CertManagerCertificatesProvisioner {
         log.debug("Created self-signed root CA certificate");
     }
 
-    //TODO remove duplicate code
     private void validateProvisionersConfig() {
         if (selfSigned == null || acme == null) {
             return;
         }
-        if (selfSigned.getBroker() != null && acme.getBroker() != null
-                && Boolean.TRUE.equals(selfSigned.getBroker().getGenerate())
-                && Boolean.TRUE.equals(acme.getBroker().getGenerate())) {
-            String ssSecret = ObjectUtils.firstNonNull(selfSigned.getBroker().getSecretName(),
-                    globalSpec.getTls().getBroker().getSecretName());
-            String acmeSecret = ObjectUtils.firstNonNull(acme.getBroker().getSecretName(),
-                    globalSpec.getTls().getBroker().getSecretName());
-            if (ObjectUtils.equals(ssSecret, acmeSecret)) {
-                throw new IllegalArgumentException(
-                        String.format("Invalid TLS configuration: both selfSigned and ACME provisioners generate a "
-                                        + "broker certificate using the same secret '%s'. This would cause certificates"
-                                        + " to override each other.", ssSecret)
-                );
-            }
+        validateComponent(
+                "broker",
+                selfSigned.getBroker(),
+                acme.getBroker(),
+                globalSpec.getTls().getBroker()
+        );
+        validateComponent(
+                "proxy",
+                selfSigned.getProxy(),
+                acme.getProxy(),
+                globalSpec.getTls().getProxy()
+        );
+    }
+
+    private void validateComponent(
+            String componentName,
+            ComponentCertificateConfig selfSignedConfig,
+            ComponentCertificateConfig acmeConfig,
+            TlsConfig.TlsEntryConfig tlsEntryConfig) {
+        if (selfSignedConfig == null || acmeConfig == null) {
+            return;
         }
-        if (selfSigned.getProxy() != null && acme.getProxy() != null
-                && Boolean.TRUE.equals(selfSigned.getProxy().getGenerate())
-                && Boolean.TRUE.equals(acme.getProxy().getGenerate())) {
-            String ssSecret = ObjectUtils.firstNonNull(selfSigned.getProxy().getSecretName(),
-                    globalSpec.getTls().getProxy().getSecretName());
-            String acmeSecret = ObjectUtils.firstNonNull(acme.getProxy().getSecretName(),
-                    globalSpec.getTls().getProxy().getSecretName());
+
+        if (Boolean.TRUE.equals(selfSignedConfig.getGenerate())
+                && Boolean.TRUE.equals(acmeConfig.getGenerate())) {
+
+            String ssSecret = ObjectUtils.firstNonNull(
+                    selfSignedConfig.getSecretName(),
+                    tlsEntryConfig.getSecretName()
+            );
+            String acmeSecret = ObjectUtils.firstNonNull(
+                    acmeConfig.getSecretName(),
+                    tlsEntryConfig.getSecretName()
+            );
+
             if (ObjectUtils.equals(ssSecret, acmeSecret)) {
                 throw new IllegalArgumentException(
-                        String.format("Invalid TLS configuration: both selfSigned and ACME provisioners generate a "
-                                + "proxy certificate using the same secret '%s'. This would cause certificates"
-                                + " to override each other.", ssSecret)
+                        String.format(
+                                "Invalid TLS configuration: both selfSigned and ACME provisioners generate a %s "
+                                        + "certificate using the same secret '%s'. This would cause certificates to "
+                                        + "override each other.", componentName, ssSecret
+                        )
                 );
             }
         }

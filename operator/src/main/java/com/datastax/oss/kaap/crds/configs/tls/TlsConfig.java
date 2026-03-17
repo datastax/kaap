@@ -189,8 +189,67 @@ public class TlsConfig {
         String email;
         @JsonPropertyDescription("Secret storing the ACME account private key.")
         String privateKeySecretName;
+        @JsonPropertyDescription("ACME challenge solvers. Solvers are evaluated in order; no domain-based routing")
+        List<SolverConfig> solvers;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SolverConfig {
+        @JsonPropertyDescription("HTTP01 solver configuration.")
+        Http01Config http01;
+        @JsonPropertyDescription("DNS01 solver configuration.")
+        Dns01Config dns01;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Http01Config {
         @JsonPropertyDescription("Ingress class used for HTTP01 challenge.")
         String ingressClass;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Dns01Config {
+        Route53Config route53;
+        CloudflareConfig cloudflare;
+        GoogleCloudDnsConfig cloudDNS;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Route53Config {
+        String region;
+        String hostedZoneId;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CloudflareConfig {
+        String email;
+        String apiTokenSecretName;
+        String apiTokenSecretKey;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class GoogleCloudDnsConfig {
+        String project;
+        String serviceAccountSecretName;
+        String serviceAccountSecretKey;
     }
 
     @Data

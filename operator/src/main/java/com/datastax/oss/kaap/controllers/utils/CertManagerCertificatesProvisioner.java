@@ -28,6 +28,12 @@ import com.datastax.oss.kaap.crds.GlobalSpec;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig;
 import com.datastax.oss.kaap.crds.configs.tls.TlsConfig.ComponentCertificateConfig;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEChallengeSolver;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEChallengeSolverBuilder;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEChallengeSolverDNS01Builder;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEChallengeSolverHTTP01Builder;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEChallengeSolverHTTP01IngressBuilder;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEIssuerBuilder;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.CertificateBuilder;
 import io.fabric8.certmanager.api.model.v1.CertificatePrivateKey;
@@ -220,28 +226,99 @@ public class CertManagerCertificatesProvisioner {
         }
     }
 
+    public static void validateAcmeIssuerConfig(TlsConfig.AcmeIssuerConfig config) {
+        if (config.getSolvers() == null || config.getSolvers().isEmpty()) {
+            throw new IllegalArgumentException("At least one ACME solver must be configured");
+        }
+        for (TlsConfig.SolverConfig solver : config.getSolvers()) {
+            int count = 0;
+            if (solver.getHttp01() != null) count++;
+            if (solver.getDns01() != null) count++;
+            if (count != 1) {
+                throw new IllegalArgumentException(
+                        "Exactly one of http01 or dns01 must be configured per solver");
+            }
+            if (solver.getDns01() != null) {
+                TlsConfig.Dns01Config dns = solver.getDns01();
+                int providers = 0;
+                if (dns.getRoute53() != null) providers++;
+                if (dns.getCloudflare() != null) providers++;
+                if (dns.getCloudDNS() != null) providers++;
+                if (providers != 1) {
+                    throw new IllegalArgumentException(
+                            "Exactly one DNS provider must be configured per solver");
+                }
+            }
+        }
+    }
+
     private void createAcmeIssuer() {
         TlsConfig.AcmeIssuerConfig issuerConfig = acme.getIssuer();
-        final Issuer issuer = new IssuerBuilder()
+        validateAcmeIssuerConfig(issuerConfig);
+        List<ACMEChallengeSolver> solvers = new ArrayList<>();
+
+        for (TlsConfig.SolverConfig solver : issuerConfig.getSolvers()) {
+            ACMEChallengeSolverBuilder solverBuilder = new ACMEChallengeSolverBuilder();
+            if (solver.getHttp01() != null) {
+                TlsConfig.Http01Config http = solver.getHttp01();
+                solverBuilder.withHttp01(
+                        new ACMEChallengeSolverHTTP01Builder()
+                                .withIngress(
+                                        new ACMEChallengeSolverHTTP01IngressBuilder()
+                                                .withIngressClassName(http.getIngressClass())
+                                                .build()
+                                )
+                                .build()
+                );
+            }
+
+            if (solver.getDns01() != null) {
+                TlsConfig.Dns01Config dns = solver.getDns01();
+                ACMEChallengeSolverDNS01Builder dnsBuilder = new ACMEChallengeSolverDNS01Builder();
+                if (dns.getRoute53() != null) {
+                    TlsConfig.Route53Config r = dns.getRoute53();
+                    dnsBuilder
+                            .withNewRoute53()
+                            .withRegion(r.getRegion())
+                            .withHostedZoneID(r.getHostedZoneId())
+                            .endRoute53();
+                } else if (dns.getCloudflare() != null) {
+                    TlsConfig.CloudflareConfig cf = dns.getCloudflare();
+                    dnsBuilder
+                            .withNewCloudflare()
+                            .withEmail(cf.getEmail())
+                            .withNewApiTokenSecretRef(cf.getApiTokenSecretKey(), cf.getApiTokenSecretName())
+                            .endCloudflare();
+                } else if (dns.getCloudDNS() != null) {
+                    TlsConfig.GoogleCloudDnsConfig g = dns.getCloudDNS();
+                    dnsBuilder
+                            .withNewCloudDNS()
+                            .withProject(g.getProject())
+                            .withNewServiceAccountSecretRef(g.getServiceAccountSecretKey(),
+                                    g.getServiceAccountSecretName())
+                            .endCloudDNS();
+                }
+                solverBuilder.withDns01(dnsBuilder.build());
+            }
+            solvers.add(solverBuilder.build());
+        }
+
+        Issuer issuer = new IssuerBuilder()
                 .withNewMetadata()
                 .withName(issuerConfig.getName())
                 .withNamespace(namespace)
                 .endMetadata()
                 .withNewSpec()
-                .withNewAcme()
-                .withServer(issuerConfig.getServer())
-                .withEmail(issuerConfig.getEmail())
-                .withNewPrivateKeySecretRef()
-                .withName(issuerConfig.getPrivateKeySecretName())
-                .endPrivateKeySecretRef()
-                .addNewSolver()
-                .withNewHttp01()
-                .withNewIngress()
-                .withIngressClassName(issuerConfig.getIngressClass())
-                .endIngress()
-                .endHttp01()
-                .endSolver()
-                .endAcme()
+                .withAcme(
+                        new ACMEIssuerBuilder()
+                                .withServer(issuerConfig.getServer())
+                                .withEmail(issuerConfig.getEmail())
+                                .withNewPrivateKeySecretRef()
+                                .withName(issuerConfig.getPrivateKeySecretName())
+                                .endPrivateKeySecretRef()
+                                .withSolvers(solvers)
+                                .build()
+                )
                 .endSpec()
                 .build();
         client.resource(issuer).inNamespace(namespace).createOrReplace();
@@ -467,6 +544,7 @@ public class CertManagerCertificatesProvisioner {
         log.debug("Created self-signed root CA certificate");
     }
 
+    //TODO remove duplicate code
     private void validateProvisionersConfig() {
         if (selfSigned == null || acme == null) {
             return;

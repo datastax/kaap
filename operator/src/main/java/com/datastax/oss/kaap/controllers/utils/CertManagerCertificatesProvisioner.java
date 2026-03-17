@@ -250,8 +250,12 @@ public class CertManagerCertificatesProvisioner {
         }
         for (TlsConfig.SolverConfig solver : config.getSolvers()) {
             int count = 0;
-            if (solver.getHttp01() != null) count++;
-            if (solver.getDns01() != null) count++;
+            if (solver.getHttp01() != null) {
+                count++;
+            }
+            if (solver.getDns01() != null) {
+                count++;
+            }
             if (count != 1) {
                 throw new IllegalArgumentException(
                         "Exactly one of http01 or dns01 must be configured per solver");
@@ -259,9 +263,15 @@ public class CertManagerCertificatesProvisioner {
             if (solver.getDns01() != null) {
                 TlsConfig.Dns01Config dns = solver.getDns01();
                 int providers = 0;
-                if (dns.getRoute53() != null) providers++;
-                if (dns.getCloudflare() != null) providers++;
-                if (dns.getCloudDNS() != null) providers++;
+                if (dns.getRoute53() != null) {
+                    providers++;
+                }
+                if (dns.getCloudflare() != null) {
+                    providers++;
+                }
+                if (dns.getCloudDNS() != null) {
+                    providers++;
+                }
                 if (providers != 1) {
                     throw new IllegalArgumentException(
                             "Exactly one DNS provider must be configured per solver");

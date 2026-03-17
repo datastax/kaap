@@ -1774,9 +1774,6 @@ spec:
                                   email:
                                     description: "Email used for ACME registration."
                                     type: "string"
-                                  ingressClass:
-                                    description: "Ingress class used for HTTP01 challenge."
-                                    type: "string"
                                   name:
                                     description: "Name of the Issuer resource."
                                     type: "string"
@@ -1787,6 +1784,50 @@ spec:
                                   server:
                                     description: "ACME server URL."
                                     type: "string"
+                                  solvers:
+                                    description: "ACME challenge solvers. Solvers\
+                                      \ are evaluated in order; no domain-based routing"
+                                    items:
+                                      properties:
+                                        dns01:
+                                          description: "DNS01 solver configuration."
+                                          properties:
+                                            cloudDNS:
+                                              properties:
+                                                project:
+                                                  type: "string"
+                                                serviceAccountSecretKey:
+                                                  type: "string"
+                                                serviceAccountSecretName:
+                                                  type: "string"
+                                              type: "object"
+                                            cloudflare:
+                                              properties:
+                                                apiTokenSecretKey:
+                                                  type: "string"
+                                                apiTokenSecretName:
+                                                  type: "string"
+                                                email:
+                                                  type: "string"
+                                              type: "object"
+                                            route53:
+                                              properties:
+                                                hostedZoneId:
+                                                  type: "string"
+                                                region:
+                                                  type: "string"
+                                              type: "object"
+                                          type: "object"
+                                        http01:
+                                          description: "HTTP01 solver configuration."
+                                          properties:
+                                            ingressClass:
+                                              description: "Ingress class used for\
+                                                \ HTTP01 challenge."
+                                              type: "string"
+                                          type: "object"
+                                      type: "object"
+                                    type: "array"
                                 type: "object"
                               privateKey:
                                 description: "Cert-manager options for generating\

@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.commons.lang3.ObjectUtils;
@@ -224,7 +225,23 @@ public class CertManagerCertificatesProvisioner {
                     acme.getPrivateKey()
             );
         }
-        // TODO external certificate support
+        if (acme.getExternal() != null) {
+            for (Map.Entry<String, ComponentCertificateConfig> entry : acme.getExternal().entrySet()) {
+                final String serviceName = entry.getKey();
+                final ComponentCertificateConfig config = entry.getValue();
+
+                if (Boolean.TRUE.equals(config.getGenerate())) {
+                    createCertificatePerComponent(
+                            config,
+                            serviceName,
+                            config.getSecretName(),
+                            mergeDnsNames(null, config),
+                            issuerName,
+                            acme.getPrivateKey()
+                    );
+                }
+            }
+        }
     }
 
     public static void validateAcmeIssuerConfig(TlsConfig.AcmeIssuerConfig config) {
@@ -561,6 +578,7 @@ public class CertManagerCertificatesProvisioner {
                 acme.getProxy(),
                 globalSpec.getTls().getProxy()
         );
+        validateExternal(selfSigned.getExternal(), acme.getExternal());
     }
 
     private void validateComponent(
@@ -584,7 +602,7 @@ public class CertManagerCertificatesProvisioner {
                     tlsEntryConfig.getSecretName()
             );
 
-            if (ObjectUtils.equals(ssSecret, acmeSecret)) {
+            if (Objects.equals(ssSecret, acmeSecret)) {
                 throw new IllegalArgumentException(
                         String.format(
                                 "Invalid TLS configuration: both selfSigned and ACME provisioners generate a %s "
@@ -592,6 +610,38 @@ public class CertManagerCertificatesProvisioner {
                                         + "override each other.", componentName, ssSecret
                         )
                 );
+            }
+        }
+    }
+
+    private void validateExternal(Map<String, ComponentCertificateConfig> selfSignedExternal,
+            Map<String, ComponentCertificateConfig> acmeExternal) {
+
+        if (selfSignedExternal == null || acmeExternal == null) {
+            return;
+        }
+        for (Map.Entry<String, ComponentCertificateConfig> entry : selfSignedExternal.entrySet()) {
+            String serviceName = entry.getKey();
+            ComponentCertificateConfig ssConfig = entry.getValue();
+            ComponentCertificateConfig acmeConfig = acmeExternal.get(serviceName);
+            if (acmeConfig == null) {
+                continue;
+            }
+            if (Boolean.TRUE.equals(ssConfig.getGenerate())
+                    && Boolean.TRUE.equals(acmeConfig.getGenerate())) {
+
+                String ssSecret = ssConfig.getSecretName();
+                String acmeSecret = acmeConfig.getSecretName();
+
+                if (Objects.equals(ssSecret, acmeSecret)) {
+                    throw new IllegalArgumentException(
+                            String.format("Invalid TLS configuration: both selfSigned and ACME provisioners generate an"
+                                            + " external certificate for service '%s' using the same secret '%s'. "
+                                            + "This would cause certificates to override each other.", serviceName,
+                                    ssSecret
+                            )
+                    );
+                }
             }
         }
     }

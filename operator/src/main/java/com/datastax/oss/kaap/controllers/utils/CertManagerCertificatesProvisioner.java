@@ -405,7 +405,9 @@ public class CertManagerCertificatesProvisioner {
             for (Map.Entry<String, ComponentCertificateConfig> entry
                     : selfSigned.getExternal().entrySet()) {
                 final ComponentCertificateConfig config = entry.getValue();
-                dnsNames.addAll(getBaseK8sDnsNames(config, entry.getKey()));
+                if (Boolean.TRUE.equals(config.getGenerate())) {
+                    dnsNames.addAll(getBaseK8sDnsNames(config, entry.getKey()));
+                }
             }
         }
         return dnsNames;

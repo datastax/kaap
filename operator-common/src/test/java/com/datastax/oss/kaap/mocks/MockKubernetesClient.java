@@ -195,6 +195,7 @@ public class MockKubernetesClient {
             final NamespaceableResource interaction =
                     Mockito.mock(NamespaceableResource.class);
             when(interaction.inNamespace(eq(namespace))).thenReturn(interaction);
+            when(interaction.forceConflicts()).thenReturn(interaction);
             when(interaction.create()).thenAnswer(ic1 -> {
                 addCreatedResource(ic);
                 return null;
@@ -217,6 +218,7 @@ public class MockKubernetesClient {
             final Resource resourceMock = Mockito.mock(Resource.class);
             when(interaction.resource(any(HasMetadata.class))).thenAnswer(ic2 -> {
                 final Resource mockedResource = resourceMock;
+                when(mockedResource.forceConflicts()).thenReturn(mockedResource);
                 when(mockedResource.create()).thenAnswer(ic3 -> {
                     addCreatedResource(ic2);
                     return null;

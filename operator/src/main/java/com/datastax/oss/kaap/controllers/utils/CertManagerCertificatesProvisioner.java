@@ -349,7 +349,7 @@ public class CertManagerCertificatesProvisioner {
                 )
                 .endSpec()
                 .build();
-        client.resource(issuer).inNamespace(namespace).createOrReplace();
+        client.resource(issuer).inNamespace(namespace).forceConflicts().serverSideApply();
     }
 
     private void createAutorecoveryCertificate() {
@@ -379,7 +379,8 @@ public class CertManagerCertificatesProvisioner {
 
         client.resource(caCertificate)
                 .inNamespace(namespace)
-                .createOrReplace();
+                .forceConflicts()
+                .serverSideApply();
     }
 
     private void createCertificatePerComponent(final ComponentCertificateConfig componentConfig,
@@ -513,7 +514,8 @@ public class CertManagerCertificatesProvisioner {
                 .build();
         client.resource(certificate)
                 .inNamespace(namespace)
-                .createOrReplace();
+                .forceConflicts()
+                .serverSideApply();
         log.debugf("Created certificate %s mapped to secret %s", name, secretName);
     }
 
@@ -533,7 +535,8 @@ public class CertManagerCertificatesProvisioner {
 
         client.resource(ssIssuer)
                 .inNamespace(namespace)
-                .createOrReplace();
+                .forceConflicts()
+                .serverSideApply();
 
         final Certificate caCertificate = new CertificateBuilder()
                 .withNewMetadata()
@@ -554,7 +557,8 @@ public class CertManagerCertificatesProvisioner {
 
         client.resource(caCertificate)
                 .inNamespace(namespace)
-                .createOrReplace();
+                .forceConflicts()
+                .serverSideApply();
 
         final Issuer caIssuer = new IssuerBuilder()
                 .withNewMetadata()
@@ -570,7 +574,8 @@ public class CertManagerCertificatesProvisioner {
 
         client.resource(caIssuer)
                 .inNamespace(namespace)
-                .createOrReplace();
+                .forceConflicts()
+                .serverSideApply();
         log.debug("Created self-signed root CA certificate");
     }
 

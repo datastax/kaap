@@ -54,7 +54,7 @@
         <commons-codec.version>1.15</commons-codec.version>
         <commons-lang3.version>3.19.0</commons-lang3.version>
         <jjwt.version>0.11.5</jjwt.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
         <jsonassert.version>1.5.1</jsonassert.version>
         <awaitility.version>4.2.0</awaitility.version>

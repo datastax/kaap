@@ -18,10 +18,11 @@ package com.datastax.oss.kaap.controllers.utils;
 import com.datastax.oss.kaap.common.SerializationUtil;
 import com.datastax.oss.kaap.crds.cluster.PulsarClusterSpec;
 import com.datastax.oss.kaap.mocks.MockKubernetesClient;
+import io.fabric8.certmanager.api.model.acme.v1.ACMEChallengeSolver;
 import io.fabric8.certmanager.api.model.v1.Certificate;
 import io.fabric8.certmanager.api.model.v1.Issuer;
+import org.junit.jupiter.api.Test;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
 public class CertManagerCertificatesProvisionerTest {
 
@@ -449,6 +450,243 @@ public class CertManagerCertificatesProvisionerTest {
                           - client auth
                         """);
 
+    }
+
+    @Test
+    public void testAcmeIssuerHttp01() {
+        final MockKubernetesClient mockKubernetesClient = generateCertificates("""
+                global:
+                  name: pul
+                  tls:
+                    enabled: true
+                    broker:
+                      enabled: true
+                      secretName: pul-broker-tls
+                    certProvisioner:
+                      acme:
+                        enabled: true
+                        broker:
+                          generate: true
+                          secretName: pul-broker-tls
+                        issuer:
+                          name: pul-acme-issuer
+                          server: https://acme-v02.api.letsencrypt.org/directory
+                          email: admin@example.com
+                          privateKeySecretName: pul-acme-account-key
+                          solvers:
+                            - http01:
+                                ingressClass: nginx
+                """);
+
+        final Issuer issuer = mockKubernetesClient
+                .getCreatedResource(Issuer.class, "pul-acme-issuer")
+                .getResource();
+        assertAcmeIssuerBase(issuer);
+        Assert.assertEquals(issuer.getSpec().getAcme().getSolvers().size(), 1);
+
+        final ACMEChallengeSolver solver = issuer.getSpec().getAcme().getSolvers().getFirst();
+        Assert.assertNotNull(solver.getHttp01());
+        Assert.assertNotNull(solver.getHttp01().getIngress());
+        Assert.assertEquals(solver.getHttp01().getIngress().getIngressClassName(), "nginx");
+        Assert.assertNull(solver.getDns01());
+    }
+
+    @Test
+    public void testAcmeIssuerRoute53() {
+        final MockKubernetesClient mockKubernetesClient = generateCertificates("""
+                global:
+                  name: pul
+                  tls:
+                    enabled: true
+                    broker:
+                      enabled: true
+                      secretName: pul-broker-tls
+                    certProvisioner:
+                      acme:
+                        enabled: true
+                        broker:
+                          generate: true
+                          secretName: pul-broker-tls
+                        issuer:
+                          name: pul-acme-issuer
+                          server: https://acme-v02.api.letsencrypt.org/directory
+                          email: admin@example.com
+                          privateKeySecretName: pul-acme-account-key
+                          solvers:
+                            - dns01:
+                                route53:
+                                  region: us-east-1
+                                  hostedZoneId: Z123456789
+                """);
+
+        final Issuer issuer = mockKubernetesClient
+                .getCreatedResource(Issuer.class, "pul-acme-issuer")
+                .getResource();
+        assertAcmeIssuerBase(issuer);
+        Assert.assertEquals(issuer.getSpec().getAcme().getSolvers().size(), 1);
+
+        final ACMEChallengeSolver solver = issuer.getSpec().getAcme().getSolvers().getFirst();
+        Assert.assertNull(solver.getHttp01());
+        Assert.assertNotNull(solver.getDns01());
+        Assert.assertNotNull(solver.getDns01().getRoute53());
+        Assert.assertEquals(solver.getDns01().getRoute53().getRegion(), "us-east-1");
+        Assert.assertEquals(solver.getDns01().getRoute53().getHostedZoneID(), "Z123456789");
+        Assert.assertNull(solver.getDns01().getCloudflare());
+        Assert.assertNull(solver.getDns01().getCloudDNS());
+    }
+
+    @Test
+    public void testAcmeIssuerCloudflare() {
+        final MockKubernetesClient mockKubernetesClient = generateCertificates("""
+                global:
+                  name: pul
+                  tls:
+                    enabled: true
+                    broker:
+                      enabled: true
+                      secretName: pul-broker-tls
+                    certProvisioner:
+                      acme:
+                        enabled: true
+                        broker:
+                          generate: true
+                          secretName: pul-broker-tls
+                        issuer:
+                          name: pul-acme-issuer
+                          server: https://acme-v02.api.letsencrypt.org/directory
+                          email: admin@example.com
+                          privateKeySecretName: pul-acme-account-key
+                          solvers:
+                            - dns01:
+                                cloudflare:
+                                  email: cf-admin@example.com
+                                  apiTokenSecretName: cf-api-token
+                                  apiTokenSecretKey: token
+                """);
+
+        final Issuer issuer = mockKubernetesClient
+                .getCreatedResource(Issuer.class, "pul-acme-issuer")
+                .getResource();
+        assertAcmeIssuerBase(issuer);
+        Assert.assertEquals(issuer.getSpec().getAcme().getSolvers().size(), 1);
+
+        final ACMEChallengeSolver solver = issuer.getSpec().getAcme().getSolvers().getFirst();
+        Assert.assertNull(solver.getHttp01());
+        Assert.assertNotNull(solver.getDns01());
+        Assert.assertNotNull(solver.getDns01().getCloudflare());
+        Assert.assertEquals(solver.getDns01().getCloudflare().getEmail(), "cf-admin@example.com");
+        Assert.assertEquals(solver.getDns01().getCloudflare().getApiTokenSecretRef().getName(),
+                "cf-api-token");
+        Assert.assertEquals(solver.getDns01().getCloudflare().getApiTokenSecretRef().getKey(), "token");
+        Assert.assertNull(solver.getDns01().getRoute53());
+        Assert.assertNull(solver.getDns01().getCloudDNS());
+    }
+
+    @Test
+    public void testAcmeIssuerCloudDns() {
+        final MockKubernetesClient mockKubernetesClient = generateCertificates("""
+                global:
+                  name: pul
+                  tls:
+                    enabled: true
+                    broker:
+                      enabled: true
+                      secretName: pul-broker-tls
+                    certProvisioner:
+                      acme:
+                        enabled: true
+                        broker:
+                          generate: true
+                          secretName: pul-broker-tls
+                        issuer:
+                          name: pul-acme-issuer
+                          server: https://acme-v02.api.letsencrypt.org/directory
+                          email: admin@example.com
+                          privateKeySecretName: pul-acme-account-key
+                          solvers:
+                            - dns01:
+                                cloudDNS:
+                                  project: my-gcp-project
+                                  serviceAccountSecretName: gcp-sa-secret
+                                  serviceAccountSecretKey: service-account.json
+                """);
+
+        final Issuer issuer = mockKubernetesClient
+                .getCreatedResource(Issuer.class, "pul-acme-issuer")
+                .getResource();
+        assertAcmeIssuerBase(issuer);
+        Assert.assertEquals(issuer.getSpec().getAcme().getSolvers().size(), 1);
+
+        final ACMEChallengeSolver solver = issuer.getSpec().getAcme().getSolvers().getFirst();
+        Assert.assertNull(solver.getHttp01());
+        Assert.assertNotNull(solver.getDns01());
+        Assert.assertNotNull(solver.getDns01().getCloudDNS());
+        Assert.assertEquals(solver.getDns01().getCloudDNS().getProject(), "my-gcp-project");
+        Assert.assertEquals(
+                solver.getDns01().getCloudDNS().getServiceAccountSecretRef().getName(),
+                "gcp-sa-secret"
+        );
+        Assert.assertEquals(
+                solver.getDns01().getCloudDNS().getServiceAccountSecretRef().getKey(),
+                "service-account.json"
+        );
+        Assert.assertNull(solver.getDns01().getRoute53());
+        Assert.assertNull(solver.getDns01().getCloudflare());
+    }
+
+    @Test
+    public void testAcmeCertificateGeneration() {
+        final MockKubernetesClient mockKubernetesClient = generateCertificates("""
+                global:
+                  name: pul
+                  tls:
+                    enabled: true
+                    broker:
+                      enabled: true
+                      secretName: pul-broker-tls
+                    certProvisioner:
+                      acme:
+                        enabled: true
+                        broker:
+                          generate: true
+                          secretName: pul-broker-tls
+                        issuer:
+                          name: pul-acme-issuer
+                          server: https://acme-v02.api.letsencrypt.org/directory
+                          email: admin@example.com
+                          privateKeySecretName: pul-acme-account-key
+                          solvers:
+                            - http01:
+                                ingressClass: nginx
+                """);
+
+        final Certificate brokerCertificate =
+                mockKubernetesClient.getCreatedResource(Certificate.class, "pul-broker-tls").getResource();
+        Assert.assertNotNull(brokerCertificate);
+        Assert.assertEquals(brokerCertificate.getSpec().getIssuerRef().getName(), "pul-acme-issuer");
+        Assert.assertEquals(brokerCertificate.getSpec().getSecretName(), "pul-broker-tls");
+
+        final Issuer issuer = mockKubernetesClient
+                .getCreatedResource(Issuer.class, "pul-acme-issuer")
+                .getResource();
+        Assert.assertNotNull(issuer);
+        Assert.assertEquals(issuer.getSpec().getAcme().getSolvers().size(), 1);
+    }
+
+    private static void assertAcmeIssuerBase(Issuer issuer) {
+        Assert.assertNotNull(issuer);
+        Assert.assertEquals(issuer.getMetadata().getName(), "pul-acme-issuer");
+        Assert.assertEquals(issuer.getMetadata().getNamespace(), NAMESPACE);
+
+        Assert.assertNotNull(issuer.getSpec());
+        Assert.assertNotNull(issuer.getSpec().getAcme());
+        Assert.assertEquals(
+                issuer.getSpec().getAcme().getServer(),
+                "https://acme-v02.api.letsencrypt.org/directory"
+        );
+        Assert.assertEquals(issuer.getSpec().getAcme().getEmail(), "admin@example.com");
+        Assert.assertEquals(issuer.getSpec().getAcme().getPrivateKeySecretRef().getName(),
+                "pul-acme-account-key");
     }
 
     private MockKubernetesClient generateCertificates(String spec) {

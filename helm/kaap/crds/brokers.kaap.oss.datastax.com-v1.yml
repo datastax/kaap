@@ -4961,6 +4961,198 @@ spec:
                       certProvisioner:
                         description: "Certificate provisioner configuration."
                         properties:
+                          acme:
+                            description: "ACME certificate provisioner configuration."
+                            properties:
+                              broker:
+                                description: "Broker self signed certificate config."
+                                properties:
+                                  dnsNames:
+                                    description: "A list of DNS names (and IP addresses)\
+                                      \ to include in the certificate's Subject Alternative\
+                                      \ Names (SANs) extension."
+                                    items:
+                                      type: "string"
+                                    type: "array"
+                                  generate:
+                                    description: "Generate certificate for the component."
+                                    type: "boolean"
+                                  privateKey:
+                                    description: "Cert-manager options for generating\
+                                      \ the private key."
+                                    properties:
+                                      algorithm:
+                                        type: "string"
+                                      encoding:
+                                        type: "string"
+                                      rotationPolicy:
+                                        type: "string"
+                                      size:
+                                        type: "integer"
+                                    type: "object"
+                                  secretName:
+                                    description: "The name of the Kubernetes Secret\
+                                      \ where the generated certificate and key will\
+                                      \ be stored whe perComponent is enabled. Required\
+                                      \ for external services. Internal services pick\
+                                      \ up the secret name from the tls config if\
+                                      \ not specified"
+                                    type: "string"
+                                type: "object"
+                              enabled:
+                                description: "Generate self signed certificates for\
+                                  \ broker, proxy and functions worker."
+                                type: "boolean"
+                              external:
+                                additionalProperties:
+                                  properties:
+                                    dnsNames:
+                                      description: "A list of DNS names (and IP addresses)\
+                                        \ to include in the certificate's Subject\
+                                        \ Alternative Names (SANs) extension."
+                                      items:
+                                        type: "string"
+                                      type: "array"
+                                    generate:
+                                      description: "Generate certificate for the component."
+                                      type: "boolean"
+                                    privateKey:
+                                      description: "Cert-manager options for generating\
+                                        \ the private key."
+                                      properties:
+                                        algorithm:
+                                          type: "string"
+                                        encoding:
+                                          type: "string"
+                                        rotationPolicy:
+                                          type: "string"
+                                        size:
+                                          type: "integer"
+                                      type: "object"
+                                    secretName:
+                                      description: "The name of the Kubernetes Secret\
+                                        \ where the generated certificate and key\
+                                        \ will be stored whe perComponent is enabled.\
+                                        \ Required for external services. Internal\
+                                        \ services pick up the secret name from the\
+                                        \ tls config if not specified"
+                                      type: "string"
+                                  type: "object"
+                                description: "External services self signed certificate\
+                                  \ config (e.g., admin console, grafana). The key\
+                                  \ is the service name, and the value contains generation\
+                                  \ config"
+                                type: "object"
+                              issuer:
+                                description: "ACME issuer configuration."
+                                properties:
+                                  email:
+                                    description: "Email used for ACME registration."
+                                    type: "string"
+                                  name:
+                                    description: "Name of the Issuer resource."
+                                    type: "string"
+                                  privateKeySecretName:
+                                    description: "Secret storing the ACME account\
+                                      \ private key."
+                                    type: "string"
+                                  server:
+                                    description: "ACME server URL."
+                                    type: "string"
+                                  solvers:
+                                    description: "ACME challenge solvers. Solvers\
+                                      \ are evaluated in order; no domain-based routing"
+                                    items:
+                                      properties:
+                                        dns01:
+                                          description: "DNS01 solver configuration."
+                                          properties:
+                                            cloudDNS:
+                                              properties:
+                                                project:
+                                                  type: "string"
+                                                serviceAccountSecretKey:
+                                                  type: "string"
+                                                serviceAccountSecretName:
+                                                  type: "string"
+                                              type: "object"
+                                            cloudflare:
+                                              properties:
+                                                apiTokenSecretKey:
+                                                  type: "string"
+                                                apiTokenSecretName:
+                                                  type: "string"
+                                                email:
+                                                  type: "string"
+                                              type: "object"
+                                            route53:
+                                              properties:
+                                                hostedZoneId:
+                                                  type: "string"
+                                                region:
+                                                  type: "string"
+                                              type: "object"
+                                          type: "object"
+                                        http01:
+                                          description: "HTTP01 solver configuration."
+                                          properties:
+                                            ingressClass:
+                                              description: "Ingress class used for\
+                                                \ HTTP01 challenge."
+                                              type: "string"
+                                          type: "object"
+                                      type: "object"
+                                    type: "array"
+                                type: "object"
+                              privateKey:
+                                description: "Cert-manager options for generating\
+                                  \ the private key."
+                                properties:
+                                  algorithm:
+                                    type: "string"
+                                  encoding:
+                                    type: "string"
+                                  rotationPolicy:
+                                    type: "string"
+                                  size:
+                                    type: "integer"
+                                type: "object"
+                              proxy:
+                                description: "Proxy self signed certificate config."
+                                properties:
+                                  dnsNames:
+                                    description: "A list of DNS names (and IP addresses)\
+                                      \ to include in the certificate's Subject Alternative\
+                                      \ Names (SANs) extension."
+                                    items:
+                                      type: "string"
+                                    type: "array"
+                                  generate:
+                                    description: "Generate certificate for the component."
+                                    type: "boolean"
+                                  privateKey:
+                                    description: "Cert-manager options for generating\
+                                      \ the private key."
+                                    properties:
+                                      algorithm:
+                                        type: "string"
+                                      encoding:
+                                        type: "string"
+                                      rotationPolicy:
+                                        type: "string"
+                                      size:
+                                        type: "integer"
+                                    type: "object"
+                                  secretName:
+                                    description: "The name of the Kubernetes Secret\
+                                      \ where the generated certificate and key will\
+                                      \ be stored whe perComponent is enabled. Required\
+                                      \ for external services. Internal services pick\
+                                      \ up the secret name from the tls config if\
+                                      \ not specified"
+                                    type: "string"
+                                type: "object"
+                            type: "object"
                           selfSigned:
                             description: "Self signed certificate provisioner configuration."
                             properties:
@@ -4971,14 +5163,12 @@ spec:
                                   dnsNames:
                                     description: "A list of DNS names (and IP addresses)\
                                       \ to include in the certificate's Subject Alternative\
-                                      \ Names (SANs) extension along with the default\
-                                      \ K8s service DNS."
+                                      \ Names (SANs) extension."
                                     items:
                                       type: "string"
                                     type: "array"
                                   generate:
-                                    description: "Generate self signed certificates\
-                                      \ for the component."
+                                    description: "Generate certificate for the component."
                                     type: "boolean"
                                   privateKey:
                                     description: "Cert-manager options for generating\
@@ -5008,14 +5198,12 @@ spec:
                                   dnsNames:
                                     description: "A list of DNS names (and IP addresses)\
                                       \ to include in the certificate's Subject Alternative\
-                                      \ Names (SANs) extension along with the default\
-                                      \ K8s service DNS."
+                                      \ Names (SANs) extension."
                                     items:
                                       type: "string"
                                     type: "array"
                                   generate:
-                                    description: "Generate self signed certificates\
-                                      \ for the component."
+                                    description: "Generate certificate for the component."
                                     type: "boolean"
                                   privateKey:
                                     description: "Cert-manager options for generating\
@@ -5045,14 +5233,12 @@ spec:
                                   dnsNames:
                                     description: "A list of DNS names (and IP addresses)\
                                       \ to include in the certificate's Subject Alternative\
-                                      \ Names (SANs) extension along with the default\
-                                      \ K8s service DNS."
+                                      \ Names (SANs) extension."
                                     items:
                                       type: "string"
                                     type: "array"
                                   generate:
-                                    description: "Generate self signed certificates\
-                                      \ for the component."
+                                    description: "Generate certificate for the component."
                                     type: "boolean"
                                   privateKey:
                                     description: "Cert-manager options for generating\
@@ -5089,14 +5275,12 @@ spec:
                                     dnsNames:
                                       description: "A list of DNS names (and IP addresses)\
                                         \ to include in the certificate's Subject\
-                                        \ Alternative Names (SANs) extension along\
-                                        \ with the default K8s service DNS."
+                                        \ Alternative Names (SANs) extension."
                                       items:
                                         type: "string"
                                       type: "array"
                                     generate:
-                                      description: "Generate self signed certificates\
-                                        \ for the component."
+                                      description: "Generate certificate for the component."
                                       type: "boolean"
                                     privateKey:
                                       description: "Cert-manager options for generating\
@@ -5132,14 +5316,12 @@ spec:
                                   dnsNames:
                                     description: "A list of DNS names (and IP addresses)\
                                       \ to include in the certificate's Subject Alternative\
-                                      \ Names (SANs) extension along with the default\
-                                      \ K8s service DNS."
+                                      \ Names (SANs) extension."
                                     items:
                                       type: "string"
                                     type: "array"
                                   generate:
-                                    description: "Generate self signed certificates\
-                                      \ for the component."
+                                    description: "Generate certificate for the component."
                                     type: "boolean"
                                   privateKey:
                                     description: "Cert-manager options for generating\
@@ -5190,14 +5372,12 @@ spec:
                                   dnsNames:
                                     description: "A list of DNS names (and IP addresses)\
                                       \ to include in the certificate's Subject Alternative\
-                                      \ Names (SANs) extension along with the default\
-                                      \ K8s service DNS."
+                                      \ Names (SANs) extension."
                                     items:
                                       type: "string"
                                     type: "array"
                                   generate:
-                                    description: "Generate self signed certificates\
-                                      \ for the component."
+                                    description: "Generate certificate for the component."
                                     type: "boolean"
                                   privateKey:
                                     description: "Cert-manager options for generating\
@@ -5227,14 +5407,12 @@ spec:
                                   dnsNames:
                                     description: "A list of DNS names (and IP addresses)\
                                       \ to include in the certificate's Subject Alternative\
-                                      \ Names (SANs) extension along with the default\
-                                      \ K8s service DNS."
+                                      \ Names (SANs) extension."
                                     items:
                                       type: "string"
                                     type: "array"
                                   generate:
-                                    description: "Generate self signed certificates\
-                                      \ for the component."
+                                    description: "Generate certificate for the component."
                                     type: "boolean"
                                   privateKey:
                                     description: "Cert-manager options for generating\

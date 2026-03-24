@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
@@ -119,53 +120,149 @@ public class TlsConfig {
     public static class CertProvisionerConfig {
         @JsonPropertyDescription("Self signed certificate provisioner configuration.")
         SelfSignedCertProvisionerConfig selfSigned;
-
+        @JsonPropertyDescription("ACME certificate provisioner configuration.")
+        AcmeCertProvisionerConfig acme;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class SelfSignedCertProvisionerConfig {
+    @SuperBuilder
+    public static class BaseCertProvisionerConfig {
         @JsonPropertyDescription("Generate self signed certificates for broker, proxy and functions worker.")
         Boolean enabled;
-        @JsonPropertyDescription("Include dns name in the DNS names covered by the certificate.")
-        Boolean includeDns;
         @JsonPropertyDescription("Cert-manager options for generating the private key.")
         CertificatePrivateKey privateKey;
+        @JsonPropertyDescription("Broker self signed certificate config.")
+        ComponentCertificateConfig broker;
+        @JsonPropertyDescription("Proxy self signed certificate config.")
+        ComponentCertificateConfig proxy;
+        @JsonPropertyDescription("External services self signed certificate config (e.g., admin console, grafana). "
+                + "The key is the service name, and the value contains generation config")
+        Map<String, ComponentCertificateConfig> external;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder
+    @EqualsAndHashCode(callSuper = true)
+    @ToString(callSuper = true)
+    public static class SelfSignedCertProvisionerConfig extends BaseCertProvisionerConfig {
+        @JsonPropertyDescription("Include dns name in the DNS names covered by the certificate.")
+        Boolean includeDns;
         @JsonPropertyDescription("Generate a different certificate for each component.")
         Boolean perComponent;
         @JsonPropertyDescription("Secret where to store the root CA certificate.")
         String caSecretName;
-
         @JsonPropertyDescription("Zookeeper self signed certificate config.")
-        SelfSignedCertificatePerComponentConfig zookeeper;
+        ComponentCertificateConfig zookeeper;
         @JsonPropertyDescription("Bookkeeper self signed certificate config.")
-        SelfSignedCertificatePerComponentConfig bookkeeper;
-        @JsonPropertyDescription("Broker self signed certificate config.")
-        SelfSignedCertificatePerComponentConfig broker;
-        @JsonPropertyDescription("Proxy self signed certificate config.")
-        SelfSignedCertificatePerComponentConfig proxy;
+        ComponentCertificateConfig bookkeeper;
         @JsonPropertyDescription("Functions worker self signed certificate config.")
-        SelfSignedCertificatePerComponentConfig functionsWorker;
+        ComponentCertificateConfig functionsWorker;
         @JsonPropertyDescription("Autorecovery self signed certificate config.")
-        SelfSignedCertificatePerComponentConfig autorecovery;
-        @JsonPropertyDescription("External services self signed certificate config (e.g., admin console, grafana). "
-                + "The key is the service name, and the value contains generation config")
-        Map<String, SelfSignedCertificatePerComponentConfig> external;
+        ComponentCertificateConfig autorecovery;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder
+    @EqualsAndHashCode(callSuper = true)
+    @ToString(callSuper = true)
+    public static class AcmeCertProvisionerConfig extends BaseCertProvisionerConfig {
+        @JsonPropertyDescription("ACME issuer configuration.")
+        AcmeIssuerConfig issuer;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class SelfSignedCertificatePerComponentConfig {
-        @JsonPropertyDescription("Generate self signed certificates for the component.")
+    public static class AcmeIssuerConfig {
+        @JsonPropertyDescription("Name of the Issuer resource.")
+        String name;
+        @JsonPropertyDescription("ACME server URL.")
+        String server;
+        @JsonPropertyDescription("Email used for ACME registration.")
+        String email;
+        @JsonPropertyDescription("Secret storing the ACME account private key.")
+        String privateKeySecretName;
+        @JsonPropertyDescription("ACME challenge solvers. Solvers are evaluated in order; no domain-based routing")
+        List<SolverConfig> solvers;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SolverConfig {
+        @JsonPropertyDescription("HTTP01 solver configuration.")
+        Http01Config http01;
+        @JsonPropertyDescription("DNS01 solver configuration.")
+        Dns01Config dns01;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Http01Config {
+        @JsonPropertyDescription("Ingress class used for HTTP01 challenge.")
+        String ingressClass;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Dns01Config {
+        Route53Config route53;
+        CloudflareConfig cloudflare;
+        GoogleCloudDnsConfig cloudDNS;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Route53Config {
+        String region;
+        String hostedZoneId;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CloudflareConfig {
+        String email;
+        String apiTokenSecretName;
+        String apiTokenSecretKey;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class GoogleCloudDnsConfig {
+        String project;
+        String serviceAccountSecretName;
+        String serviceAccountSecretKey;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ComponentCertificateConfig {
+        @JsonPropertyDescription("Generate certificate for the component.")
         Boolean generate;
         @JsonPropertyDescription("Cert-manager options for generating the private key.")
         CertificatePrivateKey privateKey;
         @JsonPropertyDescription("A list of DNS names (and IP addresses) to include in the certificate's Subject "
-                + "Alternative Names (SANs) extension along with the default K8s service DNS.")
+                + "Alternative Names (SANs) extension.")
         List<String> dnsNames;
         @JsonPropertyDescription("The name of the Kubernetes Secret where the generated certificate "
                 + "and key will be stored whe perComponent is enabled. Required for external services. "

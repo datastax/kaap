@@ -61645,10 +61645,673 @@ Certificate provisioner configuration.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracme">acme</a></b></td>
+        <td>object</td>
+        <td>
+          ACME certificate provisioner configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecglobaltlscertprovisionerselfsigned">selfSigned</a></b></td>
         <td>object</td>
         <td>
           Self signed certificate provisioner configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme
+
+
+
+ACME certificate provisioner configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmebroker">broker</a></b></td>
+        <td>object</td>
+        <td>
+          Broker self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Generate self signed certificates for broker, proxy and functions worker.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeexternalkey">external</a></b></td>
+        <td>map[string]object</td>
+        <td>
+          External services self signed certificate config (e.g., admin console, grafana). The key is the service name, and the value contains generation config<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuer">issuer</a></b></td>
+        <td>object</td>
+        <td>
+          ACME issuer configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeproxy">proxy</a></b></td>
+        <td>object</td>
+        <td>
+          Proxy self signed certificate config.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.broker
+
+
+
+Broker self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate certificate for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmebrokerprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.broker.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.external[key]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate certificate for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeexternalkeyprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.external[key].privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer
+
+
+
+ACME issuer configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>email</b></td>
+        <td>string</td>
+        <td>
+          Email used for ACME registration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the Issuer resource.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>privateKeySecretName</b></td>
+        <td>string</td>
+        <td>
+          Secret storing the ACME account private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>server</b></td>
+        <td>string</td>
+        <td>
+          ACME server URL.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuersolversindex">solvers</a></b></td>
+        <td>[]object</td>
+        <td>
+          ACME challenge solvers. Solvers are evaluated in order; no domain-based routing<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer.solvers[index]
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuersolversindexdns01">dns01</a></b></td>
+        <td>object</td>
+        <td>
+          DNS01 solver configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuersolversindexhttp01">http01</a></b></td>
+        <td>object</td>
+        <td>
+          HTTP01 solver configuration.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer.solvers[index].dns01
+
+
+
+DNS01 solver configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuersolversindexdns01clouddns">cloudDNS</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuersolversindexdns01cloudflare">cloudflare</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeissuersolversindexdns01route53">route53</a></b></td>
+        <td>object</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer.solvers[index].dns01.cloudDNS
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>project</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountSecretKey</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccountSecretName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer.solvers[index].dns01.cloudflare
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>apiTokenSecretKey</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>apiTokenSecretName</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>email</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer.solvers[index].dns01.route53
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>hostedZoneId</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>region</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.issuer.solvers[index].http01
+
+
+
+HTTP01 solver configuration.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>ingressClass</b></td>
+        <td>string</td>
+        <td>
+          Ingress class used for HTTP01 challenge.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.proxy
+
+
+
+Proxy self signed certificate config.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>dnsNames</b></td>
+        <td>[]string</td>
+        <td>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>generate</b></td>
+        <td>boolean</td>
+        <td>
+          Generate certificate for the component.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#pulsarclusterspecglobaltlscertprovisioneracmeproxyprivatekey">privateKey</a></b></td>
+        <td>object</td>
+        <td>
+          Cert-manager options for generating the private key.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          The name of the Kubernetes Secret where the generated certificate and key will be stored whe perComponent is enabled. Required for external services. Internal services pick up the secret name from the tls config if not specified<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PulsarCluster.spec.global.tls.certProvisioner.acme.proxy.privateKey
+
+
+
+Cert-manager options for generating the private key.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>algorithm</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>encoding</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>rotationPolicy</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>size</b></td>
+        <td>integer</td>
+        <td>
+          <br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -61777,14 +62440,14 @@ Autorecovery self signed certificate config.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -61871,14 +62534,14 @@ Bookkeeper self signed certificate config.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -61965,14 +62628,14 @@ Broker self signed certificate config.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -62059,14 +62722,14 @@ Cert-manager options for generating the private key.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -62153,14 +62816,14 @@ Functions worker self signed certificate config.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -62294,14 +62957,14 @@ Proxy self signed certificate config.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -62388,14 +63051,14 @@ Zookeeper self signed certificate config.
         <td><b>dnsNames</b></td>
         <td>[]string</td>
         <td>
-          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension along with the default K8s service DNS.<br/>
+          A list of DNS names (and IP addresses) to include in the certificate's Subject Alternative Names (SANs) extension.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>generate</b></td>
         <td>boolean</td>
         <td>
-          Generate self signed certificates for the component.<br/>
+          Generate certificate for the component.<br/>
         </td>
         <td>false</td>
       </tr><tr>

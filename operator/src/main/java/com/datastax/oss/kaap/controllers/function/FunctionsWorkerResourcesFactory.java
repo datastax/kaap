@@ -494,6 +494,7 @@ public class FunctionsWorkerResourcesFactory extends BaseResourcesFactory<Functi
                 .withNewSpec()
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
+                .withMinReadySeconds(spec.getMinReadySeconds())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()

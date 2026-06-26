@@ -46,6 +46,7 @@ public final class CRDConstants {
     public static final String DOC_POD_MATCH_LABELS = "Match labels selectors to add to each pod.";
     public static final String DOC_CONFIG = "Configuration.";
     public static final String DOC_REPLICAS = "Number of desired replicas.";
+    public static final String DOC_MIN_READY_SECONDS = "Min seconds to wait before considering the pod as ready.";
     public static final String DOC_GRACE_PERIOD = "Termination grace period in seconds.";
     public static final String DOC_RESOURCES = "Resources requirements.";
     public static final String DOC_TOLERATIONS = "Pod tolerations.";

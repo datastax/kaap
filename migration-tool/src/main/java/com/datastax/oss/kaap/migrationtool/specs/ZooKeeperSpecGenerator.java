@@ -114,6 +114,7 @@ public class ZooKeeperSpecGenerator extends BaseSpecGenerator<ZooKeeperSpec> {
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
+                .minReadySeconds(statefulSetSpec.getMinReadySeconds())
                 .probes(createProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)

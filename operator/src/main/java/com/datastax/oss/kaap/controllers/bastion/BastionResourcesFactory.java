@@ -176,6 +176,7 @@ public class BastionResourcesFactory extends BaseResourcesFactory<BastionSpec> {
                 .endMetadata()
                 .withNewSpec()
                 .withReplicas(spec.getReplicas())
+                .withMinReadySeconds(spec.getMinReadySeconds())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()

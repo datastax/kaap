@@ -347,6 +347,7 @@ public class BookKeeperResourcesFactory extends BaseResourcesFactory<BookKeeperS
                 .withNewSpec()
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
+                .withMinReadySeconds(spec.getMinReadySeconds())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()

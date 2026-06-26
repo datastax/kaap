@@ -192,6 +192,7 @@ public class AutorecoveryResourcesFactory extends BaseResourcesFactory<Autorecov
                 .endMetadata()
                 .withNewSpec()
                 .withReplicas(spec.getReplicas())
+                .withMinReadySeconds(spec.getMinReadySeconds())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()

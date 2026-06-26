@@ -67,6 +67,8 @@ public class AutorecoverySpec extends ValidableSpec<AutorecoverySpec> implements
     protected Map<String, Object> config;
     @JsonPropertyDescription(CRDConstants.DOC_REPLICAS)
     protected Integer replicas;
+    @JsonPropertyDescription(CRDConstants.DOC_MIN_READY_SECONDS)
+    private Integer minReadySeconds;
     @JsonPropertyDescription(CRDConstants.DOC_ANNOTATIONS)
     private Map<String, String> annotations;
     @JsonPropertyDescription(CRDConstants.DOC_POD_ANNOTATIONS)

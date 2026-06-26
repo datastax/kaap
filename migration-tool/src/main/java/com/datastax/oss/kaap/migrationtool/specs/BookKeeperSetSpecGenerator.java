@@ -117,6 +117,7 @@ public class BookKeeperSetSpecGenerator extends BaseSpecGenerator<BookKeeperSetS
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
+                .minReadySeconds(statefulSetSpec.getMinReadySeconds())
                 .probes(createProbeConfig(container))
                 .nodeAffinity(nodeAffinity)
                 .pdb(podDisruptionBudgetConfig)

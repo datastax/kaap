@@ -121,6 +121,7 @@ public class FunctionsWorkerSpecGenerator extends BaseSpecGenerator<FunctionsWor
                 .imagePullPolicy(mainContainer.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(statefulSetSpec.getReplicas())
+                .minReadySeconds(statefulSetSpec.getMinReadySeconds())
                 .nodeAffinity(nodeAffinity)
                 .probes(createProbeConfig(mainContainer))
                 .labels(statefulSet.getMetadata().getLabels())

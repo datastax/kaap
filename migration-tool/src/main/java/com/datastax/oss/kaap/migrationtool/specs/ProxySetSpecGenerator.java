@@ -122,6 +122,7 @@ public class ProxySetSpecGenerator extends BaseSpecGenerator<ProxySetSpec> {
                 .imagePullPolicy(mainContainer.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(deploymentSpec.getReplicas())
+                .minReadySeconds(deploymentSpec.getMinReadySeconds())
                 .nodeAffinity(nodeAffinity)
                 .probes(createProbeConfig(mainContainer))
                 .labels(deployment.getMetadata().getLabels())

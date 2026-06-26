@@ -410,6 +410,7 @@ public class BrokerResourcesFactory extends BaseResourcesFactory<BrokerSetSpec> 
                 .withNewSpec()
                 .withServiceName(resourceName)
                 .withReplicas(spec.getReplicas())
+                .withMinReadySeconds(spec.getMinReadySeconds())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()

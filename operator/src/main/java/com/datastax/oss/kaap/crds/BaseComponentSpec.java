@@ -51,6 +51,8 @@ public abstract class BaseComponentSpec<T> extends ValidableSpec<T> implements W
     private PodDisruptionBudgetConfig pdb;
     @JsonPropertyDescription("Mount additional volumes to the pod.")
     private AdditionalVolumesConfig additionalVolumes;
+    @JsonPropertyDescription(CRDConstants.DOC_MIN_READY_SECONDS)
+    private Integer minReadySeconds;
     @JsonPropertyDescription(CRDConstants.DOC_TOLERATIONS)
     private List<Toleration> tolerations;
     @JsonPropertyDescription(CRDConstants.DOC_NODE_AFFINITY)

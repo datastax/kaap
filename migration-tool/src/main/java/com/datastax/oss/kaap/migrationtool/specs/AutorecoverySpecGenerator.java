@@ -96,6 +96,7 @@ public class AutorecoverySpecGenerator extends BaseSpecGenerator<AutorecoverySpe
                 .imagePullPolicy(container.getImagePullPolicy())
                 .nodeSelectors(spec.getNodeSelector())
                 .replicas(deploymentSpec.getReplicas())
+                .minReadySeconds(deploymentSpec.getMinReadySeconds())
                 .nodeAffinity(nodeAffinity)
                 .labels(deployment.getMetadata().getLabels())
                 .podLabels(deploymentSpec.getTemplate().getMetadata().getLabels())

@@ -530,6 +530,7 @@ public class ProxyResourcesFactory extends BaseResourcesFactory<ProxySetSpec> {
                 .endMetadata()
                 .withNewSpec()
                 .withReplicas(spec.getReplicas())
+                .withMinReadySeconds(spec.getMinReadySeconds())
                 .withNewSelector()
                 .withMatchLabels(getMatchLabels(spec.getMatchLabels()))
                 .endSelector()

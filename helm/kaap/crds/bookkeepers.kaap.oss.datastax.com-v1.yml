@@ -1452,6 +1452,10 @@ spec:
                       type: "string"
                     description: "Match labels selectors to add to each pod."
                     type: "object"
+                  minReadySeconds:
+                    description: "Min seconds to wait before considering the pod as\
+                      \ ready."
+                    type: "integer"
                   nodeAffinity:
                     description: "Node affinity configuration."
                     properties:
@@ -3133,6 +3137,10 @@ spec:
                             type: "string"
                           description: "Match labels selectors to add to each pod."
                           type: "object"
+                        minReadySeconds:
+                          description: "Min seconds to wait before considering the\
+                            \ pod as ready."
+                          type: "integer"
                         nodeAffinity:
                           description: "Node affinity configuration."
                           properties:

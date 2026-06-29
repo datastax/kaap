@@ -235,6 +235,13 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecautorecoverynodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -6015,6 +6022,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         <td>map[string]string</td>
         <td>
           Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -11833,6 +11847,13 @@ Subset of PodSecurityContext for basic UID, GID, and volume access control.
         <td>map[string]string</td>
         <td>
           Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -18990,6 +19011,13 @@ Service configuration.
         <td>map[string]string</td>
         <td>
           Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -31555,6 +31583,13 @@ Indicates if a StorageClass is used. The operator will create the StorageClass i
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecbrokernodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -38726,6 +38761,13 @@ Service configuration.
         <td>map[string]string</td>
         <td>
           Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -51137,6 +51179,13 @@ Update strategy for the StatefulSet.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecfunctionsworkernodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -63421,6 +63470,13 @@ TLS configurations related to the ZooKeeper component.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pulsarclusterspecproxynodeaffinity">nodeAffinity</a></b></td>
         <td>object</td>
         <td>
@@ -70480,6 +70536,13 @@ Service configuration.
         <td>map[string]string</td>
         <td>
           Match labels selectors to add to each pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -83097,6 +83160,13 @@ Resources requirements.
         <td>object</td>
         <td>
           Configuration about the job that initializes the Pulsar cluster creating the needed ZooKeeper nodes.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minReadySeconds</b></td>
+        <td>integer</td>
+        <td>
+          Min seconds to wait before considering the pod as ready.<br/>
         </td>
         <td>false</td>
       </tr><tr>

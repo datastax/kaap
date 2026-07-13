@@ -29,6 +29,6 @@ public class Pulsar3TlsTest extends TlsTest {
     @Test
     public void testGlobal() throws Exception {
         test(false, true);
-
+        testWithAcme(true);
     }
 }

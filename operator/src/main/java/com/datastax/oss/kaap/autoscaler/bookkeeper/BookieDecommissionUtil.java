@@ -27,8 +27,20 @@ public class BookieDecommissionUtil {
 
     public static int decommissionBookies(List<BookieAdminClient.BookieInfo> allBookies, int numToDecommission,
                                           BookieAdminClient bookieAdminClient) {
+        // allBookies must be in ascending StatefulSet ordinal order. Kubernetes removes the highest
+        // ordinal first, so the bookies to decommission are the ones at the end of the list.
         List<BookieAdminClient.BookieInfo> bookiesToRemove = new ArrayList<>();
         int sz = allBookies.size();
+        if (numToDecommission > sz) {
+            // The pod list is smaller than the set we are scaling down, so it is incomplete. Stop
+            // here. Continuing would decommission every bookie we can see, including ones that must
+            // stay. The controller retries the reconciliation, by which time the list should be
+            // complete.
+            throw new IllegalStateException(
+                    "Asked to decommission %d bookies but only %d are visible. The pod list looks "
+                            .formatted(numToDecommission, sz)
+                            + "incomplete, so no bookie will be decommissioned.");
+        }
         for (int i = sz - 1; i >= sz - numToDecommission; i--) {
             bookiesToRemove.add(allBookies.get(i));
         }

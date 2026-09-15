@@ -220,10 +220,33 @@ public class BookKeeperController extends
                         spec.getBookkeeper().getBookKeeperSetSpecRef(setInfo.getName());
                 if (lastAppliedSetSpec != null && desiredSetSpec != null) {
 
-                    final int currentReplicas = lastAppliedSetSpec.getReplicas().intValue();
+                    final int annotationReplicas = lastAppliedSetSpec.getReplicas().intValue();
                     final int desiredReplicas = desiredSetSpec.getReplicas().intValue();
+
+                    // Read the live StatefulSet replica count to guard against stale annotation values. When bookies
+                    // were manually decommissioned and pods deleted outside of KAAP, the lastApplied annotation still
+                    // reflects the old replica count while the StatefulSet has already been scaled down. Using the
+                    // annotation value directly would attempt to decommission bookies that no longer exist or would
+                    // attempt to decommission wrong bookies.
+                    final StatefulSet currentSts = setInfo.getResourceFactory().getStatefulSet();
+                    final int actualReplicas = (currentSts != null
+                            && currentSts.getStatus() != null
+                            && currentSts.getStatus().getReplicas() != null)
+                            ? currentSts.getStatus().getReplicas()
+                            : annotationReplicas;
+
+                    // Use the smaller of the annotation and actual replica counts so that already-removed bookies are
+                    // not counted as needing decommission.
+                    final int currentReplicas = Math.min(annotationReplicas, actualReplicas);
                     final int delta = currentReplicas - desiredReplicas;
-                    if (delta > 0) {
+
+                    if (delta <= 0) {
+                        log.infof(
+                                "Skipping bookie decommission for bookkeeper-set '%s': "
+                                + "StatefulSet already has %d replica(s) (lastApplied=%d, desired=%d); "
+                                + "bookies were likely scaled down manually",
+                                setInfo.getName(), actualReplicas, annotationReplicas, desiredReplicas);
+                    } else {
                         final BookieAdminClient bookieAdminClient =
                                 createBookieAdminClient(resource.getMetadata().getNamespace(),
                                         setInfo.getName(), lastApplied);

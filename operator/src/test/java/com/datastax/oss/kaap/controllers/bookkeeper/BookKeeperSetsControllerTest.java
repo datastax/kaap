@@ -1158,6 +1158,71 @@ public class BookKeeperSetsControllerTest {
                 3);
     }
 
+    /**
+     * Regression test for the case where {@code lastApplied} annotation shows a high replica count
+     * (e.g. 12) while the live StatefulSet already has fewer replicas (e.g. 3) because bookies
+     * were manually decommissioned and pods deleted outside of KAAP.
+     *
+     * <p>When the desired spec is also reduced to 3, the delta between the actual live count and
+     * the desired count is 0. KAAP must skip decommissioning entirely and reconcile cleanly,
+     * reaching the Ready state {@code Ready}.
+     */
+    @Test
+    public void testDownscalingSkippedWhenStsAlreadyScaledDownManually() throws Exception {
+        // Step 1 – establish a lastApplied annotation that records 12 replicas.
+        String specWith12Replicas = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 12
+                """;
+        MockResourcesResolver resolver = new MockResourcesResolver();
+        MockKubernetesClient client = new MockKubernetesClient(NAMESPACE, resolver);
+        UpdateControl<BookKeeper> bookkeeperUpdateControl =
+                invokeController(specWith12Replicas, new BookKeeper(), client);
+        KubeTestUtil.assertUpdateControlInitializing(bookkeeperUpdateControl);
+        Assert.assertEquals(
+                (int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(), 12);
+
+        // Step 2 – simulate the StatefulSet having been manually scaled down to 3 replicas
+        // (bookies were decommissioned and pods deleted outside of KAAP).
+        // The STS is fully ready at 3 replicas — matching real production state after a
+        // manual scale-down: the existing pods are stable, revisions are in sync.
+        resolver.putResource("pul-bookkeeper",
+                resolver.newStatefulSetBuilder("pul-bookkeeper", true)
+                        .editStatus()
+                        .withReplicas(3)
+                        .withReadyReplicas(3)
+                        .withUpdatedReplicas(3)
+                        .endStatus()
+                        .build());
+
+        // Step 3 – reconcile with the desired spec also at 3 replicas.
+        // delta = min(lastApplied=12, actual=3) – desired=3 = 0, so no decommission should run.
+        String specWith3Replicas = """
+                global:
+                    name: pul
+                    persistence: false
+                    image: apachepulsar/pulsar:global
+                bookkeeper:
+                    replicas: 3
+                """;
+        client = new MockKubernetesClient(NAMESPACE, resolver);
+        bookkeeperUpdateControl = invokeController(
+                specWith3Replicas, bookkeeperUpdateControl.getResource().get(), client);
+
+        // Decommissioning was skipped: the STS is already stable so reconciliation reaches
+        // Ready — not ReconciliationError, which is what a spurious decommission attempt
+        // would produce (ArrayIndexOutOfBoundsException inside BookieDecommissionUtil when
+        // iterating past index 0 with delta=9 against only 3 live bookies; caught by the
+        // catch(Throwable) in AbstractController.reconcile()).
+        KubeTestUtil.assertUpdateControlReady(bookkeeperUpdateControl);
+        Assert.assertEquals(
+                (int) client.getCreatedResource(StatefulSet.class).getResource().getSpec().getReplicas(), 3);
+    }
+
     private void mockBookieAdminClient(int replicas) {
         final List<BookieAdminClient.BookieInfo> bookieInfos = new ArrayList<>();
         for (int i = 0; i < replicas; i++) {
